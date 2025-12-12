@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>KPR Client</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --kpr-red: #FF2A3A;
+            --kpr-black: #050505;
+            --kpr-dark: #0F0F0F;
+            --kpr-gray: #333333;
+            --kpr-white: #FFFFFF;
+        }
+
+        body {
+            font-family: 'Space Mono', monospace; /* KPR Style Typography */
+            background-color: var(--kpr-black);
+            color: var(--kpr-white);
+            overflow: hidden;
+            user-select: none;
+            background-image: 
+                linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+            background-size: 40px 40px;
+        }
+
+        /* Scrollbar Styling - Blocky and industrial */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: var(--kpr-black); 
+            border-left: 1px solid var(--kpr-gray);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--kpr-gray); 
+            border: 1px solid var(--kpr-black);
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--kpr-red); 
+        }
+
+        /* Utilities */
+        .text-kpr-red { color: var(--kpr-red); }
+        .bg-kpr-red { background-color: var(--kpr-red); }
+        .border-kpr-red { border-color: var(--kpr-red); }
+        
+        .font-mono { font-family: 'Space Mono', monospace; }
+        
+        /* Shape Clipping - 45 degree cut corners */
+        .clip-cut-corner {
+            clip-path: polygon(
+                0 0, 
+                100% 0, 
+                100% calc(100% - 12px), 
+                calc(100% - 12px) 100%, 
+                0 100%
+            );
+        }
+        
+        .clip-cut-corner-top-right {
+             clip-path: polygon(
+                0 0, 
+                calc(100% - 12px) 0, 
+                100% 12px, 
+                100% 100%, 
+                0 100%
+            );
+        }
+
+        /* Animations */
+        @keyframes spin-linear {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        .animate-spin-slow {
+            animation: spin-linear 10s linear infinite;
+        }
+
+        @keyframes scanline {
+            0% { transform: translateY(-100%); }
+            100% { transform: translateY(100%); }
+        }
+        .animate-scanline {
+            animation: scanline 4s linear infinite;
+        }
+
+        @keyframes blink {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0; }
+        }
+        .animate-blink {
+            animation: blink 1s step-end infinite;
+        }
+        
+        @keyframes fade-in {
+            from { opacity: 0; transform: translateY(5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in {
+            animation: fade-in 0.2s ease-out forwards;
+        }
+
+        @keyframes match-found-fade {
+            0% { opacity: 0; transform: scale(0.96); }
+            50% { opacity: 1; transform: scale(1); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+        .animate-match-found-fade {
+            animation: match-found-fade 0.6s ease-out forwards;
+        }
+
+        @keyframes pulse-border {
+            0% { box-shadow: 0 0 0 0 rgba(255, 42, 58, 0.35); opacity: 1; }
+            70% { box-shadow: 0 0 0 22px rgba(255, 42, 58, 0); opacity: 0; }
+            100% { box-shadow: 0 0 0 0 rgba(255, 42, 58, 0); opacity: 0; }
+        }
+        .animate-pulse-border {
+            animation: pulse-border 2s ease-out infinite;
+        }
+
+        /* Glitch Effect utility */
+        .glitch-hover:hover {
+            animation: blink 0.1s cubic-bezier(0.4, 0, 0.6, 1) 2;
+        }
+
+        /* KPR Text Glitch Animation */
+        @keyframes glitch-text {
+            0% { transform: translate(0); text-shadow: none; }
+            20% { transform: translate(-1px, 1px); text-shadow: 2px 0 #FF2A3A, -2px 0 #00FFFF; }
+            40% { transform: translate(1px, -1px); text-shadow: -2px 0 #FF2A3A, 2px 0 #00FFFF; }
+            60% { transform: translate(-1px, -1px); text-shadow: 2px 0 #FF2A3A, -2px 0 #00FFFF; }
+            80% { transform: translate(1px, 1px); text-shadow: -2px 0 #FF2A3A, 2px 0 #00FFFF; }
+            100% { transform: translate(0); text-shadow: none; }
+        }
+        
+        .hover-text-glitch:hover {
+            display: inline-block;
+            animation: glitch-text 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94) both infinite;
+            color: white; /* Ensure visibility during glitch */
+        }
+
+        @keyframes text-glow-pulse {
+            0%, 100% { text-shadow: 0 0 2px rgba(255, 42, 58, 0.2); }
+            50% { text-shadow: 0 0 10px rgba(255, 42, 58, 0.8), 0 0 2px rgba(255, 255, 255, 0.5); }
+        }
+        
+        .animate-text-glow {
+            animation: text-glow-pulse 3s infinite;
+        }
+    </style>
+  <script type="importmap">
+{
+  "imports": {
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.1/",
+    "react/": "https://aistudiocdn.com/react@^19.2.1/",
+    "react": "https://aistudiocdn.com/react@^19.2.1",
+    "lucide-react": "https://aistudiocdn.com/lucide-react@^0.556.0"
+  }
+}
+</script>
+<link rel="stylesheet" href="/index.css">
+</head>
+  <body>
+    <div id="root"></div>
+  <script type="module" src="/index.tsx"></script>
+</body>
+</html>
