@@ -1,10 +1,14 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Camera, Edit2, Check, X, Upload, Box, User, Shirt, Activity, Award } from 'lucide-react';
+import { Camera, Edit2, Check, X, Upload, Box, User, Activity, Award } from 'lucide-react';
 import { RewardVisual } from '../UI/RewardVisual';
-import { Mission, RewardConfig, InventoryItem } from '../../types';
+import { RewardConfig, InventoryItem } from '../../types';
 import { ASSETS } from '../../constants';
 import { playClickSound, playSuccessSound, playHoverSound } from '../../utils/SoundEffects';
 import { readFileAsDataUrl } from '../../utils/fileUtils';
+import { useXP } from '../XP/xpStore';
+import { LogCalendar } from '../XP/LogCalendar';
+import { Activity as ProfileActivity } from './Activity';
+import './ProfileHUD.css';
 
 declare global {
   namespace JSX {
@@ -23,7 +27,6 @@ declare global {
 }
 
 interface ProfileProps {
-  missions: Mission[];
   rewardConfigs: RewardConfig[];
 }
 
@@ -37,11 +40,20 @@ interface BioStats {
   email: string;
 }
 
-export const Profile: React.FC<ProfileProps> = ({ missions, rewardConfigs }) => {
-  const [activeTab, setActiveTab] = useState<'PROFILE' | 'OUTFIT' | 'HEALTH' | 'ACHIEVEMENTS'>('PROFILE');
+export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
+  const [activeTab, setActiveTab] = useState<'PROFILE' | 'HEALTH' | 'ACHIEVEMENTS' | 'ACTIVITY' | 'LOG'>('PROFILE');
   const [summonerName, setSummonerName] = useState(() => localStorage.getItem('profileName') || 'Summoner Name');
   const [profileImage, setProfileImage] = useState(() => localStorage.getItem('profileImage') || ASSETS.PROFILE_ICON);
   const [coverImage, setCoverImage] = useState(() => localStorage.getItem('profileCover') || ASSETS.BACKGROUND_HOME);
+  const [coverType, setCoverType] = useState<'image' | 'video'>(() => (localStorage.getItem('profileCoverType') as any) || 'image');
+  const [resolvedCoverUrl, setResolvedCoverUrl] = useState<string | null>(null);
+  const [coverFit, setCoverFit] = useState<'contain' | 'cover'>(() => {
+    try {
+      const v = localStorage.getItem('profileCoverFit');
+      if (v === 'contain' || v === 'cover') return v;
+    } catch {}
+    return 'cover';
+  });
   const [characterModel, setCharacterModel] = useState<string>('');
   const [roleText, setRoleText] = useState(() => localStorage.getItem('profileRole') || 'Mid_Lane');
   const [isEditingRole, setIsEditingRole] = useState(false);
@@ -170,9 +182,12 @@ export const Profile: React.FC<ProfileProps> = ({ missions, rewardConfigs }) => 
     return { HEAD: null, UPPER: null, LOWER: null, FEET: null, ACCESSORY_1: null, ACCESSORY_2: null };
   });
   const objectUrlRef = useRef<string | null>(null);
+  const { stats: xpStats, legacyXP, tasks, selectors, dateKey } = useXP();
 
   useEffect(() => localStorage.setItem('profileName', summonerName), [summonerName]);
   useEffect(() => localStorage.setItem('profileRole', roleText), [roleText]);
+  useEffect(() => { try { localStorage.setItem('profileCoverType', coverType); } catch {} }, [coverType]);
+  useEffect(() => { try { localStorage.setItem('profileCoverFit', coverFit); } catch {} }, [coverFit]);
   useEffect(() => {
     localStorage.setItem('profileBioStats', JSON.stringify(bioStats));
   }, [bioStats]);
@@ -223,15 +238,14 @@ export const Profile: React.FC<ProfileProps> = ({ missions, rewardConfigs }) => 
     return () => { if (objectUrlRef.current) URL.revokeObjectURL(objectUrlRef.current); };
   }, []);
 
-  const totalXP = missions.filter(m => m.completed).reduce((sum, m) => sum + (m.xp || 0), 0);
-  const todayStart = new Date(); todayStart.setHours(0,0,0,0);
-  const completedToday = missions.filter(m => m.completed && m.completedAt && m.completedAt >= todayStart.getTime()).length;
-  const activeMissions = missions.filter(m => !m.completed).length;
+  const totalXP = xpStats.totalEarnedXP;
+  const completedToday = selectors.getDayCompletions(dateKey).length;
+  const activeMissions = tasks.filter(task => task.status === 'todo' || task.status === 'active').length;
   const sortedConfigs = [...rewardConfigs].sort((a, b) => b.threshold - a.threshold);
   const currentLevelConfig = sortedConfigs.find(c => totalXP >= c.threshold);
   const nextConfig = [...rewardConfigs].sort((a, b) => a.threshold - b.threshold).find(c => c.threshold > totalXP);
   const levelProgress = nextConfig ? Math.min(100, Math.floor((totalXP / nextConfig.threshold) * 100)) : 100;
-  const currentMission = missions.find(m => !m.completed);
+  const currentMission = tasks.find(task => task.status === 'todo' || task.status === 'active');
 
   const handleImageClick = () => { playClickSound(); fileInputRef.current?.click(); };
   const handleCoverClick = () => { playClickSound(); coverInputRef.current?.click(); };
@@ -253,14 +267,69 @@ export const Profile: React.FC<ProfileProps> = ({ missions, rewardConfigs }) => 
     const file = e.target.files?.[0];
     if (!file) return;
     try {
-      const url = await readFileAsDataUrl(file);
-      setCoverImage(url);
-      localStorage.setItem('profileCover', url);
+      const mime = (file.type || '').toLowerCase();
+      const isVideo = mime.startsWith('video/') || /\.(mp4)$/i.test(file.name);
+      const nextType: 'image' | 'video' = isVideo ? 'video' : 'image';
+
+      // Prefer data URL for small files; fallback to IndexedDB for big covers.
+      // (This keeps it stable for later public sharing.)
+      const dataUrl = await readFileAsDataUrl(file);
+      const approxSize = dataUrl.length * 0.75; // bytes
+      const localLimit = 4.5 * 1024 * 1024;
+
+      let storedValue: string = dataUrl;
+      if (approxSize > localLimit) {
+        const idbKey = await saveCoverToDB(file);
+        storedValue = idbKey;
+      }
+
+      // clear old resolved object url
+      setResolvedCoverUrl(prev => {
+        if (prev) {
+          try { URL.revokeObjectURL(prev); } catch {}
+        }
+        return null;
+      });
+
+      setCoverType(nextType);
+      // default to fill so the cover always takes all space
+      setCoverFit('cover');
+      setCoverImage(storedValue);
+      localStorage.setItem('profileCover', storedValue);
       playSuccessSound();
     } catch (err) {
-      console.error('Failed to load cover image', err);
-    } finally { e.target.value = ''; }
+      console.error('Failed to load cover', err);
+    } finally {
+      e.target.value = '';
+    }
   };
+
+  // resolve cover if stored in IndexedDB
+  useEffect(() => {
+    if (!coverImage?.startsWith('idb:')) {
+      setResolvedCoverUrl(null);
+      return;
+    }
+
+    let cancelled = false;
+    loadCoverFromDB(coverImage)
+      .then(blob => {
+        if (cancelled) return;
+        if (!blob) return;
+        const url = URL.createObjectURL(blob);
+        setResolvedCoverUrl(prev => {
+          if (prev) {
+            try { URL.revokeObjectURL(prev); } catch {}
+          }
+          return url;
+        });
+      })
+      .catch(err => console.error('Failed to resolve cover', err));
+
+    return () => {
+      cancelled = true;
+    };
+  }, [coverImage]);
 
   const handleModelChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -298,6 +367,41 @@ export const Profile: React.FC<ProfileProps> = ({ missions, rewardConfigs }) => 
     req.onsuccess = () => resolve(req.result);
     req.onerror = () => reject(req.error);
   });
+
+  // Cover media DB (for mp4/gif/etc when too large for localStorage)
+  const openCoverDB = () => new Promise<IDBDatabase>((resolve, reject) => {
+    const req = indexedDB.open('ProfileCoverDB', 1);
+    req.onupgradeneeded = () => {
+      const db = req.result;
+      if (!db.objectStoreNames.contains('cover')) db.createObjectStore('cover');
+    };
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+
+  const saveCoverToDB = async (file: File) => {
+    const db = await openCoverDB();
+    const key = `cover-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+    const tx = db.transaction('cover', 'readwrite');
+    tx.objectStore('cover').put(file, key);
+    await new Promise((resolve, reject) => {
+      tx.oncomplete = () => resolve(null);
+      tx.onerror = () => reject(tx.error);
+    });
+    return `idb:${key}`;
+  };
+
+  const loadCoverFromDB = async (idbKey: string) => {
+    const key = idbKey.replace('idb:', '');
+    const db = await openCoverDB();
+    const tx = db.transaction('cover', 'readonly');
+    const req = tx.objectStore('cover').get(key);
+    const blob: Blob | undefined = await new Promise((resolve, reject) => {
+      req.onsuccess = () => resolve(req.result as Blob | undefined);
+      req.onerror = () => reject(req.error);
+    });
+    return blob || null;
+  };
 
   // Reuse inventory media persisted in Inventory view
   const openInventoryMediaDB = () => new Promise<IDBDatabase>((resolve, reject) => {
@@ -569,20 +673,20 @@ export const Profile: React.FC<ProfileProps> = ({ missions, rewardConfigs }) => 
   const TabButton: React.FC<{ label: string; value: typeof activeTab; icon: React.ReactNode }> = ({ label, value, icon }) => (
     <button
       onClick={() => setActiveTab(value)}
-      className={`px-3 py-1 border rounded-sm text-xs tracking-[0.2em] uppercase transition-colors flex items-center gap-2 ${
+      className={`px-3 py-1.5 border rounded-lg text-xs tracking-[0.2em] uppercase transition-all duration-200 flex items-center gap-2 ${
         activeTab === value
-          ? 'border-[#ff2a3a] bg-[#ff2a3a] text-white shadow-sm'
-          : 'border-[#d8dae0] bg-white text-[#555] hover:border-[#ff2a3a]'
+          ? 'border-[#f46a2e]/70 bg-[#2a1a12] text-[#f3f0e8] shadow-[0_0_18px_rgba(244,106,46,0.22)]'
+          : 'border-white/10 bg-[#141418] text-[#8b847a] hover:border-white/30 hover:text-[#f3f0e8]'
       }`}
     >
-      <span className="text-[#ff2a3a]">{icon}</span>
+      <span className={activeTab === value ? 'text-[#f46a2e]' : 'text-[#8b847a]'}>{icon}</span>
       {label}
     </button>
   );
 
 
   const dossierCard = (
-    <div className="bg-white border border-[#e2e4ea] rounded-lg shadow-sm relative overflow-hidden">
+    <div className="bg-[var(--ui-panel)] border border-[var(--ui-border)] rounded-lg shadow-sm relative overflow-hidden">
       <div className="p-4 space-y-4">
         <div className="flex items-center gap-4">
           <div 
@@ -598,14 +702,14 @@ export const Profile: React.FC<ProfileProps> = ({ missions, rewardConfigs }) => 
           </div>
         </div>
 
-        <div className="border border-[#e2e4ea] bg-[#f9fafc] p-3 space-y-2 rounded">
-          <div className="text-xs uppercase tracking-[0.2em] text-[#555]">Experience</div>
-          <div className="text-3xl font-black text-[#0f1115]">{totalXP} XP</div>
+        <div className="border border-[var(--ui-border)] bg-[var(--ui-panel-2)] p-3 space-y-2 rounded">
+          <div className="text-xs uppercase tracking-[0.2em] text-[var(--ui-muted)]">Experience</div>
+          <div className="text-3xl font-black text-[var(--ui-text)]">{totalXP} XP</div>
           {nextConfig && (
-            <div className="text-[11px] text-[#777] uppercase tracking-[0.2em]">Next Level {nextConfig.level}: {nextConfig.threshold} XP</div>
+            <div className="text-[11px] text-[var(--ui-muted)] uppercase tracking-[0.2em]">Next Level {nextConfig.level}: {nextConfig.threshold} XP</div>
           )}
-          <div className="w-full h-2 bg-white border border-[#e2e4ea] rounded">
-            <div className="h-full bg-gradient-to-r from-[#ff2a3a] to-[#f79b45] rounded" style={{ width: `${levelProgress}%` }}></div>
+          <div className="w-full h-2 bg-black/20 border border-[var(--ui-border)] rounded">
+            <div className="h-full bg-[var(--ui-accent)] rounded" style={{ width: `${levelProgress}%` }}></div>
           </div>
         </div>
 
@@ -627,7 +731,13 @@ export const Profile: React.FC<ProfileProps> = ({ missions, rewardConfigs }) => 
         >
           <Upload size={12}/> Change Cover
         </button>
-        <input ref={coverInputRef} type="file" className="hidden" accept="image/*" onChange={handleCoverChange} />
+        <input
+          ref={coverInputRef}
+          type="file"
+          className="hidden"
+          accept="image/png,image/jpeg,image/jpg,image/gif,image/svg+xml,video/mp4"
+          onChange={handleCoverChange}
+        />
       </div>
     </div>
   );
@@ -877,85 +987,6 @@ export const Profile: React.FC<ProfileProps> = ({ missions, rewardConfigs }) => 
             {statsCard}
           </div>
         );
-      case 'OUTFIT':
-        return (
-          <div className="grid lg:grid-cols-[380px,1fr] gap-6 items-start">
-            <div className="bg-white border border-[#e2e4ea] rounded-lg shadow-sm p-4 space-y-4">
-              <div className="flex items-center justify-between text-xs uppercase tracking-[0.2em] text-[#666] mb-2">
-                <span>Outfit Slots</span>
-                <span className="text-[#ff2a3a] font-semibold">Equip</span>
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                {outfitSlotsOrder.map(slot => {
-                  const itemId = equippedOutfit[slot];
-                  const item = availableOutfitItems.find(i => i.id === itemId) || null;
-                  const isSelected = selectedOutfitSlot === slot;
-                  return (
-                    <button
-                      key={slot}
-                      onClick={() => setSelectedOutfitSlot(slot)}
-                      className={`relative border rounded-md bg-[#f9fafc] overflow-hidden text-left transition-colors ${
-                        isSelected ? 'border-[#ff2a3a] shadow-[0_0_0_2px_rgba(255,42,58,0.15)]' : 'border-[#e2e4ea] hover:border-[#ff2a3a]'
-                      }`}
-                    >
-                      <div className="h-32 bg-white flex items-center justify-center border-b border-[#e2e4ea]">
-                        {renderOutfitMedia(item, 'slot')}
-                      </div>
-                      <div className="p-2">
-                        <div className="text-[11px] uppercase tracking-[0.15em] text-[#666]">{outfitSlotLabels[slot]}</div>
-                        <div className="text-sm font-semibold text-[#0f1115] truncate">{item ? item.name : 'Empty'}</div>
-                      </div>
-                      {item && (
-                        <div className="absolute top-2 right-2 text-[10px] text-[#ff2a3a] uppercase tracking-[0.15em]">Equipped</div>
-                      )}
-                    </button>
-                  );
-                })}
-              </div>
-              <div className="flex justify-end">
-                <button
-                  onClick={() => equipItemToSlot(selectedOutfitSlot, null)}
-                  className="px-3 py-2 text-[11px] uppercase tracking-[0.2em] border border-[#d8dae0] rounded bg-white hover:border-[#ff2a3a] text-[#555]"
-                >
-                  Clear Slot
-                </button>
-              </div>
-            </div>
-
-            <div className="bg-white border border-[#e2e4ea] rounded-lg shadow-sm p-4 space-y-4">
-              <div className="flex items-center justify-between text-xs uppercase tracking-[0.2em] text-[#666] mb-2">
-                <span>Available Items</span>
-                <span className="text-[#ff2a3a] font-semibold">{availableOutfitItems.length} Items</span>
-              </div>
-              <div className="grid sm:grid-cols-3 gap-3 max-h-[520px] overflow-y-auto pr-1">
-                {availableOutfitItems.map(item => (
-                  <button
-                    key={item.id}
-                    onClick={() => equipItemToSlot(selectedOutfitSlot, item.id)}
-                    className={`border rounded-md overflow-hidden bg-[#f9fafc] text-left transition-colors ${
-                      Object.values(equippedOutfit).includes(item.id)
-                        ? 'border-[#ff2a3a] shadow-[0_0_0_2px_rgba(255,42,58,0.15)]'
-                        : 'border-[#e2e4ea] hover:border-[#ff2a3a]'
-                    }`}
-                  >
-                    <div className="h-24 bg-white flex items-center justify-center border-b border-[#e2e4ea]">
-                      {renderOutfitMedia(item, 'list')}
-                    </div>
-                    <div className="p-2">
-                      <div className="text-[11px] uppercase tracking-[0.15em] text-[#777]">Outfit</div>
-                      <div className="text-sm font-semibold text-[#0f1115] truncate">{item.name}</div>
-                    </div>
-                  </button>
-                ))}
-                {!availableOutfitItems.length && (
-                  <div className="col-span-full text-sm text-[#777] border border-dashed border-[#d8dae0] rounded p-4 text-center">
-                    Add outfit items in Inventory to equip them here.
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        );
       case 'HEALTH':
         return (
           <div className="space-y-4">
@@ -1104,10 +1135,19 @@ export const Profile: React.FC<ProfileProps> = ({ missions, rewardConfigs }) => 
             })}
           </div>
         );
+      case 'LOG':
+        return <LogCalendar />;
+      case 'ACTIVITY':
+        return <ProfileActivity />;
       case 'ACHIEVEMENTS':
         return (
           <div className="grid lg:grid-cols-[1.1fr,0.9fr] gap-6">
             <div className="space-y-4">
+              <div className="bg-white border border-[#e2e4ea] rounded-lg shadow-sm p-4">
+                <div className="text-xs uppercase tracking-[0.2em] text-[#666] mb-3">Legacy XP</div>
+                <div className="text-2xl font-black text-[#0f1115]">{legacyXP} XP</div>
+                <div className="text-[11px] text-[#777]">Read-only snapshot from the old quest system.</div>
+              </div>
               <div className="bg-white border border-[#e2e4ea] rounded-lg shadow-sm p-4">
                 <div className="flex items-center justify-between text-xs uppercase tracking-[0.2em] text-[#666] mb-3">
                   <span className="flex items-center gap-2">
@@ -1172,7 +1212,6 @@ export const Profile: React.FC<ProfileProps> = ({ missions, rewardConfigs }) => 
                 </div>
               </div>
             </div>
-
             <div className="bg-white border border-[#e2e4ea] rounded-lg shadow-sm p-4">
               <div className="text-xs uppercase tracking-[0.2em] text-[#666] mb-3">Reward Visual</div>
               <div className="w-full h-[260px] border border-dashed border-[#e2e4ea] bg-[#f4f5f7] flex items-center justify-center">
@@ -1189,23 +1228,208 @@ export const Profile: React.FC<ProfileProps> = ({ missions, rewardConfigs }) => 
   };
 
   return (
-    <div className="p-8 h-full overflow-y-auto bg-[#f7f8fb] text-[#0f1115]">
-      <div className="flex items-center border-b border-[#e2e4ea] pb-3 mb-6 gap-2 flex-wrap">
+    <div className="profile-hud-theme p-8 h-full overflow-y-auto bg-[var(--ui-bg)] text-[var(--ui-text)]">
+      {/* HEADER (private profile) */}
+      <div className="relative overflow-hidden rounded-2xl border border-[var(--ui-border)] bg-[var(--ui-panel)]">
+        <div className="h-[340px] relative overflow-hidden">
+          {/* Cover media (image/video) */}
+          {(() => {
+            const src = coverImage?.startsWith('idb:') ? resolvedCoverUrl : coverImage;
+            if (!src) return null;
+
+            if (coverType === 'video' || src.startsWith('data:video') || src.endsWith('.mp4')) {
+              return (
+                <video
+                  src={src}
+                  className={`absolute inset-0 w-full h-full ${coverFit === 'cover' ? 'object-cover' : 'object-contain'}`}
+                  autoPlay
+                  loop
+                  muted
+                  playsInline
+                />
+              );
+            }
+
+            return (
+              <img
+                src={src}
+                alt="cover"
+                className={`absolute inset-0 w-full h-full ${coverFit === 'cover' ? 'object-cover' : 'object-contain'}`}
+              />
+            );
+          })()}
+
+          <div className="absolute inset-0 bg-gradient-to-t from-[rgba(0,0,0,0.78)] via-[rgba(0,0,0,0.18)] to-[rgba(0,0,0,0.10)]" />
+        </div>
+
+        {/* Cover edit */}
+        <div className="absolute top-4 right-4 z-10 flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setCoverFit(v => (v === 'cover' ? 'contain' : 'cover'))}
+            className="h-11 w-11 rounded-full border border-white/25 bg-black/35 backdrop-blur-sm hover:bg-black/55 hover:border-white/40 transition-all flex items-center justify-center"
+            title={coverFit === 'cover' ? 'Fit (no crop)' : 'Fill (crop)'}
+          >
+            <span className="text-white text-[10px] font-bold">{coverFit === 'cover' ? 'FILL' : 'FIT'}</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={handleCoverClick}
+            onMouseEnter={playHoverSound}
+            className="h-11 w-11 rounded-full border border-white/25 bg-black/35 backdrop-blur-sm hover:bg-black/55 hover:border-white/40 transition-all flex items-center justify-center"
+            title="Change cover"
+          >
+            <Upload size={18} className="text-white" />
+          </button>
+        </div>
+
+        {/* Header content */}
+        <div className="absolute inset-x-0 bottom-0 z-10 p-6">
+          {/* extra shadow behind text/content for readability on bright covers */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent pointer-events-none" />
+          <div className="relative flex items-end gap-5 flex-wrap">
+            {/* Avatar */}
+            <div
+              className="relative w-[140px] h-[140px] rounded-2xl border border-[var(--ui-border)] overflow-hidden bg-black/25"
+              onMouseEnter={playHoverSound}
+            >
+              <img src={profileImage} alt="Profile" className="w-full h-full object-cover" />
+              <button
+                type="button"
+                onClick={handleImageClick}
+                className="absolute inset-0 opacity-0 hover:opacity-100 transition-opacity bg-black/40 flex items-center justify-center"
+                title="Change avatar"
+              >
+                <Camera size={20} className="text-white" />
+              </button>
+              <input type="file" ref={fileInputRef} className="hidden" accept="image/png, image/jpeg, image/gif, image/jpg" onChange={handleFileChange} />
+            </div>
+
+            {/* Name / ID / Role */}
+            <div className="flex-1 min-w-[260px]">
+              <div className="text-[10px] uppercase tracking-[0.35em] text-white/80 drop-shadow-[0_2px_8px_rgba(0,0,0,0.75)]">PROFILE</div>
+
+              <div className="mt-2 flex items-center gap-3 flex-wrap">
+                {!isEditingName ? (
+                  <div className="text-3xl font-black tracking-tight text-white drop-shadow-[0_2px_10px_rgba(0,0,0,0.85)]">{summonerName}</div>
+                ) : (
+                  <input
+                    value={tempName}
+                    onChange={(e) => setTempName(e.target.value)}
+                    className="h-11 px-3 rounded border border-[var(--ui-border)] bg-black/30 text-white"
+                  />
+                )}
+
+                {!isEditingName ? (
+                  <button
+                    type="button"
+                    onClick={startEditingName}
+                    className="h-10 w-10 rounded-full border border-white/15 bg-black/25 text-white/80 hover:text-white hover:border-white/30"
+                    title="Edit name"
+                  >
+                    <Edit2 size={16} className="mx-auto" />
+                  </button>
+                ) : (
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={saveName}
+                      className="h-10 w-10 rounded-full border border-white/15 bg-black/25 text-white/80 hover:text-white hover:border-white/30"
+                      title="Save"
+                    >
+                      <Check size={16} className="mx-auto" />
+                    </button>
+                    <button
+                      type="button"
+                      onClick={cancelEdit}
+                      className="h-10 w-10 rounded-full border border-white/15 bg-black/25 text-white/80 hover:text-white hover:border-white/30"
+                      title="Cancel"
+                    >
+                      <X size={16} className="mx-auto" />
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              <div className="mt-2 flex items-center gap-3 flex-wrap">
+                <div className="text-[11px] uppercase tracking-[0.25em] text-white/70 drop-shadow-[0_2px_8px_rgba(0,0,0,0.75)]">{profileId}</div>
+                <div className="h-1 w-1 rounded-full bg-white/25" />
+                {!isEditingRole ? (
+                  <button
+                    type="button"
+                    onClick={() => setIsEditingRole(true)}
+                    className="text-[11px] uppercase tracking-[0.25em] text-[var(--ui-accent)] hover:text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.65)]"
+                    title="Edit role"
+                  >
+                    {roleText}
+                  </button>
+                ) : (
+                  <div className="flex items-center gap-2">
+                    <input
+                      value={roleText}
+                      onChange={(e) => setRoleText(e.target.value)}
+                      className="h-9 px-3 rounded border border-[var(--ui-border)] bg-black/30 text-white text-sm"
+                    />
+                    <button
+                      type="button"
+                      onClick={saveRole}
+                      className="h-9 px-3 rounded border border-[var(--ui-border)] bg-[var(--ui-accent)] text-white text-xs uppercase tracking-[0.2em]"
+                    >
+                      Save
+                    </button>
+                  </div>
+                )}
+              </div>
+
+              {/* Progress */}
+              <div className="mt-5 max-w-[520px]">
+                <div className="flex items-center justify-between text-[10px] uppercase tracking-[0.25em] text-white/70 drop-shadow-[0_2px_8px_rgba(0,0,0,0.75)]">
+                  <span>XP</span>
+                  <span>{totalXP} • {nextConfig ? `${nextConfig.threshold - totalXP} to L${nextConfig.level}` : 'Max'}</span>
+                </div>
+                <div className="mt-2 h-2 rounded bg-black/35 border border-white/10 overflow-hidden">
+                  <div className="h-full bg-[var(--ui-accent)]" style={{ width: `${Math.min(100, Math.max(0, levelProgress))}%` }} />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <input
+          ref={coverInputRef}
+          type="file"
+          className="hidden"
+          accept="image/png,image/jpeg,image/jpg,image/gif,image/svg+xml,video/mp4"
+          onChange={handleCoverChange}
+        />
+      </div>
+
+      {/* Tabs */}
+      <div className="mt-6 flex items-center border-b border-white/10 pb-3 mb-6 gap-2 flex-wrap">
         <TabButton label="PROFILE" value="PROFILE" icon={<User size={14} />} />
-        <TabButton label="OUTFIT" value="OUTFIT" icon={<Shirt size={14} />} />
         <TabButton label="HEALTH" value="HEALTH" icon={<Activity size={14} />} />
         <TabButton label="ACHIEVEMENTS" value="ACHIEVEMENTS" icon={<Award size={14} />} />
+        <TabButton label="ACTIVITY" value="ACTIVITY" icon={<Activity size={14} />} />
+        <TabButton label="LOG" value="LOG" icon={<Box size={14} />} />
       </div>
-      {renderTabContent()}
+
+      {/* Content */}
+      <div className="profile-content-surface">
+        {renderTabContent()}
+      </div>
     </div>
   );
 };
 
 const StatBar: React.FC<{ label: string; value: number; highlight?: boolean }> = ({ label, value, highlight }) => (
   <div className="space-y-1">
-    <div className={`text-[11px] uppercase tracking-[0.2em] ${highlight ? 'text-[#ff2a3a]' : 'text-[#666]'}`}>{label}</div>
-    <div className="w-full h-2 bg-[#f2f4f7] border border-[#e2e4ea] rounded">
-      <div className={`${highlight ? 'bg-gradient-to-r from-[#ff2a3a] to-[#f79b45]' : 'bg-[#c7ccd6]'} h-full rounded`} style={{ width: `${Math.min(100, Math.max(0, value))}%` }}></div>
+    <div className={`text-[11px] uppercase tracking-[0.2em] ${highlight ? 'text-[var(--ui-accent)]' : 'text-[var(--ui-muted)]'}`}>{label}</div>
+    <div className="w-full h-2 bg-black/20 border border-[var(--ui-border)] rounded">
+      <div
+        className={`${highlight ? 'bg-[var(--ui-accent)]' : 'bg-white/20'} h-full rounded`}
+        style={{ width: `${Math.min(100, Math.max(0, value))}%` }}
+      />
     </div>
   </div>
 );
