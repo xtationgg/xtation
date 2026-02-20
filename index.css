@@ -1,0 +1,278 @@
+/* Discord-like dark theme overrides (global)
+   Goal: no white sections; consistent dark UI across the app.
+*/
+
+:root {
+  /* Discord-ish palette */
+  --dc-bg: #1e1f22;
+  --dc-panel: #2b2d31;
+  --dc-panel-2: #313338;
+  --dc-border: #3f4147;
+  --dc-text: #dbdee1;
+  --dc-muted: #949ba4;
+  --dc-accent: #5865f2;
+  --dc-danger: #ed4245;
+
+  /* App variables (used across components) */
+  --ui-bg: var(--dc-bg);
+  --ui-panel: var(--dc-panel);
+  --ui-panel-2: var(--dc-panel-2);
+  --ui-border: var(--dc-border);
+  --ui-muted: var(--dc-muted);
+  --ui-text: var(--dc-text);
+  --ui-accent: var(--dc-accent);
+}
+
+html,
+body {
+  background: var(--dc-bg) !important;
+  color: var(--dc-text) !important;
+}
+
+/* Keep the layout dark even if some views set light backgrounds */
+#root {
+  background: var(--dc-bg);
+  color: var(--dc-text);
+}
+
+/* Tailwind utility overrides (force dark)
+   We intentionally overreach: user requested "no white parts".
+*/
+.bg-white {
+  background-color: var(--dc-panel) !important;
+}
+.text-black {
+  color: var(--dc-text) !important;
+}
+
+/* Catch Tailwind opacity variants like bg-white/70, bg-white/5, etc */
+[class*="bg-white/"] {
+  background-color: var(--dc-panel) !important;
+}
+
+/* Catch arbitrary light hex backgrounds from older light theme */
+[class*="bg-[#f"],
+[class*="bg-[#e"],
+[class*="bg-[#d"],
+[class*="bg-[#c"],
+[class*="bg-[#b"],
+[class*="bg-[#a"] {
+  /* Only affects elements explicitly using arbitrary bg colors */
+  background-color: var(--dc-bg) !important;
+}
+
+/* Force common light text colors to be readable */
+[class*="text-[#0f"],
+[class*="text-[#11"],
+[class*="text-[#22"],
+[class*="text-[#33"],
+[class*="text-[#44"],
+[class*="text-[#55"],
+[class*="text-[#66"],
+[class*="text-[#77"] {
+  color: var(--dc-text) !important;
+}
+
+/* Common light hex backgrounds used in views */
+.bg-\[\#f7f8fb\],
+.bg-\[\#fafbfc\],
+.bg-\[\#fff5f6\],
+.bg-\[\#f2f4f7\],
+.bg-\[\#e8f7ef\],
+.bg-\[\#fff2f2\],
+.bg-\[\#d9d9d9\] {
+  background-color: var(--dc-bg) !important;
+}
+
+/* Panels/cards often use these */
+.bg-\[\#ffffff\],
+.bg-\[\#fff\] {
+  background-color: var(--dc-panel) !important;
+}
+
+/* Borders */
+.border-\[\#e2e4ea\],
+.border-\[\#d8dae0\],
+.border-\[\#0f1115\] {
+  border-color: var(--dc-border) !important;
+}
+
+/* Inputs / selects often use bg-white */
+input,
+select,
+textarea {
+  background-color: color-mix(in srgb, var(--dc-panel) 85%, black 15%) !important;
+  color: var(--dc-text) !important;
+  border-color: var(--dc-border) !important;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--dc-muted) !important;
+}
+
+/* Links + focus */
+a {
+  color: var(--dc-accent);
+}
+
+:focus-visible {
+  outline: 2px solid var(--dc-accent);
+  outline-offset: 2px;
+}
+
+/* Earth map: pulsing current-location marker */
+.earth-mypos-icon {
+  background: transparent !important;
+  border: none !important;
+}
+.earth-mypos-icon > div {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+}
+.earth-mypos-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: var(--dc-accent);
+  box-shadow: 0 0 10px color-mix(in srgb, var(--dc-accent) 70%, transparent 30%);
+  border: 2px solid rgba(255, 255, 255, 0.85);
+}
+.earth-mypos-pulse {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  border: 2px solid color-mix(in srgb, var(--dc-accent) 80%, transparent 20%);
+  animation: earthPulse 1.6s ease-out infinite;
+}
+@keyframes earthPulse {
+  0% {
+    opacity: 0.9;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  70% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(4.6);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(4.6);
+  }
+}
+
+/* Earth map: remove visible tile seams/grid */
+.leaflet-container img.leaflet-tile {
+  mix-blend-mode: normal !important;
+}
+
+/* Inventory slots (radial-only, theme shows through) */
+.inventory-grid {
+  align-content: start;
+}
+
+.inventory-slot {
+  position: relative;
+  border-radius: 18px;
+
+  /* Cut-corner like your screenshot (bottom-left) */
+  clip-path: polygon(
+    0 0,
+    100% 0,
+    100% 100%,
+    26px 100%,
+    0 calc(100% - 26px)
+  );
+
+  /* Radial-only layers; fades to transparent to reveal theme bg */
+  background:
+    radial-gradient(110% 110% at 16% 18%, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.04) 18%, transparent 55%),
+    radial-gradient(130% 130% at 85% 90%, rgba(0,0,0,0.35) 0%, transparent 62%),
+    radial-gradient(140% 140% at 50% 50%, rgba(43,45,49,0.46) 0%, rgba(30,31,34,0.22) 55%, transparent 100%);
+
+  border: 1px solid rgba(255,255,255,0.10);
+  box-shadow:
+    0 16px 36px rgba(0,0,0,0.55),
+    inset 0 1px 0 rgba(255,255,255,0.05);
+  transition: border-color 160ms ease, box-shadow 160ms ease;
+}
+
+.inventory-slot:hover {
+  border-color: rgba(255,255,255,0.22);
+  box-shadow:
+    0 18px 44px rgba(0,0,0,0.60),
+    0 0 0 1px rgba(88,101,242,0.22),
+    inset 0 1px 0 rgba(255,255,255,0.06);
+}
+
+.inventory-slot.is-selected {
+  border-color: rgba(255,255,255,0.28);
+  box-shadow:
+    0 18px 44px rgba(0,0,0,0.60),
+    0 0 0 2px rgba(88,101,242,0.30),
+    inset 0 1px 0 rgba(255,255,255,0.06);
+}
+
+/* inner frame line like the reference */
+.inventory-slot::before {
+  content: '';
+  position: absolute;
+  inset: 10px;
+  border-radius: 14px;
+  border: 1px solid rgba(255,255,255,0.10);
+  pointer-events: none;
+  clip-path: polygon(
+    0 0,
+    100% 0,
+    100% 100%,
+    22px 100%,
+    0 calc(100% - 22px)
+  );
+  opacity: 0.9;
+}
+
+/* subtle accent glow (radial only) */
+.inventory-slot::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(120% 90% at 15% 20%, rgba(88,101,242,0.10), transparent 62%);
+  opacity: 0.28;
+  pointer-events: none;
+}
+
+/* bottom-left importance mark triangle */
+.inventory-slot-mark {
+  position: absolute;
+  left: 12px;
+  bottom: 12px;
+  width: 0;
+  height: 0;
+  border-left: 16px solid currentColor;
+  border-top: 16px solid transparent;
+  filter: drop-shadow(0 6px 10px rgba(0,0,0,0.55));
+}
+
+/* Inventory preview frame should match the slot style (radial-only) */
+.inventory-preview-frame {
+  background:
+    radial-gradient(110% 110% at 16% 18%, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.04) 18%, transparent 55%),
+    radial-gradient(130% 130% at 85% 90%, rgba(0,0,0,0.35) 0%, transparent 62%),
+    radial-gradient(140% 140% at 50% 50%, rgba(43,45,49,0.46) 0%, rgba(30,31,34,0.22) 55%, transparent 100%);
+}
+
+/* Scrollbars (match dark) */
+::-webkit-scrollbar-track {
+  background: var(--dc-bg) !important;
+  border-left: 1px solid var(--dc-border) !important;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--dc-border) !important;
+  border: 1px solid var(--dc-bg) !important;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--dc-accent) !important;
+}

@@ -8,12 +8,24 @@ import { Settings } from './components/Views/Settings';
 import { Inventory } from './components/Views/Inventory';
 import { Multiplayer } from './components/Views/Multiplayer';
 import { HextechAssistant } from './components/Features/HextechAssistant';
+import { TerminalErrorBoundary } from './components/UI/TerminalErrorBoundary';
 import { RewardOverlay } from './components/Features/RewardOverlay';
+import { ChatDock } from './components/Chat';
 import { Earth } from './components/Views/Earth';
-import { ClientView, Mission, Priority, RewardConfig } from './types';
+import { ClientView, RewardConfig } from './types';
 import { ASSETS } from './constants';
-import { playMatchFoundSound, playClickSound } from './utils/SoundEffects';
+import { playClickSound } from './utils/SoundEffects';
 import { readFileAsDataUrl } from './utils/fileUtils';
+import { useXP } from './components/XP/xpStore';
+import { ScheduledTaskPrompt } from './components/XP/ScheduledTaskPrompt';
+import { DevHUD } from './src/dev/DevHUD';
+import { useAuth } from './src/auth/AuthProvider';
+import {
+  readUserScopedJSON,
+  setActiveUserId,
+  writeUserScopedJSON,
+  writeUserScopedString,
+} from './src/lib/userScopedStorage';
 
 const defaultRewardConfigs: RewardConfig[] = [
   { level: 1, threshold: 100, animation: 'CYBER_PULSE', sound: 'LEVEL_UP' },
@@ -23,147 +35,91 @@ const defaultRewardConfigs: RewardConfig[] = [
   { level: 5, threshold: 2000, animation: 'NEON_BURST', sound: 'BASS_DROP' },
 ];
 
-const defaultMissions: Mission[] = [
-  {
-    id: '1',
-    title: 'Win 3 Ranked Games',
-    priority: Priority.HIGH,
-    completed: false,
-    createdAt: Date.now() - 3600000,
-    deadline: Date.now() + 7200000, 
-    icon: 'sword',
-    xp: 500
-  },
-  {
-    id: '2',
-    title: 'Earn 5000 Gold',
-    priority: Priority.MEDIUM,
-    completed: true,
-    createdAt: Date.now() - 86400000,
-    completedAt: Date.now() - 10000, // Just completed
-    deadline: Date.now() - 10000,
-    icon: 'star',
-    xp: 250
-  },
-  {
-    id: '3',
-    title: 'Daily First Win',
-    priority: Priority.LOW,
-    completed: false,
-    createdAt: Date.now() - 86400000,
-    deadline: Date.now() - 3600000, 
-    icon: 'zap',
-    xp: 150
-  }
-];
+const defaultViewBackgrounds: Record<ClientView, string | null> = {
+  [ClientView.HOME]: null,
+  [ClientView.TFT]: null,
+  [ClientView.MULTIPLAYER]: null,
+  [ClientView.PROFILE]: null,
+  [ClientView.INVENTORY]: null,
+  [ClientView.STORE]: null,
+  [ClientView.SETTINGS]: null,
+  [ClientView.LOBBY]: null,
+  [ClientView.MATCH_FOUND]: null,
+  [ClientView.CHAMP_SELECT]: null,
+};
 
 const App: React.FC = () => {
+  const { user, loading: authLoading } = useAuth();
+  const activeUserId = user?.id || null;
+  const userScopeRenderKey = activeUserId || 'signedOut';
+
   const [currentView, setCurrentView] = useState<ClientView>(ClientView.HOME);
   const [previousView, setPreviousView] = useState<ClientView>(ClientView.HOME);
   const [isAssistantOpen, setIsAssistantOpen] = useState(false);
   
   // New State for dynamic background (e.g., Champ Select splash art)
   const [customBackground, setCustomBackground] = useState<string | null>(null);
-  const [viewBackgrounds, setViewBackgrounds] = useState<Record<ClientView, string | null>>(() => {
-    if (typeof window !== 'undefined') {
-        const stored = localStorage.getItem('viewBackgrounds');
-        if (stored) {
-            try {
-                return JSON.parse(stored) as Record<ClientView, string | null>;
-            } catch (err) {
-                console.error('Failed to parse stored backgrounds', err);
-            }
-        }
-    }
-    return {
-      [ClientView.HOME]: null,
-      [ClientView.TFT]: null,
-      [ClientView.MULTIPLAYER]: null,
-      [ClientView.PROFILE]: null,
-      [ClientView.INVENTORY]: null,
-      [ClientView.STORE]: null,
-      [ClientView.SETTINGS]: null,
-      [ClientView.LOBBY]: null,
-      [ClientView.MATCH_FOUND]: null,
-      [ClientView.CHAMP_SELECT]: null
-    };
-  });
+  const [viewBackgrounds, setViewBackgrounds] = useState<Record<ClientView, string | null>>(defaultViewBackgrounds);
   const [resolvedBackgrounds, setResolvedBackgrounds] = useState<Record<string, string>>({});
   const backgroundInputRef = useRef<HTMLInputElement>(null);
 
-  // Lifted Missions State
-  const [missions, setMissions] = useState<Mission[]>(() => {
-    if (typeof window !== 'undefined') {
-        const stored = localStorage.getItem('missions');
-        if (stored) {
-            try {
-                return JSON.parse(stored) as Mission[];
-            } catch (err) {
-                console.error('Failed to parse stored missions', err);
-            }
-        }
-    }
-    return defaultMissions;
-  });
+  const { tasks, stats, selectors } = useXP();
 
   // Reward System State
-  const [rewardConfigs, setRewardConfigs] = useState<RewardConfig[]>(() => {
-    if (typeof window !== 'undefined') {
-        const stored = localStorage.getItem('rewardConfigs');
-        if (stored) {
-            try {
-                return JSON.parse(stored) as RewardConfig[];
-            } catch (err) {
-                console.error('Failed to parse stored reward configs', err);
-            }
-        }
-    }
-    return defaultRewardConfigs;
-  });
+  const [rewardConfigs, setRewardConfigs] = useState<RewardConfig[]>(defaultRewardConfigs);
   
   const [triggeredLevels, setTriggeredLevels] = useState<number[]>([]);
   const [activeReward, setActiveReward] = useState<RewardConfig | null>(null);
   const [activeRewardDuration, setActiveRewardDuration] = useState<number>(4000);
   const rewardStartRef = useRef<number>(0);
   const [hasInitialized, setHasInitialized] = useState(false);
-  const [missionAlert, setMissionAlert] = useState<Mission | null>(null);
-  const [notifiedDeadlines, setNotifiedDeadlines] = useState<Record<string, number>>({});
-  const priorityRank: Record<Priority, number> = {
-    [Priority.HIGH]: 0,
-    [Priority.MEDIUM]: 1,
-    [Priority.LOW]: 2,
-  };
 
-  // Calculate Total XP (linked to Profile XP)
-  const totalXP = missions.filter(m => m.completed).reduce((sum, m) => sum + (m.xp || 0), 0);
-  
-  // Calculate Potential XP (Negative/Required from active missions)
-  const potentialXP = missions.filter(m => !m.completed).reduce((sum, m) => sum + (m.xp || 0), 0);
-  
-  const activeMissionsCount = missions.filter(m => !m.completed).length;
+  const totalXP = stats.totalEarnedXP;
+  const activeTasksCount = selectors.getActiveTasks().length;
   const rewardDismissTimer = useRef<number | null>(null);
 
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-        localStorage.setItem('rewardConfigs', JSON.stringify(rewardConfigs));
+    if (authLoading) return;
+    setActiveUserId(activeUserId);
+    setCustomBackground(null);
+    setResolvedBackgrounds({});
+    setActiveReward(null);
+    setTriggeredLevels([]);
+    setHasInitialized(false);
+
+    if (!activeUserId) {
+      setRewardConfigs(defaultRewardConfigs);
+      setViewBackgrounds(defaultViewBackgrounds);
+      return;
     }
-  }, [rewardConfigs]);
+
+    const storedRewardConfigs = readUserScopedJSON<RewardConfig[]>('rewardConfigs', defaultRewardConfigs, activeUserId);
+    setRewardConfigs(Array.isArray(storedRewardConfigs) && storedRewardConfigs.length ? storedRewardConfigs : defaultRewardConfigs);
+
+    const storedBackgrounds = readUserScopedJSON<Record<ClientView, string | null>>(
+      'viewBackgrounds',
+      defaultViewBackgrounds,
+      activeUserId
+    );
+    setViewBackgrounds({
+      ...defaultViewBackgrounds,
+      ...(storedBackgrounds || {}),
+    });
+  }, [authLoading, activeUserId]);
 
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-        localStorage.setItem('missions', JSON.stringify(missions));
-    }
-  }, [missions]);
+    if (!activeUserId) return;
+    writeUserScopedJSON('rewardConfigs', rewardConfigs, activeUserId);
+  }, [rewardConfigs, activeUserId]);
 
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-        try {
-            localStorage.setItem('viewBackgrounds', JSON.stringify(viewBackgrounds));
-        } catch (err) {
-            console.error('Failed to persist backgrounds', err);
-        }
+    if (!activeUserId) return;
+    try {
+      writeUserScopedJSON('viewBackgrounds', viewBackgrounds, activeUserId);
+    } catch (err) {
+      console.error('Failed to persist backgrounds', err);
     }
-  }, [viewBackgrounds]);
+  }, [viewBackgrounds, activeUserId]);
 
   // Resolve any idb-backed backgrounds to object URLs
   useEffect(() => {
@@ -189,39 +145,7 @@ const App: React.FC = () => {
     load();
   }, [viewBackgrounds, resolvedBackgrounds]);
 
-  // Prune notified deadlines for removed missions
-  useEffect(() => {
-    setNotifiedDeadlines(prev => {
-        const next: Record<string, number> = {};
-        missions.forEach(m => {
-            if (prev[m.id] !== undefined) next[m.id] = prev[m.id];
-        });
-        return next;
-    });
-  }, [missions]);
-
-  // Mission deadline monitor
-  useEffect(() => {
-    const timer = window.setInterval(() => {
-      const now = Date.now();
-      const dueMissions = missions
-        .filter(m => {
-          if (m.completed) return false;
-          if (m.deadline > now) return false;
-          const lastNotifiedAt = notifiedDeadlines[m.id];
-          return lastNotifiedAt === undefined || lastNotifiedAt !== m.deadline;
-        })
-        .sort((a, b) => priorityRank[a.priority] - priorityRank[b.priority]);
-
-      const dueMission = dueMissions[0];
-      if (dueMission) {
-        setMissionAlert(dueMission);
-        setNotifiedDeadlines(prev => ({ ...prev, [dueMission.id]: dueMission.deadline }));
-        playMatchFoundSound();
-      }
-    }, 1000);
-    return () => clearInterval(timer);
-  }, [missions, notifiedDeadlines]);
+  
 
   // Monitor XP for Rewards
   useEffect(() => {
@@ -273,7 +197,7 @@ const App: React.FC = () => {
     if (bg) {
         return { backgroundImage: `url(${bg})`, backgroundSize: 'cover', backgroundPosition: 'center' };
     }
-    return { backgroundImage: 'none', backgroundColor: '#f5f6f8' };
+    return { backgroundImage: 'none', backgroundColor: 'var(--ui-bg)' };
   };
 
   const handlePlayClick = () => {
@@ -283,6 +207,21 @@ const App: React.FC = () => {
          setCustomBackground(null);
      }
   };
+
+  useEffect(() => {
+    const handleOpenPlayer = (event: Event) => {
+      const detail = (event as CustomEvent<{ playerId?: string }>).detail;
+      if (!detail?.playerId) return;
+      writeUserScopedString('mp_focusPlayerId', detail.playerId, activeUserId);
+      if (currentView !== ClientView.MULTIPLAYER) {
+        setPreviousView(currentView);
+        setCurrentView(ClientView.MULTIPLAYER);
+      }
+    };
+
+    window.addEventListener('dusk:openPlayerDossier', handleOpenPlayer as EventListener);
+    return () => window.removeEventListener('dusk:openPlayerDossier', handleOpenPlayer as EventListener);
+  }, [activeUserId, currentView]);
 
   const updateRewardConfig = (newConfig: RewardConfig) => {
     setRewardConfigs(prev => prev.map(c => c.level === newConfig.level ? newConfig : c));
@@ -321,7 +260,7 @@ const App: React.FC = () => {
       case ClientView.MULTIPLAYER:
         return <Multiplayer />;
       case ClientView.PROFILE:
-        return <Profile missions={missions} rewardConfigs={rewardConfigs} />;
+        return <Profile rewardConfigs={rewardConfigs} />;
       case ClientView.INVENTORY:
         return <Inventory />;
       case ClientView.SETTINGS:
@@ -329,7 +268,16 @@ const App: React.FC = () => {
       case ClientView.LOBBY:
       case ClientView.MATCH_FOUND:
       case ClientView.CHAMP_SELECT:
-        return <Lobby onBack={() => setCurrentView(previousView)} setBackground={setCustomBackground} />;
+        return (
+          <Lobby
+            onBack={() => setCurrentView(previousView)}
+            setBackground={setCustomBackground}
+            onNavigateStage={(view) => {
+              // keep App route synced so TopBar lock + background behave consistently
+              setCurrentView(view);
+            }}
+          />
+        );
       default:
         return (
             <div className="flex items-center justify-center h-full text-[#5B5A56] flex-col">
@@ -385,8 +333,6 @@ const App: React.FC = () => {
     }
   };
 
-  const isLobbyMode = currentView === ClientView.LOBBY || currentView === ClientView.CHAMP_SELECT || currentView === ClientView.MATCH_FOUND;
-
   useEffect(() => {
     if (!activeReward) {
         if (rewardDismissTimer.current) {
@@ -414,80 +360,43 @@ const App: React.FC = () => {
 
   return (
     <div 
-        className="w-screen h-screen flex flex-col overflow-hidden text-[#111] font-mono bg-cover bg-center transition-all duration-200 ease-out relative"
+        className="w-screen h-screen flex flex-col overflow-hidden text-[var(--ui-text)] font-mono bg-cover bg-center transition-all duration-200 ease-out relative"
         style={getBackgroundStyle()}
     >
-      
-      {missionAlert && (
-        <div 
-          className="fixed inset-0 z-[120] bg-black/50 flex items-center justify-center"
-          onClick={() => setMissionAlert(null)}
-        >
-          <div 
-            className="relative bg-white border border-[#ddd] p-6 w-full max-w-md"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div className="flex items-center justify-between mb-2">
-              <div className="text-xs uppercase tracking-[0.25em] text-[#c24141]">Mission Alert</div>
-              <button 
-                className="text-[#666] hover:text-black transition-colors"
-                onClick={() => { playClickSound(); setMissionAlert(null); }}
-              >
-                ✕
-              </button>
-            </div>
-            <div className="text-xl font-bold text-black mb-1">{missionAlert.title}</div>
-            <div className="text-sm text-[#555] uppercase flex items-center gap-2">
-              <span>Deadline reached</span>
-              <span className="px-2 py-1 border border-[#c24141] text-[#c24141] text-[10px] uppercase tracking-[0.2em]">
-                {missionAlert.priority} Priority
-              </span>
-            </div>
-            <div className="mt-4 flex justify-end gap-3">
-              <button 
-                className="px-4 py-2 text-xs uppercase tracking-[0.2em] border border-[#ddd] text-[#444] hover:border-black hover:text-black transition-colors"
-                onClick={() => setMissionAlert(null)}
-              >
-                Dismiss
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <ScheduledTaskPrompt />
       
       {/* Top Navigation */}
       <TopBar 
         currentView={currentView} 
         onChangeView={(view) => {
-            if (!isLobbyMode) {
-                setCurrentView(view);
-                setCustomBackground(null);
-            }
+            setCurrentView(view);
+            setCustomBackground(null);
         }}
         onPlayClick={handlePlayClick}
         onToggleAssistant={() => setIsAssistantOpen(!isAssistantOpen)}
         isAssistantOpen={isAssistantOpen}
-        activeMissionsCount={activeMissionsCount}
-        totalXP={totalXP}
-        potentialXP={potentialXP}
+        activeTasksCount={activeTasksCount}
       />
 
       {/* Main Content Area */}
       <div className="flex-1 flex overflow-hidden relative z-10">
         
         {/* Center Viewport */}
-        <div className="flex-1 relative transition-all duration-300 bg-transparent">
+        <div key={`viewport-${userScopeRenderKey}`} className="flex-1 relative transition-all duration-300 bg-transparent">
             {renderContent()}
         </div>
       </div>
 
+      <ChatDock key={`chat-${userScopeRenderKey}`} />
+
       {/* Hextech Assistant Overlay */}
-      <HextechAssistant 
-        isOpen={isAssistantOpen} 
-        onClose={() => setIsAssistantOpen(false)} 
-        missions={missions}
-        setMissions={setMissions}
-      />
+      <TerminalErrorBoundary key={`${userScopeRenderKey}-${isAssistantOpen ? 'assistant-open' : 'assistant-closed'}`}>
+        <HextechAssistant
+          key={`assistant-${userScopeRenderKey}`}
+          isOpen={isAssistantOpen}
+          onClose={() => setIsAssistantOpen(false)}
+        />
+      </TerminalErrorBoundary>
 
       {/* Reward System Overlay */}
       {activeReward && (
@@ -502,22 +411,9 @@ const App: React.FC = () => {
           />
       )}
 
-      {/* Background upload button */}
-      <button 
-        className="fixed bottom-4 right-4 z-[150] bg-white border border-[#ccc] text-xs uppercase tracking-[0.2em] px-4 py-2 hover:border-black transition-colors"
-        onClick={() => backgroundInputRef.current?.click()}
-      >
-        Set Background
-      </button>
-      <input 
-        type="file" 
-        accept="image/png,image/jpeg" 
-        ref={backgroundInputRef} 
-        className="hidden" 
-        onChange={handleBackgroundUpload}
-      />
+      <DevHUD />
 
-      {/* Global decorative border bottom */}
+            {/* Global decorative border bottom */}
       <div className="h-0.5 bg-gradient-to-r from-[#010A13] via-[#C8AA6E] to-[#010A13] opacity-30 z-50"></div>
     </div>
   );

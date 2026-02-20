@@ -1,59 +1,15 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Player, Pin, Collaboration, LocationShareState, XpLog, CollaborationProposal } from '../../types';
+import { Player, Pin, Collaboration, LocationShareState, XpLog, CollaborationProposal, SavedLocation } from '../../types';
 import { getEffectivePermissions } from '../../utils/permissions';
 import { mpStorage } from '../../utils/mpStorage';
-import { PlayersView } from './multiplayer/PlayersView';
+import { defaultPlayers } from '../../utils/defaultPlayers';
 import { EarthView } from './multiplayer/EarthView';
+import { Test01View } from './multiplayer/Test01View';
 import { CollaborationView } from './multiplayer/CollaborationView';
 import { RankView } from './multiplayer/RankView';
+import { readUserScopedString, removeUserScopedString } from '../../src/lib/userScopedStorage';
 
 type TabKey = 'PLAYERS' | 'EARTH' | 'COLLAB' | 'RANK';
-
-const defaultPlayers: Player[] = [
-  {
-    id: 'me',
-    name: 'Admin',
-    role: 'Operator',
-    email: 'admin@dusk.gg',
-    permissions: {
-      profileLevel: 'details',
-      location: 'live',
-      pinVisibility: 'specific',
-      rankVisibility: true,
-      appearsInRank: true,
-      closeCircle: true,
-    },
-    accepted: true,
-  },
-  {
-    id: 'p1',
-    name: 'Nova',
-    role: 'Recon',
-    permissions: {
-      profileLevel: 'basic',
-      location: 'city',
-      pinVisibility: 'close',
-      rankVisibility: true,
-      appearsInRank: true,
-      closeCircle: true,
-    },
-    accepted: true,
-  },
-  {
-    id: 'p2',
-    name: 'Echo',
-    role: 'Support',
-    permissions: {
-      profileLevel: 'details',
-      location: 'off',
-      pinVisibility: 'specific',
-      rankVisibility: true,
-      appearsInRank: true,
-      closeCircle: false,
-    },
-    accepted: false,
-  },
-];
 
 const defaultPins: Pin[] = [
   {
@@ -133,6 +89,13 @@ export const Multiplayer: React.FC = () => {
   const [myLocation, setMyLocation] = useState<{ lat: number; lng: number } | null>(() => mpStorage.loadMyLocation(null));
   const [viewAsId, setViewAsId] = useState(() => mpStorage.loadViewAs(defaultPlayers[0]?.id || 'me'));
   const [toast, setToast] = useState<string>('');
+  const [focusPlayerId, setFocusPlayerId] = useState<string | null>(null);
+
+  // Earth view extras
+  const [savedLocations, setSavedLocations] = useState<SavedLocation[]>([]);
+  const [pickPlayerId, setPickPlayerId] = useState<string | null>(null);
+  const [earthFocus, setEarthFocus] = useState<{ playerId: string; loc: { lat: number; lng: number; label?: string } } | null>(null);
+
   const watchId = useRef<number | null>(null);
   const liveTimer = useRef<number | null>(null);
 
@@ -141,6 +104,26 @@ export const Multiplayer: React.FC = () => {
       setViewAsId(players[0]?.id || 'me');
     }
   }, [players, viewAsId]);
+
+  useEffect(() => {
+    const pending = readUserScopedString('mp_focusPlayerId', null);
+    if (!pending) return;
+    setTab('PLAYERS');
+    setFocusPlayerId(pending);
+    removeUserScopedString('mp_focusPlayerId');
+  }, []);
+
+  useEffect(() => {
+    const handleOpenPlayer = (event: Event) => {
+      const detail = (event as CustomEvent<{ playerId?: string }>).detail;
+      if (!detail?.playerId) return;
+      setTab('PLAYERS');
+      setFocusPlayerId(detail.playerId);
+    };
+
+    window.addEventListener('dusk:openPlayerDossier', handleOpenPlayer as EventListener);
+    return () => window.removeEventListener('dusk:openPlayerDossier', handleOpenPlayer as EventListener);
+  }, []);
 
   useEffect(() => mpStorage.save('mp_players', players), [players]);
   useEffect(() => mpStorage.save('mp_pins', pins), [pins]);
@@ -234,7 +217,38 @@ export const Multiplayer: React.FC = () => {
     setToast('Player added');
   };
 
+  const onDeletePlayer = (id: string) => {
+    setPlayers(prev => prev.filter(p => p.id !== id));
+    // also clean up any focus/pick state
+    setPickPlayerId(prev => (prev === id ? null : prev));
+    setEarthFocus(prev => (prev?.playerId === id ? null : prev));
+    if (viewAsId === id) setViewAsId('me');
+    setToast('Player deleted');
+  };
+
   const onAddPin = (pin: Pin) => setPins(prev => [pin, ...prev]);
+
+  const onGoToEarth = (focus: { playerId: string; loc: { lat: number; lng: number; label?: string } }) => {
+    setEarthFocus(focus);
+    setTab('EARTH');
+    setToast('Opened map');
+  };
+
+  const onClearPickPlayer = () => setPickPlayerId(null);
+
+  const onSetPlayerLocation = (playerId: string, loc: Player['location'] | undefined, extras?: Partial<Player>) => {
+    setPlayers(prev =>
+      prev.map(p =>
+        p.id === playerId
+          ? {
+              ...p,
+              ...(extras || {}),
+              location: loc,
+            }
+          : p
+      )
+    );
+  };
   const onUpdatePin = (id: string, updates: Partial<Pin>) => {
     setPins(prev => prev.map(p => (p.id === id ? { ...p, ...updates } : p)));
   };
@@ -406,7 +420,7 @@ export const Multiplayer: React.FC = () => {
 
   return (
     <MultiplayerErrorBoundary>
-    <div className="p-8 min-h-[70vh] overflow-y-auto bg-[#f7f8fb] text-[#0f1115]">
+    <div className="p-8 min-h-[70vh] overflow-y-auto bg-[var(--ui-bg)] text-[var(--ui-text)]">
       {toast && (
         <div className="fixed top-4 right-4 z-50 bg-black text-white px-4 py-2 rounded shadow transition-opacity animate-fade-in">
           {toast}
@@ -425,7 +439,9 @@ export const Multiplayer: React.FC = () => {
             key={k}
             onClick={() => setTab(k)}
             className={`px-3 py-1 border rounded-sm text-xs tracking-[0.2em] uppercase transition-colors flex items-center gap-2 ${
-              tab === k ? 'border-[#ff2a3a] bg-[#ff2a3a] text-white shadow-sm' : 'border-[#d8dae0] bg-white text-[#555] hover:border-[#ff2a3a]'
+              tab === k
+                ? 'border-[var(--ui-accent)] bg-[var(--ui-accent)] text-white shadow-sm'
+                : 'border-[var(--ui-border)] bg-[var(--ui-panel)] text-[var(--ui-muted)] hover:border-[var(--ui-accent)]'
             }`}
           >
             {k.toLowerCase()}
@@ -436,44 +452,45 @@ export const Multiplayer: React.FC = () => {
             )}
           </button>
         )})}
-        <div className="text-[11px] uppercase tracking-[0.2em] text-[#666] ml-auto">Viewing as:</div>
+        <div className="text-[11px] uppercase tracking-[0.2em] text-[var(--ui-muted)] ml-auto">Viewing as:</div>
         <select
           value={viewAsId}
           onChange={e => setViewAsId(e.target.value)}
-          className="border border-[#d8dae0] rounded px-2 py-1 text-[11px] bg-white"
+          className="border border-[var(--ui-border)] rounded px-2 py-1 text-[11px] bg-[var(--ui-panel)] text-[var(--ui-text)]"
         >
           {players.map(p => (
             <option key={p.id} value={p.id}>{p.name}</option>
           ))}
         </select>
-        <div className="text-[11px] uppercase tracking-[0.2em] text-[#777] border border-dashed border-[#d8dae0] rounded px-2 py-1">
+        <div className="text-[11px] uppercase tracking-[0.2em] text-[var(--ui-muted)] border border-dashed border-[var(--ui-border)] rounded px-2 py-1">
           Debug: {JSON.stringify(getEffectivePermissions(players.find(p => p.id === viewAsId)))}
         </div>
           </div>
         </div>
-        <div className="w-64 max-h-56 overflow-hidden flex-shrink-0 bg-white border border-[#e2e4ea] rounded shadow-sm p-3 text-xs uppercase tracking-[0.15em] text-[#666] self-start">
-          <div className="font-semibold text-[#0f1115] mb-2">Multiplayer Activity</div>
+        <div className="w-64 max-h-56 overflow-hidden flex-shrink-0 bg-[var(--ui-panel)] border border-[var(--ui-border)] rounded shadow-sm p-3 text-xs uppercase tracking-[0.15em] text-[var(--ui-muted)] self-start">
+          <div className="font-semibold text-[var(--ui-text)] mb-2">Multiplayer Activity</div>
           <div className="max-h-40 overflow-y-auto pr-1 space-y-1">
             {feed.map(item => (
-              <div key={item.ts} className="text-[11px] text-[#0f1115]">
+              <div key={item.ts} className="text-[11px] text-[var(--ui-text)]">
                 <div className="font-semibold">{item.summary}</div>
-                <div className="text-[10px] text-[#777]">{new Date(item.ts).toLocaleTimeString()}</div>
+                <div className="text-[10px] text-[var(--ui-muted)]">{new Date(item.ts).toLocaleTimeString()}</div>
               </div>
             ))}
-            {!feed.length && <div className="text-[11px] text-[#777]">No recent activity</div>}
+            {!feed.length && <div className="text-[11px] text-[var(--ui-muted)]">No recent activity</div>}
           </div>
         </div>
       </div>
 
       {tab === 'PLAYERS' && (
-        <PlayersView
+        <Test01View
           players={players}
           onUpdatePlayer={onUpdatePlayer}
           onAddPlayer={onAddPlayer}
-          viewAsId={viewAsId}
-          onSetViewAs={setViewAsId}
-          onAddXp={onAddXp}
+          onDeletePlayer={onDeletePlayer}
+          onGoToEarth={onGoToEarth}
           setToast={setToast}
+          focusPlayerId={focusPlayerId}
+          onClearFocusPlayer={() => setFocusPlayerId(null)}
         />
       )}
       {tab === 'EARTH' && (
@@ -491,6 +508,12 @@ export const Multiplayer: React.FC = () => {
           startLive={startLive}
           stopLive={stopLive}
           setToast={setToast}
+          focusLocation={earthFocus}
+          savedLocations={savedLocations}
+          setSavedLocations={setSavedLocations}
+          pickPlayerId={pickPlayerId}
+          onClearPickPlayer={onClearPickPlayer}
+          onSetPlayerLocation={onSetPlayerLocation}
         />
       )}
       {tab === 'COLLAB' && (

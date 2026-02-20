@@ -7,17 +7,25 @@ let audioCtx: AudioContext | null = null;
 let masterGain: GainNode | null = null;
 
 const initAudio = () => {
+    if (typeof window === 'undefined') return null;
     if (!audioCtx) {
         const AudioContextClass = (window.AudioContext || (window as any).webkitAudioContext);
-        audioCtx = new AudioContextClass();
-        masterGain = audioCtx.createGain();
-        masterGain.gain.value = 0.4; // Master volume
-        masterGain.connect(audioCtx.destination);
+        if (!AudioContextClass) return null;
+        try {
+            audioCtx = new AudioContextClass();
+            masterGain = audioCtx.createGain();
+            masterGain.gain.value = 0.4; // Master volume
+            masterGain.connect(audioCtx.destination);
+        } catch {
+            audioCtx = null;
+            masterGain = null;
+            return null;
+        }
     }
-    if (audioCtx.state === 'suspended') {
-        audioCtx.resume();
+    if (audioCtx && audioCtx.state === 'suspended') {
+        audioCtx.resume().catch(() => {});
     }
-    return { ctx: audioCtx, master: masterGain };
+    return audioCtx && masterGain ? { ctx: audioCtx, master: masterGain } : null;
 };
 
 export const playHoverSound = () => {

@@ -1,435 +1,1054 @@
-
-import React, { useState, useEffect, useRef } from 'react';
-import { Mission, Priority } from '../../types';
-import { HexButton, HexPanel } from '../UI/HextechUI';
-import { playSuccessSound, playPanelOpenSound, playClickSound, playErrorSound, playHoverSound } from '../../utils/SoundEffects';
-import { 
-  Bot, X, Plus, Trash2, Check, Clock, 
-  Sword, Shield, Star, Zap, Flag, AlertTriangle, Edit2, RotateCcw,
-  History, List, Terminal
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { HexButton } from '../UI/HextechUI';
+import { playClickSound, playErrorSound, playPanelOpenSound, playSuccessSound } from '../../utils/SoundEffects';
+import { useXP } from '../XP/xpStore';
+import { Task, TaskPriority, XPDayActivityGroup } from '../XP/xpTypes';
+import { supabase } from '../../src/lib/supabaseClient';
+import { useAuth } from '../../src/auth/AuthProvider';
+import {
+  Check,
+  Clock,
+  Edit2,
+  Flag,
+  Pause,
+  Play,
+  Shield,
+  Square,
+  Star,
+  Sword,
+  Terminal,
+  X,
+  Zap,
 } from 'lucide-react';
 
 interface HextechAssistantProps {
   isOpen: boolean;
   onClose: () => void;
-  missions: Mission[];
-  setMissions: React.Dispatch<React.SetStateAction<Mission[]>>;
 }
 
-export const HextechAssistant: React.FC<HextechAssistantProps> = ({ isOpen, onClose, missions, setMissions }) => {
-  const containerRef = useRef<HTMLDivElement>(null);
+type ViewMode = 'active' | 'log';
 
-  // Play sound on open
+interface TaskDraft {
+  title: string;
+  details: string;
+  priority: TaskPriority;
+  schedule: string;
+  retroMinutes: number;
+  retroNote: string;
+}
+
+const toLocalDateTimeInput = (timestamp: number) => {
+  const date = new Date(timestamp);
+  const offset = date.getTimezoneOffset() * 60000;
+  return new Date(timestamp - offset).toISOString().slice(0, 16);
+};
+
+const formatMinutes = (seconds: number) => `${Math.max(0, Math.floor(seconds / 60))}m`;
+
+const formatLogTime = (value: number) =>
+  new Date(value).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+const formatScheduleState = (task: Task, now: number) => {
+  if (!task.scheduledAt) return 'NO SCHEDULE';
+  const diffMs = task.scheduledAt - now;
+  if (diffMs <= 0) return 'READY';
+  const totalSeconds = Math.floor(diffMs / 1000);
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+  return `IN ${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds
+    .toString()
+    .padStart(2, '0')}`;
+};
+
+const getDateKeyFromTimestamp = (timestamp: number) => {
+  const date = new Date(timestamp);
+  const year = date.getFullYear();
+  const month = `${date.getMonth() + 1}`.padStart(2, '0');
+  const day = `${date.getDate()}`.padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
+const getScheduleBadge = (scheduledAt: number | undefined, selectedDateKey: string) => {
+  if (!scheduledAt) return 'No schedule';
+  const taskDateKey = getDateKeyFromTimestamp(scheduledAt);
+  if (taskDateKey === selectedDateKey) return 'Today';
+  if (taskDateKey > selectedDateKey) return 'Future';
+  return 'No schedule';
+};
+
+const buildDraft = (task: Task): TaskDraft => ({
+  title: task.title,
+  details: task.details || '',
+  priority: task.priority,
+  schedule: task.scheduledAt ? toLocalDateTimeInput(task.scheduledAt) : '',
+  retroMinutes: 15,
+  retroNote: '',
+});
+
+export const HextechAssistant: React.FC<HextechAssistantProps> = ({ isOpen, onClose }) => {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const { user } = useAuth();
+  const [now, setNow] = useState(() => Date.now());
+  const [viewMode, setViewMode] = useState<ViewMode>('active');
+
+  const [newTitle, setNewTitle] = useState('');
+  const [newDetails, setNewDetails] = useState('');
+  const [newPriority, setNewPriority] = useState<TaskPriority>('high');
+  const [newSchedule, setNewSchedule] = useState('');
+  const [newIcon, setNewIcon] = useState<Task['icon']>('sword');
+
+  const [expandedTaskId, setExpandedTaskId] = useState<string | null>(null);
+  const [editingLogTaskId, setEditingLogTaskId] = useState<string | null>(null);
+  const [showHiddenInLog, setShowHiddenInLog] = useState(false);
+  const [taskDrafts, setTaskDrafts] = useState<Record<string, TaskDraft>>({});
+  const [supabasePingStatus, setSupabasePingStatus] = useState<string>('');
+
+  const {
+    dateKey,
+    activeLogDateKey,
+    authStatus,
+    tasks,
+    addTask,
+    updateTask,
+    completeTask,
+    archiveTask,
+    unarchiveTask,
+    selectors,
+    startSession,
+    stopSession,
+    pauseSession,
+    resumeTaskSession,
+    addRetroMinutes,
+  } = useXP();
+  const isSyncingCloud = authStatus === 'loadingCloud';
+
   useEffect(() => {
     if (isOpen) playPanelOpenSound();
   }, [isOpen]);
 
-  // Click outside listener
+  useEffect(() => {
+    if (!isOpen) return;
+    // Keep Quests open state predictable so active badge and list stay in sync.
+    setViewMode('active');
+    setExpandedTaskId(null);
+    setEditingLogTaskId(null);
+  }, [isOpen]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const tick = window.setInterval(() => setNow(Date.now()), 1000);
+    return () => window.clearInterval(tick);
+  }, [isOpen]);
+
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-        if (!isOpen) return;
-
-        const target = event.target as Element;
-        const toggleBtn = document.getElementById('hextech-assistant-toggle');
-
-        // Check if click is inside the assistant panel
-        if (containerRef.current && containerRef.current.contains(target as Node)) {
-            return;
-        }
-
-        // Check if click is on the toggle button (let the button handle the toggle action)
-        if (toggleBtn && (toggleBtn === target || toggleBtn.contains(target as Node))) {
-            return;
-        }
-
-        // Otherwise, close the assistant
-        onClose();
+      if (!isOpen) return;
+      const target = event.target as Element;
+      const toggleBtn = document.getElementById('hextech-assistant-toggle');
+      if (containerRef.current && containerRef.current.contains(target as Node)) return;
+      if (toggleBtn && (toggleBtn === target || toggleBtn.contains(target as Node))) return;
+      onClose();
     };
-
     if (isOpen) {
-        document.addEventListener('mousedown', handleClickOutside);
+      document.addEventListener('mousedown', handleClickOutside);
     }
-    
-    return () => {
-        document.removeEventListener('mousedown', handleClickOutside);
-    };
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [isOpen, onClose]);
 
-  const [viewMode, setViewMode] = useState<'active' | 'history'>('active');
-  const [editingId, setEditingId] = useState<string | null>(null);
+  const activeSession = selectors.getActiveSession();
+  const todayTrackedMinutes = selectors.getTrackedMinutesForDay(dateKey, now);
+  const selectedLogDateKey = activeLogDateKey || dateKey;
+  const dayActivityGroups = selectors.getDayActivityGrouped(selectedLogDateKey, now);
+  const visibleTasks = useMemo(() => {
+    const runningTaskIds = new Set<string>();
+    if (activeSession?.taskId) runningTaskIds.add(activeSession.taskId);
+    (activeSession?.linkedTaskIds || []).forEach((taskId) => runningTaskIds.add(taskId));
 
-  const [newMissionTitle, setNewMissionTitle] = useState('');
-  const [newMissionPriority, setNewMissionPriority] = useState<Priority>(Priority.MEDIUM);
-  const [newMissionXP, setNewMissionXP] = useState<number>(100);
-  
-  const [newMissionDeadline, setNewMissionDeadline] = useState<string>(() => {
-    const d = new Date();
-    d.setHours(d.getHours() + 24);
-    d.setMinutes(0);
-    return new Date(d.getTime() - (d.getTimezoneOffset() * 60000)).toISOString().slice(0, 16);
-  });
-  
-  const [newMissionIcon, setNewMissionIcon] = useState<Mission['icon']>('sword');
+    const fromSelectors = selectors.getActiveTasks();
+    const runningFallback = tasks.filter(
+      (task) => !task.archivedAt && !task.completedAt && runningTaskIds.has(task.id)
+    );
+    const merged = [...fromSelectors, ...runningFallback].filter(
+      (task, index, list) => list.findIndex((item) => item.id === task.id) === index
+    );
 
-  const resetForm = () => {
-    setNewMissionTitle('');
-    setNewMissionPriority(Priority.MEDIUM);
-    setNewMissionXP(100);
-    setNewMissionIcon('sword');
-    
-    const d = new Date();
-    d.setHours(d.getHours() + 24);
-    d.setMinutes(0);
-    setNewMissionDeadline(new Date(d.getTime() - (d.getTimezoneOffset() * 60000)).toISOString().slice(0, 16));
-    
-    setEditingId(null);
-  };
+    return merged
+      .sort((a, b) => {
+        const aRunning =
+          !!activeSession &&
+          (activeSession.taskId === a.id || (activeSession.linkedTaskIds || []).includes(a.id))
+            ? 1
+            : 0;
+        const bRunning =
+          !!activeSession &&
+          (activeSession.taskId === b.id || (activeSession.linkedTaskIds || []).includes(b.id))
+            ? 1
+            : 0;
+        if (aRunning !== bRunning) return bRunning - aRunning;
+        return (b.updatedAt || b.createdAt) - (a.updatedAt || a.createdAt);
+      });
+  }, [selectors, activeSession, tasks]);
+  const visibleLogGroups = useMemo(() => {
+    if (showHiddenInLog) return dayActivityGroups;
+    return dayActivityGroups.filter((group) => {
+      if (!group.taskId) return true;
+      const task = tasks.find((item) => item.id === group.taskId);
+      return !task?.archivedAt;
+    });
+  }, [dayActivityGroups, showHiddenInLog, tasks]);
 
-  const handleEditClick = (mission: Mission) => {
-    playClickSound();
-    setViewMode('active');
-    setEditingId(mission.id);
-    setNewMissionTitle(mission.title);
-    setNewMissionPriority(mission.priority);
-    setNewMissionXP(mission.xp);
-    setNewMissionIcon(mission.icon);
-    
-    const d = new Date(mission.deadline);
-    const iso = new Date(d.getTime() - (d.getTimezoneOffset() * 60000)).toISOString().slice(0, 16);
-    setNewMissionDeadline(iso);
-  };
-
-  const addOrUpdateMission = () => {
-    if (!newMissionTitle.trim()) {
-        playErrorSound();
-        return;
+  useEffect(() => {
+    if (showHiddenInLog) return;
+    if (!editingLogTaskId) return;
+    const editedTask = tasks.find((task) => task.id === editingLogTaskId);
+    if (editedTask?.archivedAt) {
+      setEditingLogTaskId(null);
     }
-    
-    const deadlineTimestamp = new Date(newMissionDeadline).getTime();
+  }, [editingLogTaskId, showHiddenInLog, tasks]);
 
-    if (editingId) {
-        setMissions(prev => prev.map(m => 
-            m.id === editingId 
-            ? {
-                ...m,
-                title: newMissionTitle,
-                priority: newMissionPriority,
-                deadline: deadlineTimestamp,
-                icon: newMissionIcon,
-                xp: newMissionXP
-              }
-            : m
-        ));
-        resetForm();
-    } else {
-        const mission: Mission = {
-            id: Date.now().toString(),
-            title: newMissionTitle,
-            priority: newMissionPriority,
-            completed: false,
-            createdAt: Date.now(),
-            deadline: deadlineTimestamp,
-            icon: newMissionIcon,
-            xp: newMissionXP
-        };
-        setMissions(prev => [mission, ...prev]);
-        resetForm();
-    }
-    playSuccessSound();
+  const ensureDraft = (task: Task) => {
+    setTaskDrafts((prev) => (prev[task.id] ? prev : { ...prev, [task.id]: buildDraft(task) }));
   };
 
-  const toggleComplete = (id: string) => {
-    setMissions(prev => {
-        const mission = prev.find(m => m.id === id);
-        if (mission && !mission.completed) {
-            playSuccessSound();
-        } else {
-            playClickSound();
-        }
-        return prev.map(m => m.id === id ? { 
-            ...m, 
-            completed: !m.completed,
-            completedAt: !m.completed ? Date.now() : undefined 
-        } : m);
+  const updateDraft = (taskId: string, patch: Partial<TaskDraft>) => {
+    setTaskDrafts((prev) => {
+      const current = prev[taskId];
+      if (!current) return prev;
+      return {
+        ...prev,
+        [taskId]: { ...current, ...patch },
+      };
     });
   };
 
-  const deleteMission = (id: string) => {
-    playErrorSound();
-    setMissions(prev => prev.filter(m => m.id !== id));
-    if (editingId === id) resetForm();
+  const resetCreateForm = () => {
+    setNewTitle('');
+    setNewDetails('');
+    setNewPriority('high');
+    setNewSchedule('');
+    setNewIcon('sword');
+  };
+
+  const addQuest = () => {
+    if (isSyncingCloud) return;
+    if (!newTitle.trim()) {
+      playErrorSound();
+      return;
+    }
+    const scheduleTimestamp = newSchedule ? new Date(newSchedule).getTime() : undefined;
+    addTask({
+      title: newTitle.trim(),
+      details: newDetails.trim(),
+      priority: newPriority,
+      status: 'todo',
+      scheduledAt: scheduleTimestamp,
+      icon: newIcon,
+    });
+    resetCreateForm();
+    playSuccessSound();
+  };
+
+  const completeQuest = (task: Task) => {
+    if (isSyncingCloud) return;
+    completeTask(task.id, {
+      source: 'manual_done',
+    });
+    if (expandedTaskId === task.id) setExpandedTaskId(null);
+    playSuccessSound();
+  };
+
+  const saveInlineEdit = (task: Task) => {
+    if (isSyncingCloud) return;
+    const draft = taskDrafts[task.id];
+    if (!draft) return;
+    const title = draft.title.trim();
+    if (!title) {
+      playErrorSound();
+      return;
+    }
+    updateTask(task.id, {
+      title,
+      details: draft.details.trim(),
+      priority: draft.priority,
+      scheduledAt: draft.schedule ? new Date(draft.schedule).getTime() : undefined,
+    });
+    setExpandedTaskId(null);
+    playSuccessSound();
+  };
+
+  const saveLogEdit = (task: Task) => {
+    if (isSyncingCloud) return;
+    const draft = taskDrafts[task.id];
+    if (!draft) return;
+    const title = draft.title.trim();
+    if (!title) {
+      playErrorSound();
+      return;
+    }
+    updateTask(task.id, {
+      title,
+      details: draft.details.trim(),
+      priority: draft.priority,
+      scheduledAt: draft.schedule ? new Date(draft.schedule).getTime() : undefined,
+      completedAt: undefined,
+      completedDateKey: undefined,
+      status: 'todo',
+    });
+    if (task.archivedAt) {
+      unarchiveTask(task.id);
+    }
+    setEditingLogTaskId(null);
+    setViewMode('active');
+    playSuccessSound();
+  };
+
+  const cancelInlineEdit = (task: Task) => {
+    setTaskDrafts((prev) => ({
+      ...prev,
+      [task.id]: buildDraft(task),
+    }));
+    setExpandedTaskId(null);
+    playClickSound();
+  };
+
+  const cancelLogEdit = (task: Task) => {
+    setTaskDrafts((prev) => ({
+      ...prev,
+      [task.id]: buildDraft(task),
+    }));
+    setEditingLogTaskId(null);
+    playClickSound();
+  };
+
+  const addInlineRetro = (task: Task) => {
+    if (isSyncingCloud) return;
+    const draft = taskDrafts[task.id];
+    if (!draft) return;
+    const minutes = Math.max(0, Math.floor(draft.retroMinutes));
+    if (!minutes) {
+      playErrorSound();
+      return;
+    }
+    addRetroMinutes(task.id, minutes, draft.retroNote);
+    updateDraft(task.id, { retroMinutes: 15, retroNote: '' });
+    playSuccessSound();
+  };
+
+  const onTaskStart = (task: Task) => {
+    if (isSyncingCloud) return;
+    const existing = selectors.getTaskSessions(task.id);
+    if (existing.length > 0) {
+      resumeTaskSession(task.id);
+      return;
+    }
+    startSession({
+      title: task.title,
+      tag: task.priority.toUpperCase(),
+      source: 'timer',
+      linkedTaskIds: [task.id],
+    });
+  };
+
+  const handleSupabasePing = async () => {
+    try {
+      const { data, error } = await supabase.auth.getSession();
+      if (error) throw error;
+      console.log('[supabase] getSession result:', data);
+      setSupabasePingStatus('Supabase OK');
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      console.error('[supabase] getSession error:', error);
+      setSupabasePingStatus(`Supabase error: ${message}`);
+    }
   };
 
   if (!isOpen) return null;
 
-  const visibleMissions = missions
-    .filter(m => viewMode === 'history' ? m.completed : !m.completed)
-    .sort((a, b) => {
-        if (viewMode === 'history') return b.createdAt - a.createdAt;
-        const priorityWeight = { [Priority.HIGH]: 3, [Priority.MEDIUM]: 2, [Priority.LOW]: 1 };
-        if (priorityWeight[a.priority] !== priorityWeight[b.priority]) {
-            return priorityWeight[b.priority] - priorityWeight[a.priority];
-        }
-        return a.deadline - b.deadline;
-    });
-
   return (
-    <div ref={containerRef} className="absolute top-[60px] right-[20px] w-[400px] z-50 animate-fade-in font-mono origin-top-right">
-      <HexPanel className="flex flex-col max-h-[700px] bg-[#0F0F0F] border border-[#333] overflow-hidden">
-        {/* Header */}
-        <div className="p-4 border-b border-[#333] flex items-center justify-between bg-[#050505]">
-          <div className="flex items-center gap-2 text-white">
-            <Terminal size={18} />
-            <span className="font-bold tracking-widest uppercase text-xs">AI_OS_TERMINAL_V1</span>
-          </div>
-          
-          <div className="flex items-center gap-2">
-              <button 
-                onClick={() => { playClickSound(); setViewMode(viewMode === 'active' ? 'history' : 'active'); }}
-                className={`p-1 border transition-all ${viewMode === 'history' ? 'bg-[#FF2A3A] text-white border-[#FF2A3A]' : 'border-[#333] text-[#666] hover:text-white'}`}
-              >
-                {viewMode === 'active' ? <History size={14} /> : <List size={14} />}
-              </button>
-              <button 
-                onClick={() => { playClickSound(); onClose(); }} 
-                className="p-1 border border-[#333] text-[#666] hover:bg-[#FF2A3A] hover:text-white hover:border-[#FF2A3A] transition-colors"
-              >
-                <X size={14} />
-              </button>
-          </div>
-        </div>
+    <div ref={containerRef} className="absolute top-[64px] right-[24px] w-[420px] z-50 animate-fade-in font-mono origin-top-right">
+      <div className="relative rounded-2xl border border-white/10 bg-[#09090b]/90 backdrop-blur-xl shadow-[0_24px_55px_rgba(0,0,0,0.6)] overflow-hidden">
+        <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_20%_0%,rgba(255,122,62,0.12),transparent_55%)] opacity-70" />
+        <div className="absolute inset-0 pointer-events-none bg-[linear-gradient(180deg,rgba(255,255,255,0.04)_0%,transparent_40%)]" />
 
-        {/* Input Form */}
-        {viewMode === 'active' && (
-            <div className={`p-4 border-b border-[#333] transition-colors ${editingId ? 'bg-[#FF2A3A]/10' : 'bg-[#0A0A0A]'}`}>
-            <div className="flex justify-between items-center mb-3">
-                <span className="text-[10px] font-bold uppercase tracking-widest text-[#666]">
-                    {editingId ? '>> MODIFYING_ENTRY' : '>> NEW_ENTRY'}
-                </span>
-                {editingId && (
-                    <button onClick={() => { playClickSound(); resetForm(); }} className="text-[10px] text-[#FF2A3A] uppercase hover:underline">
-                        [ Cancel ]
-                    </button>
-                )}
+        <div className="relative">
+          <div className="px-4 py-3 border-b border-white/10 bg-gradient-to-r from-[#101014] via-[#151518] to-[#101014] flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl border border-white/10 bg-[#15151a] flex items-center justify-center shadow-[inset_0_0_12px_rgba(255,255,255,0.06)]">
+                <Terminal size={16} className="text-[#f3f0e8]" />
+              </div>
+              <span className="text-xs uppercase tracking-[0.28em] text-white font-bold">Quests</span>
             </div>
-            
-            <div className="mb-3">
-                <input 
-                type="text" 
-                value={newMissionTitle}
-                onChange={(e) => setNewMissionTitle(e.target.value)}
-                placeholder="ENTER_DIRECTIVE..."
-                className="w-full bg-[#111] border border-[#333] p-2 text-xs text-white placeholder-[#444] focus:border-white focus:outline-none uppercase"
-                />
-            </div>
-            
-            <div className="flex gap-2 mb-3">
-                <select 
-                value={newMissionPriority}
-                onChange={(e) => setNewMissionPriority(e.target.value as Priority)}
-                className="bg-[#111] border border-[#333] text-[10px] text-white p-2 w-32 focus:border-white outline-none uppercase"
+
+            <div className="flex items-center gap-2">
+              <div className="flex rounded-lg border border-white/10 overflow-hidden">
+                <button
+                  onClick={() => {
+                    playClickSound();
+                    setViewMode('active');
+                  }}
+                  className={`px-3 py-1 text-[9px] uppercase tracking-[0.28em] transition ${
+                    viewMode === 'active'
+                      ? 'bg-[#f46a2e]/20 text-[#f3f0e8]'
+                      : 'text-[#7d7770] hover:text-white'
+                  }`}
                 >
-                <option value={Priority.LOW}>Prio: Low</option>
-                <option value={Priority.MEDIUM}>Prio: Med</option>
-                <option value={Priority.HIGH}>Prio: High</option>
-                </select>
+                  Active
+                </button>
+                <button
+                  onClick={() => {
+                    playClickSound();
+                    setViewMode('log');
+                  }}
+                  className={`px-3 py-1 text-[9px] uppercase tracking-[0.28em] transition ${
+                    viewMode === 'log'
+                      ? 'bg-[#f46a2e]/20 text-[#f3f0e8]'
+                      : 'text-[#7d7770] hover:text-white'
+                  }`}
+                >
+                  Log
+                </button>
+              </div>
+              <button
+                onClick={() => {
+                  playClickSound();
+                  onClose();
+                }}
+                className="w-8 h-8 rounded-lg border border-white/10 text-[#8b847a] hover:text-white hover:border-white/30 transition-colors"
+                aria-label="Close"
+              >
+                <X size={14} className="mx-auto" />
+              </button>
+            </div>
+          </div>
 
-                <div className="relative flex-1">
-                    <input 
+          {viewMode === 'active' && (
+            <div className="px-4 py-4 border-b border-white/10 bg-[#0f0f12]">
+              <div className="grid gap-3">
+                {isSyncingCloud ? (
+                  <div className="text-[9px] uppercase tracking-[0.22em] text-[#f3c56a]">Syncing...</div>
+                ) : null}
+                <input
+                  type="text"
+                  value={newTitle}
+                  onChange={(event) => setNewTitle(event.target.value)}
+                  placeholder="ENTER_DIRECTIVE..."
+                  className="w-full bg-[#141418] border border-white/10 p-2 text-[10px] text-white placeholder-[#5e5850] focus:border-white/40 focus:outline-none uppercase"
+                />
+                <textarea
+                  value={newDetails}
+                  onChange={(event) => setNewDetails(event.target.value)}
+                  placeholder="DETAILS / NOTES..."
+                  className="w-full bg-[#141418] border border-white/10 p-2 text-[10px] text-white placeholder-[#5e5850] focus:border-white/40 focus:outline-none uppercase min-h-[60px]"
+                />
+                <div className="grid grid-cols-2 gap-2">
+                  <select
+                    value={newPriority}
+                    onChange={(event) => setNewPriority(event.target.value as TaskPriority)}
+                    className="bg-[#141418] border border-white/10 text-[9px] text-white p-2 focus:border-white/40 outline-none uppercase"
+                  >
+                    <option value="normal">Prio: Normal</option>
+                    <option value="high">Prio: High</option>
+                    <option value="urgent">Prio: Urgent</option>
+                  </select>
+                  <input
                     type="datetime-local"
-                    value={newMissionDeadline}
-                    onChange={(e) => setNewMissionDeadline(e.target.value)}
-                    className="w-full bg-[#111] border border-[#333] text-[10px] text-white p-2 focus:border-white outline-none [color-scheme:dark] uppercase"
-                    />
+                    value={newSchedule}
+                    onChange={(event) => setNewSchedule(event.target.value)}
+                    className="w-full bg-[#141418] border border-white/10 text-[9px] text-white p-2 focus:border-white/40 outline-none [color-scheme:dark]"
+                  />
                 </div>
-            </div>
-
-            <div className="flex items-center justify-between mb-3">
-                <div className="flex gap-1">
-                    {(['sword', 'shield', 'star', 'zap', 'flag'] as const).map(icon => (
-                    <button 
-                        key={icon}
-                        onClick={() => { playClickSound(); setNewMissionIcon(icon); }}
-                        className={`p-1.5 border transition-all ${newMissionIcon === icon ? 'bg-white text-black border-white' : 'border-[#333] text-[#666] hover:border-[#666]'}`}
+                <div className="flex items-center gap-1">
+                  {(['sword', 'shield', 'star', 'zap', 'flag'] as const).map((icon) => (
+                    <button
+                      key={icon}
+                      type="button"
+                      onClick={() => {
+                        playClickSound();
+                        setNewIcon(icon);
+                      }}
+                      className={`p-1.5 rounded-md border transition-all ${
+                        newIcon === icon
+                          ? 'bg-white text-black border-white'
+                          : 'border-white/10 text-[#8b847a] hover:border-white/30'
+                      }`}
                     >
-                        <MissionIcon icon={icon} size={12} />
+                      <MissionIcon icon={icon} size={12} />
                     </button>
-                    ))}
+                  ))}
                 </div>
+                <HexButton
+                  onClick={addQuest}
+                  disabled={isSyncingCloud}
+                  className="w-full py-2 text-[10px] border border-white/20 hover:bg-[#f46a2e] hover:border-[#f46a2e]"
+                  variant="primary"
+                >
+                  Add Quest
+                </HexButton>
+              </div>
+            </div>
+          )}
 
-                <div className="relative w-24">
-                    <input 
-                        type="number"
-                        min="0"
-                        value={newMissionXP}
-                        onChange={(e) => setNewMissionXP(parseInt(e.target.value) || 0)}
-                        className="w-full bg-[#111] border border-[#333] text-xs text-[#FF2A3A] p-2 pr-8 focus:border-white outline-none font-bold text-right"
+          {viewMode === 'log' && (
+            <div className="px-4 py-2 border-b border-white/10 bg-[#0f0f12] flex items-center justify-between gap-2">
+              <span className="text-[#8b847a] text-[9px] font-bold tracking-[0.35em] uppercase">
+                Log: {selectedLogDateKey}
+              </span>
+              <button
+                type="button"
+                onClick={() => {
+                  playClickSound();
+                  setShowHiddenInLog((prev) => !prev);
+                }}
+                className="px-2 py-1 rounded border border-white/20 text-[9px] uppercase tracking-[0.2em] text-[#8b847a] hover:border-white/40"
+              >
+                {showHiddenInLog ? 'Hide Hidden' : 'Show Hidden'}
+              </button>
+            </div>
+          )}
+
+          <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3 custom-scrollbar min-h-[200px] max-h-[420px]">
+            {viewMode === 'active' ? (
+              visibleTasks.length === 0 ? (
+                <div className="rounded-xl border border-white/10 bg-[#111114] p-4 text-center">
+                  <div className="text-[10px] uppercase tracking-[0.25em] text-[#8b847a]">No active quests</div>
+                  <div className="text-[10px] uppercase tracking-[0.15em] text-[#5e5850] mt-1">
+                    Add a quest to start tracking time
+                  </div>
+                </div>
+              ) : (
+                visibleTasks.map((task) => {
+                  const runningForTask =
+                    !!activeSession &&
+                    activeSession.status === 'running' &&
+                    (activeSession.taskId === task.id || (activeSession.linkedTaskIds || []).includes(task.id));
+                  const runningSeconds = runningForTask
+                    ? Math.floor(selectors.getSessionDisplayMs(activeSession!, now) / 1000)
+                    : 0;
+                  const daySeconds = Math.floor(selectors.getTaskTodayMs(task.id, dateKey, now) / 1000);
+                  const draft = taskDrafts[task.id] || buildDraft(task);
+                  const hasSessions = selectors.getTaskSessions(task.id).length > 0;
+                  return (
+                    <TaskCard
+                      key={task.id}
+                      task={task}
+                      selectedDateKey={dateKey}
+                      now={now}
+                      isRunning={runningForTask}
+                      daySeconds={daySeconds}
+                      runningSeconds={runningSeconds}
+                      controlsDisabled={isSyncingCloud}
+                      isExpanded={expandedTaskId === task.id}
+                      draft={draft}
+                      hasSessions={hasSessions}
+                      onExpand={() => {
+                        playClickSound();
+                        if (expandedTaskId === task.id) {
+                          setExpandedTaskId(null);
+                          return;
+                        }
+                        ensureDraft(task);
+                        setExpandedTaskId(task.id);
+                      }}
+                      onDraftChange={(patch) => updateDraft(task.id, patch)}
+                      onSave={() => saveInlineEdit(task)}
+                      onCancel={() => cancelInlineEdit(task)}
+                      onAddRetro={() => addInlineRetro(task)}
+                      onStart={() => onTaskStart(task)}
+                      onPause={() => pauseSession()}
+                      onStop={() => stopSession()}
+                      onDone={() => completeQuest(task)}
                     />
-                    <span className="absolute right-2 top-2 text-[10px] text-[#444] pointer-events-none font-bold">XP</span>
+                  );
+                })
+              )
+            ) : visibleLogGroups.length === 0 ? (
+              <div className="rounded-xl border border-white/10 bg-[#111114] p-4 text-center">
+                <div className="text-[10px] uppercase tracking-[0.25em] text-[#8b847a]">No quest history yet</div>
+                <div className="text-[10px] uppercase tracking-[0.15em] text-[#5e5850] mt-1">
+                  Activity from sessions, completions, and retro logs appears here
                 </div>
-            </div>
+              </div>
+            ) : (
+              visibleLogGroups.map((group) => (
+                (() => {
+                  const groupTask = group.taskId ? tasks.find((task) => task.id === group.taskId) : undefined;
+                  const logDraft = groupTask ? taskDrafts[groupTask.id] || buildDraft(groupTask) : undefined;
+                  return (
+                    <QuestLogRow
+                      key={group.key}
+                      group={group}
+                      task={groupTask}
+                      isEditing={!!groupTask && editingLogTaskId === groupTask.id}
+                      draft={logDraft}
+                      onDraftChange={
+                        groupTask
+                          ? (patch) => updateDraft(groupTask.id, patch)
+                          : undefined
+                      }
+                      onStartEdit={
+                        groupTask
+                          ? () => {
+                              playClickSound();
+                              ensureDraft(groupTask);
+                              setEditingLogTaskId((prev) => (prev === groupTask.id ? null : groupTask.id));
+                            }
+                          : undefined
+                      }
+                      onSaveEdit={
+                        groupTask
+                          ? () => saveLogEdit(groupTask)
+                          : undefined
+                      }
+                      onCancelEdit={
+                        groupTask
+                          ? () => cancelLogEdit(groupTask)
+                          : undefined
+                      }
+                      onToggleHidden={
+                        groupTask
+                          ? () => {
+                              if (groupTask.archivedAt) {
+                                if (!showHiddenInLog) return;
+                                unarchiveTask(groupTask.id);
+                                return;
+                              }
+                              archiveTask(groupTask.id);
+                              setShowHiddenInLog(false);
+                              setEditingLogTaskId((prev) => (prev === groupTask.id ? null : prev));
+                            }
+                          : undefined
+                      }
+                      showHiddenMode={showHiddenInLog}
+                    />
+                  );
+                })()
+              ))
+            )}
+          </div>
 
-            <HexButton onClick={addOrUpdateMission} className="w-full py-2 text-xs border border-white hover:bg-[#FF2A3A] hover:border-[#FF2A3A]" variant="primary">
-                {editingId ? 'UPDATE_DATABASE' : 'ADD_TO_DATABASE'}
-            </HexButton>
+          <div className="px-4 py-2 border-t border-white/10 bg-[#0f0f12] flex justify-end items-center text-[9px] text-[#5e5850] uppercase tracking-[0.28em]">
+            <div className="flex items-center gap-2 text-[9px] tracking-normal">
+              {import.meta.env.DEV && (
+                <>
+                  <button
+                    type="button"
+                    onClick={handleSupabasePing}
+                    className="px-2 py-1 border border-white/20 text-[9px] text-[#f3f0e8] hover:border-[#f46a2e] hover:text-[#f46a2e] transition-colors"
+                  >
+                    SUPABASE PING
+                  </button>
+                  <span className="text-[9px] tracking-normal normal-case text-[#8b847a] max-w-[160px] truncate">
+                    {supabasePingStatus || 'idle'}
+                  </span>
+                  <span className="text-[9px] tracking-normal normal-case text-[#8b847a] max-w-[200px] truncate">
+                    {user?.email ? `Signed in as ${user.email}` : 'Not signed in'}
+                  </span>
+                </>
+              )}
+              <span className="uppercase tracking-[0.28em]">Today: {todayTrackedMinutes}m</span>
             </div>
-        )}
-
-        {/* History Banner */}
-        {viewMode === 'history' && (
-            <div className="p-2 bg-[#0A0A0A] border-b border-[#333] text-center">
-                <span className="text-[#666] text-[10px] font-bold tracking-widest uppercase">:: ARCHIVE_MODE ::</span>
-            </div>
-        )}
-
-        {/* Mission List */}
-        <div className="flex-1 overflow-y-auto p-4 space-y-2 custom-scrollbar min-h-[200px] max-h-[420px]">
-          {visibleMissions.map(mission => (
-            <MissionItem 
-              key={mission.id} 
-              mission={mission} 
-              isEditing={editingId === mission.id}
-              onToggle={() => toggleComplete(mission.id)}
-              onDelete={() => deleteMission(mission.id)}
-              onEdit={() => handleEditClick(mission)}
-            />
-          ))}
+          </div>
         </div>
-        
-        {/* Footer */}
-        <div className="p-2 border-t border-[#333] bg-[#050505] flex justify-between items-center text-[10px] text-[#444] uppercase tracking-wider font-mono">
-           <span>RAM: 64TB</span>
-           <span>XP_TOTAL: {missions.filter(m => m.completed).reduce((sum, m) => sum + (m.xp || 0), 0)}</span>
-        </div>
-      </HexPanel>
+      </div>
     </div>
   );
 };
 
-// --- Sub-components ---
+const MissionIcon: React.FC<{ icon?: Task['icon']; size?: number; className?: string }> = ({
+  icon,
+  size = 16,
+  className = '',
+}) => {
+  switch (icon) {
+    case 'sword':
+      return <Sword size={size} className={className} />;
+    case 'shield':
+      return <Shield size={size} className={className} />;
+    case 'star':
+      return <Star size={size} className={className} />;
+    case 'zap':
+      return <Zap size={size} className={className} />;
+    case 'flag':
+      return <Flag size={size} className={className} />;
+    default:
+      return <Flag size={size} className={className} />;
+  }
+};
 
-const MissionIcon: React.FC<{ icon: string, size?: number, className?: string }> = ({ icon, size = 16, className = '' }) => {
-    switch (icon) {
-        case 'sword': return <Sword size={size} className={className} />;
-        case 'shield': return <Shield size={size} className={className} />;
-        case 'star': return <Star size={size} className={className} />;
-        case 'zap': return <Zap size={size} className={className} />;
-        case 'flag': return <Flag size={size} className={className} />;
-        default: return <AlertTriangle size={size} className={className} />;
-    }
-}
-
-const MissionItem: React.FC<{ 
-    mission: Mission, 
-    isEditing: boolean,
-    onToggle: () => void, 
-    onDelete: () => void,
-    onEdit: () => void
-}> = ({ mission, isEditing, onToggle, onDelete, onEdit }) => {
-    const [timeLeft, setTimeLeft] = useState<string>('');
-    const [isOverdue, setIsOverdue] = useState(false);
-    const [isAnimating, setIsAnimating] = useState(false);
-
-    useEffect(() => {
-        const updateTimer = () => {
-            const now = Date.now();
-            const diff = mission.deadline - now;
-            if (diff <= 0) {
-                setTimeLeft(mission.completed ? 'COMPLETED' : 'OVERDUE');
-                setIsOverdue(!mission.completed);
-            } else {
-                setIsOverdue(false);
-                const h = Math.floor(diff / (1000 * 60 * 60));
-                const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-                if (h > 24) setTimeLeft(`${Math.floor(h / 24)}d ${h % 24}h`);
-                else setTimeLeft(`${h}h ${m}m`);
-            }
-        };
-        updateTimer();
-        const interval = setInterval(updateTimer, 60000); // Less frequent updates for industrial feel
-        return () => clearInterval(interval);
-    }, [mission.deadline, mission.completed]);
-
-    const handleToggleClick = (e: React.MouseEvent) => {
-        e.stopPropagation();
-        if (!mission.completed) {
-            setIsAnimating(true);
-            playSuccessSound();
-            setTimeout(() => {
-                onToggle();
-                setIsAnimating(false);
-            }, 500);
-        } else {
-            onToggle();
-        }
-    };
-
-    const getPriorityColor = () => {
-        if (mission.completed) return 'bg-[#111] border-[#333] text-[#444]';
-        if (isOverdue) return 'bg-[#FF2A3A]/10 border-[#FF2A3A] text-[#FF2A3A]';
-        switch (mission.priority) {
-            case Priority.HIGH: return 'border-white bg-[#0A0A0A] text-white';
-            case Priority.MEDIUM: return 'border-[#666] bg-[#0A0A0A] text-[#AAA]';
-            case Priority.LOW: return 'border-[#333] bg-[#0A0A0A] text-[#666]';
-        }
-    };
-
-    return (
-        <div className={`
-            relative border p-3 transition-all group overflow-hidden
-            ${getPriorityColor()}
-            ${isAnimating ? 'bg-white text-black border-white invert' : ''}
-            ${isEditing ? 'ring-1 ring-white' : ''}
-        `}>
-            {/* Visual Confirmation Glitch */}
-            {isAnimating && (
-                <div className="absolute inset-0 bg-white z-20 mix-blend-difference flex items-center justify-center">
-                    <div className="text-black font-black text-2xl uppercase tracking-widest">SUCCESS</div>
-                </div>
-            )}
-
-            <div className="flex items-start gap-3 relative z-10">
-                <div className={`w-8 h-8 border border-current flex items-center justify-center shrink-0`}>
-                    <MissionIcon icon={mission.icon} size={14} />
-                </div>
-
-                <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between mb-1">
-                        <div className="flex items-center gap-2">
-                            <span className="text-[10px] font-bold uppercase tracking-wider">
-                                {isOverdue ? '! CRITICAL !' : `PRIO: ${mission.priority}`}
-                            </span>
-                            {mission.xp > 0 && (
-                                <span className="text-[8px] border border-current px-1 font-bold">
-                                    +{mission.xp} XP
-                                </span>
-                            )}
-                        </div>
-                    </div>
-                    
-                    <h4 className={`font-bold text-xs mb-1 truncate uppercase ${mission.completed ? 'line-through opacity-50' : ''}`}>
-                        {mission.title}
-                    </h4>
-
-                    <div className="flex items-center gap-2 text-[10px] opacity-70">
-                        <Clock size={10} />
-                        <span>{timeLeft}</span>
-                    </div>
-                </div>
-            </div>
-
-            {/* Hover Actions */}
-            <div className="absolute top-0 right-0 h-full flex items-center bg-[#050505] border-l border-[#333] translate-x-full group-hover:translate-x-0 transition-transform z-20">
-                 <button onClick={handleToggleClick} className="h-full px-3 hover:bg-white hover:text-black transition-colors">
-                    {mission.completed ? <RotateCcw size={14} /> : <Check size={14} />}
-                 </button>
-                 <button onClick={(e) => { e.stopPropagation(); onEdit(); }} className="h-full px-3 hover:bg-white hover:text-black transition-colors border-l border-[#333]">
-                    <Edit2 size={14} />
-                 </button>
-                 <button onClick={(e) => { e.stopPropagation(); onDelete(); }} className="h-full px-3 hover:bg-[#FF2A3A] hover:text-white transition-colors border-l border-[#333]">
-                    <Trash2 size={14} />
-                 </button>
-            </div>
+const TaskCard: React.FC<{
+  task: Task;
+  selectedDateKey: string;
+  now: number;
+  isRunning: boolean;
+  daySeconds: number;
+  runningSeconds: number;
+  controlsDisabled: boolean;
+  isExpanded: boolean;
+  draft: TaskDraft;
+  hasSessions: boolean;
+  onExpand: () => void;
+  onDraftChange: (patch: Partial<TaskDraft>) => void;
+  onSave: () => void;
+  onCancel: () => void;
+  onAddRetro: () => void;
+  onStart: () => void;
+  onPause: () => void;
+  onStop: () => void;
+  onDone: () => void;
+}> = ({
+  task,
+  selectedDateKey,
+  now,
+  isRunning,
+  daySeconds,
+  runningSeconds,
+  controlsDisabled,
+  isExpanded,
+  draft,
+  hasSessions,
+  onExpand,
+  onDraftChange,
+  onSave,
+  onCancel,
+  onAddRetro,
+  onStart,
+  onPause,
+  onStop,
+  onDone,
+}) => {
+  const [isHovered, setIsHovered] = useState(false);
+  const scheduleState = formatScheduleState(task, now);
+  const statusLabel = isRunning ? 'RUNNING' : task.status.toUpperCase();
+  const railVisible = isExpanded || isHovered;
+  const actionDisabled = controlsDisabled;
+  const scheduleBadge = getScheduleBadge(task.scheduledAt, selectedDateKey);
+  const hideRailAnd = (action: () => void) => {
+    setIsHovered(false);
+    action();
+  };
+  return (
+    <div
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      className={`relative overflow-hidden rounded-xl border px-3 py-3 transition-all ${
+        isRunning
+          ? 'border-violet-400/60 bg-violet-500/10 ring-1 ring-violet-500/50 shadow-[0_0_24px_rgba(168,85,247,0.32)]'
+          : 'border-white/15 bg-[#111114]'
+      } ${railVisible && !isExpanded ? 'pr-[210px]' : ''}`}
+    >
+      <div className="flex items-start gap-3">
+        <div className="w-9 h-9 rounded-lg border border-white/30 flex items-center justify-center shrink-0 text-white/90">
+          <MissionIcon icon={task.icon} size={14} />
         </div>
-    );
+
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2">
+            <div className="text-[9px] font-bold uppercase tracking-[0.2em] text-[#8b847a]">Priority: {task.priority}</div>
+            <span className="text-[8px] uppercase tracking-[0.18em] px-1.5 py-0.5 rounded border border-white/15 text-[#8b847a]">
+              {scheduleBadge}
+            </span>
+          </div>
+          <h4 className="font-bold text-[11px] truncate uppercase text-[#f3f0e8]">{task.title}</h4>
+          <div className="mt-1 flex items-center gap-2 text-[9px] uppercase tracking-[0.16em] text-[#8b847a]">
+            <Clock size={10} />
+            <span>{scheduleState}</span>
+            <span>·</span>
+            <span>{statusLabel}</span>
+            <span>·</span>
+            <span>Day {formatMinutes(daySeconds)}</span>
+            {isRunning ? (
+              <>
+                <span>·</span>
+                <span className="text-violet-300">Live {formatMinutes(runningSeconds)}</span>
+              </>
+            ) : null}
+          </div>
+        </div>
+
+        {isRunning ? (
+          <div className="pl-3 border-l border-violet-300/30 min-w-[120px] text-right">
+            <div className="text-[9px] uppercase tracking-[0.2em] text-violet-200">Running</div>
+            <div className="text-2xl font-semibold tracking-[0.14em] text-[#f3f0e8]">{formatMinutes(daySeconds)}</div>
+          </div>
+        ) : null}
+      </div>
+
+      {!isExpanded ? (
+        <div
+          className={`absolute top-0 right-0 h-full flex items-center bg-[#0c0c10] border-l border-white/10 transition-all duration-200 z-20 ${
+            railVisible ? 'translate-x-0 opacity-100 pointer-events-auto' : 'translate-x-full opacity-0 pointer-events-none'
+          }`}
+        >
+          {!isRunning ? (
+            <button
+              onClick={(event) => {
+                event.stopPropagation();
+                hideRailAnd(onStart);
+              }}
+              disabled={actionDisabled}
+              className="h-full px-3 hover:bg-white hover:text-black transition-colors"
+              title={hasSessions ? 'Resume session' : 'Start session'}
+            >
+              <Play size={14} />
+            </button>
+          ) : (
+            <>
+              <button
+                onClick={(event) => {
+                  event.stopPropagation();
+                  hideRailAnd(onPause);
+                }}
+                disabled={actionDisabled}
+                className="h-full px-3 hover:bg-white hover:text-black transition-colors border-l border-white/10"
+                title="Pause session"
+              >
+                <Pause size={14} />
+              </button>
+              <button
+                onClick={(event) => {
+                  event.stopPropagation();
+                  hideRailAnd(onStop);
+                }}
+                disabled={actionDisabled}
+                className="h-full px-3 hover:bg-white hover:text-black transition-colors border-l border-white/10"
+                title="Stop session"
+              >
+                <Square size={14} />
+              </button>
+            </>
+          )}
+
+          <button
+            onClick={(event) => {
+              event.stopPropagation();
+              hideRailAnd(onDone);
+            }}
+            disabled={actionDisabled}
+            className="h-full px-3 hover:bg-white hover:text-black transition-colors border-l border-white/10"
+            title="Complete quest"
+          >
+            <Check size={14} />
+          </button>
+          <button
+            onClick={(event) => {
+              event.stopPropagation();
+              onExpand();
+            }}
+            className="h-full px-3 hover:bg-white hover:text-black transition-colors border-l border-white/10"
+            title="Edit quest"
+          >
+            <Edit2 size={14} />
+          </button>
+        </div>
+      ) : null}
+
+      {isExpanded ? (
+        <div className="mt-3 pt-3 border-t border-white/10 space-y-2 animate-fade-in">
+          <div className="flex items-center justify-end gap-1">
+            <button
+              type="button"
+              onClick={() => hideRailAnd(onSave)}
+              className="px-2 py-1 rounded border border-white/20 text-[9px] uppercase tracking-[0.2em] text-[#f3f0e8] hover:border-white/40"
+            >
+              Save
+            </button>
+            <button
+              type="button"
+              onClick={() => hideRailAnd(onCancel)}
+              className="px-2 py-1 rounded border border-white/20 text-[9px] uppercase tracking-[0.2em] text-[#8b847a] hover:border-white/40"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={() => hideRailAnd(onDone)}
+              disabled={actionDisabled}
+              className="px-2 py-1 rounded border border-white/20 text-[9px] uppercase tracking-[0.2em] text-[#f3f0e8] hover:border-white/40"
+            >
+              Done
+            </button>
+          </div>
+          <input
+            value={draft.title}
+            onChange={(event) => onDraftChange({ title: event.target.value })}
+            className="w-full bg-[#141418] border border-white/10 p-2 text-[10px] text-white placeholder-[#5e5850] focus:border-white/40 focus:outline-none uppercase"
+            placeholder="Quest title"
+          />
+          <textarea
+            value={draft.details}
+            onChange={(event) => onDraftChange({ details: event.target.value })}
+            className="w-full bg-[#141418] border border-white/10 p-2 text-[10px] text-white placeholder-[#5e5850] focus:border-white/40 focus:outline-none uppercase min-h-[56px]"
+            placeholder="Details / notes"
+          />
+          <div className="grid grid-cols-2 gap-2">
+            <select
+              value={draft.priority}
+              onChange={(event) => onDraftChange({ priority: event.target.value as TaskPriority })}
+              className="bg-[#141418] border border-white/10 text-[9px] text-white p-2 focus:border-white/40 outline-none uppercase"
+            >
+              <option value="normal">Prio: Normal</option>
+              <option value="high">Prio: High</option>
+              <option value="urgent">Prio: Urgent</option>
+            </select>
+            <input
+              type="datetime-local"
+              value={draft.schedule}
+              onChange={(event) => onDraftChange({ schedule: event.target.value })}
+              className="w-full bg-[#141418] border border-white/10 text-[9px] text-white p-2 focus:border-white/40 outline-none [color-scheme:dark]"
+            />
+          </div>
+          <div className="grid grid-cols-[120px,1fr,100px] gap-2">
+            <input
+              type="number"
+              min={1}
+              value={draft.retroMinutes}
+              onChange={(event) => onDraftChange({ retroMinutes: Number(event.target.value) || 0 })}
+              className="bg-[#141418] border border-white/10 text-[10px] text-white p-2 focus:border-white/40 outline-none"
+              placeholder="Minutes"
+            />
+            <input
+              value={draft.retroNote}
+              onChange={(event) => onDraftChange({ retroNote: event.target.value })}
+              className="bg-[#141418] border border-white/10 text-[10px] text-white p-2 focus:border-white/40 outline-none"
+              placeholder="Retro note (optional)"
+            />
+            <button
+              type="button"
+              onClick={onAddRetro}
+              className="px-2 py-1 rounded border border-[#f46a2e]/40 text-[9px] uppercase tracking-[0.2em] text-[#f46a2e]"
+            >
+              Add Retro
+            </button>
+          </div>
+        </div>
+      ) : null}
+    </div>
+  );
+};
+
+const QuestLogRow: React.FC<{
+  group: XPDayActivityGroup;
+  task?: Task;
+  isEditing?: boolean;
+  showHiddenMode?: boolean;
+  draft?: TaskDraft;
+  onDraftChange?: (patch: Partial<TaskDraft>) => void;
+  onStartEdit?: () => void;
+  onSaveEdit?: () => void;
+  onCancelEdit?: () => void;
+  onToggleHidden?: () => void;
+}> = ({
+  group,
+  task,
+  isEditing = false,
+  showHiddenMode = false,
+  draft,
+  onDraftChange,
+  onStartEdit,
+  onSaveEdit,
+  onCancelEdit,
+  onToggleHidden,
+}) => {
+  const statusLabel = group.hasCompletion
+    ? group.totalMinutes > 0
+      ? 'COMPLETED'
+      : 'COMPLETED (NO TIME)'
+    : group.hasRunning
+      ? 'RUNNING'
+      : group.hasRetro && !group.hasSession
+        ? 'RETRO'
+        : group.hasCreated
+          ? group.latestStatusLabel
+          : 'TRACKED';
+  const detailLabel = `${group.totalMinutes}m total · ${group.entries.length} entries`;
+  return (
+    <div className="rounded-xl border border-white/10 bg-[#111114] px-3 py-2">
+      <div className="flex items-center justify-between gap-2">
+        <div className="min-w-0">
+          <div className="text-[11px] uppercase tracking-[0.16em] text-[#f3f0e8] truncate">{group.title}</div>
+          <div className="text-[9px] uppercase tracking-[0.15em] text-[#8b847a] mt-1 flex items-center gap-2">
+            <span>{statusLabel}</span>
+            <span>·</span>
+            <span>{detailLabel}</span>
+            <span>·</span>
+            <span>{formatLogTime(group.latestAt)}</span>
+          </div>
+        </div>
+        <div className="flex items-center gap-1">
+          {task && onStartEdit ? (
+            <button
+              type="button"
+              onClick={onStartEdit}
+              className="px-2 py-1 rounded border border-white/20 text-[9px] uppercase tracking-[0.2em] text-[#8b847a] hover:border-white/40"
+              title="Edit quest"
+            >
+              {isEditing ? 'Close' : 'Edit'}
+            </button>
+          ) : null}
+          {task && onToggleHidden ? (
+            task.archivedAt && !showHiddenMode ? null : (
+              <button
+                type="button"
+                onClick={onToggleHidden}
+                className="px-2 py-1 rounded border border-white/20 text-[9px] uppercase tracking-[0.2em] text-[#8b847a] hover:border-white/40"
+                title={task.archivedAt ? 'Unhide quest' : 'Hide quest'}
+              >
+                {task.archivedAt ? 'Unhide' : 'Hide'}
+              </button>
+            )
+          ) : null}
+        </div>
+      </div>
+      {task && draft && isEditing && onDraftChange && onSaveEdit && onCancelEdit ? (
+        <div className="mt-3 pt-3 border-t border-white/10 space-y-2 animate-fade-in">
+          <input
+            value={draft.title}
+            onChange={(event) => onDraftChange({ title: event.target.value })}
+            className="w-full bg-[#141418] border border-white/10 p-2 text-[10px] text-white placeholder-[#5e5850] focus:border-white/40 focus:outline-none uppercase"
+            placeholder="Quest title"
+          />
+          <textarea
+            value={draft.details}
+            onChange={(event) => onDraftChange({ details: event.target.value })}
+            className="w-full bg-[#141418] border border-white/10 p-2 text-[10px] text-white placeholder-[#5e5850] focus:border-white/40 focus:outline-none uppercase min-h-[56px]"
+            placeholder="Details / notes"
+          />
+          <div className="grid grid-cols-2 gap-2">
+            <select
+              value={draft.priority}
+              onChange={(event) => onDraftChange({ priority: event.target.value as TaskPriority })}
+              className="bg-[#141418] border border-white/10 text-[9px] text-white p-2 focus:border-white/40 outline-none uppercase"
+            >
+              <option value="normal">Prio: Normal</option>
+              <option value="high">Prio: High</option>
+              <option value="urgent">Prio: Urgent</option>
+            </select>
+            <input
+              type="datetime-local"
+              value={draft.schedule}
+              onChange={(event) => onDraftChange({ schedule: event.target.value })}
+              className="w-full bg-[#141418] border border-white/10 text-[9px] text-white p-2 focus:border-white/40 outline-none [color-scheme:dark]"
+            />
+          </div>
+          <div className="flex items-center justify-end gap-2">
+            <button
+              type="button"
+              onClick={onCancelEdit}
+              className="px-2 py-1 rounded border border-white/20 text-[9px] uppercase tracking-[0.2em] text-[#8b847a] hover:border-white/40"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={onSaveEdit}
+              className="px-2 py-1 rounded border border-white/20 text-[9px] uppercase tracking-[0.2em] text-[#f3f0e8] hover:border-white/40"
+            >
+              Save
+            </button>
+          </div>
+        </div>
+      ) : null}
+    </div>
+  );
 };

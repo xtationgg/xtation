@@ -5,6 +5,8 @@ import { HexPanel } from '../UI/HextechUI';
 import { Settings as SettingsIcon, Activity, Upload, CheckCircle, ChevronDown } from 'lucide-react';
 import { playClickSound, playPanelOpenSound, playHoverSound } from '../../utils/SoundEffects';
 import { readFileAsDataUrl } from '../../utils/fileUtils';
+import { useAuth } from '../../src/auth/AuthProvider';
+import { writeUserScopedString } from '../../src/lib/userScopedStorage';
 
 interface SettingsProps {
     rewardConfigs: RewardConfig[];
@@ -13,6 +15,8 @@ interface SettingsProps {
 }
 
 export const Settings: React.FC<SettingsProps> = ({ rewardConfigs, onUpdateConfig, currentXP }) => {
+  const { user } = useAuth();
+  const activeUserId = user?.id || null;
     
   const [isProtocolExpanded, setIsProtocolExpanded] = useState(false);
 
@@ -97,7 +101,7 @@ export const Settings: React.FC<SettingsProps> = ({ rewardConfigs, onUpdateConfi
                 storedUrl = await saveVisualToDB(level, file);
             } else {
                 // Save inline to avoid object URL persistence issues
-                localStorage.setItem(`rewardVisual-${level}`, storedUrl);
+                writeUserScopedString(`rewardVisual-${level}`, storedUrl, activeUserId);
                 // Clear any DB ref if switching back
                 setResolvedVisuals(prev => {
                     if (prev[level]) {

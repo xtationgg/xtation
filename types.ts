@@ -84,7 +84,11 @@ export interface InventoryItem {
   category: InventoryCategory;
   mediaUrl?: string;
   mediaType: 'image' | 'video' | 'embed' | 'model';
-  name: string;
+
+  // Display
+  name: string; // main title
+  details?: string; // optional detailed text
+  importance?: 'low' | 'medium' | 'high' | 'critical';
 }
 
 // Multiplayer / Social
@@ -103,13 +107,36 @@ export interface Player {
   id: string;
   name: string;
   role: PlayerRole;
+
+  // People OS fields
+  favorite?: boolean;
+  tags?: string[]; // e.g. ['family', 'friend', 'work'] (custom allowed)
+  heightCm?: number;
+  weightKg?: number;
+  utcOffsetMinutes?: number; // e.g. 480 for GMT+8
+  timeZone?: string; // IANA timezone, e.g. Asia/Makassar
+  location?: { lat: number; lng: number; label?: string };
+
+  // Identity
   birthday?: string;
   gender?: 'Male' | 'Female' | 'Other' | '';
   email?: string;
   phone?: string;
-  socials?: Partial<Record<'instagram' | 'linkedin' | 'twitter' | 'discord', string>>;
-  avatar?: string;
+  socials?: Partial<Record<'instagram' | 'linkedin' | 'twitter' | 'discord' | 'youtube' | 'telegram' | 'whatsapp' | 'facebook' | 'tiktok' | 'x', string>>;
+
+  // Media
+  avatar?: string; // headshot
+  fullBodyImage?: string; // standing photo (image or video data URL)
+  fullBodyType?: 'image' | 'video';
+  gallery?: string[]; // extra photos (data URLs)
+  files?: { id: string; name: string; mimeType: string; dataUrl: string; addedAt: number }[];
+
   notes?: string;
+  links?: { id: string; url: string; label?: string }[];
+
+  // Future: link to real app accounts for true DM sync
+  appUserId?: string;
+
   permissions: Permissions;
   accepted: boolean;
 }
@@ -164,6 +191,17 @@ export interface XpLog {
   timestamp: number;
   tag?: string;
   note?: string;
+}
+
+export interface SavedLocation {
+  id: string;
+  title: string;
+  lat: number;
+  lng: number;
+  tags?: string[]; // used as folders/groups
+  favorite?: boolean;
+  createdAt: number;
+  lastVisitedAt?: number;
 }
 
 export type LocationMode = 'off' | 'city' | 'live';
