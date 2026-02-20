@@ -433,7 +433,7 @@ export const Inventory: React.FC<{ uiTheme?: 'kpr' | 'valorant-a' | 'valorant-b'
     const renderMedia = (item: InventoryItem, variant: 'grid' | 'detail') => {
         const isDetail = variant === 'detail';
         const commonClass = isDetail ? 'w-full h-full object-contain' : 'w-full h-full object-cover';
-        const mediaUrl = item.mediaUrl?.startsWith('idb:') ? resolvedMedia[item.mediaUrl] : item.mediaUrl;
+        const mediaUrl = item.mediaUrl;
         if (!item.mediaUrl) {
             return (
                 <div className="w-full h-full flex flex-col items-center justify-center text-[var(--ui-border)]">
@@ -684,7 +684,7 @@ export const Inventory: React.FC<{ uiTheme?: 'kpr' | 'valorant-a' | 'valorant-b'
                                 <div className="absolute inset-0 z-0">
                                     {selectedItem?.mediaType === 'model' ? (
                                         <model-viewer
-                                            src={selectedItem.mediaUrl?.startsWith('idb:') ? resolvedMedia[selectedItem.mediaUrl] : selectedItem.mediaUrl}
+                                            src={selectedItem.mediaUrl}
                                             camera-controls
                                             auto-rotate
                                             autoplay
