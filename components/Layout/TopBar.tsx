@@ -25,7 +25,7 @@ export const TopBar: React.FC<TopBarProps> = ({
   activeTasksCount
 }) => {
   const { stats, selectors, dateKey, authStatus } = useXP();
-  const { user, loading, error, signInWithGoogle, signUpWithEmailPassword, signInWithEmailPassword, requestPasswordReset, signOut } = useAuth();
+  const { user, loading, error, signInWithGoogle, signUpWithPassword, signInWithPassword, requestPasswordReset, signOut } = useAuth();
   const userLabel = user?.name || user?.email || 'Signed in';
   const userInitial = (user?.name || user?.email || 'U').charAt(0).toUpperCase();
   const todayTrackedMinutes = selectors.getTrackedMinutesForDay(dateKey);
@@ -61,8 +61,8 @@ export const TopBar: React.FC<TopBarProps> = ({
     setAuthNotice(null);
     const success =
       authMode === 'login'
-        ? await signInWithEmailPassword(authEmail, authPassword)
-        : await signUpWithEmailPassword(authEmail, authPassword);
+        ? await signInWithPassword(authEmail, authPassword)
+        : await signUpWithPassword(authEmail, authPassword);
     setIsAuthSubmitting(false);
     if (success) {
       if (authMode === 'login') {
@@ -89,7 +89,7 @@ export const TopBar: React.FC<TopBarProps> = ({
     const success = await requestPasswordReset(targetEmail);
     setIsAuthSubmitting(false);
     if (success) {
-      setAuthNotice('Check your email for a password reset link.');
+      setAuthNotice('Reset email sent. Check your inbox.');
     } else {
       setAuthNotice(null);
     }

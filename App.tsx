@@ -11,6 +11,7 @@ import { HextechAssistant } from './components/Features/HextechAssistant';
 import { TerminalErrorBoundary } from './components/UI/TerminalErrorBoundary';
 import { RewardOverlay } from './components/Features/RewardOverlay';
 import { ChatDock } from './components/Chat';
+import { AuthCallbackView } from './components/Auth/AuthCallbackView';
 import { ResetPasswordView } from './components/Auth/ResetPasswordView';
 import { Earth } from './components/Views/Earth';
 import { UiKitPlayground } from './components/Views/UiKitPlayground';
@@ -52,8 +53,7 @@ const defaultViewBackgrounds: Record<ClientView, string | null> = {
 };
 
 const App: React.FC = () => {
-  const [currentPath, setCurrentPath] = useState<string>(() => window.location.pathname);
-  const [currentHash, setCurrentHash] = useState<string>(() => window.location.hash || '#/');
+  const currentPath = window.location.pathname;
   const { user, loading: authLoading } = useAuth();
   const activeUserId = user?.id || null;
   const userScopeRenderKey = activeUserId || 'signedOut';
@@ -82,37 +82,8 @@ const App: React.FC = () => {
   const totalXP = stats.totalEarnedXP;
   const activeTasksCount = selectors.getActiveTasks().length;
   const rewardDismissTimer = useRef<number | null>(null);
-  const isResetPasswordRoute = currentHash.startsWith('#/reset-password') || currentPath === '/reset-password';
-
-  useEffect(() => {
-    const handleHashChange = () => {
-      setCurrentHash(window.location.hash || '#/');
-      setCurrentPath(window.location.pathname);
-    };
-    const handlePopState = () => {
-      setCurrentHash(window.location.hash || '#/');
-      setCurrentPath(window.location.pathname);
-    };
-    window.addEventListener('hashchange', handleHashChange);
-    window.addEventListener('popstate', handlePopState);
-    return () => {
-      window.removeEventListener('hashchange', handleHashChange);
-      window.removeEventListener('popstate', handlePopState);
-    };
-  }, []);
-
-  useEffect(() => {
-    if (window.location.pathname !== '/reset-password') return;
-    if (window.location.hash.startsWith('#/reset-password')) return;
-
-    const query = window.location.search.startsWith('?') ? window.location.search.slice(1) : window.location.search;
-    const rawHash = window.location.hash.startsWith('#') ? window.location.hash.slice(1) : window.location.hash;
-    const preservedPayload = [query, rawHash && !rawHash.startsWith('/') ? rawHash : ''].filter(Boolean).join('&');
-    const normalizedHash = preservedPayload ? `#/reset-password?${preservedPayload}` : '#/reset-password';
-
-    window.location.hash = normalizedHash;
-    setCurrentHash(normalizedHash);
-  }, [currentPath, currentHash]);
+  const isResetPasswordRoute = currentPath === '/reset-password';
+  const isAuthCallbackRoute = currentPath === '/auth/callback';
 
   useEffect(() => {
     if (authLoading) return;
@@ -395,6 +366,10 @@ const App: React.FC = () => {
         }
     };
   }, [activeReward, activeRewardDuration]);
+
+  if (isAuthCallbackRoute) {
+    return <AuthCallbackView />;
+  }
 
   if (isResetPasswordRoute) {
     return <ResetPasswordView />;

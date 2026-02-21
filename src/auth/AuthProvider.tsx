@@ -15,8 +15,8 @@ interface AuthContextValue {
   loading: boolean;
   error: string | null;
   signInWithGoogle: () => Promise<void>;
-  signUpWithEmailPassword: (email: string, password: string) => Promise<boolean>;
-  signInWithEmailPassword: (email: string, password: string) => Promise<boolean>;
+  signUpWithPassword: (email: string, password: string) => Promise<boolean>;
+  signInWithPassword: (email: string, password: string) => Promise<boolean>;
   requestPasswordReset: (email: string) => Promise<boolean>;
   signOut: () => Promise<void>;
 }
@@ -90,7 +90,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const signInWithGoogle = async () => {
     setError(null);
-    const redirectTo = window.location.origin;
+    const redirectTo = `${window.location.origin}/auth/callback`;
     const { error: signInError } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: { redirectTo },
@@ -101,7 +101,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const signUpWithEmailPassword = async (email: string, password: string): Promise<boolean> => {
+  const signUpWithPassword = async (email: string, password: string): Promise<boolean> => {
     const normalizedEmail = email.trim().toLowerCase();
     if (!normalizedEmail || !password) {
       setError('Email and password are required');
@@ -120,7 +120,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return true;
   };
 
-  const signInWithEmailPassword = async (email: string, password: string): Promise<boolean> => {
+  const signInWithPassword = async (email: string, password: string): Promise<boolean> => {
     const normalizedEmail = email.trim().toLowerCase();
     if (!normalizedEmail || !password) {
       setError('Email and password are required');
@@ -173,8 +173,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       loading,
       error,
       signInWithGoogle,
-      signUpWithEmailPassword,
-      signInWithEmailPassword,
+      signUpWithPassword,
+      signInWithPassword,
       requestPasswordReset,
       signOut,
     }),

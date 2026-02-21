@@ -1,9 +1,14 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { supabase } from '../../src/lib/supabaseClient';
 
-const hasRecoveryHint = () => {
-  const href = window.location.href;
-  return href.includes('type=recovery') || href.includes('access_token=') || href.includes('refresh_token=');
+const parseHashTokens = () => {
+  const rawHash = window.location.hash.startsWith('#') ? window.location.hash.slice(1) : window.location.hash;
+  const params = new URLSearchParams(rawHash);
+  return {
+    access_token: params.get('access_token'),
+    refresh_token: params.get('refresh_token'),
+    type: params.get('type'),
+  };
 };
 
 export const ResetPasswordView: React.FC = () => {
@@ -22,41 +27,49 @@ export const ResetPasswordView: React.FC = () => {
   useEffect(() => {
     let mounted = true;
 
-    const checkRecovery = async () => {
-      const recoveryHint = hasRecoveryHint();
-      const { data, error } = await supabase.auth.getSession();
-      if (!mounted) return;
+    const setupRecoverySession = async () => {
+      const search = new URLSearchParams(window.location.search);
+      const code = search.get('code');
 
-      if (!error && data.session) {
-        setHasRecoverySession(true);
-        setNotice(null);
-        setIsChecking(false);
-        return;
-      }
-
-      if (!recoveryHint) {
-        setHasRecoverySession(false);
-        setNotice('Invalid or expired reset link. Request a new one from LOGIN.');
-        setIsChecking(false);
-        return;
-      }
-
-      // detectSessionInUrl may complete asynchronously; retry once.
-      window.setTimeout(async () => {
-        const { data: retryData } = await supabase.auth.getSession();
+      if (code) {
+        const { error } = await supabase.auth.exchangeCodeForSession(code);
         if (!mounted) return;
-        if (retryData.session) {
-          setHasRecoverySession(true);
-          setNotice(null);
-        } else {
+        if (error) {
+          setNotice(`Invalid/expired link: ${error.message}`);
           setHasRecoverySession(false);
-          setNotice('Recovery session not found. Request a new reset email.');
+          setIsChecking(false);
+          return;
         }
-        setIsChecking(false);
-      }, 450);
+      } else {
+        const { access_token, refresh_token, type } = parseHashTokens();
+        if (access_token && refresh_token) {
+          const { error } = await supabase.auth.setSession({ access_token, refresh_token });
+          if (!mounted) return;
+          if (error) {
+            setNotice(`Invalid/expired link: ${error.message}`);
+            setHasRecoverySession(false);
+            setIsChecking(false);
+            return;
+          }
+        } else if (type === 'recovery') {
+          // recovery hint exists, wait for detectSessionInUrl
+          await new Promise((resolve) => window.setTimeout(resolve, 300));
+        }
+      }
+
+      const { data } = await supabase.auth.getSession();
+      if (!mounted) return;
+      if (!data.session) {
+        setNotice('Invalid/expired link, request a new reset email.');
+        setHasRecoverySession(false);
+      } else {
+        setNotice(null);
+        setHasRecoverySession(true);
+      }
+      setIsChecking(false);
     };
 
-    void checkRecovery();
+    void setupRecoverySession();
     return () => {
       mounted = false;
     };
@@ -65,7 +78,7 @@ export const ResetPasswordView: React.FC = () => {
   const handleSave = async () => {
     if (isSubmitting) return;
     if (!hasRecoverySession) {
-      setNotice('Recovery session not found. Request a new reset email.');
+      setNotice('Invalid/expired link, request a new reset email.');
       return;
     }
     if (!password || !confirmPassword) {
@@ -87,14 +100,14 @@ export const ResetPasswordView: React.FC = () => {
     setIsSubmitting(false);
 
     if (error) {
-      setNotice(`Password update failed: ${error.message}`);
+      setNotice(error.message);
       return;
     }
 
     setNotice('Password updated. Redirecting...');
     window.setTimeout(() => {
-      window.location.hash = '#/';
-    }, 1100);
+      window.location.replace('/');
+    }, 900);
   };
 
   return (
@@ -105,7 +118,7 @@ export const ResetPasswordView: React.FC = () => {
       >
         <div className="text-[11px] font-semibold uppercase tracking-[0.28em] text-[var(--ui-text)]">Reset Password</div>
         <div className="mt-1 mb-5 text-[10px] uppercase tracking-[0.18em] text-[var(--ui-muted)]">
-          Set a new password for your account
+          Set your new account password
         </div>
 
         <label className="mb-2 block text-[10px] uppercase tracking-[0.2em] text-[var(--ui-muted)]">New Password</label>
@@ -134,7 +147,7 @@ export const ResetPasswordView: React.FC = () => {
           disabled={!canSubmit || isChecking}
           className="ui-pressable h-10 w-full border border-[var(--ui-accent)] bg-[rgba(143,99,255,0.2)] text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--ui-text)] hover:bg-[rgba(143,99,255,0.28)] disabled:cursor-not-allowed disabled:opacity-60"
         >
-          {isChecking ? 'Checking Recovery...' : isSubmitting ? 'Saving...' : 'Save Password'}
+          {isChecking ? 'Verifying Link...' : isSubmitting ? 'Saving...' : 'Save Password'}
         </button>
 
         {notice ? <div className="mt-3 text-[10px] uppercase tracking-[0.18em] text-[var(--ui-muted)]">{notice}</div> : null}
