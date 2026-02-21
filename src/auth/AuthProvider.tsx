@@ -114,7 +114,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     });
     if (signUpError) {
       setError(signUpError.message);
-      console.error('[auth] Sign up failed:', signUpError.message);
+      console.error('[auth] Sign up failed:', signUpError);
       return false;
     }
     return true;

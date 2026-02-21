@@ -73,7 +73,7 @@ export const TopBar: React.FC<TopBarProps> = ({
         setAuthMode('login');
       }
     } else {
-      setAuthNotice(authMode === 'login' ? 'Login failed. Check credentials.' : 'Sign up failed. Try a different email.');
+      setAuthNotice(authMode === 'login' ? 'Login failed. Check credentials.' : null);
     }
   };
 
