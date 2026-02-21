@@ -15,7 +15,8 @@ interface AuthContextValue {
   loading: boolean;
   error: string | null;
   signInWithGoogle: () => Promise<void>;
-  signInWithEmailOtp: (email: string) => Promise<boolean>;
+  signUpWithEmailPassword: (email: string, password: string) => Promise<boolean>;
+  signInWithEmailPassword: (email: string, password: string) => Promise<boolean>;
   signOut: () => Promise<void>;
 }
 
@@ -99,23 +100,39 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const signInWithEmailOtp = async (email: string): Promise<boolean> => {
+  const signUpWithEmailPassword = async (email: string, password: string): Promise<boolean> => {
     const normalizedEmail = email.trim().toLowerCase();
-    if (!normalizedEmail) {
-      setError('Email is required');
+    if (!normalizedEmail || !password) {
+      setError('Email and password are required');
       return false;
     }
     setError(null);
-    const emailRedirectTo = window.location.origin;
-    const { error: otpError } = await supabase.auth.signInWithOtp({
+    const { error: signUpError } = await supabase.auth.signUp({
       email: normalizedEmail,
-      options: {
-        emailRedirectTo,
-      },
+      password,
     });
-    if (otpError) {
-      setError(otpError.message);
-      console.error('[auth] Email OTP failed:', otpError.message);
+    if (signUpError) {
+      setError(signUpError.message);
+      console.error('[auth] Sign up failed:', signUpError.message);
+      return false;
+    }
+    return true;
+  };
+
+  const signInWithEmailPassword = async (email: string, password: string): Promise<boolean> => {
+    const normalizedEmail = email.trim().toLowerCase();
+    if (!normalizedEmail || !password) {
+      setError('Email and password are required');
+      return false;
+    }
+    setError(null);
+    const { error: signInError } = await supabase.auth.signInWithPassword({
+      email: normalizedEmail,
+      password,
+    });
+    if (signInError) {
+      setError(signInError.message);
+      console.error('[auth] Email/password login failed:', signInError.message);
       return false;
     }
     return true;
@@ -137,7 +154,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       loading,
       error,
       signInWithGoogle,
-      signInWithEmailOtp,
+      signUpWithEmailPassword,
+      signInWithEmailPassword,
       signOut,
     }),
     [session, user, loading, error]

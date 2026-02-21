@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Play, Settings, Bell, Trophy, Bot, Mail, X } from 'lucide-react';
+import { Play, Settings, Bell, Trophy, Bot, X } from 'lucide-react';
 import { ClientView } from '../../types';
 import { NavTab } from '../UI/HextechUI';
 import { playClickSound, playHoverSound } from '../../utils/SoundEffects';
@@ -25,19 +25,23 @@ export const TopBar: React.FC<TopBarProps> = ({
   activeTasksCount
 }) => {
   const { stats, selectors, dateKey, authStatus } = useXP();
-  const { user, loading, error, signInWithGoogle, signInWithEmailOtp, signOut } = useAuth();
+  const { user, loading, error, signInWithGoogle, signUpWithEmailPassword, signInWithEmailPassword, signOut } = useAuth();
   const userLabel = user?.name || user?.email || 'Signed in';
   const userInitial = (user?.name || user?.email || 'U').charAt(0).toUpperCase();
   const todayTrackedMinutes = selectors.getTrackedMinutesForDay(dateKey);
   const todayTargetMinutes = selectors.getTargetXP(dateKey);
   const todayProgressPct = selectors.getProgressPct(dateKey);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+  const [authMode, setAuthMode] = useState<'login' | 'signup'>('login');
   const [authEmail, setAuthEmail] = useState('');
+  const [authPassword, setAuthPassword] = useState('');
   const [authNotice, setAuthNotice] = useState<string | null>(null);
   const [isAuthSubmitting, setIsAuthSubmitting] = useState(false);
 
   const openLoginModal = () => {
+    setAuthMode('login');
     setAuthEmail(user?.email || '');
+    setAuthPassword('');
     setAuthNotice(null);
     setIsLoginModalOpen(true);
   };
@@ -47,20 +51,39 @@ export const TopBar: React.FC<TopBarProps> = ({
     setIsLoginModalOpen(false);
   };
 
-  const handleEmailOtpSignIn = async () => {
+  const handleEmailPasswordLogin = async () => {
     if (isAuthSubmitting) return;
-    if (!authEmail.trim()) {
-      setAuthNotice('Enter your email first.');
+    if (!authEmail.trim() || !authPassword) {
+      setAuthNotice('Enter email and password.');
       return;
     }
     setIsAuthSubmitting(true);
     setAuthNotice(null);
-    const sent = await signInWithEmailOtp(authEmail);
+    const success = await signInWithEmailPassword(authEmail, authPassword);
     setIsAuthSubmitting(false);
-    if (sent) {
-      setAuthNotice('Magic link sent. Check your inbox.');
+    if (success) {
+      setAuthNotice('Logged in successfully.');
+      setIsLoginModalOpen(false);
     } else {
-      setAuthNotice('Failed to send magic link. Try again.');
+      setAuthNotice('Login failed. Check credentials.');
+    }
+  };
+
+  const handleEmailPasswordSignUp = async () => {
+    if (isAuthSubmitting) return;
+    if (!authEmail.trim() || !authPassword) {
+      setAuthNotice('Enter email and password.');
+      return;
+    }
+    setIsAuthSubmitting(true);
+    setAuthNotice(null);
+    const success = await signUpWithEmailPassword(authEmail, authPassword);
+    setIsAuthSubmitting(false);
+    if (success) {
+      setAuthNotice('Account created. Check email if confirmation is enabled.');
+      setAuthMode('login');
+    } else {
+      setAuthNotice('Sign up failed. Try a different email.');
     }
   };
 
@@ -230,7 +253,9 @@ export const TopBar: React.FC<TopBarProps> = ({
           >
             <div className="mb-4 flex items-center justify-between">
               <div>
-                <div className="text-[11px] font-semibold uppercase tracking-[0.28em] text-[var(--ui-text)]">Login</div>
+                <div className="text-[11px] font-semibold uppercase tracking-[0.28em] text-[var(--ui-text)]">
+                  {authMode === 'login' ? 'Login' : 'Sign Up'}
+                </div>
                 <div className="mt-1 text-[10px] uppercase tracking-[0.18em] text-[var(--ui-muted)]">Sign in inside the app</div>
               </div>
               <button
@@ -240,6 +265,37 @@ export const TopBar: React.FC<TopBarProps> = ({
                 aria-label="Close login modal"
               >
                 <X size={14} />
+              </button>
+            </div>
+
+            <div className="mb-3 grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setAuthMode('login');
+                  setAuthNotice(null);
+                }}
+                className={`ui-pressable h-9 border text-[10px] font-semibold uppercase tracking-[0.2em] ${
+                  authMode === 'login'
+                    ? 'border-[var(--ui-accent)] bg-[rgba(143,99,255,0.2)] text-[var(--ui-text)]'
+                    : 'border-[var(--ui-border)] bg-[var(--ui-panel-2)] text-[var(--ui-muted)]'
+                }`}
+              >
+                Login
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setAuthMode('signup');
+                  setAuthNotice(null);
+                }}
+                className={`ui-pressable h-9 border text-[10px] font-semibold uppercase tracking-[0.2em] ${
+                  authMode === 'signup'
+                    ? 'border-[var(--ui-accent)] bg-[rgba(143,99,255,0.2)] text-[var(--ui-text)]'
+                    : 'border-[var(--ui-border)] bg-[var(--ui-panel-2)] text-[var(--ui-muted)]'
+                }`}
+              >
+                Sign Up
               </button>
             </div>
 
@@ -253,15 +309,31 @@ export const TopBar: React.FC<TopBarProps> = ({
               autoFocus
             />
 
-            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+            <label className="mb-2 block text-[10px] uppercase tracking-[0.2em] text-[var(--ui-muted)]">Password</label>
+            <input
+              type="password"
+              value={authPassword}
+              onChange={(event) => setAuthPassword(event.target.value)}
+              placeholder="••••••••"
+              className="mb-3 h-10 w-full border border-[var(--ui-border)] bg-[var(--ui-panel-2)] px-3 text-sm text-[var(--ui-text)] outline-none focus:border-[var(--ui-accent)]"
+            />
+
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
               <button
                 type="button"
-                onClick={() => void handleEmailOtpSignIn()}
+                onClick={() => void handleEmailPasswordLogin()}
                 disabled={isAuthSubmitting}
                 className="ui-pressable flex h-10 items-center justify-center gap-2 border border-[var(--ui-accent)] bg-[rgba(143,99,255,0.2)] text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--ui-text)] hover:bg-[rgba(143,99,255,0.28)] disabled:cursor-not-allowed disabled:opacity-60"
               >
-                <Mail size={14} />
-                Email Link
+                Login
+              </button>
+              <button
+                type="button"
+                onClick={() => void handleEmailPasswordSignUp()}
+                disabled={isAuthSubmitting}
+                className="ui-pressable h-10 border border-[var(--ui-border)] bg-[var(--ui-panel-2)] text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--ui-text)] hover:border-[var(--ui-accent)] disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                Sign Up
               </button>
               <button
                 type="button"
