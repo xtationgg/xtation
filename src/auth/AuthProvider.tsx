@@ -15,6 +15,7 @@ interface AuthContextValue {
   loading: boolean;
   error: string | null;
   signInWithGoogle: () => Promise<void>;
+  signInWithEmailOtp: (email: string) => Promise<boolean>;
   signOut: () => Promise<void>;
 }
 
@@ -98,6 +99,28 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  const signInWithEmailOtp = async (email: string): Promise<boolean> => {
+    const normalizedEmail = email.trim().toLowerCase();
+    if (!normalizedEmail) {
+      setError('Email is required');
+      return false;
+    }
+    setError(null);
+    const emailRedirectTo = window.location.origin;
+    const { error: otpError } = await supabase.auth.signInWithOtp({
+      email: normalizedEmail,
+      options: {
+        emailRedirectTo,
+      },
+    });
+    if (otpError) {
+      setError(otpError.message);
+      console.error('[auth] Email OTP failed:', otpError.message);
+      return false;
+    }
+    return true;
+  };
+
   const signOut = async () => {
     setError(null);
     const { error: signOutError } = await supabase.auth.signOut();
@@ -114,6 +137,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       loading,
       error,
       signInWithGoogle,
+      signInWithEmailOtp,
       signOut,
     }),
     [session, user, loading, error]

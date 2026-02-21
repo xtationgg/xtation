@@ -1,6 +1,6 @@
 
-import React from 'react';
-import { Play, Settings, Bell, Trophy, Bot } from 'lucide-react';
+import React, { useState } from 'react';
+import { Play, Settings, Bell, Trophy, Bot, Mail, X } from 'lucide-react';
 import { ClientView } from '../../types';
 import { NavTab } from '../UI/HextechUI';
 import { playClickSound, playHoverSound } from '../../utils/SoundEffects';
@@ -25,15 +25,56 @@ export const TopBar: React.FC<TopBarProps> = ({
   activeTasksCount
 }) => {
   const { stats, selectors, dateKey, authStatus } = useXP();
-  const { user, loading, error, signInWithGoogle, signOut } = useAuth();
+  const { user, loading, error, signInWithGoogle, signInWithEmailOtp, signOut } = useAuth();
   const userLabel = user?.name || user?.email || 'Signed in';
   const userInitial = (user?.name || user?.email || 'U').charAt(0).toUpperCase();
   const todayTrackedMinutes = selectors.getTrackedMinutesForDay(dateKey);
   const todayTargetMinutes = selectors.getTargetXP(dateKey);
   const todayProgressPct = selectors.getProgressPct(dateKey);
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+  const [authEmail, setAuthEmail] = useState('');
+  const [authNotice, setAuthNotice] = useState<string | null>(null);
+  const [isAuthSubmitting, setIsAuthSubmitting] = useState(false);
+
+  const openLoginModal = () => {
+    setAuthEmail(user?.email || '');
+    setAuthNotice(null);
+    setIsLoginModalOpen(true);
+  };
+
+  const closeLoginModal = () => {
+    if (isAuthSubmitting) return;
+    setIsLoginModalOpen(false);
+  };
+
+  const handleEmailOtpSignIn = async () => {
+    if (isAuthSubmitting) return;
+    if (!authEmail.trim()) {
+      setAuthNotice('Enter your email first.');
+      return;
+    }
+    setIsAuthSubmitting(true);
+    setAuthNotice(null);
+    const sent = await signInWithEmailOtp(authEmail);
+    setIsAuthSubmitting(false);
+    if (sent) {
+      setAuthNotice('Magic link sent. Check your inbox.');
+    } else {
+      setAuthNotice('Failed to send magic link. Try again.');
+    }
+  };
+
+  const handleGoogleSignIn = async () => {
+    if (isAuthSubmitting) return;
+    setIsAuthSubmitting(true);
+    setAuthNotice(null);
+    await signInWithGoogle();
+    setIsAuthSubmitting(false);
+  };
 
   return (
-    <div className="h-[60px] bg-white/15 backdrop-blur-sm border-b border-white/30 flex items-center relative z-40 select-none">
+    <>
+      <div className="h-[60px] bg-white/15 backdrop-blur-sm border-b border-white/30 flex items-center relative z-40 select-none">
       
       {/* Left: Play Button */}
       <div className="flex items-center h-full border-r border-[#e5e5e5] pl-2 pr-6 gap-4">
@@ -155,7 +196,7 @@ export const TopBar: React.FC<TopBarProps> = ({
                     onMouseEnter={playHoverSound}
                     onClick={() => {
                         playClickSound();
-                        void signInWithGoogle();
+                        openLoginModal();
                     }}
                     className="h-8 px-3 border border-[#333] text-[9px] uppercase tracking-[0.2em] transition-colors text-[#f3f0e8] hover:border-[#ff2a3a] hover:text-[#ff2a3a]"
                 >
@@ -178,6 +219,66 @@ export const TopBar: React.FC<TopBarProps> = ({
             <button onMouseEnter={playHoverSound} onClick={() => onChangeView(ClientView.SETTINGS)} className="hover:text-white p-2 transition-colors"><Settings size={16} /></button>
         </div>
       </div>
-    </div>
+      </div>
+
+      {isLoginModalOpen && !user ? (
+        <div className="fixed inset-0 z-[120] flex items-center justify-center bg-black/70 px-4" onClick={closeLoginModal}>
+          <div
+            className="ui-panel-surface chamfer-card w-full max-w-md border border-[var(--ui-border)] bg-[var(--ui-panel)] p-5"
+            onClick={(event) => event.stopPropagation()}
+            style={{ '--cut': 'var(--ui-cut-md)' } as React.CSSProperties}
+          >
+            <div className="mb-4 flex items-center justify-between">
+              <div>
+                <div className="text-[11px] font-semibold uppercase tracking-[0.28em] text-[var(--ui-text)]">Login</div>
+                <div className="mt-1 text-[10px] uppercase tracking-[0.18em] text-[var(--ui-muted)]">Sign in inside the app</div>
+              </div>
+              <button
+                type="button"
+                onClick={closeLoginModal}
+                className="ui-pressable flex h-8 w-8 items-center justify-center border border-[var(--ui-border)] bg-[var(--ui-panel-2)] text-[var(--ui-muted)] hover:text-[var(--ui-text)]"
+                aria-label="Close login modal"
+              >
+                <X size={14} />
+              </button>
+            </div>
+
+            <label className="mb-2 block text-[10px] uppercase tracking-[0.2em] text-[var(--ui-muted)]">Email</label>
+            <input
+              type="email"
+              value={authEmail}
+              onChange={(event) => setAuthEmail(event.target.value)}
+              placeholder="you@example.com"
+              className="mb-3 h-10 w-full border border-[var(--ui-border)] bg-[var(--ui-panel-2)] px-3 text-sm text-[var(--ui-text)] outline-none focus:border-[var(--ui-accent)]"
+              autoFocus
+            />
+
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+              <button
+                type="button"
+                onClick={() => void handleEmailOtpSignIn()}
+                disabled={isAuthSubmitting}
+                className="ui-pressable flex h-10 items-center justify-center gap-2 border border-[var(--ui-accent)] bg-[rgba(143,99,255,0.2)] text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--ui-text)] hover:bg-[rgba(143,99,255,0.28)] disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                <Mail size={14} />
+                Email Link
+              </button>
+              <button
+                type="button"
+                onClick={() => void handleGoogleSignIn()}
+                disabled={isAuthSubmitting}
+                className="ui-pressable h-10 border border-[var(--ui-border)] bg-[var(--ui-panel-2)] text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--ui-text)] hover:border-[var(--ui-accent)] disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                Google OAuth
+              </button>
+            </div>
+
+            {(authNotice || error) && (
+              <div className="mt-3 text-[10px] uppercase tracking-[0.18em] text-[var(--ui-muted)]">{authNotice || error}</div>
+            )}
+          </div>
+        </div>
+      ) : null}
+    </>
   );
 };
