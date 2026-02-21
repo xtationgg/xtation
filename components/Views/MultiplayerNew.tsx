@@ -3,10 +3,10 @@ import { Player, Pin, Collaboration, LocationShareState, XpLog, CollaborationPro
 import { getEffectivePermissions } from '../../utils/permissions';
 import { mpStorage } from '../../utils/mpStorage';
 import { defaultPlayers } from '../../utils/defaultPlayers';
-import { EarthView } from './multiplayer/EarthView';
-import { Test01View } from './multiplayer/Test01View';
-import { CollaborationView } from './multiplayer/CollaborationView';
-import { RankView } from './multiplayer/RankView';
+import { EarthView } from './Multiplayer/EarthView';
+import { Test01View } from './Multiplayer/Test01View';
+import { CollaborationView } from './Multiplayer/CollaborationView';
+import { RankView } from './Multiplayer/RankView';
 import { readUserScopedString, removeUserScopedString } from '../../src/lib/userScopedStorage';
 
 type TabKey = 'PLAYERS' | 'EARTH' | 'COLLAB' | 'RANK';
