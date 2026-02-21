@@ -11,6 +11,7 @@ import { HextechAssistant } from './components/Features/HextechAssistant';
 import { TerminalErrorBoundary } from './components/UI/TerminalErrorBoundary';
 import { RewardOverlay } from './components/Features/RewardOverlay';
 import { ChatDock } from './components/Chat';
+import { ResetPasswordView } from './components/Auth/ResetPasswordView';
 import { Earth } from './components/Views/Earth';
 import { UiKitPlayground } from './components/Views/UiKitPlayground';
 import { ClientView, RewardConfig } from './types';
@@ -51,6 +52,7 @@ const defaultViewBackgrounds: Record<ClientView, string | null> = {
 };
 
 const App: React.FC = () => {
+  const [currentHash, setCurrentHash] = useState<string>(() => window.location.hash || '#/');
   const { user, loading: authLoading } = useAuth();
   const activeUserId = user?.id || null;
   const userScopeRenderKey = activeUserId || 'signedOut';
@@ -79,6 +81,13 @@ const App: React.FC = () => {
   const totalXP = stats.totalEarnedXP;
   const activeTasksCount = selectors.getActiveTasks().length;
   const rewardDismissTimer = useRef<number | null>(null);
+  const isResetPasswordRoute = currentHash.startsWith('#/reset-password');
+
+  useEffect(() => {
+    const handleHashChange = () => setCurrentHash(window.location.hash || '#/');
+    window.addEventListener('hashchange', handleHashChange);
+    return () => window.removeEventListener('hashchange', handleHashChange);
+  }, []);
 
   useEffect(() => {
     if (authLoading) return;
@@ -361,6 +370,10 @@ const App: React.FC = () => {
         }
     };
   }, [activeReward, activeRewardDuration]);
+
+  if (isResetPasswordRoute) {
+    return <ResetPasswordView />;
+  }
 
   return (
     <div 

@@ -17,7 +17,7 @@ interface AuthContextValue {
   signInWithGoogle: () => Promise<void>;
   signUpWithEmailPassword: (email: string, password: string) => Promise<boolean>;
   signInWithEmailPassword: (email: string, password: string) => Promise<boolean>;
-  resetPassword: (email: string) => Promise<boolean>;
+  requestPasswordReset: (email: string) => Promise<boolean>;
   signOut: () => Promise<void>;
 }
 
@@ -139,7 +139,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return true;
   };
 
-  const resetPassword = async (email: string): Promise<boolean> => {
+  const requestPasswordReset = async (email: string): Promise<boolean> => {
     const normalizedEmail = email.trim().toLowerCase();
     if (!normalizedEmail) {
       setError('Email is required');
@@ -147,7 +147,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
     setError(null);
     const { error: resetError } = await supabase.auth.resetPasswordForEmail(normalizedEmail, {
-      redirectTo: `${window.location.origin}/reset-password`,
+      redirectTo: `${window.location.origin}/#/reset-password`,
     });
     if (resetError) {
       setError(resetError.message);
@@ -175,7 +175,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       signInWithGoogle,
       signUpWithEmailPassword,
       signInWithEmailPassword,
-      resetPassword,
+      requestPasswordReset,
       signOut,
     }),
     [session, user, loading, error]
