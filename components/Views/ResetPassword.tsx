@@ -1,16 +1,43 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '../../src/lib/supabaseClient';
 
 export const ResetPassword: React.FC = () => {
+  const navigate = useNavigate();
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [notice, setNotice] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [checkingSession, setCheckingSession] = useState(true);
+  const [canReset, setCanReset] = useState(false);
+
+  useEffect(() => {
+    let mounted = true;
+    const checkSession = async () => {
+      const { data, error } = await supabase.auth.getSession();
+      if (!mounted) return;
+      if (error || !data.session) {
+        setCanReset(false);
+        setNotice('Invalid or expired reset link. Request a new one from Login.');
+      } else {
+        setCanReset(true);
+      }
+      setCheckingSession(false);
+    };
+    void checkSession();
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   const handleSubmit = async () => {
     if (isSubmitting) return;
     if (!password || !confirmPassword) {
       setNotice('Enter and confirm your new password.');
+      return;
+    }
+    if (!canReset) {
+      setNotice('Invalid or expired reset link. Request a new one from Login.');
       return;
     }
     if (password.length < 6) {
@@ -34,7 +61,7 @@ export const ResetPassword: React.FC = () => {
 
     setNotice('Password updated. Redirecting to home...');
     window.setTimeout(() => {
-      window.location.assign(window.location.origin);
+      navigate('/', { replace: true });
     }, 1200);
   };
 
@@ -67,10 +94,10 @@ export const ResetPassword: React.FC = () => {
         <button
           type="button"
           onClick={() => void handleSubmit()}
-          disabled={isSubmitting}
+          disabled={isSubmitting || checkingSession || !canReset}
           className="ui-pressable h-10 w-full border border-[var(--ui-accent)] bg-[rgba(143,99,255,0.2)] text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--ui-text)] hover:bg-[rgba(143,99,255,0.28)] disabled:cursor-not-allowed disabled:opacity-60"
         >
-          {isSubmitting ? 'Updating...' : 'Update Password'}
+          {checkingSession ? 'Checking Link...' : isSubmitting ? 'Updating...' : 'Update Password'}
         </button>
 
         {notice ? <div className="mt-3 text-[10px] uppercase tracking-[0.18em] text-[var(--ui-muted)]">{notice}</div> : null}
@@ -78,4 +105,3 @@ export const ResetPassword: React.FC = () => {
     </div>
   );
 };
-
