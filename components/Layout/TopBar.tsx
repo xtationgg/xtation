@@ -51,7 +51,7 @@ export const TopBar: React.FC<TopBarProps> = ({
     setIsLoginModalOpen(false);
   };
 
-  const handleEmailPasswordLogin = async () => {
+  const handlePrimaryAuthSubmit = async () => {
     if (isAuthSubmitting) return;
     if (!authEmail.trim() || !authPassword) {
       setAuthNotice('Enter email and password.');
@@ -59,31 +59,21 @@ export const TopBar: React.FC<TopBarProps> = ({
     }
     setIsAuthSubmitting(true);
     setAuthNotice(null);
-    const success = await signInWithEmailPassword(authEmail, authPassword);
+    const success =
+      authMode === 'login'
+        ? await signInWithEmailPassword(authEmail, authPassword)
+        : await signUpWithEmailPassword(authEmail, authPassword);
     setIsAuthSubmitting(false);
     if (success) {
-      setAuthNotice('Logged in successfully.');
-      setIsLoginModalOpen(false);
+      if (authMode === 'login') {
+        setAuthNotice('Logged in successfully.');
+        setIsLoginModalOpen(false);
+      } else {
+        setAuthNotice('Account created. Check email if confirmation is enabled.');
+        setAuthMode('login');
+      }
     } else {
-      setAuthNotice('Login failed. Check credentials.');
-    }
-  };
-
-  const handleEmailPasswordSignUp = async () => {
-    if (isAuthSubmitting) return;
-    if (!authEmail.trim() || !authPassword) {
-      setAuthNotice('Enter email and password.');
-      return;
-    }
-    setIsAuthSubmitting(true);
-    setAuthNotice(null);
-    const success = await signUpWithEmailPassword(authEmail, authPassword);
-    setIsAuthSubmitting(false);
-    if (success) {
-      setAuthNotice('Account created. Check email if confirmation is enabled.');
-      setAuthMode('login');
-    } else {
-      setAuthNotice('Sign up failed. Try a different email.');
+      setAuthNotice(authMode === 'login' ? 'Login failed. Check credentials.' : 'Sign up failed. Try a different email.');
     }
   };
 
@@ -318,22 +308,14 @@ export const TopBar: React.FC<TopBarProps> = ({
               className="mb-3 h-10 w-full border border-[var(--ui-border)] bg-[var(--ui-panel-2)] px-3 text-sm text-[var(--ui-text)] outline-none focus:border-[var(--ui-accent)]"
             />
 
-            <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+            <div className="flex flex-col gap-2">
               <button
                 type="button"
-                onClick={() => void handleEmailPasswordLogin()}
+                onClick={() => void handlePrimaryAuthSubmit()}
                 disabled={isAuthSubmitting}
                 className="ui-pressable flex h-10 items-center justify-center gap-2 border border-[var(--ui-accent)] bg-[rgba(143,99,255,0.2)] text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--ui-text)] hover:bg-[rgba(143,99,255,0.28)] disabled:cursor-not-allowed disabled:opacity-60"
               >
-                Login
-              </button>
-              <button
-                type="button"
-                onClick={() => void handleEmailPasswordSignUp()}
-                disabled={isAuthSubmitting}
-                className="ui-pressable h-10 border border-[var(--ui-border)] bg-[var(--ui-panel-2)] text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--ui-text)] hover:border-[var(--ui-accent)] disabled:cursor-not-allowed disabled:opacity-60"
-              >
-                Sign Up
+                {authMode === 'login' ? 'Login' : 'Sign Up'}
               </button>
               <button
                 type="button"
