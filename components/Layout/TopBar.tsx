@@ -25,7 +25,7 @@ export const TopBar: React.FC<TopBarProps> = ({
   activeTasksCount
 }) => {
   const { stats, selectors, dateKey, authStatus } = useXP();
-  const { user, loading, error, signInWithGoogle, signUpWithEmailPassword, signInWithEmailPassword, signOut } = useAuth();
+  const { user, loading, error, signInWithGoogle, signUpWithEmailPassword, signInWithEmailPassword, resetPassword, signOut } = useAuth();
   const userLabel = user?.name || user?.email || 'Signed in';
   const userInitial = (user?.name || user?.email || 'U').charAt(0).toUpperCase();
   const todayTrackedMinutes = selectors.getTrackedMinutesForDay(dateKey);
@@ -35,6 +35,8 @@ export const TopBar: React.FC<TopBarProps> = ({
   const [authMode, setAuthMode] = useState<'login' | 'signup'>('login');
   const [authEmail, setAuthEmail] = useState('');
   const [authPassword, setAuthPassword] = useState('');
+  const [showResetPassword, setShowResetPassword] = useState(false);
+  const [resetEmail, setResetEmail] = useState('');
   const [authNotice, setAuthNotice] = useState<string | null>(null);
   const [isAuthSubmitting, setIsAuthSubmitting] = useState(false);
 
@@ -42,6 +44,8 @@ export const TopBar: React.FC<TopBarProps> = ({
     setAuthMode('login');
     setAuthEmail(user?.email || '');
     setAuthPassword('');
+    setResetEmail(user?.email || '');
+    setShowResetPassword(false);
     setAuthNotice(null);
     setIsLoginModalOpen(true);
   };
@@ -74,6 +78,24 @@ export const TopBar: React.FC<TopBarProps> = ({
       }
     } else {
       setAuthNotice(authMode === 'login' ? 'Login failed. Check credentials.' : 'Sign up failed. Try a different email.');
+    }
+  };
+
+  const handleSendResetLink = async () => {
+    if (isAuthSubmitting) return;
+    const targetEmail = resetEmail.trim() || authEmail.trim();
+    if (!targetEmail) {
+      setAuthNotice('Enter your email to receive a reset link.');
+      return;
+    }
+    setIsAuthSubmitting(true);
+    setAuthNotice(null);
+    const success = await resetPassword(targetEmail);
+    setIsAuthSubmitting(false);
+    if (success) {
+      setAuthNotice('Reset link sent. Check your inbox.');
+    } else {
+      setAuthNotice('Could not send reset link. Try again.');
     }
   };
 
@@ -263,6 +285,8 @@ export const TopBar: React.FC<TopBarProps> = ({
                 type="button"
                 onClick={() => {
                   setAuthMode('login');
+                  setShowResetPassword(false);
+                  setResetEmail(authEmail);
                   setAuthNotice(null);
                 }}
                 className={`ui-pressable h-9 border text-[10px] font-semibold uppercase tracking-[0.2em] ${
@@ -277,6 +301,7 @@ export const TopBar: React.FC<TopBarProps> = ({
                 type="button"
                 onClick={() => {
                   setAuthMode('signup');
+                  setShowResetPassword(false);
                   setAuthNotice(null);
                 }}
                 className={`ui-pressable h-9 border text-[10px] font-semibold uppercase tracking-[0.2em] ${
@@ -307,6 +332,41 @@ export const TopBar: React.FC<TopBarProps> = ({
               placeholder="••••••••"
               className="mb-3 h-10 w-full border border-[var(--ui-border)] bg-[var(--ui-panel-2)] px-3 text-sm text-[var(--ui-text)] outline-none focus:border-[var(--ui-accent)]"
             />
+
+            {authMode === 'login' && (
+              <button
+                type="button"
+                onClick={() => {
+                  setShowResetPassword((prev) => !prev);
+                  setResetEmail(authEmail.trim());
+                  setAuthNotice(null);
+                }}
+                className="mb-3 text-left text-[10px] uppercase tracking-[0.2em] text-[var(--ui-muted)] hover:text-[var(--ui-text)]"
+              >
+                Forgot password?
+              </button>
+            )}
+
+            {authMode === 'login' && showResetPassword && (
+              <div className="mb-3 border border-[var(--ui-border)] bg-[var(--ui-panel-2)] p-3">
+                <label className="mb-2 block text-[10px] uppercase tracking-[0.2em] text-[var(--ui-muted)]">Reset Email</label>
+                <input
+                  type="email"
+                  value={resetEmail}
+                  onChange={(event) => setResetEmail(event.target.value)}
+                  placeholder="you@example.com"
+                  className="mb-2 h-10 w-full border border-[var(--ui-border)] bg-[var(--ui-panel)] px-3 text-sm text-[var(--ui-text)] outline-none focus:border-[var(--ui-accent)]"
+                />
+                <button
+                  type="button"
+                  onClick={() => void handleSendResetLink()}
+                  disabled={isAuthSubmitting}
+                  className="ui-pressable h-9 w-full border border-[var(--ui-accent)] bg-[rgba(143,99,255,0.2)] text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--ui-text)] hover:bg-[rgba(143,99,255,0.28)] disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  Send reset link
+                </button>
+              </div>
+            )}
 
             <div className="flex flex-col gap-2">
               <button

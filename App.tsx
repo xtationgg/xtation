@@ -7,6 +7,7 @@ import { Lobby } from './components/Views/Lobby';
 import { Settings } from './components/Views/Settings';
 import { Inventory } from './components/Views/Inventory';
 import { Multiplayer } from './components/Views/Multiplayer';
+import { ResetPassword } from './components/Views/ResetPassword';
 import { HextechAssistant } from './components/Features/HextechAssistant';
 import { TerminalErrorBoundary } from './components/UI/TerminalErrorBoundary';
 import { RewardOverlay } from './components/Features/RewardOverlay';
@@ -51,6 +52,7 @@ const defaultViewBackgrounds: Record<ClientView, string | null> = {
 };
 
 const App: React.FC = () => {
+  const isResetPasswordRoute = window.location.pathname === '/reset-password';
   const { user, loading: authLoading } = useAuth();
   const activeUserId = user?.id || null;
   const userScopeRenderKey = activeUserId || 'signedOut';
@@ -361,6 +363,10 @@ const App: React.FC = () => {
         }
     };
   }, [activeReward, activeRewardDuration]);
+
+  if (isResetPasswordRoute) {
+    return <ResetPassword />;
+  }
 
   return (
     <div 
