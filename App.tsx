@@ -52,6 +52,7 @@ const defaultViewBackgrounds: Record<ClientView, string | null> = {
 };
 
 const App: React.FC = () => {
+  const [currentPath, setCurrentPath] = useState<string>(() => window.location.pathname);
   const [currentHash, setCurrentHash] = useState<string>(() => window.location.hash || '#/');
   const { user, loading: authLoading } = useAuth();
   const activeUserId = user?.id || null;
@@ -81,13 +82,37 @@ const App: React.FC = () => {
   const totalXP = stats.totalEarnedXP;
   const activeTasksCount = selectors.getActiveTasks().length;
   const rewardDismissTimer = useRef<number | null>(null);
-  const isResetPasswordRoute = currentHash.startsWith('#/reset-password');
+  const isResetPasswordRoute = currentHash.startsWith('#/reset-password') || currentPath === '/reset-password';
 
   useEffect(() => {
-    const handleHashChange = () => setCurrentHash(window.location.hash || '#/');
+    const handleHashChange = () => {
+      setCurrentHash(window.location.hash || '#/');
+      setCurrentPath(window.location.pathname);
+    };
+    const handlePopState = () => {
+      setCurrentHash(window.location.hash || '#/');
+      setCurrentPath(window.location.pathname);
+    };
     window.addEventListener('hashchange', handleHashChange);
-    return () => window.removeEventListener('hashchange', handleHashChange);
+    window.addEventListener('popstate', handlePopState);
+    return () => {
+      window.removeEventListener('hashchange', handleHashChange);
+      window.removeEventListener('popstate', handlePopState);
+    };
   }, []);
+
+  useEffect(() => {
+    if (window.location.pathname !== '/reset-password') return;
+    if (window.location.hash.startsWith('#/reset-password')) return;
+
+    const query = window.location.search.startsWith('?') ? window.location.search.slice(1) : window.location.search;
+    const rawHash = window.location.hash.startsWith('#') ? window.location.hash.slice(1) : window.location.hash;
+    const preservedPayload = [query, rawHash && !rawHash.startsWith('/') ? rawHash : ''].filter(Boolean).join('&');
+    const normalizedHash = preservedPayload ? `#/reset-password?${preservedPayload}` : '#/reset-password';
+
+    window.location.hash = normalizedHash;
+    setCurrentHash(normalizedHash);
+  }, [currentPath, currentHash]);
 
   useEffect(() => {
     if (authLoading) return;

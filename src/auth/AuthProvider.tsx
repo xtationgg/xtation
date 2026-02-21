@@ -147,7 +147,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
     setError(null);
     const { error: resetError } = await supabase.auth.resetPasswordForEmail(normalizedEmail, {
-      redirectTo: `${window.location.origin}/#/reset-password`,
+      redirectTo: `${window.location.origin}/reset-password`,
     });
     if (resetError) {
       setError(resetError.message);

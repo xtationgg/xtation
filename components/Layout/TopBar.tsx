@@ -89,9 +89,9 @@ export const TopBar: React.FC<TopBarProps> = ({
     const success = await requestPasswordReset(targetEmail);
     setIsAuthSubmitting(false);
     if (success) {
-      setAuthNotice('Reset link sent. Check your inbox.');
+      setAuthNotice('Check your email for a password reset link.');
     } else {
-      setAuthNotice('Could not send reset link. Try again.');
+      setAuthNotice(null);
     }
   };
 
