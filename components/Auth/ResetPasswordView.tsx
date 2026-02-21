@@ -35,7 +35,7 @@ export const ResetPasswordView: React.FC = () => {
         const { error } = await supabase.auth.exchangeCodeForSession(code);
         if (!mounted) return;
         if (error) {
-          setNotice(`Invalid/expired link: ${error.message}`);
+          setNotice(error.message);
           setHasRecoverySession(false);
           setIsChecking(false);
           return;
@@ -46,7 +46,7 @@ export const ResetPasswordView: React.FC = () => {
           const { error } = await supabase.auth.setSession({ access_token, refresh_token });
           if (!mounted) return;
           if (error) {
-            setNotice(`Invalid/expired link: ${error.message}`);
+            setNotice(error.message);
             setHasRecoverySession(false);
             setIsChecking(false);
             return;
@@ -60,7 +60,7 @@ export const ResetPasswordView: React.FC = () => {
       const { data } = await supabase.auth.getSession();
       if (!mounted) return;
       if (!data.session) {
-        setNotice('Invalid/expired link, request a new reset email.');
+        setNotice('Recovery session not found. Request a new reset email.');
         setHasRecoverySession(false);
       } else {
         setNotice(null);
@@ -78,7 +78,7 @@ export const ResetPasswordView: React.FC = () => {
   const handleSave = async () => {
     if (isSubmitting) return;
     if (!hasRecoverySession) {
-      setNotice('Invalid/expired link, request a new reset email.');
+      setNotice('Recovery session not found. Request a new reset email.');
       return;
     }
     if (!password || !confirmPassword) {
@@ -155,4 +155,3 @@ export const ResetPasswordView: React.FC = () => {
     </div>
   );
 };
-
