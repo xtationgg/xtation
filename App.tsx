@@ -12,6 +12,7 @@ import { TerminalErrorBoundary } from './components/UI/TerminalErrorBoundary';
 import { RewardOverlay } from './components/Features/RewardOverlay';
 import { ChatDock } from './components/Chat';
 import { Earth } from './components/Views/Earth';
+import { UiKitPlayground } from './components/Views/UiKitPlayground';
 import { ClientView, RewardConfig } from './types';
 import { ASSETS } from './constants';
 import { playClickSound } from './utils/SoundEffects';
@@ -42,6 +43,7 @@ const defaultViewBackgrounds: Record<ClientView, string | null> = {
   [ClientView.PROFILE]: null,
   [ClientView.INVENTORY]: null,
   [ClientView.STORE]: null,
+  [ClientView.UI_KIT]: null,
   [ClientView.SETTINGS]: null,
   [ClientView.LOBBY]: null,
   [ClientView.MATCH_FOUND]: null,
@@ -263,6 +265,8 @@ const App: React.FC = () => {
         return <Profile rewardConfigs={rewardConfigs} />;
       case ClientView.INVENTORY:
         return <Inventory />;
+      case ClientView.UI_KIT:
+        return <UiKitPlayground />;
       case ClientView.SETTINGS:
         return <Settings rewardConfigs={rewardConfigs} onUpdateConfig={updateRewardConfig} currentXP={totalXP} />;
       case ClientView.LOBBY:

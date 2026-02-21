@@ -7,6 +7,7 @@ export enum ClientView {
   INVENTORY = 'INVENTORY', // Renamed from COLLECTION
   LOOT = 'LOOT',
   STORE = 'STORE',
+  UI_KIT = 'UI_KIT',
   SETTINGS = 'SETTINGS',
   LOBBY = 'LOBBY',
   CHAMP_SELECT = 'CHAMP_SELECT',

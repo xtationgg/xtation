@@ -60,6 +60,7 @@ export const TopBar: React.FC<TopBarProps> = ({
         <NavTab label="Profile" isActive={currentView === ClientView.PROFILE} onClick={() => onChangeView(ClientView.PROFILE)} />
         <NavTab label="Inventory" isActive={currentView === ClientView.INVENTORY} onClick={() => onChangeView(ClientView.INVENTORY)} />
         <NavTab label="Store" isActive={currentView === ClientView.STORE} onClick={() => onChangeView(ClientView.STORE)} />
+        <NavTab label="UI Kit" isActive={currentView === ClientView.UI_KIT} onClick={() => onChangeView(ClientView.UI_KIT)} />
         <NavTab label="Settings" isActive={currentView === ClientView.SETTINGS} onClick={() => onChangeView(ClientView.SETTINGS)} />
       </div>
 

@@ -1,26 +1,114 @@
-/* Discord-like dark theme overrides (global)
-   Goal: no white sections; consistent dark UI across the app.
+/* Xtation HUD theme tokens + global dark overrides.
+   Keep these as the visual single source of truth for reusable UI components.
 */
 
 :root {
-  /* Discord-ish palette */
-  --dc-bg: #1e1f22;
-  --dc-panel: #2b2d31;
-  --dc-panel-2: #313338;
-  --dc-border: #3f4147;
-  --dc-text: #dbdee1;
-  --dc-muted: #949ba4;
-  --dc-accent: #5865f2;
-  --dc-danger: #ed4245;
+  /* Primary Xtation palette */
+  --ui-bg: #0a0c12;
+  --ui-panel: #10141f;
+  --ui-panel-2: #151b2a;
+  --ui-border: #2b3550;
+  --ui-text: #e6ebff;
+  --ui-muted: #95a1c3;
+  --ui-accent: #8f63ff;
+  --ui-shadow-soft: 0 10px 28px rgba(0, 0, 0, 0.42), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  --ui-shadow-glow: 0 0 0 1px rgba(143, 99, 255, 0.45), 0 0 24px rgba(143, 99, 255, 0.35);
 
-  /* App variables (used across components) */
-  --ui-bg: var(--dc-bg);
-  --ui-panel: var(--dc-panel);
-  --ui-panel-2: var(--dc-panel-2);
-  --ui-border: var(--dc-border);
-  --ui-muted: var(--dc-muted);
-  --ui-text: var(--dc-text);
-  --ui-accent: var(--dc-accent);
+  /* Motion */
+  --ui-motion-fast: 140ms;
+  --ui-motion-medium: 180ms;
+  --ui-ease: cubic-bezier(0.25, 0.9, 0.25, 1);
+
+  /* Chamfer system */
+  --ui-cut-sm: 10px;
+  --ui-cut-md: 14px;
+  --ui-cut-lg: 18px;
+
+  /* Legacy aliases still used across old UI */
+  --dc-bg: var(--ui-bg);
+  --dc-panel: var(--ui-panel);
+  --dc-panel-2: var(--ui-panel-2);
+  --dc-border: var(--ui-border);
+  --dc-text: var(--ui-text);
+  --dc-muted: var(--ui-muted);
+  --dc-accent: var(--ui-accent);
+  --dc-danger: #ed4245;
+}
+
+/* Reusable HUD utilities */
+.ui-panel-surface {
+  background:
+    linear-gradient(160deg, color-mix(in srgb, var(--ui-panel-2) 82%, #1f2a45 18%), var(--ui-panel)),
+    radial-gradient(120% 120% at 12% 8%, rgba(143, 99, 255, 0.12), transparent 55%);
+  border: 1px solid var(--ui-border);
+  box-shadow: var(--ui-shadow-soft);
+}
+
+.ui-pressable {
+  transition:
+    transform var(--ui-motion-fast) var(--ui-ease),
+    border-color var(--ui-motion-fast) var(--ui-ease),
+    box-shadow var(--ui-motion-fast) var(--ui-ease),
+    background-color var(--ui-motion-fast) var(--ui-ease),
+    color var(--ui-motion-fast) var(--ui-ease);
+}
+
+.ui-pressable:active {
+  transform: translateY(1px) scale(0.995);
+}
+
+.ui-glow {
+  box-shadow: var(--ui-shadow-glow);
+}
+
+.chamfer-all {
+  --cut: var(--ui-cut-md);
+  clip-path: polygon(
+    var(--cut) 0,
+    calc(100% - var(--cut)) 0,
+    100% var(--cut),
+    100% calc(100% - var(--cut)),
+    calc(100% - var(--cut)) 100%,
+    var(--cut) 100%,
+    0 calc(100% - var(--cut)),
+    0 var(--cut)
+  );
+}
+
+.chamfer-right {
+  --cut: var(--ui-cut-md);
+  clip-path: polygon(
+    0 0,
+    calc(100% - var(--cut)) 0,
+    100% var(--cut),
+    100% calc(100% - var(--cut)),
+    calc(100% - var(--cut)) 100%,
+    0 100%
+  );
+}
+
+.chamfer-left {
+  --cut: var(--ui-cut-md);
+  clip-path: polygon(
+    var(--cut) 0,
+    100% 0,
+    100% 100%,
+    var(--cut) 100%,
+    0 calc(100% - var(--cut)),
+    0 var(--cut)
+  );
+}
+
+.chamfer-card {
+  --cut: var(--ui-cut-md);
+  clip-path: polygon(
+    0 0,
+    calc(100% - var(--cut)) 0,
+    100% var(--cut),
+    100% 100%,
+    var(--cut) 100%,
+    0 calc(100% - var(--cut))
+  );
 }
 
 html,
