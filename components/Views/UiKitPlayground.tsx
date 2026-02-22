@@ -6,6 +6,7 @@ import { TabBar } from '../UI/Tabs';
 import { Toggle } from '../UI/Toggle';
 import { SideDrawer } from '../UI/SideDrawer';
 import { StatPill } from '../UI/StatPill';
+import { MissionComposerUI } from './MissionComposerUI';
 
 const TYPE_OPTIONS = ['Assault', 'Recon', 'Support', 'Stealth', 'Rush'];
 
@@ -25,6 +26,7 @@ export const UiKitPlayground: React.FC = () => {
   const [selectedType, setSelectedType] = useState(TYPE_OPTIONS[0]);
   const [timerSeconds, setTimerSeconds] = useState(0);
   const [activeTab, setActiveTab] = useState<'mission' | 'components' | 'composer'>('mission');
+  const [showReferenceOnly, setShowReferenceOnly] = useState(false);
 
   useEffect(() => {
     if (!running || paused) return;
@@ -56,6 +58,19 @@ export const UiKitPlayground: React.FC = () => {
             value={activeTab}
             onChange={(value) => setActiveTab(value as 'mission' | 'components' | 'composer')}
           />
+          {activeTab === 'composer' ? (
+            <button
+              type="button"
+              onClick={() => setShowReferenceOnly((prev) => !prev)}
+              className={`ui-pressable chamfer-all border px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.2em] ${
+                showReferenceOnly
+                  ? 'border-[var(--ui-accent)] bg-[rgba(143,99,255,0.2)] text-[var(--ui-text)] ui-glow'
+                  : 'border-[var(--ui-border)] bg-[var(--ui-panel)] text-[var(--ui-muted)] hover:text-[var(--ui-text)]'
+              }`}
+            >
+              {showReferenceOnly ? 'Show UI Layout' : 'Show Reference Only'}
+            </button>
+          ) : null}
         </header>
 
         {activeTab === 'mission' ? (
@@ -196,13 +211,17 @@ export const UiKitPlayground: React.FC = () => {
         ) : (
           <section className="grid grid-cols-1">
             <Panel title="Mission Composer" subtitle="reference design preview" className="min-h-[520px]">
-              <div className="flex min-h-[420px] items-center justify-center rounded-[10px] border border-[var(--ui-border)] bg-[var(--ui-panel-2)] p-4">
-                <img
-                  src="/ui/mission-composer/reference.svg"
-                  alt="Mission Composer design reference"
-                  style={{ maxWidth: '100%', height: 'auto' }}
-                />
-              </div>
+              {showReferenceOnly ? (
+                <div className="flex min-h-[420px] items-center justify-center rounded-[10px] border border-[var(--ui-border)] bg-[var(--ui-panel-2)] p-4">
+                  <img
+                    src="/ui/mission-composer/reference.png"
+                    alt="Mission Composer design reference"
+                    style={{ maxWidth: '100%', height: 'auto' }}
+                  />
+                </div>
+              ) : (
+                <MissionComposerUI />
+              )}
             </Panel>
           </section>
         )}
