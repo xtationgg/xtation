@@ -6,7 +6,10 @@ import { TabBar } from '../UI/Tabs';
 import { Toggle } from '../UI/Toggle';
 import { SideDrawer } from '../UI/SideDrawer';
 import { StatPill } from '../UI/StatPill';
-import { MissionComposerUI } from './MissionComposerUI';
+import frameLayer from '../../src/assets/ui/mission-composer/frame.svg';
+import sideMenuLayer from '../../src/assets/ui/mission-composer/side-menu.svg';
+import buttonsLayer from '../../src/assets/ui/mission-composer/buttons.svg';
+import iconsLayer from '../../src/assets/ui/mission-composer/icons.svg';
 
 const TYPE_OPTIONS = ['Assault', 'Recon', 'Support', 'Stealth', 'Rush'];
 
@@ -26,7 +29,8 @@ export const UiKitPlayground: React.FC = () => {
   const [selectedType, setSelectedType] = useState(TYPE_OPTIONS[0]);
   const [timerSeconds, setTimerSeconds] = useState(0);
   const [activeTab, setActiveTab] = useState<'mission' | 'components' | 'composer'>('mission');
-  const [showReferenceOnly, setShowReferenceOnly] = useState(false);
+  const [showReference, setShowReference] = useState(true);
+  const [referenceOpacity, setReferenceOpacity] = useState(100);
 
   useEffect(() => {
     if (!running || paused) return;
@@ -59,17 +63,33 @@ export const UiKitPlayground: React.FC = () => {
             onChange={(value) => setActiveTab(value as 'mission' | 'components' | 'composer')}
           />
           {activeTab === 'composer' ? (
-            <button
-              type="button"
-              onClick={() => setShowReferenceOnly((prev) => !prev)}
-              className={`ui-pressable chamfer-all border px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.2em] ${
-                showReferenceOnly
-                  ? 'border-[var(--ui-accent)] bg-[rgba(143,99,255,0.2)] text-[var(--ui-text)] ui-glow'
-                  : 'border-[var(--ui-border)] bg-[var(--ui-panel)] text-[var(--ui-muted)] hover:text-[var(--ui-text)]'
-              }`}
-            >
-              {showReferenceOnly ? 'Show UI Layout' : 'Show Reference Only'}
-            </button>
+            <div className="flex flex-wrap items-center gap-3">
+              <button
+                type="button"
+                onClick={() => setShowReference((prev) => !prev)}
+                className={`ui-pressable chamfer-all border px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.2em] ${
+                  showReference
+                    ? 'border-[var(--ui-accent)] bg-[rgba(143,99,255,0.2)] text-[var(--ui-text)] ui-glow'
+                    : 'border-[var(--ui-border)] bg-[var(--ui-panel)] text-[var(--ui-muted)] hover:text-[var(--ui-text)]'
+                }`}
+              >
+                {showReference ? 'Hide Reference' : 'Show Reference'}
+              </button>
+              <div className="flex items-center gap-2 rounded-[12px] border border-[var(--ui-border)] bg-[var(--ui-panel)] px-3 py-1.5">
+                <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--ui-muted)]">Opacity</span>
+                <input
+                  type="range"
+                  min={0}
+                  max={100}
+                  value={referenceOpacity}
+                  onChange={(event) => setReferenceOpacity(Number(event.target.value))}
+                  className="accent-[var(--ui-accent)]"
+                />
+                <span className="min-w-[36px] text-right text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--ui-text)]">
+                  {referenceOpacity}%
+                </span>
+              </div>
+            </div>
           ) : null}
         </header>
 
@@ -210,18 +230,42 @@ export const UiKitPlayground: React.FC = () => {
           </section>
         ) : (
           <section className="grid grid-cols-1">
-            <Panel title="Mission Composer" subtitle="reference design preview" className="min-h-[520px]">
-              {showReferenceOnly ? (
-                <div className="flex min-h-[420px] items-center justify-center rounded-[10px] border border-[var(--ui-border)] bg-[var(--ui-panel-2)] p-4">
+            <Panel title="Mission Composer" subtitle="layered reference alignment" className="min-h-[520px]">
+              <div className="overflow-auto rounded-[10px] border border-[var(--ui-border)] bg-[var(--ui-panel-2)] p-4">
+                <div className="relative inline-block">
+                  {showReference ? (
+                    <img
+                      src="/ui-reference/mission-composer-01.png"
+                      alt="Mission Composer reference"
+                      style={{ display: 'block', opacity: referenceOpacity / 100 }}
+                    />
+                  ) : null}
                   <img
-                    src="/ui/mission-composer/reference.png"
-                    alt="Mission Composer design reference"
-                    style={{ maxWidth: '100%', height: 'auto' }}
+                    src={frameLayer}
+                    alt="Frame layer"
+                    className="pointer-events-none absolute inset-0 h-full w-full"
+                    style={{ objectFit: 'contain' }}
+                  />
+                  <img
+                    src={sideMenuLayer}
+                    alt="Side menu layer"
+                    className="pointer-events-none absolute inset-0 h-full w-full"
+                    style={{ objectFit: 'contain' }}
+                  />
+                  <img
+                    src={buttonsLayer}
+                    alt="Buttons layer"
+                    className="pointer-events-none absolute inset-0 h-full w-full"
+                    style={{ objectFit: 'contain' }}
+                  />
+                  <img
+                    src={iconsLayer}
+                    alt="Icons layer"
+                    className="pointer-events-none absolute inset-0 h-full w-full"
+                    style={{ objectFit: 'contain' }}
                   />
                 </div>
-              ) : (
-                <MissionComposerUI />
-              )}
+              </div>
             </Panel>
           </section>
         )}
