@@ -24,7 +24,7 @@ export const UiKitPlayground: React.FC = () => {
   const [typeDrawerOpen, setTypeDrawerOpen] = useState(true);
   const [selectedType, setSelectedType] = useState(TYPE_OPTIONS[0]);
   const [timerSeconds, setTimerSeconds] = useState(0);
-  const [activeTab, setActiveTab] = useState<'mission' | 'components'>('mission');
+  const [activeTab, setActiveTab] = useState<'mission' | 'components' | 'composer'>('mission');
 
   useEffect(() => {
     if (!running || paused) return;
@@ -51,9 +51,10 @@ export const UiKitPlayground: React.FC = () => {
             tabs={[
               { value: 'mission', label: 'Mission / Timer' },
               { value: 'components', label: 'Components' },
+              { value: 'composer', label: 'Mission Composer' },
             ]}
             value={activeTab}
-            onChange={(value) => setActiveTab(value as 'mission' | 'components')}
+            onChange={(value) => setActiveTab(value as 'mission' | 'components' | 'composer')}
           />
         </header>
 
@@ -170,7 +171,7 @@ export const UiKitPlayground: React.FC = () => {
               </div>
             </SideDrawer>
           </section>
-        ) : (
+        ) : activeTab === 'components' ? (
           <section className="grid grid-cols-1 gap-4 lg:grid-cols-2">
             <Panel title="Buttons" subtitle="primary / secondary / icon">
               <div className="flex flex-wrap items-center gap-3">
@@ -189,6 +190,18 @@ export const UiKitPlayground: React.FC = () => {
                 <StatPill label="Mission" value="Active" tone="active" />
                 <StatPill label="Mission" value="Paused" tone="paused" />
                 <StatPill label="Mission" value="Idle" tone="neutral" />
+              </div>
+            </Panel>
+          </section>
+        ) : (
+          <section className="grid grid-cols-1">
+            <Panel title="Mission Composer" subtitle="reference design preview" className="min-h-[520px]">
+              <div className="flex min-h-[420px] items-center justify-center rounded-[10px] border border-[var(--ui-border)] bg-[var(--ui-panel-2)] p-4">
+                <img
+                  src="/ui/mission-composer/reference.svg"
+                  alt="Mission Composer design reference"
+                  style={{ maxWidth: '100%', height: 'auto' }}
+                />
               </div>
             </Panel>
           </section>
