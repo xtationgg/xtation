@@ -14,7 +14,7 @@ import { ChatDock } from './components/Chat';
 import { AuthCallbackView } from './components/Auth/AuthCallbackView';
 import { ResetPasswordView } from './components/Auth/ResetPasswordView';
 import { Earth } from './components/Views/Earth';
-import { UiKitPlayground } from './components/Views/UiKitPlayground';
+import { UiLab } from './components/UiLab/UiLab';
 import { ClientView, RewardConfig } from './types';
 import { ASSETS } from './constants';
 import { playClickSound } from './utils/SoundEffects';
@@ -271,7 +271,7 @@ const App: React.FC = () => {
       case ClientView.INVENTORY:
         return <Inventory />;
       case ClientView.UI_KIT:
-        return <UiKitPlayground />;
+        return <UiLab />;
       case ClientView.SETTINGS:
         return <Settings rewardConfigs={rewardConfigs} onUpdateConfig={updateRewardConfig} currentXP={totalXP} />;
       case ClientView.LOBBY:
