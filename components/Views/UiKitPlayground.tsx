@@ -232,12 +232,16 @@ export const UiKitPlayground: React.FC = () => {
           <section className="grid grid-cols-1">
             <Panel title="Mission Composer" subtitle="layered reference alignment" className="min-h-[520px]">
               <div className="overflow-auto rounded-[10px] border border-[var(--ui-border)] bg-[var(--ui-panel-2)] p-4">
-                <div className="relative inline-block">
+                <div
+                  className="relative"
+                  style={{ width: 1920, height: 1016 }}
+                >
                   {showReference ? (
                     <img
                       src="/ui-reference/mission-composer-01.png"
                       alt="Mission Composer reference"
-                      style={{ display: 'block', opacity: referenceOpacity / 100 }}
+                      className="absolute inset-0 h-full w-full"
+                      style={{ opacity: referenceOpacity / 100 }}
                     />
                   ) : null}
                   <img
