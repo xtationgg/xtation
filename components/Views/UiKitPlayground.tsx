@@ -6,12 +6,10 @@ import { TabBar } from '../UI/Tabs';
 import { Toggle } from '../UI/Toggle';
 import { SideDrawer } from '../UI/SideDrawer';
 import { StatPill } from '../UI/StatPill';
-import frameLayer from '../../src/assets/ui/mission-composer/frame.svg';
-import sideMenuLayer from '../../src/assets/ui/mission-composer/side-menu.svg';
-import buttonsLayer from '../../src/assets/ui/mission-composer/buttons.svg';
-import iconsLayer from '../../src/assets/ui/mission-composer/icons.svg';
 
 const TYPE_OPTIONS = ['Assault', 'Recon', 'Support', 'Stealth', 'Rush'];
+
+type UiKitTab = 'components' | 'mission_composer' | 'proto_02' | 'proto_03';
 
 const formatTimer = (seconds: number) => {
   const mins = Math.floor(seconds / 60)
@@ -28,7 +26,7 @@ export const UiKitPlayground: React.FC = () => {
   const [typeDrawerOpen, setTypeDrawerOpen] = useState(true);
   const [selectedType, setSelectedType] = useState(TYPE_OPTIONS[0]);
   const [timerSeconds, setTimerSeconds] = useState(0);
-  const [activeTab, setActiveTab] = useState<'mission' | 'components' | 'composer'>('mission');
+  const [activeTab, setActiveTab] = useState<UiKitTab>('components');
   const [showReference, setShowReference] = useState(true);
   const [referenceOpacity, setReferenceOpacity] = useState(100);
 
@@ -55,221 +53,209 @@ export const UiKitPlayground: React.FC = () => {
           <h1 className="text-2xl font-black uppercase tracking-[0.14em]">Reusable HUD Components</h1>
           <TabBar
             tabs={[
-              { value: 'mission', label: 'Mission / Timer' },
-              { value: 'components', label: 'Components' },
-              { value: 'composer', label: 'Mission Composer' },
+              { value: 'components', label: 'COMPONENTS' },
+              { value: 'mission_composer', label: 'MISSION COMPOSER' },
+              { value: 'proto_02', label: 'PROTO_02' },
+              { value: 'proto_03', label: 'PROTO_03' },
             ]}
             value={activeTab}
-            onChange={(value) => setActiveTab(value as 'mission' | 'components' | 'composer')}
+            onChange={(value) => setActiveTab(value as UiKitTab)}
           />
-          {activeTab === 'composer' ? (
-            <div className="flex flex-wrap items-center gap-3">
-              <button
-                type="button"
-                onClick={() => setShowReference((prev) => !prev)}
-                className={`ui-pressable chamfer-all border px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.2em] ${
-                  showReference
-                    ? 'border-[var(--ui-accent)] bg-[rgba(143,99,255,0.2)] text-[var(--ui-text)] ui-glow'
-                    : 'border-[var(--ui-border)] bg-[var(--ui-panel)] text-[var(--ui-muted)] hover:text-[var(--ui-text)]'
-                }`}
-              >
-                {showReference ? 'Hide Reference' : 'Show Reference'}
-              </button>
-              <div className="flex items-center gap-2 rounded-[12px] border border-[var(--ui-border)] bg-[var(--ui-panel)] px-3 py-1.5">
-                <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--ui-muted)]">Opacity</span>
-                <input
-                  type="range"
-                  min={0}
-                  max={100}
-                  value={referenceOpacity}
-                  onChange={(event) => setReferenceOpacity(Number(event.target.value))}
-                  className="accent-[var(--ui-accent)]"
-                />
-                <span className="min-w-[36px] text-right text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--ui-text)]">
-                  {referenceOpacity}%
-                </span>
-              </div>
-            </div>
-          ) : null}
         </header>
 
-        {activeTab === 'mission' ? (
-          <section className="grid grid-cols-1 gap-4 xl:grid-cols-[1.6fr_0.78fr_0.72fr]">
-            <Panel
-              title="Mission Card"
-              subtitle="left content panel"
-              headerSlot={
-                <div className="flex items-center gap-2">
-                  <StatPill label="Type" value={selectedType} tone="active" />
-                  <StatPill label="State" value={statusLabel} tone={statusTone} />
-                </div>
-              }
-              className="min-h-[360px]"
-            >
-              <div className="grid gap-4">
-                <div className="chamfer-card border border-[var(--ui-border)] bg-[var(--ui-panel-2)] p-4">
-                  <p className="text-[10px] uppercase tracking-[0.25em] text-[var(--ui-muted)]">Directive</p>
-                  <p className="mt-2 text-2xl font-black uppercase tracking-[0.12em]">Secure Relay Node 7</p>
-                  <p className="mt-2 max-w-[72ch] text-sm text-[var(--ui-muted)]">
-                    Keep pressure on the zone, maintain line of sight, and hold objectives until extraction arrives.
-                  </p>
-                </div>
-
-                <div className="chamfer-all flex items-center justify-between border border-[var(--ui-border)] bg-[var(--ui-panel-2)] px-4 py-3">
-                  <div>
-                    <p className="text-[10px] uppercase tracking-[0.24em] text-[var(--ui-muted)]">Elapsed</p>
-                    <p className="mt-1 text-4xl font-black tracking-[0.12em] text-[var(--ui-text)]">{formatTimer(timerSeconds)}</p>
-                  </div>
+        {activeTab === 'components' ? (
+          <>
+            <section className="grid grid-cols-1 gap-4 xl:grid-cols-[1.6fr_0.78fr_0.72fr]">
+              <Panel
+                title="Mission Card"
+                subtitle="left content panel"
+                headerSlot={
                   <div className="flex items-center gap-2">
-                    <StatPill label="Sound" value={soundOn ? 'On' : 'Off'} tone={soundOn ? 'active' : 'paused'} />
-                    <StatPill label="Phase" value={running ? 'Live' : 'Prep'} tone={running ? 'active' : 'neutral'} />
+                    <StatPill label="Type" value={selectedType} tone="active" />
+                    <StatPill label="State" value={statusLabel} tone={statusTone} />
+                  </div>
+                }
+                className="min-h-[360px]"
+              >
+                <div className="grid gap-4">
+                  <div className="chamfer-card border border-[var(--ui-border)] bg-[var(--ui-panel-2)] p-4">
+                    <p className="text-[10px] uppercase tracking-[0.25em] text-[var(--ui-muted)]">Directive</p>
+                    <p className="mt-2 text-2xl font-black uppercase tracking-[0.12em]">Secure Relay Node 7</p>
+                    <p className="mt-2 max-w-[72ch] text-sm text-[var(--ui-muted)]">
+                      Keep pressure on the zone, maintain line of sight, and hold objectives until extraction arrives.
+                    </p>
+                  </div>
+
+                  <div className="chamfer-all flex items-center justify-between border border-[var(--ui-border)] bg-[var(--ui-panel-2)] px-4 py-3">
+                    <div>
+                      <p className="text-[10px] uppercase tracking-[0.24em] text-[var(--ui-muted)]">Elapsed</p>
+                      <p className="mt-1 text-4xl font-black tracking-[0.12em] text-[var(--ui-text)]">{formatTimer(timerSeconds)}</p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <StatPill label="Sound" value={soundOn ? 'On' : 'Off'} tone={soundOn ? 'active' : 'paused'} />
+                      <StatPill label="Phase" value={running ? 'Live' : 'Prep'} tone={running ? 'active' : 'neutral'} />
+                    </div>
                   </div>
                 </div>
-              </div>
-            </Panel>
+              </Panel>
 
-            <Panel title="Actions" subtitle="middle action block" className="min-h-[360px]">
-              <div className="grid gap-3">
-                <Button
-                  variant="primary"
-                  leftIcon={<Play size={14} />}
-                  active={running && !paused}
-                  onClick={() => {
-                    setRunning(true);
-                    setPaused(false);
-                  }}
-                >
-                  Start
-                </Button>
+              <Panel title="Actions" subtitle="middle action block" className="min-h-[360px]">
+                <div className="grid gap-3">
+                  <Button
+                    variant="primary"
+                    leftIcon={<Play size={14} />}
+                    active={running && !paused}
+                    onClick={() => {
+                      setRunning(true);
+                      setPaused(false);
+                    }}
+                  >
+                    Start
+                  </Button>
 
-                <Button
-                  variant="secondary"
-                  leftIcon={<Pause size={14} />}
-                  active={running && paused}
-                  disabled={!running}
-                  onClick={() => setPaused((prev) => !prev)}
-                >
-                  {paused ? 'Resume' : 'Pause'}
-                </Button>
+                  <Button
+                    variant="secondary"
+                    leftIcon={<Pause size={14} />}
+                    active={running && paused}
+                    disabled={!running}
+                    onClick={() => setPaused((prev) => !prev)}
+                  >
+                    {paused ? 'Resume' : 'Pause'}
+                  </Button>
 
-                <Button
-                  variant="secondary"
-                  leftIcon={<RotateCcw size={14} />}
-                  onClick={() => {
-                    setRunning(false);
-                    setPaused(false);
-                    setTimerSeconds(0);
-                  }}
-                >
-                  Reset
-                </Button>
+                  <Button
+                    variant="secondary"
+                    leftIcon={<RotateCcw size={14} />}
+                    onClick={() => {
+                      setRunning(false);
+                      setPaused(false);
+                      setTimerSeconds(0);
+                    }}
+                  >
+                    Reset
+                  </Button>
 
-                <div className="pt-2">
-                  <Toggle checked={soundOn} onChange={setSoundOn} label="Sound" />
+                  <div className="pt-2">
+                    <Toggle checked={soundOn} onChange={setSoundOn} label="Sound" />
+                  </div>
+
+                  <div className="mt-2 flex items-center gap-2">
+                    <Button variant="icon" leftIcon={<Bell size={14} />} title="Notify" />
+                    <Button variant="icon" leftIcon={<Sparkles size={14} />} title="Effects" />
+                    <Button variant="icon" leftIcon={<Volume2 size={14} />} title="Audio" />
+                  </div>
+                </div>
+              </Panel>
+
+              <SideDrawer
+                title="Type Select"
+                open={typeDrawerOpen}
+                onToggle={() => setTypeDrawerOpen((prev) => !prev)}
+                collapsedLabel={selectedType}
+              >
+                <div className="grid gap-2">
+                  {TYPE_OPTIONS.map((type) => {
+                    const selected = type === selectedType;
+                    return (
+                      <button
+                        key={type}
+                        type="button"
+                        onClick={() => {
+                          setSelectedType(type);
+                          setTypeDrawerOpen(false);
+                        }}
+                        className={`ui-pressable chamfer-card border px-3 py-2 text-left text-[10px] font-semibold uppercase tracking-[0.22em] ${
+                          selected
+                            ? 'border-[var(--ui-accent)] bg-[rgba(143,99,255,0.2)] text-white ui-glow'
+                            : 'border-[var(--ui-border)] bg-[var(--ui-panel-2)] text-[var(--ui-muted)] hover:border-[var(--ui-accent)] hover:text-[var(--ui-text)]'
+                        }`}
+                      >
+                        {type}
+                      </button>
+                    );
+                  })}
+                </div>
+              </SideDrawer>
+            </section>
+
+            <section className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+              <Panel title="Buttons" subtitle="primary / secondary / icon">
+                <div className="flex flex-wrap items-center gap-3">
+                  <Button variant="primary" leftIcon={<Play size={14} />}>
+                    Primary
+                  </Button>
+                  <Button variant="secondary" leftIcon={<Pause size={14} />}>
+                    Secondary
+                  </Button>
+                  <Button variant="icon" leftIcon={<Bell size={14} />} />
+                </div>
+              </Panel>
+
+              <Panel title="Status Pills" subtitle="active / paused / neutral">
+                <div className="flex flex-wrap items-center gap-2">
+                  <StatPill label="Mission" value="Active" tone="active" />
+                  <StatPill label="Mission" value="Paused" tone="paused" />
+                  <StatPill label="Mission" value="Idle" tone="neutral" />
+                </div>
+              </Panel>
+            </section>
+          </>
+        ) : activeTab === 'mission_composer' ? (
+          <section className="grid grid-cols-1">
+            <Panel title="Mission Composer" subtitle="1:1 reference build" className="min-h-[520px]">
+              <div className="grid gap-4">
+                <div className="flex flex-wrap items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={() => setShowReference((prev) => !prev)}
+                    className={`ui-pressable chamfer-all border px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.2em] ${
+                      showReference
+                        ? 'border-[var(--ui-accent)] bg-[rgba(143,99,255,0.2)] text-[var(--ui-text)] ui-glow'
+                        : 'border-[var(--ui-border)] bg-[var(--ui-panel)] text-[var(--ui-muted)] hover:text-[var(--ui-text)]'
+                    }`}
+                  >
+                    SHOW REFERENCE {showReference ? 'ON' : 'OFF'}
+                  </button>
+                  <div className="flex items-center gap-2 rounded-[12px] border border-[var(--ui-border)] bg-[var(--ui-panel)] px-3 py-1.5">
+                    <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--ui-muted)]">Opacity</span>
+                    <input
+                      type="range"
+                      min={0}
+                      max={100}
+                      value={referenceOpacity}
+                      onChange={(event) => setReferenceOpacity(Number(event.target.value))}
+                      className="accent-[var(--ui-accent)]"
+                    />
+                    <span className="min-w-[36px] text-right text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--ui-text)]">
+                      {referenceOpacity}%
+                    </span>
+                  </div>
                 </div>
 
-                <div className="mt-2 flex items-center gap-2">
-                  <Button variant="icon" leftIcon={<Bell size={14} />} title="Notify" />
-                  <Button variant="icon" leftIcon={<Sparkles size={14} />} title="Effects" />
-                  <Button variant="icon" leftIcon={<Volume2 size={14} />} title="Audio" />
+                <div className="overflow-auto rounded-[10px] border border-[var(--ui-border)] bg-[var(--ui-panel-2)] p-4">
+                  <div className="relative" style={{ width: 1920, height: 1016 }}>
+                    {showReference ? (
+                      <img
+                        src="/ui-reference/mission-02.png"
+                        alt="Mission Composer reference"
+                        className="pointer-events-none absolute inset-0"
+                        style={{ width: 1920, height: 1016, opacity: referenceOpacity / 100 }}
+                      />
+                    ) : null}
+                    <div id="composer-overlay" className="absolute inset-0" />
+                  </div>
                 </div>
-              </div>
-            </Panel>
-
-            <SideDrawer
-              title="Type Select"
-              open={typeDrawerOpen}
-              onToggle={() => setTypeDrawerOpen((prev) => !prev)}
-              collapsedLabel={selectedType}
-            >
-              <div className="grid gap-2">
-                {TYPE_OPTIONS.map((type) => {
-                  const selected = type === selectedType;
-                  return (
-                    <button
-                      key={type}
-                      type="button"
-                      onClick={() => {
-                        setSelectedType(type);
-                        setTypeDrawerOpen(false);
-                      }}
-                      className={`ui-pressable chamfer-card border px-3 py-2 text-left text-[10px] font-semibold uppercase tracking-[0.22em] ${
-                        selected
-                          ? 'border-[var(--ui-accent)] bg-[rgba(143,99,255,0.2)] text-white ui-glow'
-                          : 'border-[var(--ui-border)] bg-[var(--ui-panel-2)] text-[var(--ui-muted)] hover:border-[var(--ui-accent)] hover:text-[var(--ui-text)]'
-                      }`}
-                    >
-                      {type}
-                    </button>
-                  );
-                })}
-              </div>
-            </SideDrawer>
-          </section>
-        ) : activeTab === 'components' ? (
-          <section className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-            <Panel title="Buttons" subtitle="primary / secondary / icon">
-              <div className="flex flex-wrap items-center gap-3">
-                <Button variant="primary" leftIcon={<Play size={14} />}>
-                  Primary
-                </Button>
-                <Button variant="secondary" leftIcon={<Pause size={14} />}>
-                  Secondary
-                </Button>
-                <Button variant="icon" leftIcon={<Bell size={14} />} />
-              </div>
-            </Panel>
-
-            <Panel title="Status Pills" subtitle="active / paused / neutral">
-              <div className="flex flex-wrap items-center gap-2">
-                <StatPill label="Mission" value="Active" tone="active" />
-                <StatPill label="Mission" value="Paused" tone="paused" />
-                <StatPill label="Mission" value="Idle" tone="neutral" />
               </div>
             </Panel>
           </section>
         ) : (
           <section className="grid grid-cols-1">
-            <Panel title="Mission Composer" subtitle="layered reference alignment" className="min-h-[520px]">
-              <div className="overflow-auto rounded-[10px] border border-[var(--ui-border)] bg-[var(--ui-panel-2)] p-4">
-                <div
-                  className="relative"
-                  style={{ width: 1920, height: 1016 }}
-                >
-                  {showReference ? (
-                    <img
-                      src="/ui-reference/mission-composer-01.png"
-                      alt="Mission Composer reference"
-                      className="absolute inset-0 h-full w-full"
-                      style={{ opacity: referenceOpacity / 100 }}
-                    />
-                  ) : null}
-                  <img
-                    src={frameLayer}
-                    alt="Frame layer"
-                    className="pointer-events-none absolute inset-0 h-full w-full"
-                    style={{ objectFit: 'contain' }}
-                  />
-                  <img
-                    src={sideMenuLayer}
-                    alt="Side menu layer"
-                    className="pointer-events-none absolute inset-0 h-full w-full"
-                    style={{ objectFit: 'contain' }}
-                  />
-                  <img
-                    src={buttonsLayer}
-                    alt="Buttons layer"
-                    className="pointer-events-none absolute inset-0 h-full w-full"
-                    style={{ objectFit: 'contain' }}
-                  />
-                  <img
-                    src={iconsLayer}
-                    alt="Icons layer"
-                    className="pointer-events-none absolute inset-0 h-full w-full"
-                    style={{ objectFit: 'contain' }}
-                  />
-                </div>
-              </div>
+            <Panel
+              title={activeTab === 'proto_02' ? 'PROTO_02' : 'PROTO_03'}
+              subtitle="Empty slot for next prototype"
+              className="min-h-[260px]"
+            >
+              <p className="text-sm text-[var(--ui-muted)]">Ready for next design.</p>
             </Panel>
           </section>
         )}
