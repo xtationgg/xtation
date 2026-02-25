@@ -159,6 +159,98 @@
   --app-clip-pill: none;
 }
 
+[data-theme='dark_minimal_rounded_solid'] {
+  --app-bg: #0d1118;
+  --app-panel: #161d28;
+  --app-panel-2: #1c2633;
+  --app-border: #2a3445;
+  --app-text: #e8edf8;
+  --app-muted: #9ea9bd;
+  --app-accent: #8ea2cc;
+  --app-accent-weak: color-mix(in srgb, var(--app-accent) 16%, transparent);
+  --app-focus-ring: color-mix(in srgb, var(--app-accent) 34%, transparent);
+  --app-danger: #e55d65;
+  --app-radius-sm: 14px;
+  --app-radius-md: 20px;
+  --app-radius-lg: 24px;
+  --app-cut-sm: 0px;
+  --app-cut-md: 0px;
+  --app-cut-lg: 0px;
+  --app-stroke: 1px;
+  --app-shadow-soft: 0 10px 24px rgba(0, 0, 0, 0.32), inset 0 1px 0 rgba(255, 255, 255, 0.02);
+  --app-shadow-strong: 0 18px 42px rgba(0, 0, 0, 0.48);
+  --app-glow-accent: 0 0 0 1px color-mix(in srgb, var(--app-accent) 20%, transparent),
+    0 0 12px color-mix(in srgb, var(--app-accent) 14%, transparent);
+  --app-glow-strength: 0.03;
+  --app-hover-glow-base: 3%;
+  --app-noise-opacity: 0.015;
+  --app-glass-opacity: 0;
+  --app-blur: 0px;
+  --app-panel-rgb: 22 29 40;
+  --app-panel-2-rgb: 28 38 51;
+  --app-bg-overlay:
+    radial-gradient(120% 100% at 12% 0%, rgba(150, 169, 211, 0.03), transparent 58%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.01), transparent 48%);
+  --app-motion-fast: 120ms;
+  --app-motion-med: 180ms;
+  --app-motion-slow: 240ms;
+  --app-ease: cubic-bezier(0.24, 0.9, 0.26, 1);
+  --app-hover-lift-y: -1px;
+  --app-hover-scale: 1;
+  --app-body-letter-spacing: 0.01em;
+  --app-clip-all: none;
+  --app-clip-right: none;
+  --app-clip-left: none;
+  --app-clip-card: none;
+  --app-clip-pill: none;
+}
+
+[data-theme='dark_minimal_rounded_glass'] {
+  --app-bg: #0c1119;
+  --app-panel: #151d2a;
+  --app-panel-2: #1c2738;
+  --app-border: #30405a;
+  --app-text: #e9eef9;
+  --app-muted: #9ca8be;
+  --app-accent: #8ea2cc;
+  --app-accent-weak: color-mix(in srgb, var(--app-accent) 18%, transparent);
+  --app-focus-ring: color-mix(in srgb, var(--app-accent) 36%, transparent);
+  --app-danger: #e55d65;
+  --app-radius-sm: 14px;
+  --app-radius-md: 20px;
+  --app-radius-lg: 24px;
+  --app-cut-sm: 0px;
+  --app-cut-md: 0px;
+  --app-cut-lg: 0px;
+  --app-stroke: 1px;
+  --app-shadow-soft: 0 10px 24px rgba(0, 0, 0, 0.34), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  --app-shadow-strong: 0 18px 44px rgba(0, 0, 0, 0.52);
+  --app-glow-accent: 0 0 0 1px color-mix(in srgb, var(--app-accent) 18%, transparent),
+    0 0 14px color-mix(in srgb, var(--app-accent) 14%, transparent);
+  --app-glow-strength: 0.04;
+  --app-hover-glow-base: 4%;
+  --app-noise-opacity: 0.018;
+  --app-glass-opacity: 0.16;
+  --app-blur: 9px;
+  --app-panel-rgb: 22 29 42;
+  --app-panel-2-rgb: 30 39 56;
+  --app-bg-overlay:
+    radial-gradient(120% 100% at 12% 0%, rgba(150, 169, 211, 0.045), transparent 58%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.015), transparent 44%);
+  --app-motion-fast: 120ms;
+  --app-motion-med: 180ms;
+  --app-motion-slow: 240ms;
+  --app-ease: cubic-bezier(0.24, 0.9, 0.26, 1);
+  --app-hover-lift-y: -1px;
+  --app-hover-scale: 1;
+  --app-body-letter-spacing: 0.01em;
+  --app-clip-all: none;
+  --app-clip-right: none;
+  --app-clip-left: none;
+  --app-clip-card: none;
+  --app-clip-pill: none;
+}
+
 [data-theme='hud_clean'] {
   --app-bg: #0a0c12;
   --app-panel: #10141f;
@@ -360,6 +452,30 @@
   --app-accent: #8fb85a;
   --app-accent-weak: color-mix(in srgb, var(--app-accent) 20%, transparent);
   --app-focus-ring: color-mix(in srgb, var(--app-accent) 40%, transparent);
+}
+
+[data-theme='dark_minimal_rounded_solid'] .rounded-sm,
+[data-theme='dark_minimal_rounded_glass'] .rounded-sm {
+  border-radius: 12px !important;
+}
+
+[data-theme='dark_minimal_rounded_solid'] .rounded,
+[data-theme='dark_minimal_rounded_glass'] .rounded,
+[data-theme='dark_minimal_rounded_solid'] .rounded-md,
+[data-theme='dark_minimal_rounded_glass'] .rounded-md {
+  border-radius: 14px !important;
+}
+
+[data-theme='dark_minimal_rounded_solid'] .rounded-lg,
+[data-theme='dark_minimal_rounded_glass'] .rounded-lg {
+  border-radius: 18px !important;
+}
+
+[data-theme='dark_minimal_rounded_solid'] .rounded-xl,
+[data-theme='dark_minimal_rounded_glass'] .rounded-xl,
+[data-theme='dark_minimal_rounded_solid'] .rounded-2xl,
+[data-theme='dark_minimal_rounded_glass'] .rounded-2xl {
+  border-radius: 22px !important;
 }
 
 /* Reusable HUD utilities */

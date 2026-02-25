@@ -195,7 +195,7 @@ const HeroSection: React.FC<{ glowTranslate: React.CSSProperties }> = ({ glowTra
         <section className="relative overflow-hidden border border-[var(--app-border)] rounded-2xl bg-[color-mix(in_srgb,var(--app-panel)_80%,transparent)] backdrop-blur-md shadow-[0_30px_70px_rgba(0,0,0,0.55)]">
             <div className="absolute inset-0 pointer-events-none" style={glowTranslate}>
                 <div className="absolute -left-10 -top-10 w-64 h-64 rounded-full bg-[color-mix(in_srgb,var(--app-accent)_10%,transparent)] blur-3xl" />
-                <div className="absolute -right-16 -bottom-16 w-72 h-72 rounded-full bg-cyan-400/10 blur-3xl" />
+                <div className="absolute -right-16 -bottom-16 w-72 h-72 rounded-full bg-[color-mix(in_srgb,var(--app-accent)_12%,transparent)] blur-3xl" />
                 <div className="absolute inset-0 bg-[linear-gradient(120deg,rgba(255,255,255,0.04),transparent_40%)]" />
             </div>
             <div className="grid grid-cols-12 gap-8 p-10 relative z-10">
@@ -206,7 +206,7 @@ const HeroSection: React.FC<{ glowTranslate: React.CSSProperties }> = ({ glowTra
                         Dark-matte holo surfaces, glitch text, and red-accent rails. Build your slots, vault media, and stream AI directives inside a KPR-grade shell.
                     </p>
                     <div className="flex items-center gap-3">
-                        <button className="px-4 py-3 bg-[var(--app-accent)] text-black font-bold uppercase tracking-[0.2em] rounded-lg hover:brightness-110 transition-all shadow-[0_15px_40px_color-mix(in_srgb,var(--app-accent)_35%,transparent)]">
+                        <button className="px-4 py-3 bg-[var(--app-accent)] text-[var(--app-text)] font-bold uppercase tracking-[0.2em] rounded-lg hover:brightness-110 transition-all shadow-[0_15px_40px_color-mix(in_srgb,var(--app-accent)_35%,transparent)]">
                             Launch Session
                         </button>
                         <button className="px-4 py-3 border border-[var(--app-border)] text-xs uppercase tracking-[0.2em] rounded-lg bg-[color-mix(in_srgb,var(--app-text)_5%,transparent)] hover:border-[var(--app-text)] transition-colors flex items-center gap-2">
@@ -269,7 +269,7 @@ const DuskSlotGrid: React.FC<{ onSelect: (idx: number) => void; selected: number
                         </div>
                         <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                         <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                            <button className="px-3 py-2 text-xs uppercase tracking-wide border border-[var(--app-text)] text-[var(--app-text)] bg-black/60 rounded-md flex items-center gap-2 hover:bg-[var(--app-panel-2)] hover:text-[var(--app-text)] transition-colors">
+                            <button className="px-3 py-2 text-xs uppercase tracking-wide border border-[var(--app-border)] text-[var(--app-text)] bg-[color-mix(in_srgb,var(--app-panel)_82%,black)] rounded-md flex items-center gap-2 hover:border-[var(--app-accent)] hover:bg-[var(--app-panel-2)] hover:text-[var(--app-text)] transition-colors">
                                 <Upload size={14} /> Upload
                             </button>
                         </div>
@@ -327,7 +327,7 @@ const IconBadge: React.FC<{ icon: React.ReactNode; label: string }> = ({ icon, l
 );
 
 const Chip: React.FC<{ icon: React.ReactNode; label: string }> = ({ icon, label }) => (
-    <span className="px-2 py-1 bg-black/60 border border-[var(--app-border)] rounded-full flex items-center gap-1 text-[var(--app-text)]">
+    <span className="px-2 py-1 bg-[color-mix(in_srgb,var(--app-panel)_82%,black)] border border-[var(--app-border)] rounded-full flex items-center gap-1 text-[var(--app-text)]">
         {icon}
         {label}
     </span>

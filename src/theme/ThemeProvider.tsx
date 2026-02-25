@@ -4,7 +4,12 @@ export const XTATION_THEME_STORAGE_KEY = 'xtation_theme_pack';
 export const XTATION_ACCENT_STORAGE_KEY = 'xtation_accent_pack';
 const LEGACY_THEME_STORAGE_KEY = 'xtation_theme';
 
-export type XtationTheme = 'dark_minimal_solid' | 'hud_clean' | 'glass_night';
+export type XtationTheme =
+  | 'dark_minimal_solid'
+  | 'dark_minimal_rounded_solid'
+  | 'dark_minimal_rounded_glass'
+  | 'hud_clean'
+  | 'glass_night';
 
 export interface XtationThemeOption {
   value: XtationTheme;
@@ -20,6 +25,8 @@ export interface XtationAccentOption {
 
 export const XTATION_THEME_OPTIONS: XtationThemeOption[] = [
   { value: 'dark_minimal_solid', label: 'Dark Minimal + Solid' },
+  { value: 'dark_minimal_rounded_solid', label: 'DARK MINIMAL • ROUNDED • SOLID' },
+  { value: 'dark_minimal_rounded_glass', label: 'DARK MINIMAL • ROUNDED • GLASS' },
   { value: 'hud_clean', label: 'HUD Clean' },
   { value: 'glass_night', label: 'Glass Night' },
 ];

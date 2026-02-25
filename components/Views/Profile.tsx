@@ -714,11 +714,11 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
         </div>
 
         <div className="grid grid-cols-2 gap-2 text-[11px] uppercase tracking-[0.15em] text-[var(--app-muted)]">
-          <div className="border border-[var(--app-border)] bg-[var(--app-text)] p-3 rounded">
+          <div className="border border-[var(--app-border)] bg-[var(--app-panel)] p-3 rounded">
             <div className="text-[10px] text-[var(--app-muted)]">Active Missions</div>
             <div className="text-xl font-black text-[var(--app-text)]">{activeMissions}</div>
           </div>
-          <div className="border border-[var(--app-border)] bg-[var(--app-text)] p-3 rounded">
+          <div className="border border-[var(--app-border)] bg-[var(--app-panel)] p-3 rounded">
             <div className="text-[10px] text-[var(--app-muted)]">Completed Today</div>
             <div className="text-xl font-black text-[var(--app-text)]">{completedToday}</div>
           </div>
@@ -727,7 +727,7 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
         <button 
           onClick={handleCoverClick}
           onMouseEnter={playHoverSound}
-          className="w-full text-[10px] uppercase tracking-[0.2em] border border-[var(--app-border)] bg-[var(--app-text)] hover:border-[var(--app-accent)] py-2 flex items-center justify-center gap-2 text-[var(--app-muted)] rounded"
+          className="w-full text-[10px] uppercase tracking-[0.2em] border border-[var(--app-border)] bg-[var(--app-panel)] hover:border-[var(--app-accent)] py-2 flex items-center justify-center gap-2 text-[var(--app-muted)] rounded"
         >
           <Upload size={12}/> Change Cover
         </button>
@@ -804,7 +804,7 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
   };
 
   const stageCard = (
-    <div className="relative border border-[var(--app-border)] bg-[var(--app-text)] rounded-lg shadow-sm overflow-hidden">
+    <div className="relative border border-[var(--app-border)] bg-[var(--app-panel)] rounded-lg shadow-sm overflow-hidden">
       <div className="p-4 flex flex-col h-full">
         <div className="flex items-center justify-between text-xs uppercase tracking-[0.2em] text-[var(--app-muted)] mb-4">
           <span>Loadout // Model</span>
@@ -832,9 +832,9 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
             )}
           </div>
           <div className="absolute bottom-4 inset-x-6 flex items-center justify-center gap-3 text-[10px] uppercase tracking-[0.2em] text-[var(--app-muted)]">
-            <span className="px-2 py-1 border border-[var(--app-border)] bg-[var(--app-text)] rounded">Navigate</span>
-            <span className="px-2 py-1 border border-[var(--app-border)] bg-[var(--app-text)] rounded">Rotate</span>
-            <span className="px-2 py-1 border border-[var(--app-border)] bg-[var(--app-text)] rounded">Select</span>
+            <span className="px-2 py-1 border border-[var(--app-border)] bg-[var(--app-panel)] rounded">Navigate</span>
+            <span className="px-2 py-1 border border-[var(--app-border)] bg-[var(--app-panel)] rounded">Rotate</span>
+            <span className="px-2 py-1 border border-[var(--app-border)] bg-[var(--app-panel)] rounded">Select</span>
           </div>
         </div>
 
@@ -842,7 +842,7 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
           {rewardConfigs.map(config => (
             <div 
               key={config.level}
-              className={`w-12 h-12 rounded-full border ${totalXP >= config.threshold ? 'border-[var(--app-accent)] bg-[color-mix(in_srgb,var(--app-accent)_10%,transparent)]' : 'border-[var(--app-border)] bg-[var(--app-text)]'} flex items-center justify-center text-[var(--app-text)] text-sm font-bold`}
+              className={`w-12 h-12 rounded-full border ${totalXP >= config.threshold ? 'border-[var(--app-accent)] bg-[color-mix(in_srgb,var(--app-accent)_10%,transparent)]' : 'border-[var(--app-border)] bg-[var(--app-panel)]'} flex items-center justify-center text-[var(--app-text)] text-sm font-bold`}
               title={`Level ${config.level} - ${config.threshold} XP`}
             >
               {config.level}
@@ -854,7 +854,7 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
   );
 
   const statsCard = (
-    <div className="border border-[var(--app-border)] bg-[var(--app-text)] rounded-lg shadow-sm p-4 space-y-3">
+    <div className="border border-[var(--app-border)] bg-[var(--app-panel)] rounded-lg shadow-sm p-4 space-y-3">
       <div className="flex items-center justify-between text-xs uppercase tracking-[0.2em] text-[var(--app-muted)]">
         <span>Stats</span>
         <span className="text-[var(--app-accent)] font-semibold">Profile</span>
@@ -870,7 +870,7 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
               setBioStats(prev => ({ ...prev, name: e.target.value }));
               setSummonerName(e.target.value || 'Summoner Name');
             }}
-            className="w-full border border-[var(--app-border)] rounded px-3 py-2 text-sm text-[var(--app-text)] bg-[var(--app-text)] focus:outline-none focus:border-[var(--app-accent)]"
+            className="w-full border border-[var(--app-border)] rounded px-3 py-2 text-sm text-[var(--app-text)] bg-[var(--app-panel)] focus:outline-none focus:border-[var(--app-accent)]"
           />
         </label>
 
@@ -881,7 +881,7 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
             value={profileId}
             placeholder="#NA1 // US_WEST // NETWORK_STABLE"
             onChange={(e) => setProfileId(e.target.value)}
-            className="w-full border border-[var(--app-border)] rounded px-3 py-2 text-sm text-[var(--app-text)] bg-[var(--app-text)] focus:outline-none focus:border-[var(--app-accent)]"
+            className="w-full border border-[var(--app-border)] rounded px-3 py-2 text-sm text-[var(--app-text)] bg-[var(--app-panel)] focus:outline-none focus:border-[var(--app-accent)]"
           />
         </label>
 
@@ -894,7 +894,7 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
             onChange={(e) => {
               setRoleText(e.target.value);
             }}
-            className="w-full border border-[var(--app-border)] rounded px-3 py-2 text-sm text-[var(--app-text)] bg-[var(--app-text)] focus:outline-none focus:border-[var(--app-accent)]"
+            className="w-full border border-[var(--app-border)] rounded px-3 py-2 text-sm text-[var(--app-text)] bg-[var(--app-panel)] focus:outline-none focus:border-[var(--app-accent)]"
           />
         </label>
 
@@ -903,7 +903,7 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
           <select
             value={bioStats.gender}
             onChange={(e) => setBioStats(prev => ({ ...prev, gender: e.target.value }))}
-            className="w-full border border-[var(--app-border)] rounded px-3 py-2 text-sm text-[var(--app-text)] bg-[var(--app-text)] focus:outline-none focus:border-[var(--app-accent)]"
+            className="w-full border border-[var(--app-border)] rounded px-3 py-2 text-sm text-[var(--app-text)] bg-[var(--app-panel)] focus:outline-none focus:border-[var(--app-accent)]"
           >
             <option value="">Select</option>
             <option value="Male">Male</option>
@@ -919,7 +919,7 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
               value={bioStats.height}
               placeholder="e.g. 180"
               onChange={(e) => setBioStats(prev => ({ ...prev, height: e.target.value }))}
-              className="w-full border border-[var(--app-border)] rounded-l px-3 py-2 text-sm text-[var(--app-text)] bg-[var(--app-text)] focus:outline-none focus:border-[var(--app-accent)]"
+              className="w-full border border-[var(--app-border)] rounded-l px-3 py-2 text-sm text-[var(--app-text)] bg-[var(--app-panel)] focus:outline-none focus:border-[var(--app-accent)]"
             />
             <span className="px-3 py-2 border border-l-0 border-[var(--app-border)] rounded-r text-sm bg-[var(--app-panel-2)] text-[var(--app-muted)]">cm</span>
           </div>
@@ -932,7 +932,7 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
             value={bioStats.weight}
             placeholder="e.g. 75 kg"
             onChange={(e) => setBioStats(prev => ({ ...prev, weight: e.target.value }))}
-            className="w-full border border-[var(--app-border)] rounded px-3 py-2 text-sm text-[var(--app-text)] bg-[var(--app-text)] focus:outline-none focus:border-[var(--app-accent)]"
+            className="w-full border border-[var(--app-border)] rounded px-3 py-2 text-sm text-[var(--app-text)] bg-[var(--app-panel)] focus:outline-none focus:border-[var(--app-accent)]"
           />
         </label>
 
@@ -948,7 +948,7 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
               const val = Math.max(0, Math.min(99, Number(e.target.value) || 0));
               setBioStats(prev => ({ ...prev, age: val.toString() }));
             }}
-            className="w-full border border-[var(--app-border)] rounded px-3 py-2 text-sm text-[var(--app-text)] bg-[var(--app-text)] focus:outline-none focus:border-[var(--app-accent)]"
+            className="w-full border border-[var(--app-border)] rounded px-3 py-2 text-sm text-[var(--app-text)] bg-[var(--app-panel)] focus:outline-none focus:border-[var(--app-accent)]"
           />
         </label>
 
@@ -959,7 +959,7 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
             value={bioStats.birthdate}
             placeholder="DD/MM/YYYY"
             onChange={(e) => setBioStats(prev => ({ ...prev, birthdate: formatBirthdateInput(e.target.value) }))}
-            className="w-full border border-[var(--app-border)] rounded px-3 py-2 text-sm text-[var(--app-text)] bg-[var(--app-text)] focus:outline-none focus:border-[var(--app-accent)]"
+            className="w-full border border-[var(--app-border)] rounded px-3 py-2 text-sm text-[var(--app-text)] bg-[var(--app-panel)] focus:outline-none focus:border-[var(--app-accent)]"
           />
         </label>
 
@@ -970,7 +970,7 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
             value={bioStats.email}
             placeholder="user@email.com"
             onChange={(e) => setBioStats(prev => ({ ...prev, email: e.target.value }))}
-            className="w-full border border-[var(--app-border)] rounded px-3 py-2 text-sm text-[var(--app-text)] bg-[var(--app-text)] focus:outline-none focus:border-[var(--app-accent)]"
+            className="w-full border border-[var(--app-border)] rounded px-3 py-2 text-sm text-[var(--app-text)] bg-[var(--app-panel)] focus:outline-none focus:border-[var(--app-accent)]"
           />
         </label>
       </div>
@@ -997,7 +997,7 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
               const running = timer.running;
               const remaining = timer.remaining;
               return (
-                <div key={key} className="border border-[var(--app-border)] bg-[var(--app-text)] rounded-lg shadow-sm p-4 space-y-4">
+                <div key={key} className="border border-[var(--app-border)] bg-[var(--app-panel)] rounded-lg shadow-sm p-4 space-y-4">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
                       <span className="text-2xl">{meta.icon}</span>
@@ -1037,7 +1037,7 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
                         );
                       })()}
                       <button
-                        className="absolute top-2 right-2 h-7 w-7 rounded-full bg-[var(--app-text)] text-[var(--app-text)] border border-[var(--app-border)] text-sm leading-none shadow-sm"
+                        className="absolute top-2 right-2 h-7 w-7 rounded-full bg-[var(--app-panel)] text-[var(--app-text)] border border-[var(--app-border)] text-sm leading-none shadow-sm"
                         onClick={(e) => { e.stopPropagation(); sectionModelInputs.current[key]?.click(); }}
                         aria-label="Change model"
                       >
@@ -1053,7 +1053,7 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
                     </div>
 
                     <div className="space-y-3">
-                      <div className="border border-[var(--app-text)] rounded-md shadow-[4px_6px_0_var(--app-text)] bg-[var(--app-text)] p-4">
+                      <div className="border border-[var(--app-border)] rounded-md shadow-[4px_6px_0_color-mix(in_srgb,var(--app-border)_65%,transparent)] bg-[var(--app-panel)] p-4">
                         <div className="text-xl font-black uppercase">{meta.title}</div>
                         <ul className="mt-2 space-y-1 text-sm text-[var(--app-muted)] list-disc list-inside">
                           {meta.details.map(line => (
@@ -1078,8 +1078,8 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
                               }}
                               className={`w-full h-16 rounded-md border text-center flex flex-col justify-center transition-colors ${
                                 isSelected
-                                  ? 'border-[var(--app-accent)] text-[var(--app-accent)] bg-[var(--app-text)]'
-                                  : 'border-[var(--app-text)] text-[var(--app-text)] bg-[var(--app-text)] hover:border-[var(--app-accent)]'
+                                  ? 'border-[var(--app-accent)] text-[var(--app-accent)] bg-[var(--app-panel)]'
+                                  : 'border-[var(--app-border)] text-[var(--app-text)] bg-[var(--app-panel)] hover:border-[var(--app-accent)]'
                               }`}
                             >
                               <span className="text-lg font-semibold">{content}</span>
@@ -1114,7 +1114,7 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
                           );
                         })()}
                         <button
-                          className="absolute top-2 right-2 h-7 w-7 rounded-full bg-[var(--app-text)] text-[var(--app-text)] border border-[var(--app-border)] text-sm leading-none shadow-sm"
+                          className="absolute top-2 right-2 h-7 w-7 rounded-full bg-[var(--app-panel)] text-[var(--app-text)] border border-[var(--app-border)] text-sm leading-none shadow-sm"
                           onClick={(e) => { e.stopPropagation(); sectionVideoInputs.current[key]?.click(); }}
                           aria-label="Change video"
                         >
@@ -1143,12 +1143,12 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
         return (
           <div className="grid lg:grid-cols-[1.1fr,0.9fr] gap-6">
             <div className="space-y-4">
-              <div className="bg-[var(--app-text)] border border-[var(--app-border)] rounded-lg shadow-sm p-4">
+              <div className="bg-[var(--app-panel)] border border-[var(--app-border)] rounded-lg shadow-sm p-4">
                 <div className="text-xs uppercase tracking-[0.2em] text-[var(--app-muted)] mb-3">Legacy XP</div>
                 <div className="text-2xl font-black text-[var(--app-text)]">{legacyXP} XP</div>
                 <div className="text-[11px] text-[var(--app-muted)]">Read-only snapshot from the old quest system.</div>
               </div>
-              <div className="bg-[var(--app-text)] border border-[var(--app-border)] rounded-lg shadow-sm p-4">
+              <div className="bg-[var(--app-panel)] border border-[var(--app-border)] rounded-lg shadow-sm p-4">
                 <div className="flex items-center justify-between text-xs uppercase tracking-[0.2em] text-[var(--app-muted)] mb-3">
                   <span className="flex items-center gap-2">
                     <span className="inline-flex h-2 w-2 rounded-full bg-[var(--app-accent)] animate-pulse"></span>
@@ -1186,7 +1186,7 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
                 </div>
               </div>
 
-              <div className="bg-[var(--app-text)] border border-[var(--app-border)] rounded-lg shadow-sm p-4">
+              <div className="bg-[var(--app-panel)] border border-[var(--app-border)] rounded-lg shadow-sm p-4">
                 <div className="text-xs uppercase tracking-[0.2em] text-[var(--app-muted)] mb-3 flex justify-between">
                   <span>Achievement Ranks</span>
                   <span className="text-[var(--app-accent)] font-semibold">{rewardConfigs.length} Levels</span>
@@ -1212,7 +1212,7 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
                 </div>
               </div>
             </div>
-            <div className="bg-[var(--app-text)] border border-[var(--app-border)] rounded-lg shadow-sm p-4">
+            <div className="bg-[var(--app-panel)] border border-[var(--app-border)] rounded-lg shadow-sm p-4">
               <div className="text-xs uppercase tracking-[0.2em] text-[var(--app-muted)] mb-3">Reward Visual</div>
               <div className="w-full h-[260px] border border-dashed border-[var(--app-border)] bg-[var(--app-panel-2)] flex items-center justify-center">
                 {currentLevelConfig ? (

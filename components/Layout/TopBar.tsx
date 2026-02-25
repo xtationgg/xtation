@@ -253,7 +253,10 @@ export const TopBar: React.FC<TopBarProps> = ({
       </div>
 
       {isLoginModalOpen && !user ? (
-        <div className="fixed inset-0 z-[120] flex items-center justify-center bg-black/70 px-4" onClick={closeLoginModal}>
+        <div
+          className="fixed inset-0 z-[120] flex items-center justify-center bg-[color-mix(in_srgb,var(--app-bg)_72%,black)] px-4"
+          onClick={closeLoginModal}
+        >
           <div
             className="ui-panel-surface ui-shape-card w-full max-w-md border border-[var(--ui-border)] bg-[var(--ui-panel)] p-5"
             onClick={(event) => event.stopPropagation()}

@@ -145,7 +145,7 @@ export const Settings: React.FC<SettingsProps> = ({ rewardConfigs, onUpdateConfi
         <div className="p-8 h-full overflow-y-auto custom-scrollbar">
             <div className="mb-8 border-b border-[var(--app-border)] pb-4 flex items-center justify-between gap-4">
                 <div className="flex items-center gap-4">
-                    <div className="p-4 border border-[var(--app-text)] bg-[var(--app-panel-2)]">
+                    <div className="p-4 border border-[var(--app-border)] bg-[var(--app-panel-2)]">
                         <SettingsIcon size={32} className="text-[var(--app-text)]" />
                     </div>
                     <div>

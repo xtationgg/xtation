@@ -24,13 +24,13 @@ export const HexButton: React.FC<ButtonProps> = ({
 
   const variants = {
     primary:
-      "bg-[var(--app-text)] text-[var(--app-bg)] border-[var(--app-text)] " +
-      "hover:bg-[var(--app-accent)] hover:border-[var(--app-accent)] hover:text-[var(--app-text)] " +
+      "bg-[color-mix(in_srgb,var(--app-accent)_20%,var(--app-panel))] text-[var(--app-text)] border-[var(--app-accent)] " +
+      "hover:bg-[color-mix(in_srgb,var(--app-accent)_30%,var(--app-panel-2))] hover:border-[var(--app-accent)] hover:text-[var(--app-text)] " +
       "active:translate-y-[1px]",
     
     secondary:
       "bg-transparent border-[var(--app-border)] text-[var(--app-muted)] " +
-      "hover:border-[var(--app-text)] hover:text-[var(--app-text)] hover:bg-[color-mix(in_srgb,var(--app-text)_5%,transparent)] " +
+      "hover:border-[var(--app-accent)] hover:text-[var(--app-text)] hover:bg-[color-mix(in_srgb,var(--app-accent)_10%,transparent)] " +
       "active:translate-y-[1px]",
 
     ghost:
@@ -41,8 +41,8 @@ export const HexButton: React.FC<ButtonProps> = ({
       "hover:bg-[color-mix(in_srgb,var(--app-danger)_15%,transparent)] hover:text-[var(--app-text)] hover:border-[var(--app-danger)]",
 
     play:
-      "bg-[var(--app-accent)] border-[var(--app-accent)] text-[var(--app-text)] text-sm " +
-      "hover:bg-[var(--app-text)] hover:text-[var(--app-bg)] hover:border-[var(--app-text)] " +
+      "bg-[color-mix(in_srgb,var(--app-accent)_24%,var(--app-panel))] border-[var(--app-accent)] text-[var(--app-text)] text-sm " +
+      "hover:bg-[color-mix(in_srgb,var(--app-accent)_34%,var(--app-panel-2))] hover:text-[var(--app-text)] hover:border-[var(--app-accent)] " +
       "clip-cut-corner"
   };
 
@@ -111,7 +111,7 @@ export const HexCard: React.FC<{ children: React.ReactNode; className?: string; 
       onMouseEnter={onClick ? playHoverSound : undefined}
       className={`
         relative bg-[var(--app-panel-2)] border border-[var(--app-border)] p-4 transition-all duration-200 rounded-[var(--app-radius-md)] 
-        group hover:border-[var(--app-text)]
+        group hover:border-[var(--app-accent)]
         ${className}
       `}
     >
@@ -151,7 +151,7 @@ export const NavTab: React.FC<NavTabProps> = ({ label, isActive, onClick }) => {
       className={`relative h-full px-8 font-mono uppercase tracking-[0.15em] text-xs font-bold
         transition-all duration-200 border-r border-[var(--app-border)] group overflow-hidden flex items-center justify-center
         ${isActive 
-          ? 'text-[var(--app-bg)] bg-[var(--app-text)] shadow-[inset_0_0_20px_rgba(0,0,0,0.1)]' 
+          ? 'text-[var(--app-text)] bg-[color-mix(in_srgb,var(--app-accent)_22%,var(--app-panel))] shadow-[inset_0_0_20px_rgba(0,0,0,0.2)]' 
           : 'text-[var(--app-muted)] hover:text-[var(--app-accent)] hover:bg-[color-mix(in_srgb,var(--app-accent)_5%,transparent)]'}
       `}
     >
