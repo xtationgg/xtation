@@ -3,7 +3,19 @@
 */
 
 :root {
-  /* Default: Dark Minimal */
+  /* Base scale tokens */
+  --ui-font-size-xs: 10px;
+  --ui-font-size-sm: 12px;
+  --ui-font-size-md: 14px;
+  --ui-font-size-lg: 18px;
+  --ui-space-1: 4px;
+  --ui-space-2: 8px;
+  --ui-space-3: 12px;
+  --ui-space-4: 16px;
+  --ui-space-5: 20px;
+  --ui-space-6: 24px;
+
+  /* Default Theme Pack: dark_minimal */
   --ui-bg: #0d1118;
   --ui-panel: #141a24;
   --ui-panel-2: #19212d;
@@ -11,24 +23,40 @@
   --ui-text: #e7edf9;
   --ui-muted: #9aa7bf;
   --ui-accent: #8ca1ce;
+  --ui-panel-rgb: 20 26 36;
+  --ui-panel-2-rgb: 25 33 45;
+  --ui-stroke: 1px;
   --ui-shadow-soft: 0 8px 22px rgba(0, 0, 0, 0.34), inset 0 1px 0 rgba(255, 255, 255, 0.03);
-  --ui-shadow-glow: 0 0 0 1px rgba(140, 161, 206, 0.22), 0 0 14px rgba(140, 161, 206, 0.14);
-  --ui-hover-glow: 0 0 0 1px rgba(140, 161, 206, 0.2);
-  --ui-panel-accent-strength: 10%;
+  --ui-glow-strength: 0;
+  --ui-hover-glow-base: 0%;
+  --ui-noise-opacity: 0.02;
+  --ui-glass-opacity: 0.03;
+  --ui-blur: 0px;
   --ui-bg-overlay:
-    radial-gradient(120% 100% at 10% 0%, rgba(150, 169, 211, 0.07), transparent 58%),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.02), transparent 46%);
+    radial-gradient(120% 100% at 10% 0%, rgba(150, 169, 211, 0.05), transparent 58%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.015), transparent 46%);
   --ui-body-letter-spacing: 0.01em;
 
-  /* Motion */
-  --ui-motion-fast: 140ms;
-  --ui-motion-medium: 180ms;
-  --ui-ease: cubic-bezier(0.25, 0.9, 0.25, 1);
+  /* Shapes */
+  --ui-radius-sm: 8px;
+  --ui-radius-md: 12px;
+  --ui-radius-lg: 18px;
+  --ui-cut-sm: 0px;
+  --ui-cut-md: 0px;
+  --ui-cut-lg: 0px;
+  --ui-clip-all: none;
+  --ui-clip-right: none;
+  --ui-clip-left: none;
+  --ui-clip-card: none;
+  --ui-clip-pill: none;
 
-  /* Chamfer system */
-  --ui-cut-sm: 10px;
-  --ui-cut-md: 14px;
-  --ui-cut-lg: 18px;
+  /* Motion */
+  --ui-motion-fast: 120ms;
+  --ui-motion-medium: 170ms;
+  --ui-motion-slow: 220ms;
+  --ui-ease: cubic-bezier(0.24, 0.9, 0.26, 1);
+  --ui-hover-lift-y: -1px;
+  --ui-hover-scale: 1;
 
   /* Legacy aliases still used across old UI */
   --dc-bg: var(--ui-bg);
@@ -41,7 +69,7 @@
   --dc-danger: #ed4245;
 }
 
-[data-theme='dark_neon'] {
+[data-theme='hud_clean'] {
   --ui-bg: #0a0c12;
   --ui-panel: #10141f;
   --ui-panel-2: #151b2a;
@@ -49,15 +77,75 @@
   --ui-text: #e6ebff;
   --ui-muted: #95a1c3;
   --ui-accent: #8f63ff;
+  --ui-panel-rgb: 16 20 31;
+  --ui-panel-2-rgb: 21 27 42;
+  --ui-stroke: 1px;
   --ui-shadow-soft: 0 10px 28px rgba(0, 0, 0, 0.42), inset 0 1px 0 rgba(255, 255, 255, 0.04);
-  --ui-shadow-glow: 0 0 0 1px rgba(143, 99, 255, 0.45), 0 0 24px rgba(143, 99, 255, 0.35);
-  --ui-hover-glow: 0 0 0 1px rgba(143, 99, 255, 0.5), 0 0 20px rgba(143, 99, 255, 0.22);
-  --ui-panel-accent-strength: 18%;
+  --ui-glow-strength: 0.8;
+  --ui-hover-glow-base: 12%;
+  --ui-noise-opacity: 0.06;
+  --ui-glass-opacity: 0.04;
+  --ui-blur: 1px;
   --ui-bg-overlay:
     linear-gradient(rgba(255, 255, 255, 0.025) 1px, transparent 1px),
     linear-gradient(90deg, rgba(255, 255, 255, 0.025) 1px, transparent 1px),
     radial-gradient(90% 90% at 8% 4%, rgba(143, 99, 255, 0.12), transparent 62%);
-  --ui-body-letter-spacing: 0.02em;
+  --ui-body-letter-spacing: 0.014em;
+
+  --ui-radius-sm: 8px;
+  --ui-radius-md: 10px;
+  --ui-radius-lg: 16px;
+  --ui-cut-sm: 8px;
+  --ui-cut-md: 12px;
+  --ui-cut-lg: 16px;
+  --ui-clip-all: polygon(
+    var(--cut) 0,
+    calc(100% - var(--cut)) 0,
+    100% var(--cut),
+    100% calc(100% - var(--cut)),
+    calc(100% - var(--cut)) 100%,
+    var(--cut) 100%,
+    0 calc(100% - var(--cut)),
+    0 var(--cut)
+  );
+  --ui-clip-right: polygon(
+    0 0,
+    calc(100% - var(--cut)) 0,
+    100% var(--cut),
+    100% calc(100% - var(--cut)),
+    calc(100% - var(--cut)) 100%,
+    0 100%
+  );
+  --ui-clip-left: polygon(
+    var(--cut) 0,
+    100% 0,
+    100% 100%,
+    var(--cut) 100%,
+    0 calc(100% - var(--cut)),
+    0 var(--cut)
+  );
+  --ui-clip-card: polygon(
+    0 0,
+    calc(100% - var(--cut)) 0,
+    100% var(--cut),
+    100% 100%,
+    var(--cut) 100%,
+    0 calc(100% - var(--cut))
+  );
+  --ui-clip-pill: polygon(
+    var(--cut) 0,
+    calc(100% - var(--cut)) 0,
+    100% 50%,
+    calc(100% - var(--cut)) 100%,
+    var(--cut) 100%,
+    0 50%
+  );
+
+  --ui-motion-fast: 130ms;
+  --ui-motion-medium: 180ms;
+  --ui-motion-slow: 240ms;
+  --ui-hover-lift-y: -1px;
+  --ui-hover-scale: 1.005;
 }
 
 [data-theme='dark_minimal'] {
@@ -68,71 +156,68 @@
   --ui-text: #e7edf9;
   --ui-muted: #9aa7bf;
   --ui-accent: #8ca1ce;
+  --ui-panel-rgb: 20 26 36;
+  --ui-panel-2-rgb: 25 33 45;
+  --ui-stroke: 1px;
   --ui-shadow-soft: 0 8px 22px rgba(0, 0, 0, 0.34), inset 0 1px 0 rgba(255, 255, 255, 0.03);
-  --ui-shadow-glow: 0 0 0 1px rgba(140, 161, 206, 0.22), 0 0 14px rgba(140, 161, 206, 0.14);
-  --ui-hover-glow: 0 0 0 1px rgba(140, 161, 206, 0.2);
-  --ui-panel-accent-strength: 10%;
+  --ui-glow-strength: 0;
+  --ui-hover-glow-base: 0%;
+  --ui-noise-opacity: 0.02;
+  --ui-glass-opacity: 0.03;
+  --ui-blur: 0px;
   --ui-bg-overlay:
-    radial-gradient(120% 100% at 10% 0%, rgba(150, 169, 211, 0.07), transparent 58%),
+    radial-gradient(120% 100% at 10% 0%, rgba(150, 169, 211, 0.05), transparent 58%),
     linear-gradient(180deg, rgba(255, 255, 255, 0.02), transparent 46%);
   --ui-body-letter-spacing: 0.01em;
+
+  --ui-radius-sm: 8px;
+  --ui-radius-md: 12px;
+  --ui-radius-lg: 18px;
+  --ui-cut-sm: 0px;
+  --ui-cut-md: 0px;
+  --ui-cut-lg: 0px;
+  --ui-clip-all: none;
+  --ui-clip-right: none;
+  --ui-clip-left: none;
+  --ui-clip-card: none;
+  --ui-clip-pill: none;
+
+  --ui-motion-fast: 120ms;
+  --ui-motion-medium: 170ms;
+  --ui-motion-slow: 220ms;
+  --ui-hover-lift-y: -1px;
+  --ui-hover-scale: 1;
 }
 
-[data-theme='light_minimal'] {
-  --ui-bg: #f0f3f8;
-  --ui-panel: #fcfdff;
-  --ui-panel-2: #edf2fb;
-  --ui-border: #ccd5e5;
-  --ui-text: #121927;
-  --ui-muted: #5e6b84;
-  --ui-accent: #596fae;
-  --ui-shadow-soft: 0 10px 22px rgba(10, 25, 42, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.75);
-  --ui-shadow-glow: 0 0 0 1px rgba(89, 111, 174, 0.24), 0 0 18px rgba(89, 111, 174, 0.16);
-  --ui-hover-glow: 0 0 0 1px rgba(89, 111, 174, 0.2);
-  --ui-panel-accent-strength: 8%;
+[data-theme='glass_night'] {
+  --ui-bg: #090b12;
+  --ui-panel: #131a2a;
+  --ui-panel-2: #1a2236;
+  --ui-border: #384663;
+  --ui-text: #e8ecff;
+  --ui-muted: #9ca9c9;
+  --ui-accent: #8aa7ff;
+  --ui-panel-rgb: 19 26 42;
+  --ui-panel-2-rgb: 26 34 54;
+  --ui-stroke: 1px;
+  --ui-shadow-soft: 0 14px 34px rgba(0, 0, 0, 0.48), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  --ui-glow-strength: 0.55;
+  --ui-hover-glow-base: 10%;
+  --ui-noise-opacity: 0.04;
+  --ui-glass-opacity: 0.24;
+  --ui-blur: 10px;
   --ui-bg-overlay:
-    radial-gradient(120% 100% at 10% 0%, rgba(89, 111, 174, 0.06), transparent 62%),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.86), rgba(255, 255, 255, 0.68));
-  --ui-body-letter-spacing: 0.005em;
-}
+    radial-gradient(120% 100% at 8% -4%, rgba(138, 167, 255, 0.11), transparent 56%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.018), transparent 42%);
+  --ui-body-letter-spacing: 0.012em;
 
-/* Reusable HUD utilities */
-.ui-panel-surface {
-  background:
-    linear-gradient(160deg, color-mix(in srgb, var(--ui-panel-2) 86%, #1f2a45 14%), var(--ui-panel)),
-    radial-gradient(
-      120% 120% at 12% 8%,
-      color-mix(in srgb, var(--ui-accent) var(--ui-panel-accent-strength), transparent),
-      transparent 58%
-    );
-  border: 1px solid var(--ui-border);
-  box-shadow: var(--ui-shadow-soft);
-}
-
-.ui-pressable {
-  transition:
-    transform var(--ui-motion-fast) var(--ui-ease),
-    border-color var(--ui-motion-fast) var(--ui-ease),
-    box-shadow var(--ui-motion-fast) var(--ui-ease),
-    background-color var(--ui-motion-fast) var(--ui-ease),
-    color var(--ui-motion-fast) var(--ui-ease);
-}
-
-.ui-pressable:active {
-  transform: translateY(1px) scale(0.995);
-}
-
-.ui-pressable:hover {
-  box-shadow: var(--ui-hover-glow);
-}
-
-.ui-glow {
-  box-shadow: var(--ui-shadow-glow);
-}
-
-.chamfer-all {
-  --cut: var(--ui-cut-md);
-  clip-path: polygon(
+  --ui-radius-sm: 10px;
+  --ui-radius-md: 14px;
+  --ui-radius-lg: 20px;
+  --ui-cut-sm: 6px;
+  --ui-cut-md: 10px;
+  --ui-cut-lg: 14px;
+  --ui-clip-all: polygon(
     var(--cut) 0,
     calc(100% - var(--cut)) 0,
     100% var(--cut),
@@ -142,11 +227,7 @@
     0 calc(100% - var(--cut)),
     0 var(--cut)
   );
-}
-
-.chamfer-right {
-  --cut: var(--ui-cut-md);
-  clip-path: polygon(
+  --ui-clip-right: polygon(
     0 0,
     calc(100% - var(--cut)) 0,
     100% var(--cut),
@@ -154,11 +235,7 @@
     calc(100% - var(--cut)) 100%,
     0 100%
   );
-}
-
-.chamfer-left {
-  --cut: var(--ui-cut-md);
-  clip-path: polygon(
+  --ui-clip-left: polygon(
     var(--cut) 0,
     100% 0,
     100% 100%,
@@ -166,11 +243,7 @@
     0 calc(100% - var(--cut)),
     0 var(--cut)
   );
-}
-
-.chamfer-card {
-  --cut: var(--ui-cut-md);
-  clip-path: polygon(
+  --ui-clip-card: polygon(
     0 0,
     calc(100% - var(--cut)) 0,
     100% var(--cut),
@@ -178,6 +251,100 @@
     var(--cut) 100%,
     0 calc(100% - var(--cut))
   );
+  --ui-clip-pill: polygon(
+    var(--cut) 0,
+    calc(100% - var(--cut)) 0,
+    100% 50%,
+    calc(100% - var(--cut)) 100%,
+    var(--cut) 100%,
+    0 50%
+  );
+
+  --ui-motion-fast: 140ms;
+  --ui-motion-medium: 190ms;
+  --ui-motion-slow: 260ms;
+  --ui-hover-lift-y: -1px;
+  --ui-hover-scale: 1.02;
+}
+
+/* Reusable HUD utilities */
+.ui-panel-surface {
+  background:
+    linear-gradient(
+      160deg,
+      rgb(var(--ui-panel-2-rgb) / calc(1 - var(--ui-glass-opacity))),
+      rgb(var(--ui-panel-rgb) / calc(1 - var(--ui-glass-opacity)))
+    ),
+    radial-gradient(
+      120% 120% at 12% 8%,
+      color-mix(in srgb, var(--ui-accent) calc(14% + (var(--ui-glow-strength) * 10%)), transparent),
+      transparent 58%
+    );
+  border: var(--ui-stroke) solid var(--ui-border);
+  box-shadow: var(--ui-shadow-soft);
+  backdrop-filter: blur(var(--ui-blur));
+  -webkit-backdrop-filter: blur(var(--ui-blur));
+}
+
+.ui-pressable {
+  transition:
+    transform var(--ui-motion-medium) var(--ui-ease),
+    border-color var(--ui-motion-fast) var(--ui-ease),
+    box-shadow var(--ui-motion-medium) var(--ui-ease),
+    background-color var(--ui-motion-fast) var(--ui-ease),
+    color var(--ui-motion-fast) var(--ui-ease),
+    filter var(--ui-motion-medium) var(--ui-ease);
+}
+
+.ui-pressable:active {
+  transform: translateY(1px) scale(0.995);
+}
+
+.ui-pressable:hover {
+  transform: translateY(var(--ui-hover-lift-y)) scale(var(--ui-hover-scale));
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--ui-accent) calc(var(--ui-hover-glow-base) + (26% * var(--ui-glow-strength))), transparent),
+    0 0 calc(18px * var(--ui-glow-strength)) color-mix(in srgb, var(--ui-accent) 42%, transparent);
+}
+
+.ui-glow {
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--ui-accent) calc(52% * var(--ui-glow-strength)), transparent),
+    0 0 calc(26px * var(--ui-glow-strength)) color-mix(in srgb, var(--ui-accent) calc(45% * var(--ui-glow-strength)), transparent);
+}
+
+.ui-shape-all,
+.chamfer-all {
+  --cut: var(--ui-cut-md);
+  border-radius: var(--ui-radius-md);
+  clip-path: var(--ui-clip-all);
+}
+
+.ui-shape-right,
+.chamfer-right {
+  --cut: var(--ui-cut-md);
+  border-radius: var(--ui-radius-md);
+  clip-path: var(--ui-clip-right);
+}
+
+.ui-shape-left,
+.chamfer-left {
+  --cut: var(--ui-cut-md);
+  border-radius: var(--ui-radius-md);
+  clip-path: var(--ui-clip-left);
+}
+
+.ui-shape-card,
+.chamfer-card {
+  --cut: var(--ui-cut-md);
+  border-radius: var(--ui-radius-md);
+  clip-path: var(--ui-clip-card);
+}
+
+.ui-shape-pill {
+  --cut: var(--ui-cut-sm);
+  border-radius: var(--ui-radius-lg);
+  clip-path: var(--ui-clip-pill);
 }
 
 html,
@@ -188,8 +355,21 @@ body {
   letter-spacing: var(--ui-body-letter-spacing);
 }
 
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: var(--ui-noise-opacity);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180' viewBox='0 0 180 180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.72' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)' opacity='0.7'/%3E%3C/svg%3E");
+  mix-blend-mode: soft-light;
+}
+
 /* Keep the layout dark even if some views set light backgrounds */
 #root {
+  position: relative;
+  z-index: 1;
   background-color: var(--dc-bg);
   background-image: var(--ui-bg-overlay);
   color: var(--dc-text);

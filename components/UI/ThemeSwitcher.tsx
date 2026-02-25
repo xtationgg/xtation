@@ -12,7 +12,7 @@ export const ThemeSwitcher: React.FC<ThemeSwitcherProps> = ({ compact = false, c
   return (
     <div className={`grid gap-2 ${className}`}>
       {!compact ? (
-        <div className="text-[10px] uppercase tracking-[0.22em] text-[var(--ui-muted)]">Theme</div>
+        <div className="text-[10px] uppercase tracking-[0.22em] text-[var(--ui-muted)]">Theme Pack</div>
       ) : null}
       <div className="flex flex-wrap gap-2">
         {options.map((option) => {

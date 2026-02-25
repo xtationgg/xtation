@@ -1,8 +1,9 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 
-export const XTATION_THEME_STORAGE_KEY = 'xtation_theme';
+export const XTATION_THEME_STORAGE_KEY = 'xtation_theme_pack';
+const LEGACY_THEME_STORAGE_KEY = 'xtation_theme';
 
-export type XtationTheme = 'dark_minimal' | 'dark_neon' | 'light_minimal';
+export type XtationTheme = 'dark_minimal' | 'hud_clean' | 'glass_night';
 
 export interface XtationThemeOption {
   value: XtationTheme;
@@ -11,8 +12,8 @@ export interface XtationThemeOption {
 
 export const XTATION_THEME_OPTIONS: XtationThemeOption[] = [
   { value: 'dark_minimal', label: 'Dark Minimal' },
-  { value: 'dark_neon', label: 'Dark Neon' },
-  { value: 'light_minimal', label: 'Light Minimal' },
+  { value: 'hud_clean', label: 'HUD Clean' },
+  { value: 'glass_night', label: 'Glass Night' },
 ];
 
 const DEFAULT_THEME: XtationTheme = 'dark_minimal';
@@ -20,10 +21,20 @@ const VALID_THEMES = new Set<XtationTheme>(XTATION_THEME_OPTIONS.map((option) =>
 
 const isTheme = (value: string): value is XtationTheme => VALID_THEMES.has(value as XtationTheme);
 
+const normalizeTheme = (value: string | null): XtationTheme | null => {
+  if (!value) return null;
+  if (isTheme(value)) return value;
+  if (value === 'dark_neon') return 'hud_clean';
+  if (value === 'light_minimal') return 'dark_minimal';
+  return null;
+};
+
 const readStoredTheme = (): XtationTheme => {
   if (typeof window === 'undefined') return DEFAULT_THEME;
-  const stored = window.localStorage.getItem(XTATION_THEME_STORAGE_KEY);
-  return stored && isTheme(stored) ? stored : DEFAULT_THEME;
+  const current = normalizeTheme(window.localStorage.getItem(XTATION_THEME_STORAGE_KEY));
+  if (current) return current;
+  const legacy = normalizeTheme(window.localStorage.getItem(LEGACY_THEME_STORAGE_KEY));
+  return legacy ?? DEFAULT_THEME;
 };
 
 const applyThemeToDom = (theme: XtationTheme) => {
@@ -57,6 +68,7 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     applyThemeToDom(theme);
     if (typeof window !== 'undefined') {
       window.localStorage.setItem(XTATION_THEME_STORAGE_KEY, theme);
+      window.localStorage.removeItem(LEGACY_THEME_STORAGE_KEY);
     }
   }, [theme]);
 
