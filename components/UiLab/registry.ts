@@ -21,6 +21,13 @@ export const uiLabRegistry: UiLabPrototypeDefinition[] = [
     assetsPath: '/ui-lab/proto01/',
   },
   {
+    id: 'timeline_lab',
+    title: 'TIMELINE_LAB',
+    component: React.lazy(() => import('./prototypes/TimelineLab')),
+    defaultStageSize: { width: 1920, height: 1016 },
+    assetsPath: '/ui-lab/timeline-lab/',
+  },
+  {
     id: 'proto02',
     title: 'Proto02 Placeholder',
     component: React.lazy(() => import('./prototypes/Proto02_Placeholder')),
