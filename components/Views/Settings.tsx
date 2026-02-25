@@ -18,9 +18,10 @@ interface SettingsProps {
 
 export const Settings: React.FC<SettingsProps> = ({ rewardConfigs, onUpdateConfig, currentXP }) => {
   const { user } = useAuth();
-  const { theme, options } = useTheme();
+  const { theme, options, accent, setAccent, accentOptions } = useTheme();
   const activeUserId = user?.id || null;
   const activeThemeLabel = options.find((option) => option.value === theme)?.label ?? theme;
+  const activeAccentLabel = accentOptions.find((option) => option.value === accent)?.label ?? accent;
     
   const [isProtocolExpanded, setIsProtocolExpanded] = useState(false);
 
@@ -167,8 +168,34 @@ export const Settings: React.FC<SettingsProps> = ({ rewardConfigs, onUpdateConfi
                         </div>
                         <p className="mt-2 text-[11px] text-[var(--app-muted)] uppercase tracking-[0.16em]">Global theme applies instantly across all views.</p>
                     </div>
-                    <div className="p-6">
+                    <div className="p-6 space-y-5">
                         <ThemeSwitcher />
+                        <div className="space-y-2">
+                            <div className="flex items-center justify-between gap-3">
+                                <span className="text-[10px] uppercase tracking-[0.2em] text-[var(--app-muted)]">Accent</span>
+                                <span className="text-[10px] uppercase tracking-[0.2em] text-[var(--app-muted)]">{activeAccentLabel}</span>
+                            </div>
+                            <div className="flex flex-wrap gap-2">
+                                {accentOptions.map((option) => {
+                                    const selected = option.value === accent;
+                                    return (
+                                        <button
+                                            key={option.value}
+                                            type="button"
+                                            onClick={() => setAccent(option.value)}
+                                            className={`ui-pressable rounded-[var(--app-radius-sm)] border px-2.5 py-1.5 text-[10px] font-semibold uppercase tracking-[0.18em] ${
+                                                selected
+                                                    ? 'border-[var(--app-accent)] bg-[var(--app-accent-weak)] text-[var(--app-text)]'
+                                                    : 'border-[var(--app-border)] bg-[var(--app-panel-2)] text-[var(--app-muted)] hover:border-[var(--app-accent)] hover:text-[var(--app-text)]'
+                                            }`}
+                                            aria-pressed={selected}
+                                        >
+                                            {option.label}
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        </div>
                     </div>
                 </HexPanel>
 

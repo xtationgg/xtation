@@ -21,6 +21,8 @@
   --app-text: #e8edf8;
   --app-muted: #9ea9bd;
   --app-accent: #8ea2cc;
+  --app-accent-weak: color-mix(in srgb, var(--app-accent) 18%, transparent);
+  --app-focus-ring: color-mix(in srgb, var(--app-accent) 38%, transparent);
   --app-danger: #e55d65;
 
   --app-radius-sm: 8px;
@@ -68,6 +70,7 @@
   --ui-text: var(--app-text);
   --ui-muted: var(--app-muted);
   --ui-accent: var(--app-accent);
+  --ui-accent-weak: var(--app-accent-weak);
   --ui-radius-sm: var(--app-radius-sm);
   --ui-radius-md: var(--app-radius-md);
   --ui-radius-lg: var(--app-radius-lg);
@@ -118,6 +121,8 @@
   --app-text: #e8edf8;
   --app-muted: #9ea9bd;
   --app-accent: #8ea2cc;
+  --app-accent-weak: color-mix(in srgb, var(--app-accent) 18%, transparent);
+  --app-focus-ring: color-mix(in srgb, var(--app-accent) 38%, transparent);
   --app-danger: #e55d65;
   --app-radius-sm: 8px;
   --app-radius-md: 12px;
@@ -162,6 +167,8 @@
   --app-text: #e6ebff;
   --app-muted: #95a1c3;
   --app-accent: #8f63ff;
+  --app-accent-weak: color-mix(in srgb, var(--app-accent) 20%, transparent);
+  --app-focus-ring: color-mix(in srgb, var(--app-accent) 42%, transparent);
   --app-danger: #ef5f66;
   --app-radius-sm: 8px;
   --app-radius-md: 10px;
@@ -244,6 +251,8 @@
   --app-text: #e8ecff;
   --app-muted: #9ca9c9;
   --app-accent: #8aa7ff;
+  --app-accent-weak: color-mix(in srgb, var(--app-accent) 20%, transparent);
+  --app-focus-ring: color-mix(in srgb, var(--app-accent) 44%, transparent);
   --app-danger: #ef6f7c;
   --app-radius-sm: 10px;
   --app-radius-md: 14px;
@@ -317,6 +326,42 @@
   );
 }
 
+[data-accent='neutral'] {
+  --app-accent: #8ea2cc;
+  --app-accent-weak: color-mix(in srgb, var(--app-accent) 18%, transparent);
+  --app-focus-ring: color-mix(in srgb, var(--app-accent) 38%, transparent);
+}
+
+[data-accent='purple'] {
+  --app-accent: #8f63ff;
+  --app-accent-weak: color-mix(in srgb, var(--app-accent) 20%, transparent);
+  --app-focus-ring: color-mix(in srgb, var(--app-accent) 42%, transparent);
+}
+
+[data-accent='amber'] {
+  --app-accent: #d3a45a;
+  --app-accent-weak: color-mix(in srgb, var(--app-accent) 20%, transparent);
+  --app-focus-ring: color-mix(in srgb, var(--app-accent) 42%, transparent);
+}
+
+[data-accent='teal'] {
+  --app-accent: #4eb6ad;
+  --app-accent-weak: color-mix(in srgb, var(--app-accent) 20%, transparent);
+  --app-focus-ring: color-mix(in srgb, var(--app-accent) 40%, transparent);
+}
+
+[data-accent='crimson'] {
+  --app-accent: #c95b73;
+  --app-accent-weak: color-mix(in srgb, var(--app-accent) 20%, transparent);
+  --app-focus-ring: color-mix(in srgb, var(--app-accent) 42%, transparent);
+}
+
+[data-accent='lime'] {
+  --app-accent: #8fb85a;
+  --app-accent-weak: color-mix(in srgb, var(--app-accent) 20%, transparent);
+  --app-focus-ring: color-mix(in srgb, var(--app-accent) 40%, transparent);
+}
+
 /* Reusable HUD utilities */
 .ui-panel-surface {
   background:
@@ -327,7 +372,7 @@
     ),
     radial-gradient(
       120% 120% at 12% 8%,
-      color-mix(in srgb, var(--ui-accent) calc(14% + (var(--ui-glow-strength) * 10%)), transparent),
+      color-mix(in srgb, var(--app-accent-weak) calc(70% + (var(--ui-glow-strength) * 20%)), transparent),
       transparent 58%
     );
   border: var(--ui-stroke) solid var(--ui-border);
@@ -515,7 +560,7 @@ a {
 }
 
 :focus-visible {
-  outline: 2px solid var(--dc-accent);
+  outline: 2px solid var(--app-focus-ring);
   outline-offset: 2px;
 }
 
