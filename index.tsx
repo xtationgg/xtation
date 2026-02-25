@@ -3,6 +3,9 @@ import ReactDOM from 'react-dom/client';
 import App from './App';
 import { XPProvider } from './components/XP/xpStore';
 import { AuthProvider } from './src/auth/AuthProvider';
+import { ThemeProvider, initializeThemeFromStorage } from './src/theme/ThemeProvider';
+
+initializeThemeFromStorage();
 
 const rootElement = document.getElementById('root');
 if (!rootElement) {
@@ -13,10 +16,12 @@ const root = ReactDOM.createRoot(rootElement);
 
 root.render(
   <React.StrictMode>
-    <AuthProvider>
-      <XPProvider>
-        <App />
-      </XPProvider>
-    </AuthProvider>
+    <ThemeProvider>
+      <AuthProvider>
+        <XPProvider>
+          <App />
+        </XPProvider>
+      </AuthProvider>
+    </ThemeProvider>
   </React.StrictMode>
 );

@@ -3,16 +3,22 @@
 */
 
 :root {
-  /* Primary Xtation palette */
-  --ui-bg: #0a0c12;
-  --ui-panel: #10141f;
-  --ui-panel-2: #151b2a;
-  --ui-border: #2b3550;
-  --ui-text: #e6ebff;
-  --ui-muted: #95a1c3;
-  --ui-accent: #8f63ff;
-  --ui-shadow-soft: 0 10px 28px rgba(0, 0, 0, 0.42), inset 0 1px 0 rgba(255, 255, 255, 0.04);
-  --ui-shadow-glow: 0 0 0 1px rgba(143, 99, 255, 0.45), 0 0 24px rgba(143, 99, 255, 0.35);
+  /* Default: Dark Minimal */
+  --ui-bg: #0d1118;
+  --ui-panel: #141a24;
+  --ui-panel-2: #19212d;
+  --ui-border: #2a3446;
+  --ui-text: #e7edf9;
+  --ui-muted: #9aa7bf;
+  --ui-accent: #8ca1ce;
+  --ui-shadow-soft: 0 8px 22px rgba(0, 0, 0, 0.34), inset 0 1px 0 rgba(255, 255, 255, 0.03);
+  --ui-shadow-glow: 0 0 0 1px rgba(140, 161, 206, 0.22), 0 0 14px rgba(140, 161, 206, 0.14);
+  --ui-hover-glow: 0 0 0 1px rgba(140, 161, 206, 0.2);
+  --ui-panel-accent-strength: 10%;
+  --ui-bg-overlay:
+    radial-gradient(120% 100% at 10% 0%, rgba(150, 169, 211, 0.07), transparent 58%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.02), transparent 46%);
+  --ui-body-letter-spacing: 0.01em;
 
   /* Motion */
   --ui-motion-fast: 140ms;
@@ -35,11 +41,70 @@
   --dc-danger: #ed4245;
 }
 
+[data-theme='dark_neon'] {
+  --ui-bg: #0a0c12;
+  --ui-panel: #10141f;
+  --ui-panel-2: #151b2a;
+  --ui-border: #2b3550;
+  --ui-text: #e6ebff;
+  --ui-muted: #95a1c3;
+  --ui-accent: #8f63ff;
+  --ui-shadow-soft: 0 10px 28px rgba(0, 0, 0, 0.42), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  --ui-shadow-glow: 0 0 0 1px rgba(143, 99, 255, 0.45), 0 0 24px rgba(143, 99, 255, 0.35);
+  --ui-hover-glow: 0 0 0 1px rgba(143, 99, 255, 0.5), 0 0 20px rgba(143, 99, 255, 0.22);
+  --ui-panel-accent-strength: 18%;
+  --ui-bg-overlay:
+    linear-gradient(rgba(255, 255, 255, 0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.025) 1px, transparent 1px),
+    radial-gradient(90% 90% at 8% 4%, rgba(143, 99, 255, 0.12), transparent 62%);
+  --ui-body-letter-spacing: 0.02em;
+}
+
+[data-theme='dark_minimal'] {
+  --ui-bg: #0d1118;
+  --ui-panel: #141a24;
+  --ui-panel-2: #19212d;
+  --ui-border: #2a3446;
+  --ui-text: #e7edf9;
+  --ui-muted: #9aa7bf;
+  --ui-accent: #8ca1ce;
+  --ui-shadow-soft: 0 8px 22px rgba(0, 0, 0, 0.34), inset 0 1px 0 rgba(255, 255, 255, 0.03);
+  --ui-shadow-glow: 0 0 0 1px rgba(140, 161, 206, 0.22), 0 0 14px rgba(140, 161, 206, 0.14);
+  --ui-hover-glow: 0 0 0 1px rgba(140, 161, 206, 0.2);
+  --ui-panel-accent-strength: 10%;
+  --ui-bg-overlay:
+    radial-gradient(120% 100% at 10% 0%, rgba(150, 169, 211, 0.07), transparent 58%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.02), transparent 46%);
+  --ui-body-letter-spacing: 0.01em;
+}
+
+[data-theme='light_minimal'] {
+  --ui-bg: #f0f3f8;
+  --ui-panel: #fcfdff;
+  --ui-panel-2: #edf2fb;
+  --ui-border: #ccd5e5;
+  --ui-text: #121927;
+  --ui-muted: #5e6b84;
+  --ui-accent: #596fae;
+  --ui-shadow-soft: 0 10px 22px rgba(10, 25, 42, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.75);
+  --ui-shadow-glow: 0 0 0 1px rgba(89, 111, 174, 0.24), 0 0 18px rgba(89, 111, 174, 0.16);
+  --ui-hover-glow: 0 0 0 1px rgba(89, 111, 174, 0.2);
+  --ui-panel-accent-strength: 8%;
+  --ui-bg-overlay:
+    radial-gradient(120% 100% at 10% 0%, rgba(89, 111, 174, 0.06), transparent 62%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.86), rgba(255, 255, 255, 0.68));
+  --ui-body-letter-spacing: 0.005em;
+}
+
 /* Reusable HUD utilities */
 .ui-panel-surface {
   background:
-    linear-gradient(160deg, color-mix(in srgb, var(--ui-panel-2) 82%, #1f2a45 18%), var(--ui-panel)),
-    radial-gradient(120% 120% at 12% 8%, rgba(143, 99, 255, 0.12), transparent 55%);
+    linear-gradient(160deg, color-mix(in srgb, var(--ui-panel-2) 86%, #1f2a45 14%), var(--ui-panel)),
+    radial-gradient(
+      120% 120% at 12% 8%,
+      color-mix(in srgb, var(--ui-accent) var(--ui-panel-accent-strength), transparent),
+      transparent 58%
+    );
   border: 1px solid var(--ui-border);
   box-shadow: var(--ui-shadow-soft);
 }
@@ -55,6 +120,10 @@
 
 .ui-pressable:active {
   transform: translateY(1px) scale(0.995);
+}
+
+.ui-pressable:hover {
+  box-shadow: var(--ui-hover-glow);
 }
 
 .ui-glow {
@@ -113,14 +182,25 @@
 
 html,
 body {
-  background: var(--dc-bg) !important;
+  background-color: var(--dc-bg) !important;
+  background-image: var(--ui-bg-overlay) !important;
   color: var(--dc-text) !important;
+  letter-spacing: var(--ui-body-letter-spacing);
 }
 
 /* Keep the layout dark even if some views set light backgrounds */
 #root {
-  background: var(--dc-bg);
+  background-color: var(--dc-bg);
+  background-image: var(--ui-bg-overlay);
   color: var(--dc-text);
+}
+
+p,
+li,
+input,
+textarea,
+select {
+  letter-spacing: var(--ui-body-letter-spacing);
 }
 
 /* Tailwind utility overrides (force dark)

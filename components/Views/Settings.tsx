@@ -7,6 +7,8 @@ import { playClickSound, playPanelOpenSound, playHoverSound } from '../../utils/
 import { readFileAsDataUrl } from '../../utils/fileUtils';
 import { useAuth } from '../../src/auth/AuthProvider';
 import { writeUserScopedString } from '../../src/lib/userScopedStorage';
+import { useTheme } from '../../src/theme/ThemeProvider';
+import { ThemeSwitcher } from '../UI/ThemeSwitcher';
 
 interface SettingsProps {
     rewardConfigs: RewardConfig[];
@@ -16,7 +18,9 @@ interface SettingsProps {
 
 export const Settings: React.FC<SettingsProps> = ({ rewardConfigs, onUpdateConfig, currentXP }) => {
   const { user } = useAuth();
+  const { theme, options } = useTheme();
   const activeUserId = user?.id || null;
+  const activeThemeLabel = options.find((option) => option.value === theme)?.label ?? theme;
     
   const [isProtocolExpanded, setIsProtocolExpanded] = useState(false);
 
@@ -155,6 +159,19 @@ export const Settings: React.FC<SettingsProps> = ({ rewardConfigs, onUpdateConfi
             </div>
 
             <div className="grid grid-cols-1 gap-6">
+                <HexPanel className="transition-all duration-300">
+                    <div className="p-6 border-b border-[#333]">
+                        <div className="flex items-center justify-between gap-3">
+                            <h2 className="text-xl font-bold text-white uppercase tracking-widest">Theme System</h2>
+                            <div className="text-[10px] uppercase tracking-[0.2em] text-[#9aa7bf]">Current: {activeThemeLabel}</div>
+                        </div>
+                        <p className="mt-2 text-[11px] text-[#666] uppercase tracking-[0.16em]">Global theme applies instantly across all views.</p>
+                    </div>
+                    <div className="p-6">
+                        <ThemeSwitcher />
+                    </div>
+                </HexPanel>
+
                 <HexPanel className="transition-all duration-300">
                     <div 
                         onClick={toggleProtocol}

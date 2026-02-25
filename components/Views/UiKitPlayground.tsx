@@ -6,6 +6,8 @@ import { TabBar } from '../UI/Tabs';
 import { Toggle } from '../UI/Toggle';
 import { SideDrawer } from '../UI/SideDrawer';
 import { StatPill } from '../UI/StatPill';
+import { ThemeSwitcher } from '../UI/ThemeSwitcher';
+import { useTheme } from '../../src/theme/ThemeProvider';
 
 const TYPE_OPTIONS = ['Assault', 'Recon', 'Support', 'Stealth', 'Rush'];
 
@@ -91,6 +93,7 @@ const formatTimer = (seconds: number) => {
 const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
 
 export const UiKitPlayground: React.FC = () => {
+  const { theme, options } = useTheme();
   const [running, setRunning] = useState(false);
   const [paused, setPaused] = useState(false);
   const [soundOn, setSoundOn] = useState(true);
@@ -127,6 +130,7 @@ export const UiKitPlayground: React.FC = () => {
   }, [running, paused]);
 
   const statusLabel = running ? (paused ? 'Paused' : 'Active') : 'Idle';
+  const activeThemeLabel = options.find((option) => option.value === theme)?.label ?? theme;
   const unscheduledTasks = useMemo(() => TIMELINE_TASKS.filter((task) => task.plannedStartHour === null), []);
   const activeTimelineConfig: TimelinePanelConfig = {
     layout: timelineLayoutMode,
@@ -343,6 +347,12 @@ export const UiKitPlayground: React.FC = () => {
             onChange={(value) => setActiveTab(value as UiKitTab)}
           />
         </header>
+
+        <section className="grid grid-cols-1">
+          <Panel title="Theme Preview" subtitle={`Current Theme: ${activeThemeLabel}`}>
+            <ThemeSwitcher compact />
+          </Panel>
+        </section>
 
         {activeTab === 'components' ? (
           <>
