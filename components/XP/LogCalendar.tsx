@@ -117,18 +117,18 @@ export const LogCalendar: React.FC = () => {
   });
 
   return (
-    <div className="space-y-4 text-[var(--t-text)]">
-      <div className="rounded-2xl border border-[color-mix(in_srgb,var(--t-text)_10%,transparent)] bg-gradient-to-b from-[color-mix(in_srgb,var(--t-panel-2)_90%,var(--t-panel))] to-[var(--t-panel)] shadow-[0_12px_28px_rgba(0,0,0,0.45)] p-4">
+    <div className="space-y-4 text-[var(--app-text)]">
+      <div className="rounded-2xl border border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-gradient-to-b from-[color-mix(in_srgb,var(--app-panel-2)_90%,var(--app-panel))] to-[var(--app-panel)] shadow-[0_12px_28px_rgba(0,0,0,0.45)] p-4">
         <div className="flex items-center justify-between gap-3 mb-4">
           <div>
-            <div className="text-[10px] text-[var(--t-muted)] tracking-[0.3em] uppercase">Log Calendar</div>
-            <div className="text-xl font-medium tracking-[0.08em] uppercase text-[var(--t-text)]">{formatMonthTitle(viewMonth)}</div>
+            <div className="text-[10px] text-[var(--app-muted)] tracking-[0.3em] uppercase">Log Calendar</div>
+            <div className="text-xl font-medium tracking-[0.08em] uppercase text-[var(--app-text)]">{formatMonthTitle(viewMonth)}</div>
           </div>
           <div className="flex items-center gap-2">
             <button
               type="button"
               onClick={() => setViewMonth((prev) => new Date(prev.getFullYear(), prev.getMonth() - 1, 1))}
-              className="px-3 py-2 rounded-md border border-[color-mix(in_srgb,var(--t-text)_10%,transparent)] text-[10px] tracking-[0.2em] uppercase text-[var(--t-text)] bg-[var(--t-panel-2)] hover:border-[color-mix(in_srgb,var(--t-text)_30%,transparent)] transition-colors"
+              className="px-3 py-2 rounded-md border border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] text-[10px] tracking-[0.2em] uppercase text-[var(--app-text)] bg-[var(--app-panel-2)] hover:border-[color-mix(in_srgb,var(--app-text)_30%,transparent)] transition-colors"
             >
               Prev
             </button>
@@ -141,14 +141,14 @@ export const LogCalendar: React.FC = () => {
                 setSelectedKey(nextKey);
                 setActiveLogDateKey(nextKey);
               }}
-              className="px-3 py-2 rounded-md border border-[color-mix(in_srgb,var(--t-accent)_50%,transparent)] text-[10px] tracking-[0.2em] uppercase text-[var(--t-accent)] bg-[color-mix(in_srgb,var(--t-accent)_16%,var(--t-panel))] hover:border-[var(--t-accent)] transition-colors"
+              className="px-3 py-2 rounded-md border border-[color-mix(in_srgb,var(--app-accent)_50%,transparent)] text-[10px] tracking-[0.2em] uppercase text-[var(--app-accent)] bg-[color-mix(in_srgb,var(--app-accent)_16%,var(--app-panel))] hover:border-[var(--app-accent)] transition-colors"
             >
               Today
             </button>
             <button
               type="button"
               onClick={() => setViewMonth((prev) => new Date(prev.getFullYear(), prev.getMonth() + 1, 1))}
-              className="px-3 py-2 rounded-md border border-[color-mix(in_srgb,var(--t-text)_10%,transparent)] text-[10px] tracking-[0.2em] uppercase text-[var(--t-text)] bg-[var(--t-panel-2)] hover:border-[color-mix(in_srgb,var(--t-text)_30%,transparent)] transition-colors"
+              className="px-3 py-2 rounded-md border border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] text-[10px] tracking-[0.2em] uppercase text-[var(--app-text)] bg-[var(--app-panel-2)] hover:border-[color-mix(in_srgb,var(--app-text)_30%,transparent)] transition-colors"
             >
               Next
             </button>
@@ -157,7 +157,7 @@ export const LogCalendar: React.FC = () => {
 
         <div className="grid grid-cols-7 gap-2 mb-2">
           {DAY_NAMES.map((name) => (
-            <div key={name} className="text-[10px] text-[var(--t-muted)] text-center py-1 font-normal uppercase tracking-[0.2em]">
+            <div key={name} className="text-[10px] text-[var(--app-muted)] text-center py-1 font-normal uppercase tracking-[0.2em]">
               {name}
             </div>
           ))}
@@ -182,33 +182,33 @@ export const LogCalendar: React.FC = () => {
                 }}
                 className={`min-h-[108px] rounded-lg border p-2 text-left transition-colors ${
                   isSelected
-                    ? 'border-[color-mix(in_srgb,var(--t-accent)_70%,transparent)] bg-[color-mix(in_srgb,var(--t-accent)_16%,var(--t-panel))]'
+                    ? 'border-[color-mix(in_srgb,var(--app-accent)_70%,transparent)] bg-[color-mix(in_srgb,var(--app-accent)_16%,var(--app-panel))]'
                     : day.inMonth
-                      ? 'border-[color-mix(in_srgb,var(--t-text)_10%,transparent)] bg-[var(--t-panel-2)] hover:bg-[var(--t-panel-2)]'
-                      : 'border-[color-mix(in_srgb,var(--t-text)_5%,transparent)] bg-[var(--t-bg)] text-[var(--t-muted)]'
+                      ? 'border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-[var(--app-panel-2)] hover:bg-[var(--app-panel-2)]'
+                      : 'border-[color-mix(in_srgb,var(--app-text)_5%,transparent)] bg-[var(--app-bg)] text-[var(--app-muted)]'
                 }`}
               >
                 <div className="flex items-center justify-between mb-2">
-                  <span className={`text-sm font-medium ${isToday ? 'text-[var(--t-accent)]' : 'text-[var(--t-text)]'}`}>{day.date.getDate()}</span>
+                  <span className={`text-sm font-medium ${isToday ? 'text-[var(--app-accent)]' : 'text-[var(--app-text)]'}`}>{day.date.getDate()}</span>
                   {loggedMin > 0 ? (
-                    <span className="text-[10px] rounded-full px-2 py-0.5 bg-[var(--t-panel-2)] text-[var(--t-text)]">
+                    <span className="text-[10px] rounded-full px-2 py-0.5 bg-[var(--app-panel-2)] text-[var(--app-text)]">
                       {loggedMin}m
                     </span>
                   ) : null}
                 </div>
                 <div className="space-y-1">
                   {isToday && (
-                    <div className="text-[10px] rounded px-2 py-0.5 bg-[color-mix(in_srgb,var(--t-accent)_28%,var(--t-panel))] text-[var(--t-accent)]">
+                    <div className="text-[10px] rounded px-2 py-0.5 bg-[color-mix(in_srgb,var(--app-accent)_28%,var(--app-panel))] text-[var(--app-accent)]">
                       Today
                     </div>
                   )}
                   {info.running && (
-                    <div className="text-[10px] rounded px-2 py-0.5 bg-[color-mix(in_srgb,var(--t-accent)_20%,var(--t-panel))] text-[var(--t-accent)]">
+                    <div className="text-[10px] rounded px-2 py-0.5 bg-[color-mix(in_srgb,var(--app-accent)_20%,var(--app-panel))] text-[var(--app-accent)]">
                       Running
                     </div>
                   )}
                   {info.activityCount > 0 && (
-                    <div className="text-[10px] rounded px-2 py-0.5 bg-[color-mix(in_srgb,var(--t-accent)_18%,var(--t-panel))] text-[var(--t-accent)]">
+                    <div className="text-[10px] rounded px-2 py-0.5 bg-[color-mix(in_srgb,var(--app-accent)_18%,var(--app-panel))] text-[var(--app-accent)]">
                       {info.activityCount} activity
                     </div>
                   )}
@@ -221,11 +221,11 @@ export const LogCalendar: React.FC = () => {
 
       <div className="grid xl:grid-cols-[1fr] gap-4">
         <div className="space-y-4">
-          <div className="rounded-2xl border border-[color-mix(in_srgb,var(--t-text)_10%,transparent)] bg-[var(--t-panel-2)] shadow-[0_10px_24px_rgba(0,0,0,0.35)] p-4">
+          <div className="rounded-2xl border border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-[var(--app-panel-2)] shadow-[0_10px_24px_rgba(0,0,0,0.35)] p-4">
             <div className="flex items-center justify-between mb-3">
               <div>
-                <div className="text-sm font-medium text-[var(--t-text)] uppercase tracking-[0.16em]">Day History</div>
-                <div className="text-xs text-[var(--t-muted)]">{selectedDateLabel}</div>
+                <div className="text-sm font-medium text-[var(--app-text)] uppercase tracking-[0.16em]">Day History</div>
+                <div className="text-xs text-[var(--app-muted)]">{selectedDateLabel}</div>
               </div>
               <div className="flex items-center gap-2">
                 <button
@@ -238,27 +238,27 @@ export const LogCalendar: React.FC = () => {
                     deleteDayActivity(selectedKey);
                     setExpandedGroupKey(null);
                   }}
-                  className="text-xs rounded-full px-2 py-1 bg-[color-mix(in_srgb,var(--t-accent)_16%,var(--t-panel))] border border-[color-mix(in_srgb,var(--t-accent)_50%,transparent)] text-[var(--t-accent)] hover:border-[var(--t-accent)]"
+                  className="text-xs rounded-full px-2 py-1 bg-[color-mix(in_srgb,var(--app-accent)_16%,var(--app-panel))] border border-[color-mix(in_srgb,var(--app-accent)_50%,transparent)] text-[var(--app-accent)] hover:border-[var(--app-accent)]"
                 >
                   DELETE DAY ACTIVITY
                 </button>
-                <div className="text-xs rounded-full px-2 py-1 bg-[var(--t-panel)] text-[var(--t-text)]">
+                <div className="text-xs rounded-full px-2 py-1 bg-[var(--app-panel)] text-[var(--app-text)]">
                   {selectedMinutes} min tracked
                 </div>
-                <div className="text-xs rounded-full px-2 py-1 bg-[color-mix(in_srgb,var(--t-accent)_18%,var(--t-panel))] text-[var(--t-accent)]">
+                <div className="text-xs rounded-full px-2 py-1 bg-[color-mix(in_srgb,var(--app-accent)_18%,var(--app-panel))] text-[var(--app-accent)]">
                   {selectedDaySummary.activityCount} activity
                 </div>
-                <div className="text-xs rounded-full px-2 py-1 bg-[var(--t-panel)] text-[var(--t-muted)]">
+                <div className="text-xs rounded-full px-2 py-1 bg-[var(--app-panel)] text-[var(--app-muted)]">
                   {selectedDaySummary.completedCount} completed
                 </div>
-                <div className="text-xs rounded-full px-2 py-1 bg-[var(--t-panel)] text-[var(--t-muted)]">
+                <div className="text-xs rounded-full px-2 py-1 bg-[var(--app-panel)] text-[var(--app-muted)]">
                   {selectedDaySummary.scheduledCount} scheduled
                 </div>
               </div>
             </div>
 
             {selectedActivityGroups.length === 0 ? (
-              <div className="text-sm text-[var(--t-muted)]">No activity found on this date.</div>
+              <div className="text-sm text-[var(--app-muted)]">No activity found on this date.</div>
             ) : (
               <div className="space-y-2 max-h-[420px] overflow-y-auto pr-1">
                 {selectedActivityGroups.map((group) => {
@@ -285,11 +285,11 @@ export const LogCalendar: React.FC = () => {
                     .filter((entry) => entry.kind === 'session')
                     .reduce((sum, entry) => sum + Math.max(0, entry.minutes), 0);
                   return (
-                    <div key={group.key} className="rounded-lg border border-[color-mix(in_srgb,var(--t-text)_10%,transparent)] bg-[var(--t-panel-2)] px-3 py-2">
+                    <div key={group.key} className="rounded-lg border border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-[var(--app-panel-2)] px-3 py-2">
                       <div className="flex items-center justify-between gap-3">
                         <div className="min-w-0">
-                          <div className="text-sm font-normal text-[var(--t-text)] truncate">{group.title}</div>
-                          <div className="text-xs text-[var(--t-muted)] mt-1 flex items-center gap-2">
+                          <div className="text-sm font-normal text-[var(--app-text)] truncate">{group.title}</div>
+                          <div className="text-xs text-[var(--app-muted)] mt-1 flex items-center gap-2">
                             <span className="uppercase tracking-[0.18em]">{statusText}</span>
                             <span>·</span>
                             <span>{detailText}</span>
@@ -298,22 +298,22 @@ export const LogCalendar: React.FC = () => {
                           </div>
                           <div className="mt-2 flex items-center gap-2 flex-wrap">
                             {hasCreated ? (
-                              <span className="text-[10px] rounded px-2 py-0.5 bg-[var(--t-panel-2)] text-[var(--t-text)]">CREATED</span>
+                              <span className="text-[10px] rounded px-2 py-0.5 bg-[var(--app-panel-2)] text-[var(--app-text)]">CREATED</span>
                             ) : null}
                             {hasScheduled ? (
-                              <span className="text-[10px] rounded px-2 py-0.5 bg-[var(--t-panel-2)] text-[var(--t-text)]">SCHEDULED</span>
+                              <span className="text-[10px] rounded px-2 py-0.5 bg-[var(--app-panel-2)] text-[var(--app-text)]">SCHEDULED</span>
                             ) : null}
                             {group.hasCompletion ? (
-                              <span className="text-[10px] rounded px-2 py-0.5 bg-[color-mix(in_srgb,var(--t-accent)_18%,var(--t-panel))] text-[var(--t-accent)]">DONE</span>
+                              <span className="text-[10px] rounded px-2 py-0.5 bg-[color-mix(in_srgb,var(--app-accent)_18%,var(--app-panel))] text-[var(--app-accent)]">DONE</span>
                             ) : null}
                             {retroMinutes > 0 ? (
-                              <span className="text-[10px] rounded px-2 py-0.5 bg-[var(--t-panel-2)] text-[var(--t-text)]">RETRO +{retroMinutes}m</span>
+                              <span className="text-[10px] rounded px-2 py-0.5 bg-[var(--app-panel-2)] text-[var(--app-text)]">RETRO +{retroMinutes}m</span>
                             ) : null}
                             {trackedMinutes > 0 ? (
-                              <span className="text-[10px] rounded px-2 py-0.5 bg-[color-mix(in_srgb,var(--t-accent)_20%,var(--t-panel))] text-[var(--t-accent)]">TRACKED {trackedMinutes}m</span>
+                              <span className="text-[10px] rounded px-2 py-0.5 bg-[color-mix(in_srgb,var(--app-accent)_20%,var(--app-panel))] text-[var(--app-accent)]">TRACKED {trackedMinutes}m</span>
                             ) : null}
                             {hasHidden ? (
-                              <span className="text-[10px] rounded px-2 py-0.5 bg-[var(--t-panel-2)] text-[var(--t-text)]">HIDDEN</span>
+                              <span className="text-[10px] rounded px-2 py-0.5 bg-[var(--app-panel-2)] text-[var(--app-text)]">HIDDEN</span>
                             ) : null}
                           </div>
                         </div>
@@ -321,7 +321,7 @@ export const LogCalendar: React.FC = () => {
                           <button
                             type="button"
                             onClick={() => setExpandedGroupKey((prev) => (prev === group.key ? null : group.key))}
-                            className="px-2 py-1 rounded border border-[color-mix(in_srgb,var(--t-text)_20%,transparent)] text-[11px] text-[var(--t-muted)] hover:border-[color-mix(in_srgb,var(--t-text)_40%,transparent)]"
+                            className="px-2 py-1 rounded border border-[color-mix(in_srgb,var(--app-text)_20%,transparent)] text-[11px] text-[var(--app-muted)] hover:border-[color-mix(in_srgb,var(--app-text)_40%,transparent)]"
                           >
                             {isExpanded ? 'Hide' : 'Details'}
                           </button>
@@ -334,7 +334,7 @@ export const LogCalendar: React.FC = () => {
                                 deleteTaskCompletely(group.taskId);
                                 setExpandedGroupKey((prev) => (prev === group.key ? null : prev));
                               }}
-                              className="px-2 py-1 rounded border border-[color-mix(in_srgb,var(--t-accent)_45%,transparent)] text-[11px] uppercase tracking-[0.12em] text-[var(--t-accent)] hover:border-[var(--t-accent)]"
+                              className="px-2 py-1 rounded border border-[color-mix(in_srgb,var(--app-accent)_45%,transparent)] text-[11px] uppercase tracking-[0.12em] text-[var(--app-accent)] hover:border-[var(--app-accent)]"
                               title="Delete quest and all linked activity"
                             >
                               Delete Quest
@@ -343,7 +343,7 @@ export const LogCalendar: React.FC = () => {
                         </div>
                       </div>
                       {isExpanded ? (
-                        <div className="mt-2 pt-2 border-t border-[color-mix(in_srgb,var(--t-text)_10%,transparent)] space-y-2">
+                        <div className="mt-2 pt-2 border-t border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] space-y-2">
                           {group.entries.map((entry) => {
                             const entryLabel =
                               entry.kind === 'completion'
@@ -358,9 +358,9 @@ export const LogCalendar: React.FC = () => {
                             return (
                               <div
                                 key={`${group.key}-${entry.kind}-${entry.id}`}
-                                className="rounded border border-[color-mix(in_srgb,var(--t-text)_10%,transparent)] bg-[var(--t-panel)] px-2 py-1.5"
+                                className="rounded border border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-[var(--app-panel)] px-2 py-1.5"
                               >
-                                <div className="text-[11px] text-[var(--t-muted)] uppercase tracking-[0.14em] truncate">
+                                <div className="text-[11px] text-[var(--app-muted)] uppercase tracking-[0.14em] truncate">
                                   {entryLabel} · {formatTime(entry.createdAt)}
                                 </div>
                               </div>
@@ -375,25 +375,25 @@ export const LogCalendar: React.FC = () => {
             )}
           </div>
 
-          <div className="rounded-2xl border border-[color-mix(in_srgb,var(--t-text)_10%,transparent)] bg-[var(--t-panel-2)] shadow-[0_10px_24px_rgba(0,0,0,0.35)] p-4">
+          <div className="rounded-2xl border border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-[var(--app-panel-2)] shadow-[0_10px_24px_rgba(0,0,0,0.35)] p-4">
             <div className="flex items-center justify-between mb-3">
-              <div className="text-sm font-medium text-[var(--t-text)] uppercase tracking-[0.16em]">Scheduled Tasks ({selectedTasks.length})</div>
+              <div className="text-sm font-medium text-[var(--app-text)] uppercase tracking-[0.16em]">Scheduled Tasks ({selectedTasks.length})</div>
             </div>
 
             {selectedTasks.length === 0 ? (
-              <div className="text-sm text-[var(--t-muted)]">No scheduled tasks for this date.</div>
+              <div className="text-sm text-[var(--app-muted)]">No scheduled tasks for this date.</div>
             ) : (
               <div className="space-y-2">
                 {selectedTasks.map((task) => (
-                  <div key={task.id} className="rounded-lg border border-[color-mix(in_srgb,var(--t-text)_10%,transparent)] bg-[var(--t-panel-2)] px-3 py-2">
+                  <div key={task.id} className="rounded-lg border border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-[var(--app-panel-2)] px-3 py-2">
                     <div className="flex items-center justify-between gap-3">
                       <div>
-                        <div className="text-sm font-normal text-[var(--t-text)]">{task.title}</div>
-                        <div className="text-xs text-[var(--t-muted)] mt-1">
+                        <div className="text-sm font-normal text-[var(--app-text)]">{task.title}</div>
+                        <div className="text-xs text-[var(--app-muted)] mt-1">
                           {task.scheduledAt ? formatTime(task.scheduledAt) : 'No time'} • {task.priority}
                         </div>
                       </div>
-                      <div className="text-[10px] uppercase tracking-[0.18em] text-[var(--t-muted)]">
+                      <div className="text-[10px] uppercase tracking-[0.18em] text-[var(--app-muted)]">
                         {task.status.toUpperCase()}
                       </div>
                     </div>

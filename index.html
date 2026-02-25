@@ -14,9 +14,9 @@
         }
 
         /* Utilities (theme mapped) */
-        .text-kpr-red { color: var(--t-accent); }
-        .bg-kpr-red { background-color: var(--t-accent); }
-        .border-kpr-red { border-color: var(--t-accent); }
+        .text-kpr-red { color: var(--app-accent); }
+        .bg-kpr-red { background-color: var(--app-accent); }
+        .border-kpr-red { border-color: var(--app-accent); }
         
         .font-mono { font-family: 'Space Mono', monospace; }
         
@@ -84,9 +84,9 @@
         }
 
         @keyframes pulse-border {
-            0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--t-accent) 35%, transparent); opacity: 1; }
-            70% { box-shadow: 0 0 0 22px color-mix(in srgb, var(--t-accent) 0%, transparent); opacity: 0; }
-            100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--t-accent) 0%, transparent); opacity: 0; }
+            0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--app-accent) 35%, transparent); opacity: 1; }
+            70% { box-shadow: 0 0 0 22px color-mix(in srgb, var(--app-accent) 0%, transparent); opacity: 0; }
+            100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--app-accent) 0%, transparent); opacity: 0; }
         }
         .animate-pulse-border {
             animation: pulse-border 2s ease-out infinite;
@@ -100,10 +100,10 @@
         /* KPR Text Glitch Animation */
         @keyframes glitch-text {
             0% { transform: translate(0); text-shadow: none; }
-            20% { transform: translate(-1px, 1px); text-shadow: 2px 0 var(--t-accent), -2px 0 color-mix(in srgb, var(--t-text) 70%, var(--t-accent)); }
-            40% { transform: translate(1px, -1px); text-shadow: -2px 0 var(--t-accent), 2px 0 color-mix(in srgb, var(--t-text) 70%, var(--t-accent)); }
-            60% { transform: translate(-1px, -1px); text-shadow: 2px 0 var(--t-accent), -2px 0 color-mix(in srgb, var(--t-text) 70%, var(--t-accent)); }
-            80% { transform: translate(1px, 1px); text-shadow: -2px 0 var(--t-accent), 2px 0 color-mix(in srgb, var(--t-text) 70%, var(--t-accent)); }
+            20% { transform: translate(-1px, 1px); text-shadow: 2px 0 var(--app-accent), -2px 0 color-mix(in srgb, var(--app-text) 70%, var(--app-accent)); }
+            40% { transform: translate(1px, -1px); text-shadow: -2px 0 var(--app-accent), 2px 0 color-mix(in srgb, var(--app-text) 70%, var(--app-accent)); }
+            60% { transform: translate(-1px, -1px); text-shadow: 2px 0 var(--app-accent), -2px 0 color-mix(in srgb, var(--app-text) 70%, var(--app-accent)); }
+            80% { transform: translate(1px, 1px); text-shadow: -2px 0 var(--app-accent), 2px 0 color-mix(in srgb, var(--app-text) 70%, var(--app-accent)); }
             100% { transform: translate(0); text-shadow: none; }
         }
         
@@ -114,8 +114,8 @@
         }
 
         @keyframes text-glow-pulse {
-            0%, 100% { text-shadow: 0 0 2px color-mix(in srgb, var(--t-accent) 20%, transparent); }
-            50% { text-shadow: 0 0 10px color-mix(in srgb, var(--t-accent) 80%, transparent), 0 0 2px color-mix(in srgb, var(--t-text) 50%, transparent); }
+            0%, 100% { text-shadow: 0 0 2px color-mix(in srgb, var(--app-accent) 20%, transparent); }
+            50% { text-shadow: 0 0 10px color-mix(in srgb, var(--app-accent) 80%, transparent), 0 0 2px color-mix(in srgb, var(--app-text) 50%, transparent); }
         }
         
         .animate-text-glow {

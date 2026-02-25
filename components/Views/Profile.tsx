@@ -675,11 +675,11 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
       onClick={() => setActiveTab(value)}
       className={`px-3 py-1.5 border rounded-lg text-xs tracking-[0.2em] uppercase transition-all duration-200 flex items-center gap-2 ${
         activeTab === value
-          ? 'border-[color-mix(in_srgb,var(--t-accent)_70%,transparent)] bg-[color-mix(in_srgb,var(--t-accent)_16%,var(--t-panel))] text-[var(--t-text)] shadow-[0_0_18px_color-mix(in_srgb,var(--t-accent)_22%,transparent)]'
-          : 'border-[color-mix(in_srgb,var(--t-text)_10%,transparent)] bg-[var(--t-panel-2)] text-[var(--t-muted)] hover:border-[color-mix(in_srgb,var(--t-text)_30%,transparent)] hover:text-[var(--t-text)]'
+          ? 'border-[color-mix(in_srgb,var(--app-accent)_70%,transparent)] bg-[color-mix(in_srgb,var(--app-accent)_16%,var(--app-panel))] text-[var(--app-text)] shadow-[0_0_18px_color-mix(in_srgb,var(--app-accent)_22%,transparent)]'
+          : 'border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-[var(--app-panel-2)] text-[var(--app-muted)] hover:border-[color-mix(in_srgb,var(--app-text)_30%,transparent)] hover:text-[var(--app-text)]'
       }`}
     >
-      <span className={activeTab === value ? 'text-[var(--t-accent)]' : 'text-[var(--t-muted)]'}>{icon}</span>
+      <span className={activeTab === value ? 'text-[var(--app-accent)]' : 'text-[var(--app-muted)]'}>{icon}</span>
       {label}
     </button>
   );
@@ -690,13 +690,13 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
       <div className="p-4 space-y-4">
         <div className="flex items-center gap-4">
           <div 
-            className="relative group cursor-pointer w-[30%] min-w-[110px] max-w-[180px] aspect-square border border-[var(--t-border)] bg-[var(--t-panel-2)] overflow-hidden rounded-md"
+            className="relative group cursor-pointer w-[30%] min-w-[110px] max-w-[180px] aspect-square border border-[var(--app-border)] bg-[var(--app-panel-2)] overflow-hidden rounded-md"
             onClick={handleImageClick}
             onMouseEnter={playHoverSound}
           >
             <img src={profileImage} alt="Profile" className="w-full h-full object-cover" />
-            <div className="absolute inset-0 bg-[color-mix(in_srgb,var(--t-bg)_40%,transparent)] opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
-              <Camera size={18} className="text-[var(--t-text)]" />
+            <div className="absolute inset-0 bg-[color-mix(in_srgb,var(--app-bg)_40%,transparent)] opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+              <Camera size={18} className="text-[var(--app-text)]" />
             </div>
             <input type="file" ref={fileInputRef} className="hidden" accept="image/png, image/jpeg, image/gif, image/jpg" onChange={handleFileChange}/>
           </div>
@@ -708,26 +708,26 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
           {nextConfig && (
             <div className="text-[11px] text-[var(--ui-muted)] uppercase tracking-[0.2em]">Next Level {nextConfig.level}: {nextConfig.threshold} XP</div>
           )}
-          <div className="w-full h-2 bg-[color-mix(in_srgb,var(--t-bg)_20%,transparent)] border border-[var(--ui-border)] rounded">
+          <div className="w-full h-2 bg-[color-mix(in_srgb,var(--app-bg)_20%,transparent)] border border-[var(--ui-border)] rounded">
             <div className="h-full bg-[var(--ui-accent)] rounded" style={{ width: `${levelProgress}%` }}></div>
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-2 text-[11px] uppercase tracking-[0.15em] text-[var(--t-muted)]">
-          <div className="border border-[var(--t-border)] bg-[var(--t-text)] p-3 rounded">
-            <div className="text-[10px] text-[var(--t-muted)]">Active Missions</div>
-            <div className="text-xl font-black text-[var(--t-text)]">{activeMissions}</div>
+        <div className="grid grid-cols-2 gap-2 text-[11px] uppercase tracking-[0.15em] text-[var(--app-muted)]">
+          <div className="border border-[var(--app-border)] bg-[var(--app-text)] p-3 rounded">
+            <div className="text-[10px] text-[var(--app-muted)]">Active Missions</div>
+            <div className="text-xl font-black text-[var(--app-text)]">{activeMissions}</div>
           </div>
-          <div className="border border-[var(--t-border)] bg-[var(--t-text)] p-3 rounded">
-            <div className="text-[10px] text-[var(--t-muted)]">Completed Today</div>
-            <div className="text-xl font-black text-[var(--t-text)]">{completedToday}</div>
+          <div className="border border-[var(--app-border)] bg-[var(--app-text)] p-3 rounded">
+            <div className="text-[10px] text-[var(--app-muted)]">Completed Today</div>
+            <div className="text-xl font-black text-[var(--app-text)]">{completedToday}</div>
           </div>
         </div>
 
         <button 
           onClick={handleCoverClick}
           onMouseEnter={playHoverSound}
-          className="w-full text-[10px] uppercase tracking-[0.2em] border border-[var(--t-border)] bg-[var(--t-text)] hover:border-[var(--t-accent)] py-2 flex items-center justify-center gap-2 text-[var(--t-muted)] rounded"
+          className="w-full text-[10px] uppercase tracking-[0.2em] border border-[var(--app-border)] bg-[var(--app-text)] hover:border-[var(--app-accent)] py-2 flex items-center justify-center gap-2 text-[var(--app-muted)] rounded"
         >
           <Upload size={12}/> Change Cover
         </button>
@@ -751,7 +751,7 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
   const renderOutfitMedia = (item: InventoryItem | null, variant: 'slot' | 'list') => {
     if (!item) {
       return (
-        <div className="w-full h-full flex items-center justify-center text-[var(--t-muted)]">
+        <div className="w-full h-full flex items-center justify-center text-[var(--app-muted)]">
           <Box size={18} />
         </div>
       );
@@ -804,15 +804,15 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
   };
 
   const stageCard = (
-    <div className="relative border border-[var(--t-border)] bg-[var(--t-text)] rounded-lg shadow-sm overflow-hidden">
+    <div className="relative border border-[var(--app-border)] bg-[var(--app-text)] rounded-lg shadow-sm overflow-hidden">
       <div className="p-4 flex flex-col h-full">
-        <div className="flex items-center justify-between text-xs uppercase tracking-[0.2em] text-[var(--t-muted)] mb-4">
+        <div className="flex items-center justify-between text-xs uppercase tracking-[0.2em] text-[var(--app-muted)] mb-4">
           <span>Loadout // Model</span>
-          {currentMission ? <span className="text-[var(--t-accent)] font-semibold">{currentMission.title}</span> : <span>Standby</span>}
+          {currentMission ? <span className="text-[var(--app-accent)] font-semibold">{currentMission.title}</span> : <span>Standby</span>}
         </div>
 
-        <div className="flex-1 flex items-center justify-center relative bg-[var(--t-panel-2)] rounded border border-dashed border-[var(--t-border)]">
-          <div className="absolute inset-3 border border-[var(--t-border)] rounded pointer-events-none"></div>
+        <div className="flex-1 flex items-center justify-center relative bg-[var(--app-panel-2)] rounded border border-dashed border-[var(--app-border)]">
+          <div className="absolute inset-3 border border-[var(--app-border)] rounded pointer-events-none"></div>
           <div className="relative w-full h-full flex items-center justify-center">
             {characterModel ? (
               <model-viewer
@@ -823,18 +823,18 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
                 exposure="1.1"
                 shadow-intensity="0.6"
                 environment-image={modelViewerEnv}
-                style={{ width: '100%', height: '100%', background: 'var(--t-bg)' }}
+                style={{ width: '100%', height: '100%', background: 'var(--app-bg)' }}
               />
             ) : (
-              <div className="w-[240px] h-[320px] border border-[var(--t-border)] bg-cover bg-center rounded" style={{ backgroundImage: `url(${coverImage})` }}>
-                <div className="w-full h-full bg-[color-mix(in_srgb,var(--t-text)_70%,transparent)] flex items-center justify-center text-[var(--t-muted)] text-xs tracking-[0.2em] uppercase">Upload Model</div>
+              <div className="w-[240px] h-[320px] border border-[var(--app-border)] bg-cover bg-center rounded" style={{ backgroundImage: `url(${coverImage})` }}>
+                <div className="w-full h-full bg-[color-mix(in_srgb,var(--app-text)_70%,transparent)] flex items-center justify-center text-[var(--app-muted)] text-xs tracking-[0.2em] uppercase">Upload Model</div>
               </div>
             )}
           </div>
-          <div className="absolute bottom-4 inset-x-6 flex items-center justify-center gap-3 text-[10px] uppercase tracking-[0.2em] text-[var(--t-muted)]">
-            <span className="px-2 py-1 border border-[var(--t-border)] bg-[var(--t-text)] rounded">Navigate</span>
-            <span className="px-2 py-1 border border-[var(--t-border)] bg-[var(--t-text)] rounded">Rotate</span>
-            <span className="px-2 py-1 border border-[var(--t-border)] bg-[var(--t-text)] rounded">Select</span>
+          <div className="absolute bottom-4 inset-x-6 flex items-center justify-center gap-3 text-[10px] uppercase tracking-[0.2em] text-[var(--app-muted)]">
+            <span className="px-2 py-1 border border-[var(--app-border)] bg-[var(--app-text)] rounded">Navigate</span>
+            <span className="px-2 py-1 border border-[var(--app-border)] bg-[var(--app-text)] rounded">Rotate</span>
+            <span className="px-2 py-1 border border-[var(--app-border)] bg-[var(--app-text)] rounded">Select</span>
           </div>
         </div>
 
@@ -842,7 +842,7 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
           {rewardConfigs.map(config => (
             <div 
               key={config.level}
-              className={`w-12 h-12 rounded-full border ${totalXP >= config.threshold ? 'border-[var(--t-accent)] bg-[color-mix(in_srgb,var(--t-accent)_10%,transparent)]' : 'border-[var(--t-border)] bg-[var(--t-text)]'} flex items-center justify-center text-[var(--t-text)] text-sm font-bold`}
+              className={`w-12 h-12 rounded-full border ${totalXP >= config.threshold ? 'border-[var(--app-accent)] bg-[color-mix(in_srgb,var(--app-accent)_10%,transparent)]' : 'border-[var(--app-border)] bg-[var(--app-text)]'} flex items-center justify-center text-[var(--app-text)] text-sm font-bold`}
               title={`Level ${config.level} - ${config.threshold} XP`}
             >
               {config.level}
@@ -854,13 +854,13 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
   );
 
   const statsCard = (
-    <div className="border border-[var(--t-border)] bg-[var(--t-text)] rounded-lg shadow-sm p-4 space-y-3">
-      <div className="flex items-center justify-between text-xs uppercase tracking-[0.2em] text-[var(--t-muted)]">
+    <div className="border border-[var(--app-border)] bg-[var(--app-text)] rounded-lg shadow-sm p-4 space-y-3">
+      <div className="flex items-center justify-between text-xs uppercase tracking-[0.2em] text-[var(--app-muted)]">
         <span>Stats</span>
-        <span className="text-[var(--t-accent)] font-semibold">Profile</span>
+        <span className="text-[var(--app-accent)] font-semibold">Profile</span>
       </div>
       <div className="grid grid-cols-1 gap-3">
-        <label className="text-[11px] uppercase tracking-[0.2em] text-[var(--t-muted)] flex flex-col gap-1">
+        <label className="text-[11px] uppercase tracking-[0.2em] text-[var(--app-muted)] flex flex-col gap-1">
           <span>Name</span>
           <input
             type="text"
@@ -870,22 +870,22 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
               setBioStats(prev => ({ ...prev, name: e.target.value }));
               setSummonerName(e.target.value || 'Summoner Name');
             }}
-            className="w-full border border-[var(--t-border)] rounded px-3 py-2 text-sm text-[var(--t-text)] bg-[var(--t-text)] focus:outline-none focus:border-[var(--t-accent)]"
+            className="w-full border border-[var(--app-border)] rounded px-3 py-2 text-sm text-[var(--app-text)] bg-[var(--app-text)] focus:outline-none focus:border-[var(--app-accent)]"
           />
         </label>
 
-        <label className="text-[11px] uppercase tracking-[0.2em] text-[var(--t-muted)] flex flex-col gap-1">
+        <label className="text-[11px] uppercase tracking-[0.2em] text-[var(--app-muted)] flex flex-col gap-1">
           <span>ID</span>
           <input
             type="text"
             value={profileId}
             placeholder="#NA1 // US_WEST // NETWORK_STABLE"
             onChange={(e) => setProfileId(e.target.value)}
-            className="w-full border border-[var(--t-border)] rounded px-3 py-2 text-sm text-[var(--t-text)] bg-[var(--t-text)] focus:outline-none focus:border-[var(--t-accent)]"
+            className="w-full border border-[var(--app-border)] rounded px-3 py-2 text-sm text-[var(--app-text)] bg-[var(--app-text)] focus:outline-none focus:border-[var(--app-accent)]"
           />
         </label>
 
-        <label className="text-[11px] uppercase tracking-[0.2em] text-[var(--t-muted)] flex flex-col gap-1">
+        <label className="text-[11px] uppercase tracking-[0.2em] text-[var(--app-muted)] flex flex-col gap-1">
           <span>Role</span>
           <input
             type="text"
@@ -894,16 +894,16 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
             onChange={(e) => {
               setRoleText(e.target.value);
             }}
-            className="w-full border border-[var(--t-border)] rounded px-3 py-2 text-sm text-[var(--t-text)] bg-[var(--t-text)] focus:outline-none focus:border-[var(--t-accent)]"
+            className="w-full border border-[var(--app-border)] rounded px-3 py-2 text-sm text-[var(--app-text)] bg-[var(--app-text)] focus:outline-none focus:border-[var(--app-accent)]"
           />
         </label>
 
-        <label className="text-[11px] uppercase tracking-[0.2em] text-[var(--t-muted)] flex flex-col gap-1">
+        <label className="text-[11px] uppercase tracking-[0.2em] text-[var(--app-muted)] flex flex-col gap-1">
           <span>Gender</span>
           <select
             value={bioStats.gender}
             onChange={(e) => setBioStats(prev => ({ ...prev, gender: e.target.value }))}
-            className="w-full border border-[var(--t-border)] rounded px-3 py-2 text-sm text-[var(--t-text)] bg-[var(--t-text)] focus:outline-none focus:border-[var(--t-accent)]"
+            className="w-full border border-[var(--app-border)] rounded px-3 py-2 text-sm text-[var(--app-text)] bg-[var(--app-text)] focus:outline-none focus:border-[var(--app-accent)]"
           >
             <option value="">Select</option>
             <option value="Male">Male</option>
@@ -911,7 +911,7 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
           </select>
         </label>
 
-        <label className="text-[11px] uppercase tracking-[0.2em] text-[var(--t-muted)] flex flex-col gap-1">
+        <label className="text-[11px] uppercase tracking-[0.2em] text-[var(--app-muted)] flex flex-col gap-1">
           <span>Height</span>
           <div className="flex">
             <input
@@ -919,24 +919,24 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
               value={bioStats.height}
               placeholder="e.g. 180"
               onChange={(e) => setBioStats(prev => ({ ...prev, height: e.target.value }))}
-              className="w-full border border-[var(--t-border)] rounded-l px-3 py-2 text-sm text-[var(--t-text)] bg-[var(--t-text)] focus:outline-none focus:border-[var(--t-accent)]"
+              className="w-full border border-[var(--app-border)] rounded-l px-3 py-2 text-sm text-[var(--app-text)] bg-[var(--app-text)] focus:outline-none focus:border-[var(--app-accent)]"
             />
-            <span className="px-3 py-2 border border-l-0 border-[var(--t-border)] rounded-r text-sm bg-[var(--t-panel-2)] text-[var(--t-muted)]">cm</span>
+            <span className="px-3 py-2 border border-l-0 border-[var(--app-border)] rounded-r text-sm bg-[var(--app-panel-2)] text-[var(--app-muted)]">cm</span>
           </div>
         </label>
 
-        <label className="text-[11px] uppercase tracking-[0.2em] text-[var(--t-muted)] flex flex-col gap-1">
+        <label className="text-[11px] uppercase tracking-[0.2em] text-[var(--app-muted)] flex flex-col gap-1">
           <span>Weight</span>
           <input
             type="text"
             value={bioStats.weight}
             placeholder="e.g. 75 kg"
             onChange={(e) => setBioStats(prev => ({ ...prev, weight: e.target.value }))}
-            className="w-full border border-[var(--t-border)] rounded px-3 py-2 text-sm text-[var(--t-text)] bg-[var(--t-text)] focus:outline-none focus:border-[var(--t-accent)]"
+            className="w-full border border-[var(--app-border)] rounded px-3 py-2 text-sm text-[var(--app-text)] bg-[var(--app-text)] focus:outline-none focus:border-[var(--app-accent)]"
           />
         </label>
 
-        <label className="text-[11px] uppercase tracking-[0.2em] text-[var(--t-muted)] flex flex-col gap-1">
+        <label className="text-[11px] uppercase tracking-[0.2em] text-[var(--app-muted)] flex flex-col gap-1">
           <span>Age</span>
           <input
             type="number"
@@ -948,29 +948,29 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
               const val = Math.max(0, Math.min(99, Number(e.target.value) || 0));
               setBioStats(prev => ({ ...prev, age: val.toString() }));
             }}
-            className="w-full border border-[var(--t-border)] rounded px-3 py-2 text-sm text-[var(--t-text)] bg-[var(--t-text)] focus:outline-none focus:border-[var(--t-accent)]"
+            className="w-full border border-[var(--app-border)] rounded px-3 py-2 text-sm text-[var(--app-text)] bg-[var(--app-text)] focus:outline-none focus:border-[var(--app-accent)]"
           />
         </label>
 
-        <label className="text-[11px] uppercase tracking-[0.2em] text-[var(--t-muted)] flex flex-col gap-1">
+        <label className="text-[11px] uppercase tracking-[0.2em] text-[var(--app-muted)] flex flex-col gap-1">
           <span>Birthdate (DD/MM/YYYY)</span>
           <input
             type="text"
             value={bioStats.birthdate}
             placeholder="DD/MM/YYYY"
             onChange={(e) => setBioStats(prev => ({ ...prev, birthdate: formatBirthdateInput(e.target.value) }))}
-            className="w-full border border-[var(--t-border)] rounded px-3 py-2 text-sm text-[var(--t-text)] bg-[var(--t-text)] focus:outline-none focus:border-[var(--t-accent)]"
+            className="w-full border border-[var(--app-border)] rounded px-3 py-2 text-sm text-[var(--app-text)] bg-[var(--app-text)] focus:outline-none focus:border-[var(--app-accent)]"
           />
         </label>
 
-        <label className="text-[11px] uppercase tracking-[0.2em] text-[var(--t-muted)] flex flex-col gap-1">
+        <label className="text-[11px] uppercase tracking-[0.2em] text-[var(--app-muted)] flex flex-col gap-1">
           <span>Email</span>
           <input
             type="email"
             value={bioStats.email}
             placeholder="user@email.com"
             onChange={(e) => setBioStats(prev => ({ ...prev, email: e.target.value }))}
-            className="w-full border border-[var(--t-border)] rounded px-3 py-2 text-sm text-[var(--t-text)] bg-[var(--t-text)] focus:outline-none focus:border-[var(--t-accent)]"
+            className="w-full border border-[var(--app-border)] rounded px-3 py-2 text-sm text-[var(--app-text)] bg-[var(--app-text)] focus:outline-none focus:border-[var(--app-accent)]"
           />
         </label>
       </div>
@@ -997,24 +997,24 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
               const running = timer.running;
               const remaining = timer.remaining;
               return (
-                <div key={key} className="border border-[var(--t-border)] bg-[var(--t-text)] rounded-lg shadow-sm p-4 space-y-4">
+                <div key={key} className="border border-[var(--app-border)] bg-[var(--app-text)] rounded-lg shadow-sm p-4 space-y-4">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
                       <span className="text-2xl">{meta.icon}</span>
                       <div>
-                        <div className="text-lg font-semibold text-[var(--t-text)]">{meta.title}</div>
-                        <div className="text-sm text-[var(--t-muted)]">{meta.subtitle}</div>
+                        <div className="text-lg font-semibold text-[var(--app-text)]">{meta.title}</div>
+                        <div className="text-sm text-[var(--app-muted)]">{meta.subtitle}</div>
                       </div>
                     </div>
-                    <div className="text-xs uppercase tracking-[0.2em] text-[var(--t-muted)]">
+                    <div className="text-xs uppercase tracking-[0.2em] text-[var(--app-muted)]">
                       {running && timer.selected ? `Running ${formatSeconds(timer.selected)}` : 'Idle'}
                     </div>
                   </div>
 
                   <div className="grid lg:grid-cols-[320px,1fr,260px] gap-4 items-start">
                     <div
-                      className={`relative bg-[var(--t-bg)] rounded-md border border-[var(--t-panel-2)] h-[360px] overflow-hidden transition-shadow ${
-                        running ? 'ring-2 ring-[var(--t-accent)] shadow-[0_0_12px_color-mix(in_srgb,var(--t-accent)_35%,transparent)]' : ''
+                      className={`relative bg-[var(--app-bg)] rounded-md border border-[var(--app-panel-2)] h-[360px] overflow-hidden transition-shadow ${
+                        running ? 'ring-2 ring-[var(--app-accent)] shadow-[0_0_12px_color-mix(in_srgb,var(--app-accent)_35%,transparent)]' : ''
                       }`}
                     >
                       {(() => {
@@ -1028,16 +1028,16 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
                             exposure="1.1"
                             shadow-intensity="0.6"
                             environment-image={modelViewerEnv}
-                            style={{ width: '100%', height: '100%', background: 'var(--t-bg)' }}
+                            style={{ width: '100%', height: '100%', background: 'var(--app-bg)' }}
                           />
                         ) : (
-                          <div className="w-full h-full flex items-center justify-center text-[color-mix(in_srgb,var(--t-text)_60%,transparent)] text-sm uppercase tracking-[0.2em]">
+                          <div className="w-full h-full flex items-center justify-center text-[color-mix(in_srgb,var(--app-text)_60%,transparent)] text-sm uppercase tracking-[0.2em]">
                             No model
                           </div>
                         );
                       })()}
                       <button
-                        className="absolute top-2 right-2 h-7 w-7 rounded-full bg-[var(--t-text)] text-[var(--t-text)] border border-[var(--t-border)] text-sm leading-none shadow-sm"
+                        className="absolute top-2 right-2 h-7 w-7 rounded-full bg-[var(--app-text)] text-[var(--app-text)] border border-[var(--app-border)] text-sm leading-none shadow-sm"
                         onClick={(e) => { e.stopPropagation(); sectionModelInputs.current[key]?.click(); }}
                         aria-label="Change model"
                       >
@@ -1053,9 +1053,9 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
                     </div>
 
                     <div className="space-y-3">
-                      <div className="border border-[var(--t-text)] rounded-md shadow-[4px_6px_0_var(--t-text)] bg-[var(--t-text)] p-4">
+                      <div className="border border-[var(--app-text)] rounded-md shadow-[4px_6px_0_var(--app-text)] bg-[var(--app-text)] p-4">
                         <div className="text-xl font-black uppercase">{meta.title}</div>
-                        <ul className="mt-2 space-y-1 text-sm text-[var(--t-muted)] list-disc list-inside">
+                        <ul className="mt-2 space-y-1 text-sm text-[var(--app-muted)] list-disc list-inside">
                           {meta.details.map(line => (
                             <li key={line}>{line}</li>
                           ))}
@@ -1078,26 +1078,26 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
                               }}
                               className={`w-full h-16 rounded-md border text-center flex flex-col justify-center transition-colors ${
                                 isSelected
-                                  ? 'border-[var(--t-accent)] text-[var(--t-accent)] bg-[var(--t-text)]'
-                                  : 'border-[var(--t-text)] text-[var(--t-text)] bg-[var(--t-text)] hover:border-[var(--t-accent)]'
+                                  ? 'border-[var(--app-accent)] text-[var(--app-accent)] bg-[var(--app-text)]'
+                                  : 'border-[var(--app-text)] text-[var(--app-text)] bg-[var(--app-text)] hover:border-[var(--app-accent)]'
                               }`}
                             >
                               <span className="text-lg font-semibold">{content}</span>
-                              <span className="text-[11px] uppercase tracking-[0.1em] text-[var(--t-muted)]">
+                              <span className="text-[11px] uppercase tracking-[0.1em] text-[var(--app-muted)]">
                                 total breathing exercise
                               </span>
                             </button>
                           );
                         })}
                       </div>
-                      <div className="text-sm text-[var(--t-muted)]">
+                      <div className="text-sm text-[var(--app-muted)]">
                         {timer.selected ? `Timer set for ${timer.selected / 60} minutes` : 'Select a duration to start'}
                       </div>
                     </div>
 
                     <div className="flex flex-col gap-3 items-stretch">
                       <div
-                        className={`relative h-56 bg-[var(--t-bg)] rounded-md flex items-center justify-center transition-colors ${running ? 'ring-2 ring-[var(--t-accent)]' : ''}`}
+                        className={`relative h-56 bg-[var(--app-bg)] rounded-md flex items-center justify-center transition-colors ${running ? 'ring-2 ring-[var(--app-accent)]' : ''}`}
                       >
                         {(() => {
                           const videoUrl = media.video?.startsWith('idb:') ? resolvedHealthMedia[key].video : media.video;
@@ -1110,11 +1110,11 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
                               muted
                             />
                           ) : (
-                            <div className="text-[color-mix(in_srgb,var(--t-text)_60%,transparent)] text-sm uppercase tracking-[0.2em]">No video</div>
+                            <div className="text-[color-mix(in_srgb,var(--app-text)_60%,transparent)] text-sm uppercase tracking-[0.2em]">No video</div>
                           );
                         })()}
                         <button
-                          className="absolute top-2 right-2 h-7 w-7 rounded-full bg-[var(--t-text)] text-[var(--t-text)] border border-[var(--t-border)] text-sm leading-none shadow-sm"
+                          className="absolute top-2 right-2 h-7 w-7 rounded-full bg-[var(--app-text)] text-[var(--app-text)] border border-[var(--app-border)] text-sm leading-none shadow-sm"
                           onClick={(e) => { e.stopPropagation(); sectionVideoInputs.current[key]?.click(); }}
                           aria-label="Change video"
                         >
@@ -1143,53 +1143,53 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
         return (
           <div className="grid lg:grid-cols-[1.1fr,0.9fr] gap-6">
             <div className="space-y-4">
-              <div className="bg-[var(--t-text)] border border-[var(--t-border)] rounded-lg shadow-sm p-4">
-                <div className="text-xs uppercase tracking-[0.2em] text-[var(--t-muted)] mb-3">Legacy XP</div>
-                <div className="text-2xl font-black text-[var(--t-text)]">{legacyXP} XP</div>
-                <div className="text-[11px] text-[var(--t-muted)]">Read-only snapshot from the old quest system.</div>
+              <div className="bg-[var(--app-text)] border border-[var(--app-border)] rounded-lg shadow-sm p-4">
+                <div className="text-xs uppercase tracking-[0.2em] text-[var(--app-muted)] mb-3">Legacy XP</div>
+                <div className="text-2xl font-black text-[var(--app-text)]">{legacyXP} XP</div>
+                <div className="text-[11px] text-[var(--app-muted)]">Read-only snapshot from the old quest system.</div>
               </div>
-              <div className="bg-[var(--t-text)] border border-[var(--t-border)] rounded-lg shadow-sm p-4">
-                <div className="flex items-center justify-between text-xs uppercase tracking-[0.2em] text-[var(--t-muted)] mb-3">
+              <div className="bg-[var(--app-text)] border border-[var(--app-border)] rounded-lg shadow-sm p-4">
+                <div className="flex items-center justify-between text-xs uppercase tracking-[0.2em] text-[var(--app-muted)] mb-3">
                   <span className="flex items-center gap-2">
-                    <span className="inline-flex h-2 w-2 rounded-full bg-[var(--t-accent)] animate-pulse"></span>
+                    <span className="inline-flex h-2 w-2 rounded-full bg-[var(--app-accent)] animate-pulse"></span>
                     Live Protocol Status
                   </span>
-                  <span className="text-[var(--t-accent)] font-semibold">Real-Time</span>
+                  <span className="text-[var(--app-accent)] font-semibold">Real-Time</span>
                 </div>
                 <div className="grid sm:grid-cols-2 gap-3 text-sm">
-                  <div className="p-3 border border-[var(--t-border)] rounded bg-[var(--t-panel-2)]">
-                    <div className="text-[11px] uppercase tracking-[0.15em] text-[var(--t-muted)]">Current Rank</div>
-                    <div className="text-lg font-black text-[var(--t-text)]">
+                  <div className="p-3 border border-[var(--app-border)] rounded bg-[var(--app-panel-2)]">
+                    <div className="text-[11px] uppercase tracking-[0.15em] text-[var(--app-muted)]">Current Rank</div>
+                    <div className="text-lg font-black text-[var(--app-text)]">
                       {currentLevelConfig ? `Level ${currentLevelConfig.level}` : 'Unranked'}
                     </div>
-                    <div className="text-[12px] text-[var(--t-muted)]">Threshold: {currentLevelConfig ? currentLevelConfig.threshold : 0} XP</div>
+                    <div className="text-[12px] text-[var(--app-muted)]">Threshold: {currentLevelConfig ? currentLevelConfig.threshold : 0} XP</div>
                   </div>
-                  <div className="p-3 border border-[var(--t-border)] rounded bg-[var(--t-panel-2)]">
-                    <div className="text-[11px] uppercase tracking-[0.15em] text-[var(--t-muted)]">Protocol Points</div>
-                    <div className="text-lg font-black text-[var(--t-text)]">{totalXP} XP</div>
-                    <div className="text-[12px] text-[var(--t-muted)]">
+                  <div className="p-3 border border-[var(--app-border)] rounded bg-[var(--app-panel-2)]">
+                    <div className="text-[11px] uppercase tracking-[0.15em] text-[var(--app-muted)]">Protocol Points</div>
+                    <div className="text-lg font-black text-[var(--app-text)]">{totalXP} XP</div>
+                    <div className="text-[12px] text-[var(--app-muted)]">
                       {nextConfig ? `${nextConfig.threshold - totalXP} XP to Level ${nextConfig.level}` : 'Max Rank Achieved'}
                     </div>
                   </div>
                 </div>
                 <div className="mt-3">
-                  <div className="flex items-center justify-between text-[11px] uppercase tracking-[0.2em] text-[var(--t-muted)] mb-1">
+                  <div className="flex items-center justify-between text-[11px] uppercase tracking-[0.2em] text-[var(--app-muted)] mb-1">
                     <span>Progress to Next</span>
-                    <span className="text-[var(--t-text)]">{levelProgress}%</span>
+                    <span className="text-[var(--app-text)]">{levelProgress}%</span>
                   </div>
-                  <div className="w-full h-2 bg-[var(--t-panel-2)] border border-[var(--t-border)] rounded">
+                  <div className="w-full h-2 bg-[var(--app-panel-2)] border border-[var(--app-border)] rounded">
                     <div
-                      className="h-full rounded bg-gradient-to-r from-[var(--t-accent)] to-[var(--t-accent)]"
+                      className="h-full rounded bg-gradient-to-r from-[var(--app-accent)] to-[var(--app-accent)]"
                       style={{ width: `${Math.min(100, Math.max(0, levelProgress))}%` }}
                     ></div>
                   </div>
                 </div>
               </div>
 
-              <div className="bg-[var(--t-text)] border border-[var(--t-border)] rounded-lg shadow-sm p-4">
-                <div className="text-xs uppercase tracking-[0.2em] text-[var(--t-muted)] mb-3 flex justify-between">
+              <div className="bg-[var(--app-text)] border border-[var(--app-border)] rounded-lg shadow-sm p-4">
+                <div className="text-xs uppercase tracking-[0.2em] text-[var(--app-muted)] mb-3 flex justify-between">
                   <span>Achievement Ranks</span>
-                  <span className="text-[var(--t-accent)] font-semibold">{rewardConfigs.length} Levels</span>
+                  <span className="text-[var(--app-accent)] font-semibold">{rewardConfigs.length} Levels</span>
                 </div>
                 <div className="grid sm:grid-cols-3 gap-3">
                   {rewardConfigs.map(config => {
@@ -1198,12 +1198,12 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
                       <div
                         key={config.level}
                         className={`p-3 border rounded text-center transition-colors ${
-                          achieved ? 'border-[var(--t-accent)] bg-[color-mix(in_srgb,var(--t-accent)_5%,transparent)]' : 'border-[var(--t-border)] bg-[var(--t-panel-2)]'
+                          achieved ? 'border-[var(--app-accent)] bg-[color-mix(in_srgb,var(--app-accent)_5%,transparent)]' : 'border-[var(--app-border)] bg-[var(--app-panel-2)]'
                         }`}
                       >
-                        <div className="text-xl font-black text-[var(--t-text)]">Level {config.level}</div>
-                        <div className="text-[11px] text-[var(--t-muted)] uppercase">Requires {config.threshold} XP</div>
-                        <div className={`mt-2 text-[11px] font-semibold ${achieved ? 'text-[var(--t-accent)]' : 'text-[var(--t-muted)]'}`}>
+                        <div className="text-xl font-black text-[var(--app-text)]">Level {config.level}</div>
+                        <div className="text-[11px] text-[var(--app-muted)] uppercase">Requires {config.threshold} XP</div>
+                        <div className={`mt-2 text-[11px] font-semibold ${achieved ? 'text-[var(--app-accent)]' : 'text-[var(--app-muted)]'}`}>
                           {achieved ? 'ACHIEVED' : 'LOCKED'}
                         </div>
                       </div>
@@ -1212,13 +1212,13 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
                 </div>
               </div>
             </div>
-            <div className="bg-[var(--t-text)] border border-[var(--t-border)] rounded-lg shadow-sm p-4">
-              <div className="text-xs uppercase tracking-[0.2em] text-[var(--t-muted)] mb-3">Reward Visual</div>
-              <div className="w-full h-[260px] border border-dashed border-[var(--t-border)] bg-[var(--t-panel-2)] flex items-center justify-center">
+            <div className="bg-[var(--app-text)] border border-[var(--app-border)] rounded-lg shadow-sm p-4">
+              <div className="text-xs uppercase tracking-[0.2em] text-[var(--app-muted)] mb-3">Reward Visual</div>
+              <div className="w-full h-[260px] border border-dashed border-[var(--app-border)] bg-[var(--app-panel-2)] flex items-center justify-center">
                 {currentLevelConfig ? (
                   <RewardVisual config={currentLevelConfig} className="w-48 h-48" />
                 ) : (
-                  <div className="text-[var(--t-muted)] text-sm">Earn XP to unlock</div>
+                  <div className="text-[var(--app-muted)] text-sm">Earn XP to unlock</div>
                 )}
               </div>
             </div>
@@ -1267,20 +1267,20 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
           <button
             type="button"
             onClick={() => setCoverFit(v => (v === 'cover' ? 'contain' : 'cover'))}
-            className="h-11 w-11 rounded-full border border-[color-mix(in_srgb,var(--t-text)_25%,transparent)] bg-[color-mix(in_srgb,var(--t-bg)_35%,transparent)] backdrop-blur-sm hover:bg-[color-mix(in_srgb,var(--t-bg)_55%,transparent)] hover:border-[color-mix(in_srgb,var(--t-text)_40%,transparent)] transition-all flex items-center justify-center"
+            className="h-11 w-11 rounded-full border border-[color-mix(in_srgb,var(--app-text)_25%,transparent)] bg-[color-mix(in_srgb,var(--app-bg)_35%,transparent)] backdrop-blur-sm hover:bg-[color-mix(in_srgb,var(--app-bg)_55%,transparent)] hover:border-[color-mix(in_srgb,var(--app-text)_40%,transparent)] transition-all flex items-center justify-center"
             title={coverFit === 'cover' ? 'Fit (no crop)' : 'Fill (crop)'}
           >
-            <span className="text-[var(--t-text)] text-[10px] font-bold">{coverFit === 'cover' ? 'FILL' : 'FIT'}</span>
+            <span className="text-[var(--app-text)] text-[10px] font-bold">{coverFit === 'cover' ? 'FILL' : 'FIT'}</span>
           </button>
 
           <button
             type="button"
             onClick={handleCoverClick}
             onMouseEnter={playHoverSound}
-            className="h-11 w-11 rounded-full border border-[color-mix(in_srgb,var(--t-text)_25%,transparent)] bg-[color-mix(in_srgb,var(--t-bg)_35%,transparent)] backdrop-blur-sm hover:bg-[color-mix(in_srgb,var(--t-bg)_55%,transparent)] hover:border-[color-mix(in_srgb,var(--t-text)_40%,transparent)] transition-all flex items-center justify-center"
+            className="h-11 w-11 rounded-full border border-[color-mix(in_srgb,var(--app-text)_25%,transparent)] bg-[color-mix(in_srgb,var(--app-bg)_35%,transparent)] backdrop-blur-sm hover:bg-[color-mix(in_srgb,var(--app-bg)_55%,transparent)] hover:border-[color-mix(in_srgb,var(--app-text)_40%,transparent)] transition-all flex items-center justify-center"
             title="Change cover"
           >
-            <Upload size={18} className="text-[var(--t-text)]" />
+            <Upload size={18} className="text-[var(--app-text)]" />
           </button>
         </div>
 
@@ -1291,33 +1291,33 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
           <div className="relative flex items-end gap-5 flex-wrap">
             {/* Avatar */}
             <div
-              className="relative w-[140px] h-[140px] rounded-2xl border border-[var(--ui-border)] overflow-hidden bg-[color-mix(in_srgb,var(--t-bg)_25%,transparent)]"
+              className="relative w-[140px] h-[140px] rounded-2xl border border-[var(--ui-border)] overflow-hidden bg-[color-mix(in_srgb,var(--app-bg)_25%,transparent)]"
               onMouseEnter={playHoverSound}
             >
               <img src={profileImage} alt="Profile" className="w-full h-full object-cover" />
               <button
                 type="button"
                 onClick={handleImageClick}
-                className="absolute inset-0 opacity-0 hover:opacity-100 transition-opacity bg-[color-mix(in_srgb,var(--t-bg)_40%,transparent)] flex items-center justify-center"
+                className="absolute inset-0 opacity-0 hover:opacity-100 transition-opacity bg-[color-mix(in_srgb,var(--app-bg)_40%,transparent)] flex items-center justify-center"
                 title="Change avatar"
               >
-                <Camera size={20} className="text-[var(--t-text)]" />
+                <Camera size={20} className="text-[var(--app-text)]" />
               </button>
               <input type="file" ref={fileInputRef} className="hidden" accept="image/png, image/jpeg, image/gif, image/jpg" onChange={handleFileChange} />
             </div>
 
             {/* Name / ID / Role */}
             <div className="flex-1 min-w-[260px]">
-              <div className="text-[10px] uppercase tracking-[0.35em] text-[color-mix(in_srgb,var(--t-text)_80%,transparent)] drop-shadow-[0_2px_8px_rgba(0,0,0,0.75)]">PROFILE</div>
+              <div className="text-[10px] uppercase tracking-[0.35em] text-[color-mix(in_srgb,var(--app-text)_80%,transparent)] drop-shadow-[0_2px_8px_rgba(0,0,0,0.75)]">PROFILE</div>
 
               <div className="mt-2 flex items-center gap-3 flex-wrap">
                 {!isEditingName ? (
-                  <div className="text-3xl font-black tracking-tight text-[var(--t-text)] drop-shadow-[0_2px_10px_rgba(0,0,0,0.85)]">{summonerName}</div>
+                  <div className="text-3xl font-black tracking-tight text-[var(--app-text)] drop-shadow-[0_2px_10px_rgba(0,0,0,0.85)]">{summonerName}</div>
                 ) : (
                   <input
                     value={tempName}
                     onChange={(e) => setTempName(e.target.value)}
-                    className="h-11 px-3 rounded border border-[var(--ui-border)] bg-[color-mix(in_srgb,var(--t-bg)_30%,transparent)] text-[var(--t-text)]"
+                    className="h-11 px-3 rounded border border-[var(--ui-border)] bg-[color-mix(in_srgb,var(--app-bg)_30%,transparent)] text-[var(--app-text)]"
                   />
                 )}
 
@@ -1325,7 +1325,7 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
                   <button
                     type="button"
                     onClick={startEditingName}
-                    className="h-10 w-10 rounded-full border border-[color-mix(in_srgb,var(--t-text)_15%,transparent)] bg-[color-mix(in_srgb,var(--t-bg)_25%,transparent)] text-[color-mix(in_srgb,var(--t-text)_80%,transparent)] hover:text-[var(--t-text)] hover:border-[color-mix(in_srgb,var(--t-text)_30%,transparent)]"
+                    className="h-10 w-10 rounded-full border border-[color-mix(in_srgb,var(--app-text)_15%,transparent)] bg-[color-mix(in_srgb,var(--app-bg)_25%,transparent)] text-[color-mix(in_srgb,var(--app-text)_80%,transparent)] hover:text-[var(--app-text)] hover:border-[color-mix(in_srgb,var(--app-text)_30%,transparent)]"
                     title="Edit name"
                   >
                     <Edit2 size={16} className="mx-auto" />
@@ -1335,7 +1335,7 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
                     <button
                       type="button"
                       onClick={saveName}
-                      className="h-10 w-10 rounded-full border border-[color-mix(in_srgb,var(--t-text)_15%,transparent)] bg-[color-mix(in_srgb,var(--t-bg)_25%,transparent)] text-[color-mix(in_srgb,var(--t-text)_80%,transparent)] hover:text-[var(--t-text)] hover:border-[color-mix(in_srgb,var(--t-text)_30%,transparent)]"
+                      className="h-10 w-10 rounded-full border border-[color-mix(in_srgb,var(--app-text)_15%,transparent)] bg-[color-mix(in_srgb,var(--app-bg)_25%,transparent)] text-[color-mix(in_srgb,var(--app-text)_80%,transparent)] hover:text-[var(--app-text)] hover:border-[color-mix(in_srgb,var(--app-text)_30%,transparent)]"
                       title="Save"
                     >
                       <Check size={16} className="mx-auto" />
@@ -1343,7 +1343,7 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
                     <button
                       type="button"
                       onClick={cancelEdit}
-                      className="h-10 w-10 rounded-full border border-[color-mix(in_srgb,var(--t-text)_15%,transparent)] bg-[color-mix(in_srgb,var(--t-bg)_25%,transparent)] text-[color-mix(in_srgb,var(--t-text)_80%,transparent)] hover:text-[var(--t-text)] hover:border-[color-mix(in_srgb,var(--t-text)_30%,transparent)]"
+                      className="h-10 w-10 rounded-full border border-[color-mix(in_srgb,var(--app-text)_15%,transparent)] bg-[color-mix(in_srgb,var(--app-bg)_25%,transparent)] text-[color-mix(in_srgb,var(--app-text)_80%,transparent)] hover:text-[var(--app-text)] hover:border-[color-mix(in_srgb,var(--app-text)_30%,transparent)]"
                       title="Cancel"
                     >
                       <X size={16} className="mx-auto" />
@@ -1353,13 +1353,13 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
               </div>
 
               <div className="mt-2 flex items-center gap-3 flex-wrap">
-                <div className="text-[11px] uppercase tracking-[0.25em] text-[color-mix(in_srgb,var(--t-text)_70%,transparent)] drop-shadow-[0_2px_8px_rgba(0,0,0,0.75)]">{profileId}</div>
-                <div className="h-1 w-1 rounded-full bg-[color-mix(in_srgb,var(--t-text)_25%,transparent)]" />
+                <div className="text-[11px] uppercase tracking-[0.25em] text-[color-mix(in_srgb,var(--app-text)_70%,transparent)] drop-shadow-[0_2px_8px_rgba(0,0,0,0.75)]">{profileId}</div>
+                <div className="h-1 w-1 rounded-full bg-[color-mix(in_srgb,var(--app-text)_25%,transparent)]" />
                 {!isEditingRole ? (
                   <button
                     type="button"
                     onClick={() => setIsEditingRole(true)}
-                    className="text-[11px] uppercase tracking-[0.25em] text-[var(--ui-accent)] hover:text-[var(--t-text)] drop-shadow-[0_2px_8px_rgba(0,0,0,0.65)]"
+                    className="text-[11px] uppercase tracking-[0.25em] text-[var(--ui-accent)] hover:text-[var(--app-text)] drop-shadow-[0_2px_8px_rgba(0,0,0,0.65)]"
                     title="Edit role"
                   >
                     {roleText}
@@ -1369,12 +1369,12 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
                     <input
                       value={roleText}
                       onChange={(e) => setRoleText(e.target.value)}
-                      className="h-9 px-3 rounded border border-[var(--ui-border)] bg-[color-mix(in_srgb,var(--t-bg)_30%,transparent)] text-[var(--t-text)] text-sm"
+                      className="h-9 px-3 rounded border border-[var(--ui-border)] bg-[color-mix(in_srgb,var(--app-bg)_30%,transparent)] text-[var(--app-text)] text-sm"
                     />
                     <button
                       type="button"
                       onClick={saveRole}
-                      className="h-9 px-3 rounded border border-[var(--ui-border)] bg-[var(--ui-accent)] text-[var(--t-text)] text-xs uppercase tracking-[0.2em]"
+                      className="h-9 px-3 rounded border border-[var(--ui-border)] bg-[var(--ui-accent)] text-[var(--app-text)] text-xs uppercase tracking-[0.2em]"
                     >
                       Save
                     </button>
@@ -1384,11 +1384,11 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
 
               {/* Progress */}
               <div className="mt-5 max-w-[520px]">
-                <div className="flex items-center justify-between text-[10px] uppercase tracking-[0.25em] text-[color-mix(in_srgb,var(--t-text)_70%,transparent)] drop-shadow-[0_2px_8px_rgba(0,0,0,0.75)]">
+                <div className="flex items-center justify-between text-[10px] uppercase tracking-[0.25em] text-[color-mix(in_srgb,var(--app-text)_70%,transparent)] drop-shadow-[0_2px_8px_rgba(0,0,0,0.75)]">
                   <span>XP</span>
                   <span>{totalXP} • {nextConfig ? `${nextConfig.threshold - totalXP} to L${nextConfig.level}` : 'Max'}</span>
                 </div>
-                <div className="mt-2 h-2 rounded bg-[color-mix(in_srgb,var(--t-bg)_35%,transparent)] border border-[color-mix(in_srgb,var(--t-text)_10%,transparent)] overflow-hidden">
+                <div className="mt-2 h-2 rounded bg-[color-mix(in_srgb,var(--app-bg)_35%,transparent)] border border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] overflow-hidden">
                   <div className="h-full bg-[var(--ui-accent)]" style={{ width: `${Math.min(100, Math.max(0, levelProgress))}%` }} />
                 </div>
               </div>
@@ -1406,7 +1406,7 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
       </div>
 
       {/* Tabs */}
-      <div className="mt-6 flex items-center border-b border-[color-mix(in_srgb,var(--t-text)_10%,transparent)] pb-3 mb-6 gap-2 flex-wrap">
+      <div className="mt-6 flex items-center border-b border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] pb-3 mb-6 gap-2 flex-wrap">
         <TabButton label="PROFILE" value="PROFILE" icon={<User size={14} />} />
         <TabButton label="HEALTH" value="HEALTH" icon={<Activity size={14} />} />
         <TabButton label="ACHIEVEMENTS" value="ACHIEVEMENTS" icon={<Award size={14} />} />
@@ -1425,9 +1425,9 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
 const StatBar: React.FC<{ label: string; value: number; highlight?: boolean }> = ({ label, value, highlight }) => (
   <div className="space-y-1">
     <div className={`text-[11px] uppercase tracking-[0.2em] ${highlight ? 'text-[var(--ui-accent)]' : 'text-[var(--ui-muted)]'}`}>{label}</div>
-    <div className="w-full h-2 bg-[color-mix(in_srgb,var(--t-bg)_20%,transparent)] border border-[var(--ui-border)] rounded">
+    <div className="w-full h-2 bg-[color-mix(in_srgb,var(--app-bg)_20%,transparent)] border border-[var(--ui-border)] rounded">
       <div
-        className={`${highlight ? 'bg-[var(--ui-accent)]' : 'bg-[color-mix(in_srgb,var(--t-text)_20%,transparent)]'} h-full rounded`}
+        className={`${highlight ? 'bg-[var(--ui-accent)]' : 'bg-[color-mix(in_srgb,var(--app-text)_20%,transparent)]'} h-full rounded`}
         style={{ width: `${Math.min(100, Math.max(0, value))}%` }}
       />
     </div>

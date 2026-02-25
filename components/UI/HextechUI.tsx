@@ -24,25 +24,25 @@ export const HexButton: React.FC<ButtonProps> = ({
 
   const variants = {
     primary:
-      "bg-[var(--t-text)] text-[var(--t-bg)] border-[var(--t-text)] " +
-      "hover:bg-[var(--t-accent)] hover:border-[var(--t-accent)] hover:text-[var(--t-text)] " +
+      "bg-[var(--app-text)] text-[var(--app-bg)] border-[var(--app-text)] " +
+      "hover:bg-[var(--app-accent)] hover:border-[var(--app-accent)] hover:text-[var(--app-text)] " +
       "active:translate-y-[1px]",
     
     secondary:
-      "bg-transparent border-[var(--t-border)] text-[var(--t-muted)] " +
-      "hover:border-[var(--t-text)] hover:text-[var(--t-text)] hover:bg-[color-mix(in_srgb,var(--t-text)_5%,transparent)] " +
+      "bg-transparent border-[var(--app-border)] text-[var(--app-muted)] " +
+      "hover:border-[var(--app-text)] hover:text-[var(--app-text)] hover:bg-[color-mix(in_srgb,var(--app-text)_5%,transparent)] " +
       "active:translate-y-[1px]",
 
     ghost:
-      "border-transparent text-[var(--t-muted)] hover:text-[var(--t-accent)] hover:bg-[color-mix(in_srgb,var(--t-text)_5%,transparent)]",
+      "border-transparent text-[var(--app-muted)] hover:text-[var(--app-accent)] hover:bg-[color-mix(in_srgb,var(--app-text)_5%,transparent)]",
 
     danger:
-      "bg-transparent border-[var(--t-danger)] text-[var(--t-danger)] " +
-      "hover:bg-[color-mix(in_srgb,var(--t-danger)_15%,transparent)] hover:text-[var(--t-text)] hover:border-[var(--t-danger)]",
+      "bg-transparent border-[var(--app-danger)] text-[var(--app-danger)] " +
+      "hover:bg-[color-mix(in_srgb,var(--app-danger)_15%,transparent)] hover:text-[var(--app-text)] hover:border-[var(--app-danger)]",
 
     play:
-      "bg-[var(--t-accent)] border-[var(--t-accent)] text-[var(--t-text)] text-sm " +
-      "hover:bg-[var(--t-text)] hover:text-[var(--t-bg)] hover:border-[var(--t-text)] " +
+      "bg-[var(--app-accent)] border-[var(--app-accent)] text-[var(--app-text)] text-sm " +
+      "hover:bg-[var(--app-text)] hover:text-[var(--app-bg)] hover:border-[var(--app-text)] " +
       "clip-cut-corner"
   };
 
@@ -62,8 +62,8 @@ export const HexButton: React.FC<ButtonProps> = ({
       {/* Technical Corner Markers for primary buttons */}
       {variant === 'primary' && (
         <>
-          <div className="absolute top-0 left-0 w-1 h-1 bg-[var(--t-bg)] z-10" />
-          <div className="absolute bottom-0 right-0 w-1 h-1 bg-[var(--t-bg)] z-10" />
+          <div className="absolute top-0 left-0 w-1 h-1 bg-[var(--app-bg)] z-10" />
+          <div className="absolute bottom-0 right-0 w-1 h-1 bg-[var(--app-bg)] z-10" />
         </>
       )}
       {children}
@@ -76,12 +76,12 @@ export const HexPanel: React.FC<{ children: React.ReactNode; className?: string 
   children,
   className = ""
 }) => (
-  <div className={`relative bg-[var(--t-bg)] border border-[var(--t-border)] rounded-[var(--t-radius-md)] ${className}`}>
+  <div className={`relative bg-[var(--app-bg)] border border-[var(--app-border)] rounded-[var(--app-radius-md)] ${className}`}>
     {/* Corner Brackets */}
-    <div className="absolute -top-[1px] -left-[1px] w-3 h-3 border-t-2 border-l-2 border-[color-mix(in_srgb,var(--t-text)_50%,transparent)]" />
-    <div className="absolute -top-[1px] -right-[1px] w-3 h-3 border-t-2 border-r-2 border-[color-mix(in_srgb,var(--t-text)_50%,transparent)]" />
-    <div className="absolute -bottom-[1px] -left-[1px] w-3 h-3 border-b-2 border-l-2 border-[color-mix(in_srgb,var(--t-text)_50%,transparent)]" />
-    <div className="absolute -bottom-[1px] -right-[1px] w-3 h-3 border-b-2 border-r-2 border-[color-mix(in_srgb,var(--t-text)_50%,transparent)]" />
+    <div className="absolute -top-[1px] -left-[1px] w-3 h-3 border-t-2 border-l-2 border-[color-mix(in_srgb,var(--app-text)_50%,transparent)]" />
+    <div className="absolute -top-[1px] -right-[1px] w-3 h-3 border-t-2 border-r-2 border-[color-mix(in_srgb,var(--app-text)_50%,transparent)]" />
+    <div className="absolute -bottom-[1px] -left-[1px] w-3 h-3 border-b-2 border-l-2 border-[color-mix(in_srgb,var(--app-text)_50%,transparent)]" />
+    <div className="absolute -bottom-[1px] -right-[1px] w-3 h-3 border-b-2 border-r-2 border-[color-mix(in_srgb,var(--app-text)_50%,transparent)]" />
     
     {/* Background Grid Texture */}
     <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0IiBoZWlnaHQ9IjQiPgo8cmVjdCB3aWR0aD0iMSIgaGVpZ2h0PSIxIiBmaWxsPSIjMzMzIiBmaWxsLW9wYWNpdHk9IjAuMiIvPgo8L3N2Zz4=')] pointer-events-none opacity-50" />
@@ -110,13 +110,13 @@ export const HexCard: React.FC<{ children: React.ReactNode; className?: string; 
       onClick={onClick ? handleClick : undefined}
       onMouseEnter={onClick ? playHoverSound : undefined}
       className={`
-        relative bg-[var(--t-panel-2)] border border-[var(--t-border)] p-4 transition-all duration-200 rounded-[var(--t-radius-md)] 
-        group hover:border-[var(--t-text)]
+        relative bg-[var(--app-panel-2)] border border-[var(--app-border)] p-4 transition-all duration-200 rounded-[var(--app-radius-md)] 
+        group hover:border-[var(--app-text)]
         ${className}
       `}
     >
       {/* Hover Highlight Line */}
-      <div className="absolute top-0 left-0 h-full w-[2px] bg-[var(--t-accent)] opacity-0 group-hover:opacity-100 transition-opacity" />
+      <div className="absolute top-0 left-0 h-full w-[2px] bg-[var(--app-accent)] opacity-0 group-hover:opacity-100 transition-opacity" />
       {children}
     </div>
   );
@@ -124,8 +124,8 @@ export const HexCard: React.FC<{ children: React.ReactNode; className?: string; 
 
 // DIVIDER – Technical dashed line
 export const HexDivider: React.FC = () => (
-  <div className="my-6 w-full h-px bg-[var(--t-border)] flex items-center justify-center">
-    <div className="bg-[var(--t-bg)] px-2 text-[var(--t-border)] text-[10px] tracking-[0.2em] font-mono">
+  <div className="my-6 w-full h-px bg-[var(--app-border)] flex items-center justify-center">
+    <div className="bg-[var(--app-bg)] px-2 text-[var(--app-border)] text-[10px] tracking-[0.2em] font-mono">
       ///
     </div>
   </div>
@@ -149,10 +149,10 @@ export const NavTab: React.FC<NavTabProps> = ({ label, isActive, onClick }) => {
       onClick={handleClick}
       onMouseEnter={playHoverSound}
       className={`relative h-full px-8 font-mono uppercase tracking-[0.15em] text-xs font-bold
-        transition-all duration-200 border-r border-[var(--t-border)] group overflow-hidden flex items-center justify-center
+        transition-all duration-200 border-r border-[var(--app-border)] group overflow-hidden flex items-center justify-center
         ${isActive 
-          ? 'text-[var(--t-bg)] bg-[var(--t-text)] shadow-[inset_0_0_20px_rgba(0,0,0,0.1)]' 
-          : 'text-[var(--t-muted)] hover:text-[var(--t-accent)] hover:bg-[color-mix(in_srgb,var(--t-accent)_5%,transparent)]'}
+          ? 'text-[var(--app-bg)] bg-[var(--app-text)] shadow-[inset_0_0_20px_rgba(0,0,0,0.1)]' 
+          : 'text-[var(--app-muted)] hover:text-[var(--app-accent)] hover:bg-[color-mix(in_srgb,var(--app-accent)_5%,transparent)]'}
       `}
     >
       {/* Active Background Pattern */}
@@ -163,7 +163,7 @@ export const NavTab: React.FC<NavTabProps> = ({ label, isActive, onClick }) => {
       <span className={`relative z-10 flex items-center gap-2 ${!isActive ? 'hover-text-glitch' : ''}`}>
         {/* Terminal Activation Cursor */}
         {isActive && (
-          <span className="text-[var(--t-accent)] animate-blink font-black">
+          <span className="text-[var(--app-accent)] animate-blink font-black">
             {'>'}
           </span>
         )}
@@ -173,16 +173,16 @@ export const NavTab: React.FC<NavTabProps> = ({ label, isActive, onClick }) => {
       {/* Active Indicators - Terminal Highlights */}
       {isActive && (
         <>
-          <div className="absolute top-0 left-0 w-full h-[2px] bg-[var(--t-accent)]" />
-          <div className="absolute bottom-0 right-0 w-3 h-3 bg-[var(--t-accent)]" />
-          <div className="absolute top-0 right-0 w-1 h-1 bg-[var(--t-bg)]" />
-          <div className="absolute bottom-0 left-0 w-1 h-1 bg-[var(--t-bg)]" />
+          <div className="absolute top-0 left-0 w-full h-[2px] bg-[var(--app-accent)]" />
+          <div className="absolute bottom-0 right-0 w-3 h-3 bg-[var(--app-accent)]" />
+          <div className="absolute top-0 right-0 w-1 h-1 bg-[var(--app-bg)]" />
+          <div className="absolute bottom-0 left-0 w-1 h-1 bg-[var(--app-bg)]" />
         </>
       )}
       
       {/* Hover decorative line */}
       {!isActive && (
-        <div className="absolute bottom-0 left-0 h-[2px] w-0 bg-[var(--t-accent)] group-hover:w-full transition-all duration-300" />
+        <div className="absolute bottom-0 left-0 h-[2px] w-0 bg-[var(--app-accent)] group-hover:w-full transition-all duration-300" />
       )}
     </button>
   );

@@ -105,14 +105,14 @@ export const TopBar: React.FC<TopBarProps> = ({
 
   return (
     <>
-      <div className="h-[60px] bg-[color-mix(in_srgb,var(--t-panel)_82%,transparent)] backdrop-blur-sm border-b border-[var(--t-border)] flex items-center relative z-40 select-none">
+      <div className="h-[60px] bg-[color-mix(in_srgb,var(--app-panel)_82%,transparent)] backdrop-blur-sm border-b border-[var(--app-border)] flex items-center relative z-40 select-none">
       
       {/* Left: Play Button */}
-      <div className="flex items-center h-full border-r border-[var(--t-border)] pl-2 pr-6 gap-4">
+      <div className="flex items-center h-full border-r border-[var(--app-border)] pl-2 pr-6 gap-4">
         <button 
             onClick={() => { playClickSound(); onPlayClick(); }}
             onMouseEnter={playHoverSound}
-            className="group relative flex items-center gap-3 px-4 py-2 hover:bg-[var(--t-panel-2)] hover:text-[var(--t-text)] transition-colors"
+            className="group relative flex items-center gap-3 px-4 py-2 hover:bg-[var(--app-panel-2)] hover:text-[var(--app-text)] transition-colors"
         >
             <div className="w-8 h-8 flex items-center justify-center border border-current">
                  <Play size={14} className="fill-current" />
@@ -137,7 +137,7 @@ export const TopBar: React.FC<TopBarProps> = ({
       </div>
 
       {/* Right: Assistant, Currency & System */}
-      <div className="flex items-center px-6 h-full border-l border-[var(--t-border)] gap-6 bg-[var(--t-panel)]">
+      <div className="flex items-center px-6 h-full border-l border-[var(--app-border)] gap-6 bg-[var(--app-panel)]">
         {/* AI Assistant Toggle (Moved here) */}
         <button 
             id="hextech-assistant-toggle"
@@ -146,10 +146,10 @@ export const TopBar: React.FC<TopBarProps> = ({
             className={`
                 group relative flex items-center justify-center gap-2 w-32 h-10 border transition-all duration-300 mr-2
                 ${isAssistantOpen 
-                    ? 'bg-[var(--t-accent)] border-[var(--t-accent)] text-[var(--t-text)]' 
+                    ? 'bg-[var(--app-accent)] border-[var(--app-accent)] text-[var(--app-text)]' 
                     : activeTasksCount > 0
-                        ? 'bg-[color-mix(in_srgb,var(--t-accent)_16%,transparent)] border-[var(--t-accent)] text-[var(--t-accent)] shadow-[var(--t-glow-accent)]'
-                        : 'bg-transparent border-[var(--t-border)] text-[var(--t-muted)] hover:border-[var(--t-accent)] hover:text-[var(--t-text)]'
+                        ? 'bg-[color-mix(in_srgb,var(--app-accent)_16%,transparent)] border-[var(--app-accent)] text-[var(--app-accent)] shadow-[var(--app-glow-accent)]'
+                        : 'bg-transparent border-[var(--app-border)] text-[var(--app-muted)] hover:border-[var(--app-accent)] hover:text-[var(--app-text)]'
                 }
             `}
         >
@@ -159,65 +159,65 @@ export const TopBar: React.FC<TopBarProps> = ({
 
         {/* Server Status Indicator -> Active Mission Count */}
         <div className="flex items-center gap-2 mr-4 min-w-[60px] justify-end">
-             <div className={`w-2 h-2 rounded-full ${activeTasksCount > 0 ? 'bg-[var(--t-accent)] animate-pulse shadow-[var(--t-glow-accent)]' : 'bg-[var(--t-border)]'}`}></div>
+             <div className={`w-2 h-2 rounded-full ${activeTasksCount > 0 ? 'bg-[var(--app-accent)] animate-pulse shadow-[var(--app-glow-accent)]' : 'bg-[var(--app-border)]'}`}></div>
              {activeTasksCount > 0 ? (
-                 <span className="text-[10px] text-[var(--t-accent)] font-mono uppercase font-bold tracking-widest">ACTIVE: {activeTasksCount}</span>
+                 <span className="text-[10px] text-[var(--app-accent)] font-mono uppercase font-bold tracking-widest">ACTIVE: {activeTasksCount}</span>
              ) : (
                  <div className="flex gap-1 h-2 items-center">
-                    <div className="w-1 h-1 bg-[var(--t-muted)] animate-bounce [animation-duration:1s]"></div>
-                    <div className="w-1 h-1 bg-[var(--t-muted)] animate-bounce [animation-duration:1s] [animation-delay:0.1s]"></div>
-                    <div className="w-1 h-1 bg-[var(--t-muted)] animate-bounce [animation-duration:1s] [animation-delay:0.2s]"></div>
+                    <div className="w-1 h-1 bg-[var(--app-muted)] animate-bounce [animation-duration:1s]"></div>
+                    <div className="w-1 h-1 bg-[var(--app-muted)] animate-bounce [animation-duration:1s] [animation-delay:0.1s]"></div>
+                    <div className="w-1 h-1 bg-[var(--app-muted)] animate-bounce [animation-duration:1s] [animation-delay:0.2s]"></div>
                  </div>
              )}
         </div>
 
         {/* XP Summary */}
         <div className="flex flex-col items-end font-mono text-xs gap-0.5">
-            <div className="text-[9px] uppercase tracking-[0.2em] text-[var(--t-muted)]">Today</div>
-            <div className="flex items-center gap-2 text-[var(--t-text)]">
+            <div className="text-[9px] uppercase tracking-[0.2em] text-[var(--app-muted)]">Today</div>
+            <div className="flex items-center gap-2 text-[var(--app-text)]">
                 <span className="font-bold tracking-wider">{todayTrackedMinutes}</span>
-                <span className="text-[var(--t-muted)] text-[10px]">/ {todayTargetMinutes}</span>
+                <span className="text-[var(--app-muted)] text-[10px]">/ {todayTargetMinutes}</span>
             </div>
-            <div className="flex items-center gap-2 text-[color-mix(in_srgb,var(--t-text)_82%,var(--t-muted))]">
+            <div className="flex items-center gap-2 text-[color-mix(in_srgb,var(--app-text)_82%,var(--app-muted))]">
                 <span className="text-[10px] uppercase tracking-[0.2em]">{stats.evaluationLabel}</span>
-                <span className="text-[10px] text-[var(--t-muted)]">{todayProgressPct}%</span>
+                <span className="text-[10px] text-[var(--app-muted)]">{todayProgressPct}%</span>
             </div>
         </div>
 
         <div className="flex flex-col items-end font-mono text-xs gap-0.5">
-            <div className="text-[9px] uppercase tracking-[0.2em] text-[var(--t-muted)]">Today Min</div>
-            <div className="flex items-center gap-2 text-[var(--t-text)]">
+            <div className="text-[9px] uppercase tracking-[0.2em] text-[var(--app-muted)]">Today Min</div>
+            <div className="flex items-center gap-2 text-[var(--app-text)]">
                 <span className="font-bold tracking-wider">{todayTrackedMinutes} MIN</span>
             </div>
-            <div className="text-[10px] text-[var(--t-muted)]">Daily tracked</div>
+            <div className="text-[10px] text-[var(--app-muted)]">Daily tracked</div>
         </div>
 
         {authStatus === 'loadingCloud' ? (
-          <div className="text-[10px] uppercase tracking-[0.2em] text-[var(--t-accent)]">Syncing...</div>
+          <div className="text-[10px] uppercase tracking-[0.2em] text-[var(--app-accent)]">Syncing...</div>
         ) : null}
 
         {/* Auth (minimal UI) */}
         <div className="flex items-center gap-2 min-w-[180px] justify-end">
             {loading ? (
-                <span className="text-[11px] text-[var(--t-muted)] font-mono">…</span>
+                <span className="text-[11px] text-[var(--app-muted)] font-mono">…</span>
             ) : null}
             {user ? (
                 <>
-                    <div className="w-7 h-7 rounded-full overflow-hidden border border-[color-mix(in_srgb,var(--t-border)_70%,var(--t-text))] bg-[var(--t-panel-2)] flex items-center justify-center text-[10px] text-[var(--t-text)]">
+                    <div className="w-7 h-7 rounded-full overflow-hidden border border-[color-mix(in_srgb,var(--app-border)_70%,var(--app-text))] bg-[var(--app-panel-2)] flex items-center justify-center text-[10px] text-[var(--app-text)]">
                         {user.avatar ? (
                           <img src={user.avatar} alt="user avatar" className="w-full h-full object-cover" />
                         ) : (
                           <span>{userInitial}</span>
                         )}
                     </div>
-                    <span className="text-[10px] text-[color-mix(in_srgb,var(--t-text)_82%,var(--t-muted))] max-w-[140px] truncate">{userLabel}</span>
+                    <span className="text-[10px] text-[color-mix(in_srgb,var(--app-text)_82%,var(--app-muted))] max-w-[140px] truncate">{userLabel}</span>
                     <button
                         onMouseEnter={playHoverSound}
                         onClick={() => {
                             playClickSound();
                             void signOut();
                         }}
-                        className="h-8 px-3 border border-[var(--t-border)] text-[9px] uppercase tracking-[0.2em] text-[var(--t-text)] hover:border-[var(--t-accent)] hover:text-[var(--t-accent)] transition-colors"
+                        className="h-8 px-3 border border-[var(--app-border)] text-[9px] uppercase tracking-[0.2em] text-[var(--app-text)] hover:border-[var(--app-accent)] hover:text-[var(--app-accent)] transition-colors"
                     >
                         Logout
                     </button>
@@ -229,25 +229,25 @@ export const TopBar: React.FC<TopBarProps> = ({
                         playClickSound();
                         openLoginModal();
                     }}
-                    className="h-8 px-3 border border-[var(--t-border)] text-[9px] uppercase tracking-[0.2em] transition-colors text-[var(--t-text)] hover:border-[var(--t-accent)] hover:text-[var(--t-accent)]"
+                    className="h-8 px-3 border border-[var(--app-border)] text-[9px] uppercase tracking-[0.2em] transition-colors text-[var(--app-text)] hover:border-[var(--app-accent)] hover:text-[var(--app-accent)]"
                 >
                     LOGIN
                 </button>
             ) : null}
             {import.meta.env.DEV && error && (
-              <span className="text-[9px] text-[var(--t-accent)] max-w-[120px] truncate" title={error}>
+              <span className="text-[9px] text-[var(--app-accent)] max-w-[120px] truncate" title={error}>
                 {error}
               </span>
             )}
         </div>
 
-        <div className="w-[1px] h-6 bg-[var(--t-border)]"></div>
+        <div className="w-[1px] h-6 bg-[var(--app-border)]"></div>
 
         {/* System Icons */}
-        <div className="flex items-center gap-1 text-[var(--t-muted)]">
-            <button onMouseEnter={playHoverSound} onClick={playClickSound} className="hover:text-[var(--t-text)] p-2 transition-colors"><Trophy size={16} /></button>
-            <button onMouseEnter={playHoverSound} onClick={playClickSound} className="hover:text-[var(--t-text)] p-2 transition-colors"><Bell size={16} /></button>
-            <button onMouseEnter={playHoverSound} onClick={() => onChangeView(ClientView.SETTINGS)} className="hover:text-[var(--t-text)] p-2 transition-colors"><Settings size={16} /></button>
+        <div className="flex items-center gap-1 text-[var(--app-muted)]">
+            <button onMouseEnter={playHoverSound} onClick={playClickSound} className="hover:text-[var(--app-text)] p-2 transition-colors"><Trophy size={16} /></button>
+            <button onMouseEnter={playHoverSound} onClick={playClickSound} className="hover:text-[var(--app-text)] p-2 transition-colors"><Bell size={16} /></button>
+            <button onMouseEnter={playHoverSound} onClick={() => onChangeView(ClientView.SETTINGS)} className="hover:text-[var(--app-text)] p-2 transition-colors"><Settings size={16} /></button>
         </div>
       </div>
       </div>
@@ -285,7 +285,7 @@ export const TopBar: React.FC<TopBarProps> = ({
                 }}
                 className={`ui-pressable h-9 border text-[10px] font-semibold uppercase tracking-[0.2em] ${
                   authMode === 'login'
-                    ? 'border-[var(--ui-accent)] bg-[color-mix(in_srgb,var(--t-accent)_20%,transparent)] text-[var(--ui-text)]'
+                    ? 'border-[var(--ui-accent)] bg-[color-mix(in_srgb,var(--app-accent)_20%,transparent)] text-[var(--ui-text)]'
                     : 'border-[var(--ui-border)] bg-[var(--ui-panel-2)] text-[var(--ui-muted)]'
                 }`}
               >
@@ -299,7 +299,7 @@ export const TopBar: React.FC<TopBarProps> = ({
                 }}
                 className={`ui-pressable h-9 border text-[10px] font-semibold uppercase tracking-[0.2em] ${
                   authMode === 'signup'
-                    ? 'border-[var(--ui-accent)] bg-[color-mix(in_srgb,var(--t-accent)_20%,transparent)] text-[var(--ui-text)]'
+                    ? 'border-[var(--ui-accent)] bg-[color-mix(in_srgb,var(--app-accent)_20%,transparent)] text-[var(--ui-text)]'
                     : 'border-[var(--ui-border)] bg-[var(--ui-panel-2)] text-[var(--ui-muted)]'
                 }`}
               >
@@ -342,7 +342,7 @@ export const TopBar: React.FC<TopBarProps> = ({
                 type="button"
                 onClick={() => void handlePrimaryAuthSubmit()}
                 disabled={isAuthSubmitting}
-                className="ui-pressable flex h-10 items-center justify-center gap-2 border border-[var(--ui-accent)] bg-[color-mix(in_srgb,var(--t-accent)_20%,transparent)] text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--ui-text)] hover:bg-[color-mix(in_srgb,var(--t-accent)_28%,transparent)] disabled:cursor-not-allowed disabled:opacity-60"
+                className="ui-pressable flex h-10 items-center justify-center gap-2 border border-[var(--ui-accent)] bg-[color-mix(in_srgb,var(--app-accent)_20%,transparent)] text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--ui-text)] hover:bg-[color-mix(in_srgb,var(--app-accent)_28%,transparent)] disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {authMode === 'login' ? 'Login' : 'Sign Up'}
               </button>

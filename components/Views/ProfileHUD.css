@@ -1,11 +1,11 @@
 .profile-hud-theme .profile-content-surface {
-  --hud-card-bg: linear-gradient(180deg, var(--t-panel-2) 0%, var(--t-panel) 100%);
-  --hud-card-bg-soft: linear-gradient(180deg, var(--t-panel) 0%, var(--t-bg) 100%);
-  --hud-border: color-mix(in srgb, var(--t-text) 14%, transparent);
-  --hud-border-soft: color-mix(in srgb, var(--t-text) 10%, transparent);
-  --hud-text: var(--t-text);
-  --hud-muted: var(--t-muted);
-  --hud-accent: var(--t-accent);
+  --hud-card-bg: linear-gradient(180deg, var(--app-panel-2) 0%, var(--app-panel) 100%);
+  --hud-card-bg-soft: linear-gradient(180deg, var(--app-panel) 0%, var(--app-bg) 100%);
+  --hud-border: color-mix(in srgb, var(--app-text) 14%, transparent);
+  --hud-border-soft: color-mix(in srgb, var(--app-text) 10%, transparent);
+  --hud-text: var(--app-text);
+  --hud-muted: var(--app-muted);
+  --hud-accent: var(--app-accent);
 }
 
 .profile-hud-theme .profile-content-surface [class*='bg-white'] {
@@ -48,35 +48,35 @@
 .profile-hud-theme .profile-content-surface input,
 .profile-hud-theme .profile-content-surface textarea,
 .profile-hud-theme .profile-content-surface select {
-  background: var(--t-panel-2) !important;
+  background: var(--app-panel-2) !important;
   border-color: var(--hud-border) !important;
   color: var(--hud-text) !important;
 }
 
 .profile-hud-theme .profile-content-surface input::placeholder,
 .profile-hud-theme .profile-content-surface textarea::placeholder {
-  color: var(--t-muted) !important;
+  color: var(--app-muted) !important;
 }
 
 .profile-hud-theme .profile-content-surface input:focus,
 .profile-hud-theme .profile-content-surface textarea:focus,
 .profile-hud-theme .profile-content-surface select:focus {
-  border-color: color-mix(in srgb, var(--t-accent) 60%, transparent) !important;
-  box-shadow: 0 0 0 1px color-mix(in srgb, var(--t-accent) 25%, transparent);
+  border-color: color-mix(in srgb, var(--app-accent) 60%, transparent) !important;
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--app-accent) 25%, transparent);
 }
 
 .profile-hud-theme .profile-content-surface select option {
-  background: var(--t-panel);
+  background: var(--app-panel);
   color: var(--hud-text);
 }
 
 .profile-hud-theme .profile-content-surface button[class*='bg-white'] {
-  background: var(--t-panel) !important;
+  background: var(--app-panel) !important;
   border-color: var(--hud-border) !important;
   color: var(--hud-text) !important;
 }
 
 .profile-hud-theme .profile-content-surface [class*='rounded-lg'],
 .profile-hud-theme .profile-content-surface [class*='rounded-md'] {
-  box-shadow: var(--t-shadow-soft);
+  box-shadow: var(--app-shadow-soft);
 }

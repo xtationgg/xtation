@@ -84,13 +84,13 @@ export const Activity: React.FC = () => {
   }, [selectors, weekKeys, todayKey, now]);
 
   return (
-    <div className="space-y-4 text-[var(--t-text)]">
-      <div className="rounded-2xl border border-[color-mix(in_srgb,var(--t-text)_10%,transparent)] bg-gradient-to-b from-[color-mix(in_srgb,var(--t-panel-2)_90%,var(--t-panel))] to-[var(--t-panel)] shadow-[0_12px_28px_rgba(0,0,0,0.45)] p-4">
+    <div className="space-y-4 text-[var(--app-text)]">
+      <div className="rounded-2xl border border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-gradient-to-b from-[color-mix(in_srgb,var(--app-panel-2)_90%,var(--app-panel))] to-[var(--app-panel)] shadow-[0_12px_28px_rgba(0,0,0,0.45)] p-4">
         <div className="flex items-center justify-between gap-3 flex-wrap">
           <div>
-            <div className="text-[10px] text-[var(--t-muted)] tracking-[0.3em] uppercase">Profile</div>
-            <div className="text-xl font-medium tracking-[0.08em] uppercase text-[var(--t-text)]">Activity</div>
-            <div className="text-xs text-[var(--t-muted)] mt-1">
+            <div className="text-[10px] text-[var(--app-muted)] tracking-[0.3em] uppercase">Profile</div>
+            <div className="text-xl font-medium tracking-[0.08em] uppercase text-[var(--app-text)]">Activity</div>
+            <div className="text-xs text-[var(--app-muted)] mt-1">
               {mode === 'TODAY' ? formatTodayLabel(todayKey) : weekRangeLabel}
             </div>
           </div>
@@ -100,8 +100,8 @@ export const Activity: React.FC = () => {
               onClick={() => setMode('TODAY')}
               className={`px-3 py-2 rounded-md border text-[10px] tracking-[0.2em] uppercase transition-colors ${
                 mode === 'TODAY'
-                  ? 'border-[color-mix(in_srgb,var(--t-accent)_70%,transparent)] bg-[color-mix(in_srgb,var(--t-accent)_16%,var(--t-panel))] text-[var(--t-accent)]'
-                  : 'border-[color-mix(in_srgb,var(--t-text)_10%,transparent)] bg-[var(--t-panel-2)] text-[var(--t-text)] hover:border-[color-mix(in_srgb,var(--t-text)_30%,transparent)]'
+                  ? 'border-[color-mix(in_srgb,var(--app-accent)_70%,transparent)] bg-[color-mix(in_srgb,var(--app-accent)_16%,var(--app-panel))] text-[var(--app-accent)]'
+                  : 'border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-[var(--app-panel-2)] text-[var(--app-text)] hover:border-[color-mix(in_srgb,var(--app-text)_30%,transparent)]'
               }`}
             >
               Today
@@ -111,8 +111,8 @@ export const Activity: React.FC = () => {
               onClick={() => setMode('WEEK')}
               className={`px-3 py-2 rounded-md border text-[10px] tracking-[0.2em] uppercase transition-colors ${
                 mode === 'WEEK'
-                  ? 'border-[color-mix(in_srgb,var(--t-accent)_70%,transparent)] bg-[color-mix(in_srgb,var(--t-accent)_16%,var(--t-panel))] text-[var(--t-accent)]'
-                  : 'border-[color-mix(in_srgb,var(--t-text)_10%,transparent)] bg-[var(--t-panel-2)] text-[var(--t-text)] hover:border-[color-mix(in_srgb,var(--t-text)_30%,transparent)]'
+                  ? 'border-[color-mix(in_srgb,var(--app-accent)_70%,transparent)] bg-[color-mix(in_srgb,var(--app-accent)_16%,var(--app-panel))] text-[var(--app-accent)]'
+                  : 'border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-[var(--app-panel-2)] text-[var(--app-text)] hover:border-[color-mix(in_srgb,var(--app-text)_30%,transparent)]'
               }`}
             >
               Week
@@ -123,64 +123,64 @@ export const Activity: React.FC = () => {
 
       {mode === 'TODAY' ? (
         <div className="space-y-4">
-          <div className="rounded-2xl border border-[color-mix(in_srgb,var(--t-text)_10%,transparent)] bg-[var(--t-panel-2)] shadow-[0_10px_24px_rgba(0,0,0,0.35)] p-4">
-            <div className="text-sm font-medium text-[var(--t-text)] uppercase tracking-[0.16em] mb-3">Overview</div>
+          <div className="rounded-2xl border border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-[var(--app-panel-2)] shadow-[0_10px_24px_rgba(0,0,0,0.35)] p-4">
+            <div className="text-sm font-medium text-[var(--app-text)] uppercase tracking-[0.16em] mb-3">Overview</div>
             <div className="grid md:grid-cols-3 gap-3">
-              <div className="rounded-lg border border-[color-mix(in_srgb,var(--t-text)_10%,transparent)] bg-[var(--t-panel-2)] px-3 py-3">
-                <div className="text-[10px] uppercase tracking-[0.2em] text-[var(--t-muted)]">Tracked Minutes</div>
-                <div className="text-2xl font-semibold text-[var(--t-text)] mt-1">{todayOverview.trackedMinutes}</div>
+              <div className="rounded-lg border border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-[var(--app-panel-2)] px-3 py-3">
+                <div className="text-[10px] uppercase tracking-[0.2em] text-[var(--app-muted)]">Tracked Minutes</div>
+                <div className="text-2xl font-semibold text-[var(--app-text)] mt-1">{todayOverview.trackedMinutes}</div>
               </div>
-              <div className="rounded-lg border border-[color-mix(in_srgb,var(--t-text)_10%,transparent)] bg-[var(--t-panel-2)] px-3 py-3">
-                <div className="text-[10px] uppercase tracking-[0.2em] text-[var(--t-muted)]">Events Logged</div>
-                <div className="text-2xl font-semibold text-[var(--t-text)] mt-1">{todayOverview.activityCount}</div>
+              <div className="rounded-lg border border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-[var(--app-panel-2)] px-3 py-3">
+                <div className="text-[10px] uppercase tracking-[0.2em] text-[var(--app-muted)]">Events Logged</div>
+                <div className="text-2xl font-semibold text-[var(--app-text)] mt-1">{todayOverview.activityCount}</div>
               </div>
-              <div className="rounded-lg border border-[color-mix(in_srgb,var(--t-text)_10%,transparent)] bg-[var(--t-panel-2)] px-3 py-3">
-                <div className="text-[10px] uppercase tracking-[0.2em] text-[var(--t-muted)]">Completed</div>
-                <div className="text-2xl font-semibold text-[var(--t-text)] mt-1">{todayOverview.completedCount}</div>
+              <div className="rounded-lg border border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-[var(--app-panel-2)] px-3 py-3">
+                <div className="text-[10px] uppercase tracking-[0.2em] text-[var(--app-muted)]">Completed</div>
+                <div className="text-2xl font-semibold text-[var(--app-text)] mt-1">{todayOverview.completedCount}</div>
               </div>
             </div>
           </div>
 
-          <div className="rounded-2xl border border-[color-mix(in_srgb,var(--t-text)_10%,transparent)] bg-[var(--t-panel-2)] shadow-[0_10px_24px_rgba(0,0,0,0.35)] p-4">
-            <div className="text-sm font-medium text-[var(--t-text)] uppercase tracking-[0.16em] mb-3">Category Breakdown</div>
+          <div className="rounded-2xl border border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-[var(--app-panel-2)] shadow-[0_10px_24px_rgba(0,0,0,0.35)] p-4">
+            <div className="text-sm font-medium text-[var(--app-text)] uppercase tracking-[0.16em] mb-3">Category Breakdown</div>
             {todayCategories.length === 0 ? (
-              <div className="text-sm text-[var(--t-muted)]">No tracked minutes for today.</div>
+              <div className="text-sm text-[var(--app-muted)]">No tracked minutes for today.</div>
             ) : (
               <div className="space-y-2">
                 {todayCategories.map((row) => (
-                  <div key={row.category} className="flex items-center justify-between rounded border border-[color-mix(in_srgb,var(--t-text)_10%,transparent)] bg-[var(--t-panel-2)] px-3 py-2">
-                    <div className="text-sm text-[var(--t-text)]">{row.category}</div>
-                    <div className="text-xs uppercase tracking-[0.16em] text-[var(--t-muted)]">{row.minutes}m</div>
+                  <div key={row.category} className="flex items-center justify-between rounded border border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-[var(--app-panel-2)] px-3 py-2">
+                    <div className="text-sm text-[var(--app-text)]">{row.category}</div>
+                    <div className="text-xs uppercase tracking-[0.16em] text-[var(--app-muted)]">{row.minutes}m</div>
                   </div>
                 ))}
               </div>
             )}
           </div>
 
-          <div className="rounded-2xl border border-[color-mix(in_srgb,var(--t-text)_10%,transparent)] bg-[var(--t-panel-2)] shadow-[0_10px_24px_rgba(0,0,0,0.35)] p-4">
-            <div className="text-sm font-medium text-[var(--t-text)] uppercase tracking-[0.16em] mb-3">Top Quests Today</div>
+          <div className="rounded-2xl border border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-[var(--app-panel-2)] shadow-[0_10px_24px_rgba(0,0,0,0.35)] p-4">
+            <div className="text-sm font-medium text-[var(--app-text)] uppercase tracking-[0.16em] mb-3">Top Quests Today</div>
             {topTasksToday.length === 0 ? (
-              <div className="text-sm text-[var(--t-muted)]">No quest activity yet.</div>
+              <div className="text-sm text-[var(--app-muted)]">No quest activity yet.</div>
             ) : (
               <div className="space-y-2">
                 {topTasksToday.map((task) => (
-                  <div key={task.taskId} className="rounded border border-[color-mix(in_srgb,var(--t-text)_10%,transparent)] bg-[var(--t-panel-2)] px-3 py-2">
+                  <div key={task.taskId} className="rounded border border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-[var(--app-panel-2)] px-3 py-2">
                     <div className="flex items-center justify-between gap-3">
                       <div className="min-w-0">
-                        <div className="text-sm text-[var(--t-text)] truncate">{task.title}</div>
-                        <div className="text-[10px] uppercase tracking-[0.18em] text-[var(--t-muted)] mt-1">{task.category}</div>
+                        <div className="text-sm text-[var(--app-text)] truncate">{task.title}</div>
+                        <div className="text-[10px] uppercase tracking-[0.18em] text-[var(--app-muted)] mt-1">{task.category}</div>
                       </div>
-                      <div className="text-xs uppercase tracking-[0.16em] text-[var(--t-muted)] shrink-0">{task.minutes}m</div>
+                      <div className="text-xs uppercase tracking-[0.16em] text-[var(--app-muted)] shrink-0">{task.minutes}m</div>
                     </div>
                     <div className="mt-2 flex items-center gap-2 flex-wrap">
                       {task.running ? (
-                        <span className="text-[10px] rounded px-2 py-0.5 bg-[color-mix(in_srgb,var(--t-accent)_20%,var(--t-panel))] text-[var(--t-accent)]">RUNNING</span>
+                        <span className="text-[10px] rounded px-2 py-0.5 bg-[color-mix(in_srgb,var(--app-accent)_20%,var(--app-panel))] text-[var(--app-accent)]">RUNNING</span>
                       ) : null}
                       {task.doneToday ? (
-                        <span className="text-[10px] rounded px-2 py-0.5 bg-[color-mix(in_srgb,var(--t-accent)_18%,var(--t-panel))] text-[var(--t-accent)]">DONE</span>
+                        <span className="text-[10px] rounded px-2 py-0.5 bg-[color-mix(in_srgb,var(--app-accent)_18%,var(--app-panel))] text-[var(--app-accent)]">DONE</span>
                       ) : null}
                       {task.scheduledToday ? (
-                        <span className="text-[10px] rounded px-2 py-0.5 bg-[var(--t-panel-2)] text-[var(--t-text)]">SCHEDULED</span>
+                        <span className="text-[10px] rounded px-2 py-0.5 bg-[var(--app-panel-2)] text-[var(--app-text)]">SCHEDULED</span>
                       ) : null}
                     </div>
                   </div>
@@ -191,57 +191,57 @@ export const Activity: React.FC = () => {
         </div>
       ) : (
         <div className="space-y-4">
-          <div className="rounded-2xl border border-[color-mix(in_srgb,var(--t-text)_10%,transparent)] bg-[var(--t-panel-2)] shadow-[0_10px_24px_rgba(0,0,0,0.35)] p-4">
-            <div className="text-sm font-medium text-[var(--t-text)] uppercase tracking-[0.16em] mb-3">Week Overview</div>
+          <div className="rounded-2xl border border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-[var(--app-panel-2)] shadow-[0_10px_24px_rgba(0,0,0,0.35)] p-4">
+            <div className="text-sm font-medium text-[var(--app-text)] uppercase tracking-[0.16em] mb-3">Week Overview</div>
             <div className="grid md:grid-cols-3 gap-3">
-              <div className="rounded-lg border border-[color-mix(in_srgb,var(--t-text)_10%,transparent)] bg-[var(--t-panel-2)] px-3 py-3">
-                <div className="text-[10px] uppercase tracking-[0.2em] text-[var(--t-muted)]">Total Tracked</div>
-                <div className="text-2xl font-semibold text-[var(--t-text)] mt-1">{weekSummary.totalMinutes}m</div>
+              <div className="rounded-lg border border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-[var(--app-panel-2)] px-3 py-3">
+                <div className="text-[10px] uppercase tracking-[0.2em] text-[var(--app-muted)]">Total Tracked</div>
+                <div className="text-2xl font-semibold text-[var(--app-text)] mt-1">{weekSummary.totalMinutes}m</div>
               </div>
-              <div className="rounded-lg border border-[color-mix(in_srgb,var(--t-text)_10%,transparent)] bg-[var(--t-panel-2)] px-3 py-3">
-                <div className="text-[10px] uppercase tracking-[0.2em] text-[var(--t-muted)]">Avg / Day</div>
-                <div className="text-2xl font-semibold text-[var(--t-text)] mt-1">{weekSummary.avgMinutes}m</div>
+              <div className="rounded-lg border border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-[var(--app-panel-2)] px-3 py-3">
+                <div className="text-[10px] uppercase tracking-[0.2em] text-[var(--app-muted)]">Avg / Day</div>
+                <div className="text-2xl font-semibold text-[var(--app-text)] mt-1">{weekSummary.avgMinutes}m</div>
               </div>
-              <div className="rounded-lg border border-[color-mix(in_srgb,var(--t-text)_10%,transparent)] bg-[var(--t-panel-2)] px-3 py-3">
-                <div className="text-[10px] uppercase tracking-[0.2em] text-[var(--t-muted)]">Best Day</div>
-                <div className="text-sm font-semibold text-[var(--t-text)] mt-1">
+              <div className="rounded-lg border border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-[var(--app-panel-2)] px-3 py-3">
+                <div className="text-[10px] uppercase tracking-[0.2em] text-[var(--app-muted)]">Best Day</div>
+                <div className="text-sm font-semibold text-[var(--app-text)] mt-1">
                   {weekSummary.bestDay.dateKey} · {weekSummary.bestDay.minutes}m
                 </div>
               </div>
             </div>
           </div>
 
-          <div className="rounded-2xl border border-[color-mix(in_srgb,var(--t-text)_10%,transparent)] bg-[var(--t-panel-2)] shadow-[0_10px_24px_rgba(0,0,0,0.35)] p-4">
-            <div className="text-sm font-medium text-[var(--t-text)] uppercase tracking-[0.16em] mb-3">Daily Bars</div>
+          <div className="rounded-2xl border border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-[var(--app-panel-2)] shadow-[0_10px_24px_rgba(0,0,0,0.35)] p-4">
+            <div className="text-sm font-medium text-[var(--app-text)] uppercase tracking-[0.16em] mb-3">Daily Bars</div>
             <div className="space-y-2">
               {weekDaily.map((day) => {
                 const widthPct = Math.round((day.minutes / weekSummary.bestMinutes) * 100);
                 return (
                   <div key={day.dateKey} className="grid grid-cols-[48px,1fr,64px] items-center gap-3">
-                    <div className="text-xs uppercase tracking-[0.18em] text-[var(--t-muted)]">{formatDayLabel(day.dateKey)}</div>
-                    <div className="h-2 rounded bg-[var(--t-panel)] border border-[color-mix(in_srgb,var(--t-text)_10%,transparent)] overflow-hidden">
+                    <div className="text-xs uppercase tracking-[0.18em] text-[var(--app-muted)]">{formatDayLabel(day.dateKey)}</div>
+                    <div className="h-2 rounded bg-[var(--app-panel)] border border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] overflow-hidden">
                       <div
-                        className="h-full bg-gradient-to-r from-[var(--t-accent)] to-[var(--t-accent)]"
+                        className="h-full bg-gradient-to-r from-[var(--app-accent)] to-[var(--app-accent)]"
                         style={{ width: `${Math.max(3, widthPct)}%` }}
                       />
                     </div>
-                    <div className="text-xs uppercase tracking-[0.16em] text-[var(--t-muted)] text-right">{day.minutes}m</div>
+                    <div className="text-xs uppercase tracking-[0.16em] text-[var(--app-muted)] text-right">{day.minutes}m</div>
                   </div>
                 );
               })}
             </div>
           </div>
 
-          <div className="rounded-2xl border border-[color-mix(in_srgb,var(--t-text)_10%,transparent)] bg-[var(--t-panel-2)] shadow-[0_10px_24px_rgba(0,0,0,0.35)] p-4">
-            <div className="text-sm font-medium text-[var(--t-text)] uppercase tracking-[0.16em] mb-3">Week Category Breakdown</div>
+          <div className="rounded-2xl border border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-[var(--app-panel-2)] shadow-[0_10px_24px_rgba(0,0,0,0.35)] p-4">
+            <div className="text-sm font-medium text-[var(--app-text)] uppercase tracking-[0.16em] mb-3">Week Category Breakdown</div>
             {weekCategories.length === 0 ? (
-              <div className="text-sm text-[var(--t-muted)]">No tracked minutes this week.</div>
+              <div className="text-sm text-[var(--app-muted)]">No tracked minutes this week.</div>
             ) : (
               <div className="space-y-2">
                 {weekCategories.map((row) => (
-                  <div key={row.category} className="flex items-center justify-between rounded border border-[color-mix(in_srgb,var(--t-text)_10%,transparent)] bg-[var(--t-panel-2)] px-3 py-2">
-                    <div className="text-sm text-[var(--t-text)]">{row.category}</div>
-                    <div className="text-xs uppercase tracking-[0.16em] text-[var(--t-muted)]">{row.minutes}m</div>
+                  <div key={row.category} className="flex items-center justify-between rounded border border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-[var(--app-panel-2)] px-3 py-2">
+                    <div className="text-sm text-[var(--app-text)]">{row.category}</div>
+                    <div className="text-xs uppercase tracking-[0.16em] text-[var(--app-muted)]">{row.minutes}m</div>
                   </div>
                 ))}
               </div>

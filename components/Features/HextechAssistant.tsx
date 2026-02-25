@@ -367,21 +367,21 @@ export const HextechAssistant: React.FC<HextechAssistantProps> = ({ isOpen, onCl
 
   return (
     <div ref={containerRef} className="absolute top-[64px] right-[24px] w-[420px] z-50 animate-fade-in font-mono origin-top-right">
-      <div className="relative rounded-2xl border border-[color-mix(in_srgb,var(--t-text)_10%,transparent)] bg-[color-mix(in_srgb,var(--t-bg)_90%,transparent)] backdrop-blur-xl shadow-[0_24px_55px_rgba(0,0,0,0.6)] overflow-hidden">
-        <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_20%_0%,color-mix(in_srgb,var(--t-accent)_12%,transparent),transparent_55%)] opacity-70" />
+      <div className="relative rounded-2xl border border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-[color-mix(in_srgb,var(--app-bg)_90%,transparent)] backdrop-blur-xl shadow-[0_24px_55px_rgba(0,0,0,0.6)] overflow-hidden">
+        <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_20%_0%,color-mix(in_srgb,var(--app-accent)_12%,transparent),transparent_55%)] opacity-70" />
         <div className="absolute inset-0 pointer-events-none bg-[linear-gradient(180deg,rgba(255,255,255,0.04)_0%,transparent_40%)]" />
 
         <div className="relative">
-          <div className="px-4 py-3 border-b border-[color-mix(in_srgb,var(--t-text)_10%,transparent)] bg-gradient-to-r from-[var(--t-panel)] via-[var(--t-panel-2)] to-[var(--t-panel)] flex items-center justify-between">
+          <div className="px-4 py-3 border-b border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-gradient-to-r from-[var(--app-panel)] via-[var(--app-panel-2)] to-[var(--app-panel)] flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-xl border border-[color-mix(in_srgb,var(--t-text)_10%,transparent)] bg-[var(--t-panel-2)] flex items-center justify-center shadow-[inset_0_0_12px_rgba(255,255,255,0.06)]">
-                <Terminal size={16} className="text-[var(--t-text)]" />
+              <div className="w-9 h-9 rounded-xl border border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-[var(--app-panel-2)] flex items-center justify-center shadow-[inset_0_0_12px_rgba(255,255,255,0.06)]">
+                <Terminal size={16} className="text-[var(--app-text)]" />
               </div>
-              <span className="text-xs uppercase tracking-[0.28em] text-[var(--t-text)] font-bold">Quests</span>
+              <span className="text-xs uppercase tracking-[0.28em] text-[var(--app-text)] font-bold">Quests</span>
             </div>
 
             <div className="flex items-center gap-2">
-              <div className="flex rounded-lg border border-[color-mix(in_srgb,var(--t-text)_10%,transparent)] overflow-hidden">
+              <div className="flex rounded-lg border border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] overflow-hidden">
                 <button
                   onClick={() => {
                     playClickSound();
@@ -389,8 +389,8 @@ export const HextechAssistant: React.FC<HextechAssistantProps> = ({ isOpen, onCl
                   }}
                   className={`px-3 py-1 text-[9px] uppercase tracking-[0.28em] transition ${
                     viewMode === 'active'
-                      ? 'bg-[color-mix(in_srgb,var(--t-accent)_20%,transparent)] text-[var(--t-text)]'
-                      : 'text-[var(--t-muted)] hover:text-[var(--t-text)]'
+                      ? 'bg-[color-mix(in_srgb,var(--app-accent)_20%,transparent)] text-[var(--app-text)]'
+                      : 'text-[var(--app-muted)] hover:text-[var(--app-text)]'
                   }`}
                 >
                   Active
@@ -402,8 +402,8 @@ export const HextechAssistant: React.FC<HextechAssistantProps> = ({ isOpen, onCl
                   }}
                   className={`px-3 py-1 text-[9px] uppercase tracking-[0.28em] transition ${
                     viewMode === 'log'
-                      ? 'bg-[color-mix(in_srgb,var(--t-accent)_20%,transparent)] text-[var(--t-text)]'
-                      : 'text-[var(--t-muted)] hover:text-[var(--t-text)]'
+                      ? 'bg-[color-mix(in_srgb,var(--app-accent)_20%,transparent)] text-[var(--app-text)]'
+                      : 'text-[var(--app-muted)] hover:text-[var(--app-text)]'
                   }`}
                 >
                   Log
@@ -414,7 +414,7 @@ export const HextechAssistant: React.FC<HextechAssistantProps> = ({ isOpen, onCl
                   playClickSound();
                   onClose();
                 }}
-                className="w-8 h-8 rounded-lg border border-[color-mix(in_srgb,var(--t-text)_10%,transparent)] text-[var(--t-muted)] hover:text-[var(--t-text)] hover:border-[color-mix(in_srgb,var(--t-text)_30%,transparent)] transition-colors"
+                className="w-8 h-8 rounded-lg border border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] text-[var(--app-muted)] hover:text-[var(--app-text)] hover:border-[color-mix(in_srgb,var(--app-text)_30%,transparent)] transition-colors"
                 aria-label="Close"
               >
                 <X size={14} className="mx-auto" />
@@ -423,29 +423,29 @@ export const HextechAssistant: React.FC<HextechAssistantProps> = ({ isOpen, onCl
           </div>
 
           {viewMode === 'active' && (
-            <div className="px-4 py-4 border-b border-[color-mix(in_srgb,var(--t-text)_10%,transparent)] bg-[var(--t-panel)]">
+            <div className="px-4 py-4 border-b border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-[var(--app-panel)]">
               <div className="grid gap-3">
                 {isSyncingCloud ? (
-                  <div className="text-[9px] uppercase tracking-[0.22em] text-[var(--t-accent)]">Syncing...</div>
+                  <div className="text-[9px] uppercase tracking-[0.22em] text-[var(--app-accent)]">Syncing...</div>
                 ) : null}
                 <input
                   type="text"
                   value={newTitle}
                   onChange={(event) => setNewTitle(event.target.value)}
                   placeholder="ENTER_DIRECTIVE..."
-                  className="w-full bg-[var(--t-panel-2)] border border-[color-mix(in_srgb,var(--t-text)_10%,transparent)] p-2 text-[10px] text-[var(--t-text)] placeholder-[var(--t-muted)] focus:border-[color-mix(in_srgb,var(--t-text)_40%,transparent)] focus:outline-none uppercase"
+                  className="w-full bg-[var(--app-panel-2)] border border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] p-2 text-[10px] text-[var(--app-text)] placeholder-[var(--app-muted)] focus:border-[color-mix(in_srgb,var(--app-text)_40%,transparent)] focus:outline-none uppercase"
                 />
                 <textarea
                   value={newDetails}
                   onChange={(event) => setNewDetails(event.target.value)}
                   placeholder="DETAILS / NOTES..."
-                  className="w-full bg-[var(--t-panel-2)] border border-[color-mix(in_srgb,var(--t-text)_10%,transparent)] p-2 text-[10px] text-[var(--t-text)] placeholder-[var(--t-muted)] focus:border-[color-mix(in_srgb,var(--t-text)_40%,transparent)] focus:outline-none uppercase min-h-[60px]"
+                  className="w-full bg-[var(--app-panel-2)] border border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] p-2 text-[10px] text-[var(--app-text)] placeholder-[var(--app-muted)] focus:border-[color-mix(in_srgb,var(--app-text)_40%,transparent)] focus:outline-none uppercase min-h-[60px]"
                 />
                 <div className="grid grid-cols-2 gap-2">
                   <select
                     value={newPriority}
                     onChange={(event) => setNewPriority(event.target.value as TaskPriority)}
-                    className="bg-[var(--t-panel-2)] border border-[color-mix(in_srgb,var(--t-text)_10%,transparent)] text-[9px] text-[var(--t-text)] p-2 focus:border-[color-mix(in_srgb,var(--t-text)_40%,transparent)] outline-none uppercase"
+                    className="bg-[var(--app-panel-2)] border border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] text-[9px] text-[var(--app-text)] p-2 focus:border-[color-mix(in_srgb,var(--app-text)_40%,transparent)] outline-none uppercase"
                   >
                     <option value="normal">Prio: Normal</option>
                     <option value="high">Prio: High</option>
@@ -455,7 +455,7 @@ export const HextechAssistant: React.FC<HextechAssistantProps> = ({ isOpen, onCl
                     type="datetime-local"
                     value={newSchedule}
                     onChange={(event) => setNewSchedule(event.target.value)}
-                    className="w-full bg-[var(--t-panel-2)] border border-[color-mix(in_srgb,var(--t-text)_10%,transparent)] text-[9px] text-[var(--t-text)] p-2 focus:border-[color-mix(in_srgb,var(--t-text)_40%,transparent)] outline-none [color-scheme:dark]"
+                    className="w-full bg-[var(--app-panel-2)] border border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] text-[9px] text-[var(--app-text)] p-2 focus:border-[color-mix(in_srgb,var(--app-text)_40%,transparent)] outline-none [color-scheme:dark]"
                   />
                 </div>
                 <div className="flex items-center gap-1">
@@ -469,8 +469,8 @@ export const HextechAssistant: React.FC<HextechAssistantProps> = ({ isOpen, onCl
                       }}
                       className={`p-1.5 rounded-md border transition-all ${
                         newIcon === icon
-                          ? 'bg-[var(--t-text)] text-[var(--t-bg)] border-[var(--t-text)]'
-                          : 'border-[color-mix(in_srgb,var(--t-text)_10%,transparent)] text-[var(--t-muted)] hover:border-[color-mix(in_srgb,var(--t-text)_30%,transparent)]'
+                          ? 'bg-[var(--app-text)] text-[var(--app-bg)] border-[var(--app-text)]'
+                          : 'border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] text-[var(--app-muted)] hover:border-[color-mix(in_srgb,var(--app-text)_30%,transparent)]'
                       }`}
                     >
                       <MissionIcon icon={icon} size={12} />
@@ -480,7 +480,7 @@ export const HextechAssistant: React.FC<HextechAssistantProps> = ({ isOpen, onCl
                 <HexButton
                   onClick={addQuest}
                   disabled={isSyncingCloud}
-                  className="w-full py-2 text-[10px] border border-[color-mix(in_srgb,var(--t-text)_20%,transparent)] hover:bg-[var(--t-accent)] hover:border-[var(--t-accent)]"
+                  className="w-full py-2 text-[10px] border border-[color-mix(in_srgb,var(--app-text)_20%,transparent)] hover:bg-[var(--app-accent)] hover:border-[var(--app-accent)]"
                   variant="primary"
                 >
                   Add Quest
@@ -490,8 +490,8 @@ export const HextechAssistant: React.FC<HextechAssistantProps> = ({ isOpen, onCl
           )}
 
           {viewMode === 'log' && (
-            <div className="px-4 py-2 border-b border-[color-mix(in_srgb,var(--t-text)_10%,transparent)] bg-[var(--t-panel)] flex items-center justify-between gap-2">
-              <span className="text-[var(--t-muted)] text-[9px] font-bold tracking-[0.35em] uppercase">
+            <div className="px-4 py-2 border-b border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-[var(--app-panel)] flex items-center justify-between gap-2">
+              <span className="text-[var(--app-muted)] text-[9px] font-bold tracking-[0.35em] uppercase">
                 Log: {selectedLogDateKey}
               </span>
               <button
@@ -500,7 +500,7 @@ export const HextechAssistant: React.FC<HextechAssistantProps> = ({ isOpen, onCl
                   playClickSound();
                   setShowHiddenInLog((prev) => !prev);
                 }}
-                className="px-2 py-1 rounded border border-[color-mix(in_srgb,var(--t-text)_20%,transparent)] text-[9px] uppercase tracking-[0.2em] text-[var(--t-muted)] hover:border-[color-mix(in_srgb,var(--t-text)_40%,transparent)]"
+                className="px-2 py-1 rounded border border-[color-mix(in_srgb,var(--app-text)_20%,transparent)] text-[9px] uppercase tracking-[0.2em] text-[var(--app-muted)] hover:border-[color-mix(in_srgb,var(--app-text)_40%,transparent)]"
               >
                 {showHiddenInLog ? 'Hide Hidden' : 'Show Hidden'}
               </button>
@@ -510,9 +510,9 @@ export const HextechAssistant: React.FC<HextechAssistantProps> = ({ isOpen, onCl
           <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3 custom-scrollbar min-h-[200px] max-h-[420px]">
             {viewMode === 'active' ? (
               visibleTasks.length === 0 ? (
-                <div className="rounded-xl border border-[color-mix(in_srgb,var(--t-text)_10%,transparent)] bg-[var(--t-panel-2)] p-4 text-center">
-                  <div className="text-[10px] uppercase tracking-[0.25em] text-[var(--t-muted)]">No active quests</div>
-                  <div className="text-[10px] uppercase tracking-[0.15em] text-[var(--t-muted)] mt-1">
+                <div className="rounded-xl border border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-[var(--app-panel-2)] p-4 text-center">
+                  <div className="text-[10px] uppercase tracking-[0.25em] text-[var(--app-muted)]">No active quests</div>
+                  <div className="text-[10px] uppercase tracking-[0.15em] text-[var(--app-muted)] mt-1">
                     Add a quest to start tracking time
                   </div>
                 </div>
@@ -563,9 +563,9 @@ export const HextechAssistant: React.FC<HextechAssistantProps> = ({ isOpen, onCl
                 })
               )
             ) : visibleLogGroups.length === 0 ? (
-              <div className="rounded-xl border border-[color-mix(in_srgb,var(--t-text)_10%,transparent)] bg-[var(--t-panel-2)] p-4 text-center">
-                <div className="text-[10px] uppercase tracking-[0.25em] text-[var(--t-muted)]">No quest history yet</div>
-                <div className="text-[10px] uppercase tracking-[0.15em] text-[var(--t-muted)] mt-1">
+              <div className="rounded-xl border border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-[var(--app-panel-2)] p-4 text-center">
+                <div className="text-[10px] uppercase tracking-[0.25em] text-[var(--app-muted)]">No quest history yet</div>
+                <div className="text-[10px] uppercase tracking-[0.15em] text-[var(--app-muted)] mt-1">
                   Activity from sessions, completions, and retro logs appears here
                 </div>
               </div>
@@ -627,21 +627,21 @@ export const HextechAssistant: React.FC<HextechAssistantProps> = ({ isOpen, onCl
             )}
           </div>
 
-          <div className="px-4 py-2 border-t border-[color-mix(in_srgb,var(--t-text)_10%,transparent)] bg-[var(--t-panel)] flex justify-end items-center text-[9px] text-[var(--t-muted)] uppercase tracking-[0.28em]">
+          <div className="px-4 py-2 border-t border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-[var(--app-panel)] flex justify-end items-center text-[9px] text-[var(--app-muted)] uppercase tracking-[0.28em]">
             <div className="flex items-center gap-2 text-[9px] tracking-normal">
               {import.meta.env.DEV && (
                 <>
                   <button
                     type="button"
                     onClick={handleSupabasePing}
-                    className="px-2 py-1 border border-[color-mix(in_srgb,var(--t-text)_20%,transparent)] text-[9px] text-[var(--t-text)] hover:border-[var(--t-accent)] hover:text-[var(--t-accent)] transition-colors"
+                    className="px-2 py-1 border border-[color-mix(in_srgb,var(--app-text)_20%,transparent)] text-[9px] text-[var(--app-text)] hover:border-[var(--app-accent)] hover:text-[var(--app-accent)] transition-colors"
                   >
                     SUPABASE PING
                   </button>
-                  <span className="text-[9px] tracking-normal normal-case text-[var(--t-muted)] max-w-[160px] truncate">
+                  <span className="text-[9px] tracking-normal normal-case text-[var(--app-muted)] max-w-[160px] truncate">
                     {supabasePingStatus || 'idle'}
                   </span>
-                  <span className="text-[9px] tracking-normal normal-case text-[var(--t-muted)] max-w-[200px] truncate">
+                  <span className="text-[9px] tracking-normal normal-case text-[var(--app-muted)] max-w-[200px] truncate">
                     {user?.email ? `Signed in as ${user.email}` : 'Not signed in'}
                   </span>
                 </>
@@ -733,24 +733,24 @@ const TaskCard: React.FC<{
       onMouseLeave={() => setIsHovered(false)}
       className={`relative overflow-hidden rounded-xl border px-3 py-3 transition-all ${
         isRunning
-          ? 'border-[color-mix(in_srgb,var(--t-accent)_60%,transparent)] bg-[color-mix(in_srgb,var(--t-accent)_10%,transparent)] ring-1 ring-[color-mix(in_srgb,var(--t-accent)_50%,transparent)] shadow-[0_0_24px_rgba(168,85,247,0.32)]'
-          : 'border-[color-mix(in_srgb,var(--t-text)_15%,transparent)] bg-[var(--t-panel-2)]'
+          ? 'border-[color-mix(in_srgb,var(--app-accent)_60%,transparent)] bg-[color-mix(in_srgb,var(--app-accent)_10%,transparent)] ring-1 ring-[color-mix(in_srgb,var(--app-accent)_50%,transparent)] shadow-[0_0_24px_rgba(168,85,247,0.32)]'
+          : 'border-[color-mix(in_srgb,var(--app-text)_15%,transparent)] bg-[var(--app-panel-2)]'
       } ${railVisible && !isExpanded ? 'pr-[210px]' : ''}`}
     >
       <div className="flex items-start gap-3">
-        <div className="w-9 h-9 rounded-lg border border-[color-mix(in_srgb,var(--t-text)_30%,transparent)] flex items-center justify-center shrink-0 text-[color-mix(in_srgb,var(--t-text)_90%,transparent)]">
+        <div className="w-9 h-9 rounded-lg border border-[color-mix(in_srgb,var(--app-text)_30%,transparent)] flex items-center justify-center shrink-0 text-[color-mix(in_srgb,var(--app-text)_90%,transparent)]">
           <MissionIcon icon={task.icon} size={14} />
         </div>
 
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
-            <div className="text-[9px] font-bold uppercase tracking-[0.2em] text-[var(--t-muted)]">Priority: {task.priority}</div>
-            <span className="text-[8px] uppercase tracking-[0.18em] px-1.5 py-0.5 rounded border border-[color-mix(in_srgb,var(--t-text)_15%,transparent)] text-[var(--t-muted)]">
+            <div className="text-[9px] font-bold uppercase tracking-[0.2em] text-[var(--app-muted)]">Priority: {task.priority}</div>
+            <span className="text-[8px] uppercase tracking-[0.18em] px-1.5 py-0.5 rounded border border-[color-mix(in_srgb,var(--app-text)_15%,transparent)] text-[var(--app-muted)]">
               {scheduleBadge}
             </span>
           </div>
-          <h4 className="font-bold text-[11px] truncate uppercase text-[var(--t-text)]">{task.title}</h4>
-          <div className="mt-1 flex items-center gap-2 text-[9px] uppercase tracking-[0.16em] text-[var(--t-muted)]">
+          <h4 className="font-bold text-[11px] truncate uppercase text-[var(--app-text)]">{task.title}</h4>
+          <div className="mt-1 flex items-center gap-2 text-[9px] uppercase tracking-[0.16em] text-[var(--app-muted)]">
             <Clock size={10} />
             <span>{scheduleState}</span>
             <span>·</span>
@@ -769,14 +769,14 @@ const TaskCard: React.FC<{
         {isRunning ? (
           <div className="pl-3 border-l border-violet-300/30 min-w-[120px] text-right">
             <div className="text-[9px] uppercase tracking-[0.2em] text-violet-200">Running</div>
-            <div className="text-2xl font-semibold tracking-[0.14em] text-[var(--t-text)]">{formatMinutes(daySeconds)}</div>
+            <div className="text-2xl font-semibold tracking-[0.14em] text-[var(--app-text)]">{formatMinutes(daySeconds)}</div>
           </div>
         ) : null}
       </div>
 
       {!isExpanded ? (
         <div
-          className={`absolute top-0 right-0 h-full flex items-center bg-[var(--t-bg)] border-l border-[color-mix(in_srgb,var(--t-text)_10%,transparent)] transition-all duration-200 z-20 ${
+          className={`absolute top-0 right-0 h-full flex items-center bg-[var(--app-bg)] border-l border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] transition-all duration-200 z-20 ${
             railVisible ? 'translate-x-0 opacity-100 pointer-events-auto' : 'translate-x-full opacity-0 pointer-events-none'
           }`}
         >
@@ -787,7 +787,7 @@ const TaskCard: React.FC<{
                 hideRailAnd(onStart);
               }}
               disabled={actionDisabled}
-              className="h-full px-3 hover:bg-[var(--t-text)] hover:text-[var(--t-bg)] transition-colors"
+              className="h-full px-3 hover:bg-[var(--app-text)] hover:text-[var(--app-bg)] transition-colors"
               title={hasSessions ? 'Resume session' : 'Start session'}
             >
               <Play size={14} />
@@ -800,7 +800,7 @@ const TaskCard: React.FC<{
                   hideRailAnd(onPause);
                 }}
                 disabled={actionDisabled}
-                className="h-full px-3 hover:bg-[var(--t-text)] hover:text-[var(--t-bg)] transition-colors border-l border-[color-mix(in_srgb,var(--t-text)_10%,transparent)]"
+                className="h-full px-3 hover:bg-[var(--app-text)] hover:text-[var(--app-bg)] transition-colors border-l border-[color-mix(in_srgb,var(--app-text)_10%,transparent)]"
                 title="Pause session"
               >
                 <Pause size={14} />
@@ -811,7 +811,7 @@ const TaskCard: React.FC<{
                   hideRailAnd(onStop);
                 }}
                 disabled={actionDisabled}
-                className="h-full px-3 hover:bg-[var(--t-text)] hover:text-[var(--t-bg)] transition-colors border-l border-[color-mix(in_srgb,var(--t-text)_10%,transparent)]"
+                className="h-full px-3 hover:bg-[var(--app-text)] hover:text-[var(--app-bg)] transition-colors border-l border-[color-mix(in_srgb,var(--app-text)_10%,transparent)]"
                 title="Stop session"
               >
                 <Square size={14} />
@@ -825,7 +825,7 @@ const TaskCard: React.FC<{
               hideRailAnd(onDone);
             }}
             disabled={actionDisabled}
-            className="h-full px-3 hover:bg-[var(--t-text)] hover:text-[var(--t-bg)] transition-colors border-l border-[color-mix(in_srgb,var(--t-text)_10%,transparent)]"
+            className="h-full px-3 hover:bg-[var(--app-text)] hover:text-[var(--app-bg)] transition-colors border-l border-[color-mix(in_srgb,var(--app-text)_10%,transparent)]"
             title="Complete quest"
           >
             <Check size={14} />
@@ -835,7 +835,7 @@ const TaskCard: React.FC<{
               event.stopPropagation();
               onExpand();
             }}
-            className="h-full px-3 hover:bg-[var(--t-text)] hover:text-[var(--t-bg)] transition-colors border-l border-[color-mix(in_srgb,var(--t-text)_10%,transparent)]"
+            className="h-full px-3 hover:bg-[var(--app-text)] hover:text-[var(--app-bg)] transition-colors border-l border-[color-mix(in_srgb,var(--app-text)_10%,transparent)]"
             title="Edit quest"
           >
             <Edit2 size={14} />
@@ -844,19 +844,19 @@ const TaskCard: React.FC<{
       ) : null}
 
       {isExpanded ? (
-        <div className="mt-3 pt-3 border-t border-[color-mix(in_srgb,var(--t-text)_10%,transparent)] space-y-2 animate-fade-in">
+        <div className="mt-3 pt-3 border-t border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] space-y-2 animate-fade-in">
           <div className="flex items-center justify-end gap-1">
             <button
               type="button"
               onClick={() => hideRailAnd(onSave)}
-              className="px-2 py-1 rounded border border-[color-mix(in_srgb,var(--t-text)_20%,transparent)] text-[9px] uppercase tracking-[0.2em] text-[var(--t-text)] hover:border-[color-mix(in_srgb,var(--t-text)_40%,transparent)]"
+              className="px-2 py-1 rounded border border-[color-mix(in_srgb,var(--app-text)_20%,transparent)] text-[9px] uppercase tracking-[0.2em] text-[var(--app-text)] hover:border-[color-mix(in_srgb,var(--app-text)_40%,transparent)]"
             >
               Save
             </button>
             <button
               type="button"
               onClick={() => hideRailAnd(onCancel)}
-              className="px-2 py-1 rounded border border-[color-mix(in_srgb,var(--t-text)_20%,transparent)] text-[9px] uppercase tracking-[0.2em] text-[var(--t-muted)] hover:border-[color-mix(in_srgb,var(--t-text)_40%,transparent)]"
+              className="px-2 py-1 rounded border border-[color-mix(in_srgb,var(--app-text)_20%,transparent)] text-[9px] uppercase tracking-[0.2em] text-[var(--app-muted)] hover:border-[color-mix(in_srgb,var(--app-text)_40%,transparent)]"
             >
               Cancel
             </button>
@@ -864,7 +864,7 @@ const TaskCard: React.FC<{
               type="button"
               onClick={() => hideRailAnd(onDone)}
               disabled={actionDisabled}
-              className="px-2 py-1 rounded border border-[color-mix(in_srgb,var(--t-text)_20%,transparent)] text-[9px] uppercase tracking-[0.2em] text-[var(--t-text)] hover:border-[color-mix(in_srgb,var(--t-text)_40%,transparent)]"
+              className="px-2 py-1 rounded border border-[color-mix(in_srgb,var(--app-text)_20%,transparent)] text-[9px] uppercase tracking-[0.2em] text-[var(--app-text)] hover:border-[color-mix(in_srgb,var(--app-text)_40%,transparent)]"
             >
               Done
             </button>
@@ -872,20 +872,20 @@ const TaskCard: React.FC<{
           <input
             value={draft.title}
             onChange={(event) => onDraftChange({ title: event.target.value })}
-            className="w-full bg-[var(--t-panel-2)] border border-[color-mix(in_srgb,var(--t-text)_10%,transparent)] p-2 text-[10px] text-[var(--t-text)] placeholder-[var(--t-muted)] focus:border-[color-mix(in_srgb,var(--t-text)_40%,transparent)] focus:outline-none uppercase"
+            className="w-full bg-[var(--app-panel-2)] border border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] p-2 text-[10px] text-[var(--app-text)] placeholder-[var(--app-muted)] focus:border-[color-mix(in_srgb,var(--app-text)_40%,transparent)] focus:outline-none uppercase"
             placeholder="Quest title"
           />
           <textarea
             value={draft.details}
             onChange={(event) => onDraftChange({ details: event.target.value })}
-            className="w-full bg-[var(--t-panel-2)] border border-[color-mix(in_srgb,var(--t-text)_10%,transparent)] p-2 text-[10px] text-[var(--t-text)] placeholder-[var(--t-muted)] focus:border-[color-mix(in_srgb,var(--t-text)_40%,transparent)] focus:outline-none uppercase min-h-[56px]"
+            className="w-full bg-[var(--app-panel-2)] border border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] p-2 text-[10px] text-[var(--app-text)] placeholder-[var(--app-muted)] focus:border-[color-mix(in_srgb,var(--app-text)_40%,transparent)] focus:outline-none uppercase min-h-[56px]"
             placeholder="Details / notes"
           />
           <div className="grid grid-cols-2 gap-2">
             <select
               value={draft.priority}
               onChange={(event) => onDraftChange({ priority: event.target.value as TaskPriority })}
-              className="bg-[var(--t-panel-2)] border border-[color-mix(in_srgb,var(--t-text)_10%,transparent)] text-[9px] text-[var(--t-text)] p-2 focus:border-[color-mix(in_srgb,var(--t-text)_40%,transparent)] outline-none uppercase"
+              className="bg-[var(--app-panel-2)] border border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] text-[9px] text-[var(--app-text)] p-2 focus:border-[color-mix(in_srgb,var(--app-text)_40%,transparent)] outline-none uppercase"
             >
               <option value="normal">Prio: Normal</option>
               <option value="high">Prio: High</option>
@@ -895,7 +895,7 @@ const TaskCard: React.FC<{
               type="datetime-local"
               value={draft.schedule}
               onChange={(event) => onDraftChange({ schedule: event.target.value })}
-              className="w-full bg-[var(--t-panel-2)] border border-[color-mix(in_srgb,var(--t-text)_10%,transparent)] text-[9px] text-[var(--t-text)] p-2 focus:border-[color-mix(in_srgb,var(--t-text)_40%,transparent)] outline-none [color-scheme:dark]"
+              className="w-full bg-[var(--app-panel-2)] border border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] text-[9px] text-[var(--app-text)] p-2 focus:border-[color-mix(in_srgb,var(--app-text)_40%,transparent)] outline-none [color-scheme:dark]"
             />
           </div>
           <div className="grid grid-cols-[120px,1fr,100px] gap-2">
@@ -904,19 +904,19 @@ const TaskCard: React.FC<{
               min={1}
               value={draft.retroMinutes}
               onChange={(event) => onDraftChange({ retroMinutes: Number(event.target.value) || 0 })}
-              className="bg-[var(--t-panel-2)] border border-[color-mix(in_srgb,var(--t-text)_10%,transparent)] text-[10px] text-[var(--t-text)] p-2 focus:border-[color-mix(in_srgb,var(--t-text)_40%,transparent)] outline-none"
+              className="bg-[var(--app-panel-2)] border border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] text-[10px] text-[var(--app-text)] p-2 focus:border-[color-mix(in_srgb,var(--app-text)_40%,transparent)] outline-none"
               placeholder="Minutes"
             />
             <input
               value={draft.retroNote}
               onChange={(event) => onDraftChange({ retroNote: event.target.value })}
-              className="bg-[var(--t-panel-2)] border border-[color-mix(in_srgb,var(--t-text)_10%,transparent)] text-[10px] text-[var(--t-text)] p-2 focus:border-[color-mix(in_srgb,var(--t-text)_40%,transparent)] outline-none"
+              className="bg-[var(--app-panel-2)] border border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] text-[10px] text-[var(--app-text)] p-2 focus:border-[color-mix(in_srgb,var(--app-text)_40%,transparent)] outline-none"
               placeholder="Retro note (optional)"
             />
             <button
               type="button"
               onClick={onAddRetro}
-              className="px-2 py-1 rounded border border-[color-mix(in_srgb,var(--t-accent)_40%,transparent)] text-[9px] uppercase tracking-[0.2em] text-[var(--t-accent)]"
+              className="px-2 py-1 rounded border border-[color-mix(in_srgb,var(--app-accent)_40%,transparent)] text-[9px] uppercase tracking-[0.2em] text-[var(--app-accent)]"
             >
               Add Retro
             </button>
@@ -963,11 +963,11 @@ const QuestLogRow: React.FC<{
           : 'TRACKED';
   const detailLabel = `${group.totalMinutes}m total · ${group.entries.length} entries`;
   return (
-    <div className="rounded-xl border border-[color-mix(in_srgb,var(--t-text)_10%,transparent)] bg-[var(--t-panel-2)] px-3 py-2">
+    <div className="rounded-xl border border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-[var(--app-panel-2)] px-3 py-2">
       <div className="flex items-center justify-between gap-2">
         <div className="min-w-0">
-          <div className="text-[11px] uppercase tracking-[0.16em] text-[var(--t-text)] truncate">{group.title}</div>
-          <div className="text-[9px] uppercase tracking-[0.15em] text-[var(--t-muted)] mt-1 flex items-center gap-2">
+          <div className="text-[11px] uppercase tracking-[0.16em] text-[var(--app-text)] truncate">{group.title}</div>
+          <div className="text-[9px] uppercase tracking-[0.15em] text-[var(--app-muted)] mt-1 flex items-center gap-2">
             <span>{statusLabel}</span>
             <span>·</span>
             <span>{detailLabel}</span>
@@ -980,7 +980,7 @@ const QuestLogRow: React.FC<{
             <button
               type="button"
               onClick={onStartEdit}
-              className="px-2 py-1 rounded border border-[color-mix(in_srgb,var(--t-text)_20%,transparent)] text-[9px] uppercase tracking-[0.2em] text-[var(--t-muted)] hover:border-[color-mix(in_srgb,var(--t-text)_40%,transparent)]"
+              className="px-2 py-1 rounded border border-[color-mix(in_srgb,var(--app-text)_20%,transparent)] text-[9px] uppercase tracking-[0.2em] text-[var(--app-muted)] hover:border-[color-mix(in_srgb,var(--app-text)_40%,transparent)]"
               title="Edit quest"
             >
               {isEditing ? 'Close' : 'Edit'}
@@ -991,7 +991,7 @@ const QuestLogRow: React.FC<{
               <button
                 type="button"
                 onClick={onToggleHidden}
-                className="px-2 py-1 rounded border border-[color-mix(in_srgb,var(--t-text)_20%,transparent)] text-[9px] uppercase tracking-[0.2em] text-[var(--t-muted)] hover:border-[color-mix(in_srgb,var(--t-text)_40%,transparent)]"
+                className="px-2 py-1 rounded border border-[color-mix(in_srgb,var(--app-text)_20%,transparent)] text-[9px] uppercase tracking-[0.2em] text-[var(--app-muted)] hover:border-[color-mix(in_srgb,var(--app-text)_40%,transparent)]"
                 title={task.archivedAt ? 'Unhide quest' : 'Hide quest'}
               >
                 {task.archivedAt ? 'Unhide' : 'Hide'}
@@ -1001,24 +1001,24 @@ const QuestLogRow: React.FC<{
         </div>
       </div>
       {task && draft && isEditing && onDraftChange && onSaveEdit && onCancelEdit ? (
-        <div className="mt-3 pt-3 border-t border-[color-mix(in_srgb,var(--t-text)_10%,transparent)] space-y-2 animate-fade-in">
+        <div className="mt-3 pt-3 border-t border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] space-y-2 animate-fade-in">
           <input
             value={draft.title}
             onChange={(event) => onDraftChange({ title: event.target.value })}
-            className="w-full bg-[var(--t-panel-2)] border border-[color-mix(in_srgb,var(--t-text)_10%,transparent)] p-2 text-[10px] text-[var(--t-text)] placeholder-[var(--t-muted)] focus:border-[color-mix(in_srgb,var(--t-text)_40%,transparent)] focus:outline-none uppercase"
+            className="w-full bg-[var(--app-panel-2)] border border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] p-2 text-[10px] text-[var(--app-text)] placeholder-[var(--app-muted)] focus:border-[color-mix(in_srgb,var(--app-text)_40%,transparent)] focus:outline-none uppercase"
             placeholder="Quest title"
           />
           <textarea
             value={draft.details}
             onChange={(event) => onDraftChange({ details: event.target.value })}
-            className="w-full bg-[var(--t-panel-2)] border border-[color-mix(in_srgb,var(--t-text)_10%,transparent)] p-2 text-[10px] text-[var(--t-text)] placeholder-[var(--t-muted)] focus:border-[color-mix(in_srgb,var(--t-text)_40%,transparent)] focus:outline-none uppercase min-h-[56px]"
+            className="w-full bg-[var(--app-panel-2)] border border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] p-2 text-[10px] text-[var(--app-text)] placeholder-[var(--app-muted)] focus:border-[color-mix(in_srgb,var(--app-text)_40%,transparent)] focus:outline-none uppercase min-h-[56px]"
             placeholder="Details / notes"
           />
           <div className="grid grid-cols-2 gap-2">
             <select
               value={draft.priority}
               onChange={(event) => onDraftChange({ priority: event.target.value as TaskPriority })}
-              className="bg-[var(--t-panel-2)] border border-[color-mix(in_srgb,var(--t-text)_10%,transparent)] text-[9px] text-[var(--t-text)] p-2 focus:border-[color-mix(in_srgb,var(--t-text)_40%,transparent)] outline-none uppercase"
+              className="bg-[var(--app-panel-2)] border border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] text-[9px] text-[var(--app-text)] p-2 focus:border-[color-mix(in_srgb,var(--app-text)_40%,transparent)] outline-none uppercase"
             >
               <option value="normal">Prio: Normal</option>
               <option value="high">Prio: High</option>
@@ -1028,21 +1028,21 @@ const QuestLogRow: React.FC<{
               type="datetime-local"
               value={draft.schedule}
               onChange={(event) => onDraftChange({ schedule: event.target.value })}
-              className="w-full bg-[var(--t-panel-2)] border border-[color-mix(in_srgb,var(--t-text)_10%,transparent)] text-[9px] text-[var(--t-text)] p-2 focus:border-[color-mix(in_srgb,var(--t-text)_40%,transparent)] outline-none [color-scheme:dark]"
+              className="w-full bg-[var(--app-panel-2)] border border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] text-[9px] text-[var(--app-text)] p-2 focus:border-[color-mix(in_srgb,var(--app-text)_40%,transparent)] outline-none [color-scheme:dark]"
             />
           </div>
           <div className="flex items-center justify-end gap-2">
             <button
               type="button"
               onClick={onCancelEdit}
-              className="px-2 py-1 rounded border border-[color-mix(in_srgb,var(--t-text)_20%,transparent)] text-[9px] uppercase tracking-[0.2em] text-[var(--t-muted)] hover:border-[color-mix(in_srgb,var(--t-text)_40%,transparent)]"
+              className="px-2 py-1 rounded border border-[color-mix(in_srgb,var(--app-text)_20%,transparent)] text-[9px] uppercase tracking-[0.2em] text-[var(--app-muted)] hover:border-[color-mix(in_srgb,var(--app-text)_40%,transparent)]"
             >
               Cancel
             </button>
             <button
               type="button"
               onClick={onSaveEdit}
-              className="px-2 py-1 rounded border border-[color-mix(in_srgb,var(--t-text)_20%,transparent)] text-[9px] uppercase tracking-[0.2em] text-[var(--t-text)] hover:border-[color-mix(in_srgb,var(--t-text)_40%,transparent)]"
+              className="px-2 py-1 rounded border border-[color-mix(in_srgb,var(--app-text)_20%,transparent)] text-[9px] uppercase tracking-[0.2em] text-[var(--app-text)] hover:border-[color-mix(in_srgb,var(--app-text)_40%,transparent)]"
             >
               Save
             </button>
