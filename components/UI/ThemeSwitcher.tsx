@@ -22,7 +22,7 @@ export const ThemeSwitcher: React.FC<ThemeSwitcherProps> = ({ compact = false, c
               key={option.value}
               type="button"
               onClick={() => setTheme(option.value)}
-              className={`ui-pressable chamfer-all border px-3 py-1.5 text-[10px] font-semibold uppercase ${
+              className={`ui-pressable ui-shape-all border px-3 py-1.5 text-[10px] font-semibold uppercase ${
                 active
                   ? 'border-[var(--ui-accent)] text-[var(--ui-text)] ui-glow'
                   : 'border-[var(--ui-border)] bg-[var(--ui-panel-2)] text-[var(--ui-muted)] hover:border-[var(--ui-accent)] hover:text-[var(--ui-text)]'

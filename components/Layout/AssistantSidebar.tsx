@@ -34,9 +34,9 @@ export const AssistantSidebar: React.FC<AssistantSidebarProps> = ({ onSubmitTask
   };
 
   return (
-    <div className="w-[320px] h-full bg-[#050505] border-l border-[#333] flex flex-col z-20">
+    <div className="w-[320px] h-full bg-[var(--t-bg)] border-l border-[var(--t-border)] flex flex-col z-20">
       {/* Video header */}
-      <div className="relative h-40 border-b border-[#333] overflow-hidden">
+      <div className="relative h-40 border-b border-[var(--t-border)] overflow-hidden">
         <video
           className="absolute inset-0 w-full h-full object-cover opacity-80"
           src="https://cdn.coverr.co/videos/coverr-blue-planet-6645/1080p.mp4"
@@ -46,13 +46,13 @@ export const AssistantSidebar: React.FC<AssistantSidebarProps> = ({ onSubmitTask
           playsInline
         />
         <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-black/30 to-black/70" />
-        <div className="absolute bottom-3 left-4 flex items-center gap-2 text-white">
-          <div className="w-10 h-10 rounded-full bg-white/10 border border-white/30 flex items-center justify-center">
+        <div className="absolute bottom-3 left-4 flex items-center gap-2 text-[var(--t-text)]">
+          <div className="w-10 h-10 rounded-full bg-[color-mix(in_srgb,var(--t-text)_10%,transparent)] border border-[color-mix(in_srgb,var(--t-text)_30%,transparent)] flex items-center justify-center">
             <Bot size={18} />
           </div>
           <div>
-            <div className="text-xs uppercase tracking-[0.2em] text-white">AI Assistant</div>
-            <div className="text-[10px] text-[#aaa] uppercase tracking-[0.2em]">Client Ops</div>
+            <div className="text-xs uppercase tracking-[0.2em] text-[var(--t-text)]">AI Assistant</div>
+            <div className="text-[10px] text-[var(--t-muted)] uppercase tracking-[0.2em]">Client Ops</div>
           </div>
         </div>
       </div>
@@ -63,8 +63,8 @@ export const AssistantSidebar: React.FC<AssistantSidebarProps> = ({ onSubmitTask
           <div key={m.id} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
             <div className={`max-w-[80%] px-3 py-2 rounded border text-sm font-mono ${
               m.role === 'user' 
-                ? 'bg-[#FF2A3A] text-white border-[#FF2A3A]' 
-                : 'bg-[#0A0A0A] text-[#ccc] border-[#222]'
+                ? 'bg-[var(--t-accent)] text-[var(--t-text)] border-[var(--t-accent)]' 
+                : 'bg-[var(--t-panel)] text-[var(--t-text)] border-[var(--t-border)]'
             }`}>
               {m.content}
             </div>
@@ -74,8 +74,8 @@ export const AssistantSidebar: React.FC<AssistantSidebarProps> = ({ onSubmitTask
       </div>
 
       {/* Quick actions */}
-      <div className="px-4 py-3 border-t border-[#333] space-y-2 bg-[#0A0A0A]">
-        <div className="flex items-center gap-2 text-[10px] uppercase tracking-[0.2em] text-[#777]">
+      <div className="px-4 py-3 border-t border-[var(--t-border)] space-y-2 bg-[var(--t-panel)]">
+        <div className="flex items-center gap-2 text-[10px] uppercase tracking-[0.2em] text-[var(--t-muted)]">
           <Command size={12} /> Quick Ops
         </div>
         <div className="grid grid-cols-3 gap-2">
@@ -86,19 +86,19 @@ export const AssistantSidebar: React.FC<AssistantSidebarProps> = ({ onSubmitTask
       </div>
 
       {/* Input */}
-      <div className="p-4 border-t border-[#333] bg-[#0A0A0A]">
+      <div className="p-4 border-t border-[var(--t-border)] bg-[var(--t-panel)]">
         <div className="flex items-center gap-2">
           <input
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleSend()}
             placeholder="Command the client (e.g., update settings, modify slots)..."
-            className="flex-1 bg-[#111] border border-[#333] text-white text-xs py-2 px-3 focus:border-white focus:outline-none placeholder-[#555]"
+            className="flex-1 bg-[var(--t-panel-2)] border border-[var(--t-border)] text-[var(--t-text)] text-xs py-2 px-3 focus:border-[var(--t-text)] focus:outline-none placeholder-[var(--t-muted)]"
           />
           <button
             onClick={handleSend}
             onMouseEnter={playHoverSound}
-            className="h-10 w-12 bg-[#FF2A3A] text-white flex items-center justify-center border border-[#FF2A3A] hover:bg-white hover:text-black transition-colors"
+            className="h-10 w-12 bg-[var(--t-accent)] text-[var(--t-text)] flex items-center justify-center border border-[var(--t-accent)] hover:bg-[var(--t-panel-2)] hover:text-[var(--t-text)] transition-colors"
           >
             <Send size={16} />
           </button>
@@ -112,7 +112,7 @@ const QuickAction: React.FC<{ label: string; icon: React.ReactNode; onClick: () 
   <button
     onClick={onClick}
     onMouseEnter={playHoverSound}
-    className="flex items-center gap-2 px-2 py-2 border border-[#222] bg-[#111] text-[10px] uppercase tracking-[0.15em] text-[#bbb] hover:border-white hover:text-white transition-colors"
+    className="flex items-center gap-2 px-2 py-2 border border-[var(--t-border)] bg-[var(--t-panel-2)] text-[10px] uppercase tracking-[0.15em] text-[var(--t-muted)] hover:border-[var(--t-text)] hover:text-[var(--t-text)] transition-colors"
   >
     {icon} {label}
   </button>

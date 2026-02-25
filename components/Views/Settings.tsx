@@ -142,30 +142,30 @@ export const Settings: React.FC<SettingsProps> = ({ rewardConfigs, onUpdateConfi
 
     return (
         <div className="p-8 h-full overflow-y-auto custom-scrollbar">
-            <div className="mb-8 border-b border-[#333] pb-4 flex items-center justify-between gap-4">
+            <div className="mb-8 border-b border-[var(--t-border)] pb-4 flex items-center justify-between gap-4">
                 <div className="flex items-center gap-4">
-                    <div className="p-4 border border-white bg-[#111]">
-                        <SettingsIcon size={32} className="text-white" />
+                    <div className="p-4 border border-[var(--t-text)] bg-[var(--t-panel-2)]">
+                        <SettingsIcon size={32} className="text-[var(--t-text)]" />
                     </div>
                     <div>
-                        <h1 className="text-4xl font-black text-white uppercase tracking-tighter">System Configuration</h1>
-                        <p className="text-[#666] font-mono tracking-widest text-xs">CUSTOMIZE REWARD PROTOCOLS</p>
+                        <h1 className="text-4xl font-black text-[var(--t-text)] uppercase tracking-tighter">System Configuration</h1>
+                        <p className="text-[var(--t-muted)] font-mono tracking-widest text-xs">CUSTOMIZE REWARD PROTOCOLS</p>
                     </div>
                 </div>
                 <div className="text-right">
-                    <div className="text-[10px] text-[#666] uppercase font-bold tracking-widest">Current Profile XP</div>
-                    <div className="text-3xl font-black text-[#FF2A3A] font-mono">{currentXP} XP</div>
+                    <div className="text-[10px] text-[var(--t-muted)] uppercase font-bold tracking-widest">Current Profile XP</div>
+                    <div className="text-3xl font-black text-[var(--t-accent)] font-mono">{currentXP} XP</div>
                 </div>
             </div>
 
             <div className="grid grid-cols-1 gap-6">
                 <HexPanel className="transition-all duration-300">
-                    <div className="p-6 border-b border-[#333]">
+                    <div className="p-6 border-b border-[var(--t-border)]">
                         <div className="flex items-center justify-between gap-3">
-                            <h2 className="text-xl font-bold text-white uppercase tracking-widest">Theme System</h2>
-                            <div className="text-[10px] uppercase tracking-[0.2em] text-[#9aa7bf]">Current: {activeThemeLabel}</div>
+                            <h2 className="text-xl font-bold text-[var(--t-text)] uppercase tracking-widest">Theme System</h2>
+                            <div className="text-[10px] uppercase tracking-[0.2em] text-[var(--t-muted)]">Current: {activeThemeLabel}</div>
                         </div>
-                        <p className="mt-2 text-[11px] text-[#666] uppercase tracking-[0.16em]">Global theme applies instantly across all views.</p>
+                        <p className="mt-2 text-[11px] text-[var(--t-muted)] uppercase tracking-[0.16em]">Global theme applies instantly across all views.</p>
                     </div>
                     <div className="p-6">
                         <ThemeSwitcher />
@@ -176,25 +176,25 @@ export const Settings: React.FC<SettingsProps> = ({ rewardConfigs, onUpdateConfi
                     <div 
                         onClick={toggleProtocol}
                         onMouseEnter={playHoverSound}
-                        className="flex items-center justify-between p-6 cursor-pointer hover:bg-white/5 transition-colors group"
+                        className="flex items-center justify-between p-6 cursor-pointer hover:bg-[color-mix(in_srgb,var(--t-text)_5%,transparent)] transition-colors group"
                     >
-                         <h2 className="text-xl font-bold text-white uppercase tracking-widest flex items-center gap-2 group-hover:text-[#FF2A3A] transition-colors">
-                            <Activity className="text-[#FF2A3A]" />
+                         <h2 className="text-xl font-bold text-[var(--t-text)] uppercase tracking-widest flex items-center gap-2 group-hover:text-[var(--t-accent)] transition-colors">
+                            <Activity className="text-[var(--t-accent)]" />
                             XP Reward Protocol
                          </h2>
                          <div className="flex items-center gap-4">
                             <div className="flex items-center gap-2">
-                                <div className="w-2 h-2 bg-[#FF2A3A] animate-pulse"></div>
-                                <div className="text-xs text-[#666] font-mono group-hover:text-white transition-colors">LIVE SYNC ACTIVE</div>
+                                <div className="w-2 h-2 bg-[var(--t-accent)] animate-pulse"></div>
+                                <div className="text-xs text-[var(--t-muted)] font-mono group-hover:text-[var(--t-text)] transition-colors">LIVE SYNC ACTIVE</div>
                             </div>
                             <div className={`transition-transform duration-300 ${isProtocolExpanded ? 'rotate-180' : ''}`}>
-                                <ChevronDown className="text-[#666] group-hover:text-white" />
+                                <ChevronDown className="text-[var(--t-muted)] group-hover:text-[var(--t-text)]" />
                             </div>
                          </div>
                     </div>
 
                     {isProtocolExpanded && (
-                        <div className="px-6 pb-6 space-y-4 animate-fade-in border-t border-[#333] pt-4">
+                        <div className="px-6 pb-6 space-y-4 animate-fade-in border-t border-[var(--t-border)] pt-4">
                             {rewardConfigs.map((config) => {
                                 const isAchieved = currentXP >= config.threshold;
                                 const progressPercent = Math.min(100, Math.max(0, (currentXP / config.threshold) * 100));
@@ -204,44 +204,44 @@ export const Settings: React.FC<SettingsProps> = ({ rewardConfigs, onUpdateConfi
                                         key={config.level} 
                                         className={`
                                             grid grid-cols-1 md:grid-cols-12 gap-4 items-start p-4 border transition-colors group relative overflow-hidden
-                                            ${isAchieved ? 'border-[#FF2A3A] bg-[#FF2A3A]/5' : 'border-[#333] bg-[#0A0A0A] hover:border-[#666]'}
+                                            ${isAchieved ? 'border-[var(--t-accent)] bg-[color-mix(in_srgb,var(--t-accent)_5%,transparent)]' : 'border-[var(--t-border)] bg-[var(--t-panel)] hover:border-[var(--t-muted)]'}
                                         `}
                                     >
                                         {/* Achieved Watermark */}
                                         {isAchieved && (
                                             <div className="absolute top-0 right-0 p-2 opacity-20 pointer-events-none">
-                                                <CheckCircle size={64} className="text-[#FF2A3A]" />
+                                                <CheckCircle size={64} className="text-[var(--t-accent)]" />
                                             </div>
                                         )}
                                         
                                         {/* Level Label */}
                                         <div className="md:col-span-1 text-center pt-2 relative z-10">
-                                            <div className="text-[10px] text-[#666] uppercase font-bold mb-1">Level</div>
-                                            <div className={`text-2xl font-black ${isAchieved ? 'text-[#FF2A3A]' : 'text-white'}`}>
+                                            <div className="text-[10px] text-[var(--t-muted)] uppercase font-bold mb-1">Level</div>
+                                            <div className={`text-2xl font-black ${isAchieved ? 'text-[var(--t-accent)]' : 'text-[var(--t-text)]'}`}>
                                                 0{config.level}
                                             </div>
                                             {isAchieved ? (
-                                                <div className="mt-1 text-[8px] font-bold text-[#FF2A3A] border border-[#FF2A3A] px-1 inline-block">ACQUIRED</div>
+                                                <div className="mt-1 text-[8px] font-bold text-[var(--t-accent)] border border-[var(--t-accent)] px-1 inline-block">ACQUIRED</div>
                                             ) : (
-                                                <div className="mt-1 text-[8px] font-bold text-[#666] border border-[#333] px-1 inline-block">LOCKED</div>
+                                                <div className="mt-1 text-[8px] font-bold text-[var(--t-muted)] border border-[var(--t-border)] px-1 inline-block">LOCKED</div>
                                             )}
                                         </div>
 
                                         {/* Threshold Input & Progress */}
                                         <div className="md:col-span-2 relative z-10">
-                                            <label className="text-[10px] text-[#666] uppercase font-bold block mb-1">XP Threshold</label>
+                                            <label className="text-[10px] text-[var(--t-muted)] uppercase font-bold block mb-1">XP Threshold</label>
                                             <div className="relative mb-2">
                                                 <input 
                                                     type="number" 
                                                     value={config.threshold}
                                                     onChange={(e) => handleThresholdChange(config.level, e.target.value)}
-                                                    className={`w-full bg-[#050505] border p-2 text-white font-mono outline-none transition-colors ${isAchieved ? 'border-[#FF2A3A] text-[#FF2A3A]' : 'border-[#333] focus:border-[#FF2A3A]'}`}
+                                                    className={`w-full bg-[var(--t-bg)] border p-2 text-[var(--t-text)] font-mono outline-none transition-colors ${isAchieved ? 'border-[var(--t-accent)] text-[var(--t-accent)]' : 'border-[var(--t-border)] focus:border-[var(--t-accent)]'}`}
                                                 />
-                                                <div className="absolute right-2 top-2 text-[#444] text-xs font-bold">XP</div>
+                                                <div className="absolute right-2 top-2 text-[var(--t-muted)] text-xs font-bold">XP</div>
                                             </div>
                                             
                                             {/* Progress Bar */}
-                                            <div className="w-full h-20 bg-[#111] border border-[#333] relative overflow-hidden rounded-sm">
+                                            <div className="w-full h-20 bg-[var(--t-panel-2)] border border-[var(--t-border)] relative overflow-hidden rounded-sm">
                                                 {/* Visual preview */}
                                                 <div className="absolute inset-0 opacity-80">
                                                     {(() => {
@@ -265,22 +265,22 @@ export const Settings: React.FC<SettingsProps> = ({ rewardConfigs, onUpdateConfi
                                                             return <img src={visualUrl} className="w-full h-full object-cover" />;
                                                         }
                                                         return (
-                                                            <div className="w-full h-full bg-gradient-to-r from-[#1a1a1a] via-[#251726] to-[#0f0f1f] flex items-center px-3 text-[10px] uppercase tracking-[0.2em] text-[#666]">
+                                                            <div className="w-full h-full bg-gradient-to-r from-[var(--t-panel)] via-[var(--t-panel-2)] to-[var(--t-panel-2)] flex items-center px-3 text-[10px] uppercase tracking-[0.2em] text-[var(--t-muted)]">
                                                                 Custom Visual Preview
                                                             </div>
                                                         );
                                                     })()}
                                                 </div>
                                                 {/* Progress bar overlay at bottom */}
-                                                <div className="absolute bottom-0 left-0 right-0 h-2 bg-black/40 border-t border-[#333]">
+                                                <div className="absolute bottom-0 left-0 right-0 h-2 bg-[color-mix(in_srgb,var(--t-bg)_40%,transparent)] border-t border-[var(--t-border)]">
                                                     <div 
-                                                        className={`h-full transition-all duration-500 ${isAchieved ? 'bg-[#FF2A3A]' : 'bg-[#666]'}`} 
+                                                        className={`h-full transition-all duration-500 ${isAchieved ? 'bg-[var(--t-accent)]' : 'bg-[var(--t-muted)]'}`} 
                                                         style={{ width: `${progressPercent}%` }}
                                                     ></div>
                                                 </div>
-                                                <div className="absolute inset-0 pointer-events-none border border-[#333]/60"></div>
+                                                <div className="absolute inset-0 pointer-events-none border border-[color-mix(in_srgb,var(--t-border)_60%,transparent)]"></div>
                                             </div>
-                                            <div className="flex justify-between mt-1 text-[8px] font-mono text-[#666]">
+                                            <div className="flex justify-between mt-1 text-[8px] font-mono text-[var(--t-muted)]">
                                                 <span>{currentXP} / {config.threshold}</span>
                                                 <span>{Math.floor(progressPercent)}%</span>
                                             </div>
@@ -289,8 +289,8 @@ export const Settings: React.FC<SettingsProps> = ({ rewardConfigs, onUpdateConfi
                                         {/* Animation Selector & Upload */}
                                         <div className="md:col-span-6 relative z-10 flex flex-col gap-2">
                                             <div className="flex items-center justify-between">
-                                                <label className="text-[10px] text-[#666] uppercase font-bold">Visual Effect</label>
-                                                <label className="cursor-pointer flex items-center gap-1 text-[8px] uppercase text-[#FF2A3A] hover:text-white transition-colors border border-[#333] px-2 py-0.5 hover:border-[#FF2A3A]">
+                                                <label className="text-[10px] text-[var(--t-muted)] uppercase font-bold">Visual Effect</label>
+                                                <label className="cursor-pointer flex items-center gap-1 text-[8px] uppercase text-[var(--t-accent)] hover:text-[var(--t-text)] transition-colors border border-[var(--t-border)] px-2 py-0.5 hover:border-[var(--t-accent)]">
                                                     <Upload size={8} /> Upload Visual
                                                     <input 
                                                         type="file" 
@@ -301,7 +301,7 @@ export const Settings: React.FC<SettingsProps> = ({ rewardConfigs, onUpdateConfi
                                                 </label>
                                             </div>
                                             {config.animation === 'CUSTOM' && (
-                                                <div className="text-[9px] text-[#666] truncate max-w-full bg-[#111] px-2 py-1 border border-[#333]">
+                                                <div className="text-[9px] text-[var(--t-muted)] truncate max-w-full bg-[var(--t-panel-2)] px-2 py-1 border border-[var(--t-border)]">
                                                     {config.customVisualUrl ? 'SRC: Custom Visual Loaded' : 'Upload a visual'}
                                                 </div>
                                             )}

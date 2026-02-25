@@ -18,11 +18,11 @@ const baseClass =
 
 const variantClass: Record<UIButtonVariant, string> = {
   primary:
-    'h-10 px-4 chamfer-card border-[var(--ui-accent)] bg-[rgba(143,99,255,0.22)] hover:bg-[rgba(143,99,255,0.30)] hover:border-[rgba(184,157,255,0.95)] hover:shadow-[0_0_20px_rgba(143,99,255,0.32)]',
+    'h-10 px-4 ui-shape-card border-[var(--ui-accent)] bg-[color-mix(in_srgb,var(--ui-accent)_20%,transparent)] hover:bg-[color-mix(in_srgb,var(--ui-accent)_30%,transparent)] hover:border-[color-mix(in_srgb,var(--ui-accent)_70%,var(--ui-border))]',
   secondary:
-    'h-10 px-4 chamfer-card border-[var(--ui-border)] bg-[var(--ui-panel-2)] hover:border-[rgba(143,99,255,0.75)] hover:text-white',
+    'h-10 px-4 ui-shape-card border-[var(--ui-border)] bg-[var(--ui-panel-2)] hover:border-[var(--ui-accent)] hover:text-[var(--ui-text)]',
   icon:
-    'h-10 w-10 chamfer-all border-[var(--ui-border)] bg-[var(--ui-panel-2)] hover:border-[rgba(143,99,255,0.75)] hover:text-white',
+    'h-10 w-10 ui-shape-all border-[var(--ui-border)] bg-[var(--ui-panel-2)] hover:border-[var(--ui-accent)] hover:text-[var(--ui-text)]',
 };
 
 export const Button: React.FC<UIButtonProps> = ({
@@ -44,7 +44,7 @@ export const Button: React.FC<UIButtonProps> = ({
       aria-pressed={active}
       className={`${baseClass} ${variantClass[variant]} ${
         disabled ? 'cursor-not-allowed opacity-50' : ''
-      } ${active ? 'ui-glow border-[var(--ui-accent)] text-white' : ''} ${className}`}
+      } ${active ? 'ui-glow border-[var(--ui-accent)] text-[var(--ui-text)]' : ''} ${className}`}
     >
       {variant !== 'icon' && leftIcon ? <span className="text-[var(--ui-accent)]">{leftIcon}</span> : null}
       {variant === 'icon' ? leftIcon ?? children : children}

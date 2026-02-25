@@ -1,6 +1,4 @@
-/* Xtation HUD theme tokens + global dark overrides.
-   Keep these as the visual single source of truth for reusable UI components.
-*/
+/* Xtation global theme tokens (single source of truth) */
 
 :root {
   /* Base scale tokens */
@@ -15,90 +13,186 @@
   --ui-space-5: 20px;
   --ui-space-6: 24px;
 
-  /* Default Theme Pack: dark_minimal */
-  --ui-bg: #0d1118;
-  --ui-panel: #141a24;
-  --ui-panel-2: #19212d;
-  --ui-border: #2a3446;
-  --ui-text: #e7edf9;
-  --ui-muted: #9aa7bf;
-  --ui-accent: #8ca1ce;
-  --ui-panel-rgb: 20 26 36;
-  --ui-panel-2-rgb: 25 33 45;
-  --ui-stroke: 1px;
-  --ui-shadow-soft: 0 8px 22px rgba(0, 0, 0, 0.34), inset 0 1px 0 rgba(255, 255, 255, 0.03);
-  --ui-glow-strength: 0;
-  --ui-hover-glow-base: 0%;
-  --ui-noise-opacity: 0.02;
-  --ui-glass-opacity: 0.03;
-  --ui-blur: 0px;
-  --ui-bg-overlay:
-    radial-gradient(120% 100% at 10% 0%, rgba(150, 169, 211, 0.05), transparent 58%),
+  /* Canonical theme tokens (default = dark_minimal_solid) */
+  --t-bg: #0d1118;
+  --t-panel: #151b24;
+  --t-panel-2: #1c2531;
+  --t-border: #2a3445;
+  --t-text: #e8edf8;
+  --t-muted: #9ea9bd;
+  --t-accent: #8ea2cc;
+  --t-danger: #e55d65;
+
+  --t-radius-sm: 8px;
+  --t-radius-md: 12px;
+  --t-radius-lg: 18px;
+  --t-cut-sm: 0px;
+  --t-cut-md: 0px;
+  --t-cut-lg: 0px;
+
+  --t-stroke: 1px;
+  --t-shadow-soft: 0 10px 24px rgba(0, 0, 0, 0.34), inset 0 1px 0 rgba(255, 255, 255, 0.03);
+  --t-shadow-strong: 0 18px 44px rgba(0, 0, 0, 0.5);
+  --t-glow-accent: 0 0 0 1px color-mix(in srgb, var(--t-accent) 28%, transparent),
+    0 0 16px color-mix(in srgb, var(--t-accent) 24%, transparent);
+  --t-glow-strength: 0.06;
+  --t-hover-glow-base: 6%;
+  --t-noise-opacity: 0.02;
+  --t-glass-opacity: 0.02;
+  --t-blur: 0px;
+  --t-panel-rgb: 21 27 36;
+  --t-panel-2-rgb: 28 37 49;
+  --t-bg-overlay:
+    radial-gradient(120% 100% at 12% 0%, rgba(150, 169, 211, 0.045), transparent 58%),
     linear-gradient(180deg, rgba(255, 255, 255, 0.015), transparent 46%);
-  --ui-body-letter-spacing: 0.01em;
 
-  /* Shapes */
-  --ui-radius-sm: 8px;
-  --ui-radius-md: 12px;
-  --ui-radius-lg: 18px;
-  --ui-cut-sm: 0px;
-  --ui-cut-md: 0px;
-  --ui-cut-lg: 0px;
-  --ui-clip-all: none;
-  --ui-clip-right: none;
-  --ui-clip-left: none;
-  --ui-clip-card: none;
-  --ui-clip-pill: none;
+  --t-motion-fast: 120ms;
+  --t-motion-med: 180ms;
+  --t-motion-slow: 240ms;
+  --t-ease: cubic-bezier(0.24, 0.9, 0.26, 1);
+  --t-hover-lift-y: -1px;
+  --t-hover-scale: 1;
+  --t-body-letter-spacing: 0.01em;
 
-  /* Motion */
-  --ui-motion-fast: 120ms;
-  --ui-motion-medium: 170ms;
-  --ui-motion-slow: 220ms;
-  --ui-ease: cubic-bezier(0.24, 0.9, 0.26, 1);
-  --ui-hover-lift-y: -1px;
-  --ui-hover-scale: 1;
+  --t-clip-all: none;
+  --t-clip-right: none;
+  --t-clip-left: none;
+  --t-clip-card: none;
+  --t-clip-pill: none;
 
-  /* Legacy aliases still used across old UI */
-  --dc-bg: var(--ui-bg);
-  --dc-panel: var(--ui-panel);
-  --dc-panel-2: var(--ui-panel-2);
-  --dc-border: var(--ui-border);
-  --dc-text: var(--ui-text);
-  --dc-muted: var(--ui-muted);
-  --dc-accent: var(--ui-accent);
-  --dc-danger: #ed4245;
+  /* Backward compatibility aliases */
+  --ui-bg: var(--t-bg);
+  --ui-panel: var(--t-panel);
+  --ui-panel-2: var(--t-panel-2);
+  --ui-border: var(--t-border);
+  --ui-text: var(--t-text);
+  --ui-muted: var(--t-muted);
+  --ui-accent: var(--t-accent);
+  --ui-radius-sm: var(--t-radius-sm);
+  --ui-radius-md: var(--t-radius-md);
+  --ui-radius-lg: var(--t-radius-lg);
+  --ui-cut-sm: var(--t-cut-sm);
+  --ui-cut-md: var(--t-cut-md);
+  --ui-cut-lg: var(--t-cut-lg);
+  --ui-stroke: var(--t-stroke);
+  --ui-shadow-soft: var(--t-shadow-soft);
+  --ui-shadow-strong: var(--t-shadow-strong);
+  --ui-glow-accent: var(--t-glow-accent);
+  --ui-glow-strength: var(--t-glow-strength);
+  --ui-hover-glow-base: var(--t-hover-glow-base);
+  --ui-noise-opacity: var(--t-noise-opacity);
+  --ui-glass-opacity: var(--t-glass-opacity);
+  --ui-blur: var(--t-blur);
+  --ui-panel-rgb: var(--t-panel-rgb);
+  --ui-panel-2-rgb: var(--t-panel-2-rgb);
+  --ui-bg-overlay: var(--t-bg-overlay);
+  --ui-motion-fast: var(--t-motion-fast);
+  --ui-motion-medium: var(--t-motion-med);
+  --ui-motion-slow: var(--t-motion-slow);
+  --ui-ease: var(--t-ease);
+  --ui-hover-lift-y: var(--t-hover-lift-y);
+  --ui-hover-scale: var(--t-hover-scale);
+  --ui-body-letter-spacing: var(--t-body-letter-spacing);
+  --ui-clip-all: var(--t-clip-all);
+  --ui-clip-right: var(--t-clip-right);
+  --ui-clip-left: var(--t-clip-left);
+  --ui-clip-card: var(--t-clip-card);
+  --ui-clip-pill: var(--t-clip-pill);
+
+  --dc-bg: var(--t-bg);
+  --dc-panel: var(--t-panel);
+  --dc-panel-2: var(--t-panel-2);
+  --dc-border: var(--t-border);
+  --dc-text: var(--t-text);
+  --dc-muted: var(--t-muted);
+  --dc-accent: var(--t-accent);
+  --dc-danger: var(--t-danger);
+}
+
+[data-theme='dark_minimal_solid'],
+[data-theme='dark_minimal'] {
+  --t-bg: #0d1118;
+  --t-panel: #151b24;
+  --t-panel-2: #1c2531;
+  --t-border: #2a3445;
+  --t-text: #e8edf8;
+  --t-muted: #9ea9bd;
+  --t-accent: #8ea2cc;
+  --t-danger: #e55d65;
+  --t-radius-sm: 8px;
+  --t-radius-md: 12px;
+  --t-radius-lg: 18px;
+  --t-cut-sm: 0px;
+  --t-cut-md: 0px;
+  --t-cut-lg: 0px;
+  --t-stroke: 1px;
+  --t-shadow-soft: 0 10px 24px rgba(0, 0, 0, 0.34), inset 0 1px 0 rgba(255, 255, 255, 0.03);
+  --t-shadow-strong: 0 18px 44px rgba(0, 0, 0, 0.5);
+  --t-glow-accent: 0 0 0 1px color-mix(in srgb, var(--t-accent) 25%, transparent),
+    0 0 16px color-mix(in srgb, var(--t-accent) 20%, transparent);
+  --t-glow-strength: 0.04;
+  --t-hover-glow-base: 4%;
+  --t-noise-opacity: 0.02;
+  --t-glass-opacity: 0.02;
+  --t-blur: 0px;
+  --t-panel-rgb: 21 27 36;
+  --t-panel-2-rgb: 28 37 49;
+  --t-bg-overlay:
+    radial-gradient(120% 100% at 12% 0%, rgba(150, 169, 211, 0.045), transparent 58%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.015), transparent 46%);
+  --t-motion-fast: 120ms;
+  --t-motion-med: 180ms;
+  --t-motion-slow: 240ms;
+  --t-ease: cubic-bezier(0.24, 0.9, 0.26, 1);
+  --t-hover-lift-y: -1px;
+  --t-hover-scale: 1;
+  --t-body-letter-spacing: 0.01em;
+  --t-clip-all: none;
+  --t-clip-right: none;
+  --t-clip-left: none;
+  --t-clip-card: none;
+  --t-clip-pill: none;
 }
 
 [data-theme='hud_clean'] {
-  --ui-bg: #0a0c12;
-  --ui-panel: #10141f;
-  --ui-panel-2: #151b2a;
-  --ui-border: #2b3550;
-  --ui-text: #e6ebff;
-  --ui-muted: #95a1c3;
-  --ui-accent: #8f63ff;
-  --ui-panel-rgb: 16 20 31;
-  --ui-panel-2-rgb: 21 27 42;
-  --ui-stroke: 1px;
-  --ui-shadow-soft: 0 10px 28px rgba(0, 0, 0, 0.42), inset 0 1px 0 rgba(255, 255, 255, 0.04);
-  --ui-glow-strength: 0.8;
-  --ui-hover-glow-base: 12%;
-  --ui-noise-opacity: 0.06;
-  --ui-glass-opacity: 0.04;
-  --ui-blur: 1px;
-  --ui-bg-overlay:
+  --t-bg: #0a0c12;
+  --t-panel: #10141f;
+  --t-panel-2: #151b2a;
+  --t-border: #2b3550;
+  --t-text: #e6ebff;
+  --t-muted: #95a1c3;
+  --t-accent: #8f63ff;
+  --t-danger: #ef5f66;
+  --t-radius-sm: 8px;
+  --t-radius-md: 10px;
+  --t-radius-lg: 16px;
+  --t-cut-sm: 8px;
+  --t-cut-md: 12px;
+  --t-cut-lg: 16px;
+  --t-stroke: 1px;
+  --t-shadow-soft: 0 12px 30px rgba(0, 0, 0, 0.42), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  --t-shadow-strong: 0 20px 48px rgba(0, 0, 0, 0.58);
+  --t-glow-accent: 0 0 0 1px color-mix(in srgb, var(--t-accent) 42%, transparent),
+    0 0 20px color-mix(in srgb, var(--t-accent) 36%, transparent);
+  --t-glow-strength: 0.65;
+  --t-hover-glow-base: 12%;
+  --t-noise-opacity: 0.05;
+  --t-glass-opacity: 0.05;
+  --t-blur: 1px;
+  --t-panel-rgb: 16 20 31;
+  --t-panel-2-rgb: 21 27 42;
+  --t-bg-overlay:
     linear-gradient(rgba(255, 255, 255, 0.025) 1px, transparent 1px),
     linear-gradient(90deg, rgba(255, 255, 255, 0.025) 1px, transparent 1px),
     radial-gradient(90% 90% at 8% 4%, rgba(143, 99, 255, 0.12), transparent 62%);
-  --ui-body-letter-spacing: 0.014em;
-
-  --ui-radius-sm: 8px;
-  --ui-radius-md: 10px;
-  --ui-radius-lg: 16px;
-  --ui-cut-sm: 8px;
-  --ui-cut-md: 12px;
-  --ui-cut-lg: 16px;
-  --ui-clip-all: polygon(
+  --t-motion-fast: 130ms;
+  --t-motion-med: 185ms;
+  --t-motion-slow: 250ms;
+  --t-ease: cubic-bezier(0.24, 0.9, 0.26, 1);
+  --t-hover-lift-y: -1px;
+  --t-hover-scale: 1.005;
+  --t-body-letter-spacing: 0.014em;
+  --t-clip-all: polygon(
     var(--cut) 0,
     calc(100% - var(--cut)) 0,
     100% var(--cut),
@@ -108,7 +202,7 @@
     0 calc(100% - var(--cut)),
     0 var(--cut)
   );
-  --ui-clip-right: polygon(
+  --t-clip-right: polygon(
     0 0,
     calc(100% - var(--cut)) 0,
     100% var(--cut),
@@ -116,7 +210,7 @@
     calc(100% - var(--cut)) 100%,
     0 100%
   );
-  --ui-clip-left: polygon(
+  --t-clip-left: polygon(
     var(--cut) 0,
     100% 0,
     100% 100%,
@@ -124,7 +218,7 @@
     0 calc(100% - var(--cut)),
     0 var(--cut)
   );
-  --ui-clip-card: polygon(
+  --t-clip-card: polygon(
     0 0,
     calc(100% - var(--cut)) 0,
     100% var(--cut),
@@ -132,7 +226,7 @@
     var(--cut) 100%,
     0 calc(100% - var(--cut))
   );
-  --ui-clip-pill: polygon(
+  --t-clip-pill: polygon(
     var(--cut) 0,
     calc(100% - var(--cut)) 0,
     100% 50%,
@@ -140,84 +234,46 @@
     var(--cut) 100%,
     0 50%
   );
-
-  --ui-motion-fast: 130ms;
-  --ui-motion-medium: 180ms;
-  --ui-motion-slow: 240ms;
-  --ui-hover-lift-y: -1px;
-  --ui-hover-scale: 1.005;
-}
-
-[data-theme='dark_minimal'] {
-  --ui-bg: #0d1118;
-  --ui-panel: #141a24;
-  --ui-panel-2: #19212d;
-  --ui-border: #2a3446;
-  --ui-text: #e7edf9;
-  --ui-muted: #9aa7bf;
-  --ui-accent: #8ca1ce;
-  --ui-panel-rgb: 20 26 36;
-  --ui-panel-2-rgb: 25 33 45;
-  --ui-stroke: 1px;
-  --ui-shadow-soft: 0 8px 22px rgba(0, 0, 0, 0.34), inset 0 1px 0 rgba(255, 255, 255, 0.03);
-  --ui-glow-strength: 0;
-  --ui-hover-glow-base: 0%;
-  --ui-noise-opacity: 0.02;
-  --ui-glass-opacity: 0.03;
-  --ui-blur: 0px;
-  --ui-bg-overlay:
-    radial-gradient(120% 100% at 10% 0%, rgba(150, 169, 211, 0.05), transparent 58%),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.02), transparent 46%);
-  --ui-body-letter-spacing: 0.01em;
-
-  --ui-radius-sm: 8px;
-  --ui-radius-md: 12px;
-  --ui-radius-lg: 18px;
-  --ui-cut-sm: 0px;
-  --ui-cut-md: 0px;
-  --ui-cut-lg: 0px;
-  --ui-clip-all: none;
-  --ui-clip-right: none;
-  --ui-clip-left: none;
-  --ui-clip-card: none;
-  --ui-clip-pill: none;
-
-  --ui-motion-fast: 120ms;
-  --ui-motion-medium: 170ms;
-  --ui-motion-slow: 220ms;
-  --ui-hover-lift-y: -1px;
-  --ui-hover-scale: 1;
 }
 
 [data-theme='glass_night'] {
-  --ui-bg: #090b12;
-  --ui-panel: #131a2a;
-  --ui-panel-2: #1a2236;
-  --ui-border: #384663;
-  --ui-text: #e8ecff;
-  --ui-muted: #9ca9c9;
-  --ui-accent: #8aa7ff;
-  --ui-panel-rgb: 19 26 42;
-  --ui-panel-2-rgb: 26 34 54;
-  --ui-stroke: 1px;
-  --ui-shadow-soft: 0 14px 34px rgba(0, 0, 0, 0.48), inset 0 1px 0 rgba(255, 255, 255, 0.05);
-  --ui-glow-strength: 0.55;
-  --ui-hover-glow-base: 10%;
-  --ui-noise-opacity: 0.04;
-  --ui-glass-opacity: 0.24;
-  --ui-blur: 10px;
-  --ui-bg-overlay:
+  --t-bg: #090b12;
+  --t-panel: #131a2a;
+  --t-panel-2: #1a2236;
+  --t-border: #384663;
+  --t-text: #e8ecff;
+  --t-muted: #9ca9c9;
+  --t-accent: #8aa7ff;
+  --t-danger: #ef6f7c;
+  --t-radius-sm: 10px;
+  --t-radius-md: 14px;
+  --t-radius-lg: 20px;
+  --t-cut-sm: 6px;
+  --t-cut-md: 10px;
+  --t-cut-lg: 14px;
+  --t-stroke: 1px;
+  --t-shadow-soft: 0 14px 34px rgba(0, 0, 0, 0.48), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  --t-shadow-strong: 0 24px 56px rgba(0, 0, 0, 0.62);
+  --t-glow-accent: 0 0 0 1px color-mix(in srgb, var(--t-accent) 48%, transparent),
+    0 0 22px color-mix(in srgb, var(--t-accent) 38%, transparent);
+  --t-glow-strength: 0.5;
+  --t-hover-glow-base: 10%;
+  --t-noise-opacity: 0.04;
+  --t-glass-opacity: 0.24;
+  --t-blur: 10px;
+  --t-panel-rgb: 19 26 42;
+  --t-panel-2-rgb: 26 34 54;
+  --t-bg-overlay:
     radial-gradient(120% 100% at 8% -4%, rgba(138, 167, 255, 0.11), transparent 56%),
     linear-gradient(180deg, rgba(255, 255, 255, 0.018), transparent 42%);
-  --ui-body-letter-spacing: 0.012em;
-
-  --ui-radius-sm: 10px;
-  --ui-radius-md: 14px;
-  --ui-radius-lg: 20px;
-  --ui-cut-sm: 6px;
-  --ui-cut-md: 10px;
-  --ui-cut-lg: 14px;
-  --ui-clip-all: polygon(
+  --t-motion-fast: 140ms;
+  --t-motion-med: 200ms;
+  --t-motion-slow: 260ms;
+  --t-ease: cubic-bezier(0.24, 0.9, 0.26, 1);
+  --t-hover-lift-y: -1px;
+  --t-hover-scale: 1.02;
+  --t-body-letter-spacing: 0.012em;
+  --t-clip-all: polygon(
     var(--cut) 0,
     calc(100% - var(--cut)) 0,
     100% var(--cut),
@@ -227,7 +283,7 @@
     0 calc(100% - var(--cut)),
     0 var(--cut)
   );
-  --ui-clip-right: polygon(
+  --t-clip-right: polygon(
     0 0,
     calc(100% - var(--cut)) 0,
     100% var(--cut),
@@ -235,7 +291,7 @@
     calc(100% - var(--cut)) 100%,
     0 100%
   );
-  --ui-clip-left: polygon(
+  --t-clip-left: polygon(
     var(--cut) 0,
     100% 0,
     100% 100%,
@@ -243,7 +299,7 @@
     0 calc(100% - var(--cut)),
     0 var(--cut)
   );
-  --ui-clip-card: polygon(
+  --t-clip-card: polygon(
     0 0,
     calc(100% - var(--cut)) 0,
     100% var(--cut),
@@ -251,7 +307,7 @@
     var(--cut) 100%,
     0 calc(100% - var(--cut))
   );
-  --ui-clip-pill: polygon(
+  --t-clip-pill: polygon(
     var(--cut) 0,
     calc(100% - var(--cut)) 0,
     100% 50%,
@@ -259,12 +315,6 @@
     var(--cut) 100%,
     0 50%
   );
-
-  --ui-motion-fast: 140ms;
-  --ui-motion-medium: 190ms;
-  --ui-motion-slow: 260ms;
-  --ui-hover-lift-y: -1px;
-  --ui-hover-scale: 1.02;
 }
 
 /* Reusable HUD utilities */

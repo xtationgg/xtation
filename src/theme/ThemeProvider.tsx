@@ -3,7 +3,7 @@ import React, { createContext, useCallback, useContext, useEffect, useMemo, useS
 export const XTATION_THEME_STORAGE_KEY = 'xtation_theme_pack';
 const LEGACY_THEME_STORAGE_KEY = 'xtation_theme';
 
-export type XtationTheme = 'dark_minimal' | 'hud_clean' | 'glass_night';
+export type XtationTheme = 'dark_minimal_solid' | 'hud_clean' | 'glass_night';
 
 export interface XtationThemeOption {
   value: XtationTheme;
@@ -11,12 +11,12 @@ export interface XtationThemeOption {
 }
 
 export const XTATION_THEME_OPTIONS: XtationThemeOption[] = [
-  { value: 'dark_minimal', label: 'Dark Minimal' },
+  { value: 'dark_minimal_solid', label: 'Dark Minimal + Solid' },
   { value: 'hud_clean', label: 'HUD Clean' },
   { value: 'glass_night', label: 'Glass Night' },
 ];
 
-const DEFAULT_THEME: XtationTheme = 'dark_minimal';
+const DEFAULT_THEME: XtationTheme = 'dark_minimal_solid';
 const VALID_THEMES = new Set<XtationTheme>(XTATION_THEME_OPTIONS.map((option) => option.value));
 
 const isTheme = (value: string): value is XtationTheme => VALID_THEMES.has(value as XtationTheme);
@@ -25,7 +25,8 @@ const normalizeTheme = (value: string | null): XtationTheme | null => {
   if (!value) return null;
   if (isTheme(value)) return value;
   if (value === 'dark_neon') return 'hud_clean';
-  if (value === 'light_minimal') return 'dark_minimal';
+  if (value === 'light_minimal') return 'dark_minimal_solid';
+  if (value === 'dark_minimal') return 'dark_minimal_solid';
   return null;
 };
 

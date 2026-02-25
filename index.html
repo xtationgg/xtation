@@ -7,47 +7,16 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --kpr-red: #FF2A3A;
-            --kpr-black: #050505;
-            --kpr-dark: #0F0F0F;
-            --kpr-gray: #333333;
-            --kpr-white: #FFFFFF;
-        }
-
         body {
-            font-family: 'Space Mono', monospace; /* KPR Style Typography */
-            background-color: var(--kpr-black);
-            color: var(--kpr-white);
+            font-family: 'Space Mono', monospace;
             overflow: hidden;
             user-select: none;
-            background-image: 
-                linear-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
-            background-size: 40px 40px;
         }
 
-        /* Scrollbar Styling - Blocky and industrial */
-        ::-webkit-scrollbar {
-            width: 8px;
-            height: 8px;
-        }
-        ::-webkit-scrollbar-track {
-            background: var(--kpr-black); 
-            border-left: 1px solid var(--kpr-gray);
-        }
-        ::-webkit-scrollbar-thumb {
-            background: var(--kpr-gray); 
-            border: 1px solid var(--kpr-black);
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: var(--kpr-red); 
-        }
-
-        /* Utilities */
-        .text-kpr-red { color: var(--kpr-red); }
-        .bg-kpr-red { background-color: var(--kpr-red); }
-        .border-kpr-red { border-color: var(--kpr-red); }
+        /* Utilities (theme mapped) */
+        .text-kpr-red { color: var(--t-accent); }
+        .bg-kpr-red { background-color: var(--t-accent); }
+        .border-kpr-red { border-color: var(--t-accent); }
         
         .font-mono { font-family: 'Space Mono', monospace; }
         
@@ -115,9 +84,9 @@
         }
 
         @keyframes pulse-border {
-            0% { box-shadow: 0 0 0 0 rgba(255, 42, 58, 0.35); opacity: 1; }
-            70% { box-shadow: 0 0 0 22px rgba(255, 42, 58, 0); opacity: 0; }
-            100% { box-shadow: 0 0 0 0 rgba(255, 42, 58, 0); opacity: 0; }
+            0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--t-accent) 35%, transparent); opacity: 1; }
+            70% { box-shadow: 0 0 0 22px color-mix(in srgb, var(--t-accent) 0%, transparent); opacity: 0; }
+            100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--t-accent) 0%, transparent); opacity: 0; }
         }
         .animate-pulse-border {
             animation: pulse-border 2s ease-out infinite;
@@ -131,10 +100,10 @@
         /* KPR Text Glitch Animation */
         @keyframes glitch-text {
             0% { transform: translate(0); text-shadow: none; }
-            20% { transform: translate(-1px, 1px); text-shadow: 2px 0 #FF2A3A, -2px 0 #00FFFF; }
-            40% { transform: translate(1px, -1px); text-shadow: -2px 0 #FF2A3A, 2px 0 #00FFFF; }
-            60% { transform: translate(-1px, -1px); text-shadow: 2px 0 #FF2A3A, -2px 0 #00FFFF; }
-            80% { transform: translate(1px, 1px); text-shadow: -2px 0 #FF2A3A, 2px 0 #00FFFF; }
+            20% { transform: translate(-1px, 1px); text-shadow: 2px 0 var(--t-accent), -2px 0 color-mix(in srgb, var(--t-text) 70%, var(--t-accent)); }
+            40% { transform: translate(1px, -1px); text-shadow: -2px 0 var(--t-accent), 2px 0 color-mix(in srgb, var(--t-text) 70%, var(--t-accent)); }
+            60% { transform: translate(-1px, -1px); text-shadow: 2px 0 var(--t-accent), -2px 0 color-mix(in srgb, var(--t-text) 70%, var(--t-accent)); }
+            80% { transform: translate(1px, 1px); text-shadow: -2px 0 var(--t-accent), 2px 0 color-mix(in srgb, var(--t-text) 70%, var(--t-accent)); }
             100% { transform: translate(0); text-shadow: none; }
         }
         
@@ -145,8 +114,8 @@
         }
 
         @keyframes text-glow-pulse {
-            0%, 100% { text-shadow: 0 0 2px rgba(255, 42, 58, 0.2); }
-            50% { text-shadow: 0 0 10px rgba(255, 42, 58, 0.8), 0 0 2px rgba(255, 255, 255, 0.5); }
+            0%, 100% { text-shadow: 0 0 2px color-mix(in srgb, var(--t-accent) 20%, transparent); }
+            50% { text-shadow: 0 0 10px color-mix(in srgb, var(--t-accent) 80%, transparent), 0 0 2px color-mix(in srgb, var(--t-text) 50%, transparent); }
         }
         
         .animate-text-glow {

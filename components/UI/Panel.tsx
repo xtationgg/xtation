@@ -25,7 +25,7 @@ export const Panel: React.FC<PanelProps> = ({
 }) => {
   return (
     <section
-      className={`ui-panel-surface chamfer-card relative overflow-hidden ${className}`}
+      className={`ui-panel-surface ui-shape-card relative overflow-hidden ${className}`}
       style={{ '--cut': cutToValue[cutSize] } as React.CSSProperties}
     >
       {(title || headerSlot) && (
