@@ -90,15 +90,6 @@ const formatTimer = (seconds: number) => {
 
 const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
 
-const toHourPercent = (hour: number, minutes: number) => clamp(((hour + minutes / 60) / 24) * 100, 0, 100);
-
-const toClusterPercent = (index: number, total: number) => {
-  if (total <= 1) return 50;
-  const spread = 34;
-  const start = 50 - spread / 2;
-  return start + (index / (total - 1)) * spread;
-};
-
 export const UiKitPlayground: React.FC = () => {
   const [running, setRunning] = useState(false);
   const [paused, setPaused] = useState(false);
@@ -268,26 +259,70 @@ export const UiKitPlayground: React.FC = () => {
     return points;
   }, [timelineLayoutMode, timelinePointsMode]);
 
-  const timelinePointsWithPosition = useMemo(() => {
-    const rowGroups: Record<TimelineRow, TimelinePreviewPoint[]> = {
-      planned: [],
-      actual: [],
-      unscheduled: [],
+  const timelineChart = useMemo(() => {
+    const chart = {
+      width: 1200,
+      height: 400,
+      marginLeft: 48,
+      marginRight: 22,
+      marginTop: 24,
+      marginBottom: 44,
+      dotRadius: 5,
+      verticalGap: 11,
+      stackMaxVisible: 10,
     };
 
-    timelinePoints.forEach((point) => {
-      rowGroups[point.row].push(point);
+    const innerWidth = chart.width - chart.marginLeft - chart.marginRight;
+    const hourStep = innerWidth / 24;
+    const stackStep = chart.dotRadius * 2 + chart.verticalGap;
+
+    const buckets = Array.from({ length: 24 }, () => [] as (TimelinePreviewPoint & { sortValue: number })[]);
+    timelinePoints.forEach((point, index) => {
+      const minutesFromMidnight = point.hour * 60 + point.minutes;
+      const hourBucket = activeTimelineConfig.granularity === 'b' ? 12 : Math.floor(minutesFromMidnight / 60);
+      const normalizedBucket = clamp(hourBucket, 0, 23);
+      buckets[normalizedBucket].push({
+        ...point,
+        sortValue: minutesFromMidnight * 100 + (TIMELINE_TASKS.length - index),
+      });
     });
 
-    return timelinePoints.map((point) => {
-      const group = rowGroups[point.row];
-      const groupIndex = group.findIndex((entry) => entry.id === point.id);
-      const x =
-        activeTimelineConfig.granularity === 'a'
-          ? toHourPercent(point.hour, point.minutes)
-          : toClusterPercent(groupIndex, group.length);
-      return { ...point, x };
+    buckets.forEach((bucket) => bucket.sort((a, b) => b.sortValue - a.sortValue));
+
+    const dotItems: Array<
+      TimelinePreviewPoint & {
+        cx: number;
+        cy: number;
+        overflowCount: number;
+      }
+    > = [];
+
+    const overflowItems: Array<{ hour: number; count: number; x: number; y: number }> = [];
+    const stackTopY = chart.marginTop + 24;
+
+    buckets.forEach((bucket, hour) => {
+      const x = chart.marginLeft + hourStep * hour + hourStep / 2;
+      const visible = bucket.slice(0, chart.stackMaxVisible);
+      visible.forEach((point, stackIndex) => {
+        dotItems.push({
+          ...point,
+          cx: x,
+          cy: stackTopY + stackIndex * stackStep,
+          overflowCount: Math.max(0, bucket.length - chart.stackMaxVisible),
+        });
+      });
+
+      if (bucket.length > chart.stackMaxVisible) {
+        overflowItems.push({
+          hour,
+          count: bucket.length - chart.stackMaxVisible,
+          x,
+          y: stackTopY + chart.stackMaxVisible * stackStep + 2,
+        });
+      }
     });
+
+    return { ...chart, innerWidth, hourStep, dotItems, overflowItems };
   }, [timelinePoints, activeTimelineConfig.granularity]);
 
   return (
@@ -626,83 +661,119 @@ export const UiKitPlayground: React.FC = () => {
                   ))}
                 </div>
 
-                <div className="relative h-[400px] overflow-hidden rounded-[12px] border border-[var(--ui-border)] bg-[var(--ui-panel-2)] p-4">
-                  <div
-                    className="pointer-events-none absolute inset-0 opacity-40"
-                    style={{
-                      backgroundImage:
-                        'linear-gradient(to right, rgba(143,99,255,0.08) 1px, transparent 1px), linear-gradient(to bottom, rgba(143,99,255,0.06) 1px, transparent 1px)',
-                      backgroundSize: 'calc(100% / 24) 100%, 100% 56px',
-                    }}
-                  />
-                  <div className="absolute left-4 right-4 top-[22%] border-t border-[rgba(143,99,255,0.35)]" />
-                  <div className="absolute left-4 right-4 top-[49%] border-t border-[rgba(143,99,255,0.35)]" />
-                  <div className="absolute left-4 right-4 top-[76%] border-t border-[rgba(143,99,255,0.35)]" />
-                  <p className="absolute left-4 top-[16%] text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--ui-muted)]">Planned</p>
-                  <p className="absolute left-4 top-[43%] text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--ui-muted)]">Actual</p>
-                  <p className="absolute left-4 top-[70%] text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--ui-muted)]">Unscheduled</p>
-
+                <div className="relative h-[400px] overflow-hidden rounded-[12px] border border-[var(--ui-border)] bg-[var(--ui-panel-2)]">
                   <button
                     type="button"
                     onClick={() => setTimelineUnscheduledOpen((prev) => !prev)}
-                    className="ui-pressable chamfer-all absolute right-4 top-4 z-[5] border border-[var(--ui-border)] bg-[var(--ui-panel)] px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--ui-text)] hover:border-[var(--ui-accent)]"
+                    className="ui-pressable chamfer-all absolute right-3 top-3 z-[6] border border-[var(--ui-border)] bg-[var(--ui-panel)] px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-[var(--ui-text)] hover:border-[var(--ui-accent)]"
                   >
                     Unscheduled ({unscheduledTasks.length})
                   </button>
 
-                  {HOUR_TICKS.map((tick) => {
-                    if (tick % 2 !== 0 && tick !== 24) return null;
-                    const left = (tick / 24) * 100;
-                    return (
-                      <div key={tick} className="absolute bottom-3" style={{ left: `${left}%`, transform: 'translateX(-50%)' }}>
-                        <div className="h-1.5 w-px bg-[rgba(143,99,255,0.5)]" />
-                        <div className="mt-1 text-[8px] font-semibold tracking-[0.08em] text-[var(--ui-muted)]">
-                          {tick.toString().padStart(2, '0')}
-                        </div>
-                      </div>
-                    );
-                  })}
+                  <svg viewBox={`0 0 ${timelineChart.width} ${timelineChart.height}`} className="h-full w-full">
+                    <defs>
+                      <pattern id="timeline-lab-grid" width={timelineChart.hourStep} height={22} patternUnits="userSpaceOnUse">
+                        <path d={`M ${timelineChart.hourStep} 0 L 0 0 0 22`} fill="none" stroke="rgba(143,99,255,0.08)" strokeWidth="1" />
+                      </pattern>
+                    </defs>
+                    <rect
+                      x={timelineChart.marginLeft}
+                      y={timelineChart.marginTop}
+                      width={timelineChart.innerWidth}
+                      height={timelineChart.height - timelineChart.marginTop - timelineChart.marginBottom}
+                      fill="url(#timeline-lab-grid)"
+                    />
 
-                  {timelinePointsWithPosition.map((point) => {
-                    const color = STATUS_COLORS[point.status];
-                    const rowY = point.row === 'planned' ? 22 : point.row === 'actual' ? 49 : 76;
-                    const isHollow = activeTimelineConfig.layout === 'b' && point.row === 'planned';
-                    const isVariantB = timelinePreviewVariant === 'b';
-                    const pointSize = isVariantB ? 14 : 12;
-                    return (
-                      <button
-                        key={point.id}
-                        type="button"
-                        onMouseEnter={(event) => {
-                          const parentRect = event.currentTarget.parentElement?.getBoundingClientRect();
-                          if (!parentRect) return;
-                          setTimelineTooltip({
-                            x: event.clientX - parentRect.left + 10,
-                            y: event.clientY - parentRect.top - 10,
-                            title: point.title,
-                            status: point.status,
-                            time: `${point.hour.toString().padStart(2, '0')}:${point.minutes.toString().padStart(2, '0')}`,
-                          });
-                        }}
-                        onMouseLeave={() => setTimelineTooltip(null)}
-                        className="absolute rounded-full border-2 outline-none"
-                        style={{
-                          left: `${point.x}%`,
-                          top: `${rowY}%`,
-                          width: pointSize,
-                          height: pointSize,
-                          transform: 'translate(-50%, -50%)',
-                          borderColor: color,
-                          backgroundColor: isHollow ? 'transparent' : color,
-                          boxShadow: isVariantB ? `0 0 10px ${color}99` : `0 0 6px ${color}66`,
-                        }}
-                      />
-                    );
-                  })}
+                    {HOUR_TICKS.filter((tick) => tick % 2 === 0).map((tick) => {
+                      const x = timelineChart.marginLeft + (timelineChart.innerWidth / 24) * tick;
+                      const yBase = timelineChart.height - timelineChart.marginBottom;
+                      return (
+                        <g key={`axis-${tick}`}>
+                          <line x1={x} y1={yBase} x2={x} y2={yBase + 6} stroke="rgba(143,99,255,0.45)" strokeWidth="1" />
+                          <text
+                            x={x}
+                            y={yBase + 18}
+                            textAnchor="middle"
+                            fontSize="10"
+                            fill="rgba(168,176,206,0.72)"
+                            style={{ letterSpacing: '0.08em' }}
+                          >
+                            {tick.toString().padStart(2, '0')}
+                          </text>
+                        </g>
+                      );
+                    })}
+
+                    <line
+                      x1={timelineChart.marginLeft}
+                      y1={timelineChart.height - timelineChart.marginBottom}
+                      x2={timelineChart.width - timelineChart.marginRight}
+                      y2={timelineChart.height - timelineChart.marginBottom}
+                      stroke="rgba(143,99,255,0.32)"
+                      strokeWidth="1"
+                    />
+
+                    {timelineChart.dotItems.map((point) => {
+                      const isCompleted = point.status === 'completed';
+                      const isScheduled = point.status === 'scheduled';
+                      const isFailed = point.status === 'failed';
+                      const dotFill = isScheduled ? 'transparent' : isFailed ? '#ed4245' : 'rgba(143,99,255,0.9)';
+                      const dotStroke = isScheduled ? 'rgba(168,176,206,0.75)' : isFailed ? '#ed4245' : 'rgba(143,99,255,0.95)';
+                      const dotStrokeWidth = isScheduled ? 2 : 1.5;
+
+                      return (
+                        <g key={point.id}>
+                          <circle cx={point.cx} cy={point.cy} r={timelineChart.dotRadius} fill={dotFill} stroke={dotStroke} strokeWidth={dotStrokeWidth} />
+                          <circle
+                            cx={point.cx}
+                            cy={point.cy}
+                            r={timelineChart.dotRadius + 5}
+                            fill="transparent"
+                            onMouseMove={(event) => {
+                              const svgRect = event.currentTarget.ownerSVGElement?.getBoundingClientRect();
+                              if (!svgRect) return;
+                              setTimelineTooltip({
+                                x: event.clientX - svgRect.left + 10,
+                                y: event.clientY - svgRect.top - 10,
+                                title: point.title,
+                                status: point.status,
+                                time: `${point.hour.toString().padStart(2, '0')}:${point.minutes.toString().padStart(2, '0')}`,
+                              });
+                            }}
+                            onMouseLeave={() => setTimelineTooltip(null)}
+                          />
+                        </g>
+                      );
+                    })}
+
+                    {timelineChart.overflowItems.map((overflow) => (
+                      <g key={`overflow-${overflow.hour}`}>
+                        <rect
+                          x={overflow.x - 12}
+                          y={overflow.y - 9}
+                          width="24"
+                          height="16"
+                          rx="8"
+                          fill="rgba(24,28,48,0.95)"
+                          stroke="rgba(143,99,255,0.45)"
+                        />
+                        <text
+                          x={overflow.x}
+                          y={overflow.y + 3}
+                          textAnchor="middle"
+                          fontSize="9"
+                          fill="rgba(206,214,240,0.9)"
+                          style={{ letterSpacing: '0.04em' }}
+                        >
+                          +{overflow.count}
+                        </text>
+                      </g>
+                    ))}
+                  </svg>
 
                   {timelineTooltip ? (
                     <div
-                      className="pointer-events-none absolute z-10 rounded-[8px] border border-[var(--ui-border)] bg-[rgba(8,10,20,0.96)] px-2.5 py-2 text-[10px] text-[var(--ui-text)] shadow-[0_6px_18px_rgba(0,0,0,0.35)]"
+                      className="pointer-events-none absolute z-10 rounded-[7px] border border-[var(--ui-border)] bg-[rgba(8,10,20,0.96)] px-2 py-1.5 text-[10px] text-[var(--ui-text)] shadow-[0_6px_16px_rgba(0,0,0,0.35)]"
                       style={{ left: timelineTooltip.x, top: timelineTooltip.y }}
                     >
                       <p className="font-semibold">{timelineTooltip.title}</p>
@@ -712,12 +783,12 @@ export const UiKitPlayground: React.FC = () => {
                   ) : null}
 
                   <aside
-                    className={`absolute bottom-0 right-0 top-0 w-[280px] border-l border-[var(--ui-border)] bg-[rgba(14,16,30,0.96)] p-3 transition-transform duration-150 ${
+                    className={`absolute bottom-0 right-0 top-0 z-[7] w-[260px] border-l border-[var(--ui-border)] bg-[rgba(14,16,30,0.96)] p-3 transition-transform duration-150 ${
                       timelineUnscheduledOpen ? 'translate-x-0' : 'translate-x-full'
                     }`}
                   >
                     <div className="mb-2 flex items-center justify-between">
-                      <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--ui-text)]">Unscheduled Tasks</p>
+                      <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--ui-text)]">Unscheduled</p>
                       <button
                         type="button"
                         onClick={() => setTimelineUnscheduledOpen(false)}
