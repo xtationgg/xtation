@@ -30,20 +30,23 @@ interface TimelineTask {
   actualSessions: TimelineSession[];
 }
 
-interface TimelinePoint {
-  id: string;
-  taskId: string;
-  status: TimelineStatus;
-  lane: 'mixed' | 'planned' | 'actual';
-  kind: 'planned' | 'actual';
-  hour: number;
-  minutes: number;
-}
-
 interface TimelinePanelConfig {
   layout: TimelineLayoutMode;
   points: TimelinePointsMode;
   granularity: TimelineGranularityMode;
+}
+
+type TimelineRow = 'planned' | 'actual' | 'unscheduled';
+
+interface TimelinePreviewPoint {
+  id: string;
+  taskId: string;
+  title: string;
+  status: TimelineStatus;
+  row: TimelineRow;
+  kind: 'planned' | 'actual';
+  hour: number;
+  minutes: number;
 }
 
 const STATUS_COLORS: Record<TimelineStatus, string> = {
@@ -96,95 +99,6 @@ const toClusterPercent = (index: number, total: number) => {
   return start + (index / (total - 1)) * spread;
 };
 
-const invertMode = <T extends 'a' | 'b'>(value: T): T => (value === 'a' ? 'b' : 'a') as T;
-
-const getTaskAnchor = (task: TimelineTask) => task.actualSessions[0] ?? null;
-
-const buildTimelinePoints = (tasks: TimelineTask[], config: TimelinePanelConfig): TimelinePoint[] => {
-  const points: TimelinePoint[] = [];
-
-  tasks.forEach((task) => {
-    const hasPlan = typeof task.plannedStartHour === 'number';
-    const anchor = getTaskAnchor(task);
-
-    if (config.points === 'a') {
-      if (config.layout === 'a') {
-        if (anchor) {
-          points.push({
-            id: `${task.id}-anchor`,
-            taskId: task.id,
-            status: task.status,
-            lane: 'mixed',
-            kind: 'actual',
-            hour: anchor.hour,
-            minutes: anchor.minutes,
-          });
-        } else if (hasPlan) {
-          points.push({
-            id: `${task.id}-plan`,
-            taskId: task.id,
-            status: task.status,
-            lane: 'mixed',
-            kind: 'planned',
-            hour: task.plannedStartHour as number,
-            minutes: 0,
-          });
-        }
-      } else {
-        if (hasPlan) {
-          points.push({
-            id: `${task.id}-plan`,
-            taskId: task.id,
-            status: task.status,
-            lane: 'planned',
-            kind: 'planned',
-            hour: task.plannedStartHour as number,
-            minutes: 0,
-          });
-        }
-        if (anchor) {
-          points.push({
-            id: `${task.id}-anchor`,
-            taskId: task.id,
-            status: task.status,
-            lane: 'actual',
-            kind: 'actual',
-            hour: anchor.hour,
-            minutes: anchor.minutes,
-          });
-        }
-      }
-      return;
-    }
-
-    if (hasPlan) {
-      points.push({
-        id: `${task.id}-plan`,
-        taskId: task.id,
-        status: task.status,
-        lane: config.layout === 'b' ? 'planned' : 'mixed',
-        kind: 'planned',
-        hour: task.plannedStartHour as number,
-        minutes: 0,
-      });
-    }
-
-    task.actualSessions.forEach((session, index) => {
-      points.push({
-        id: `${task.id}-session-${index}`,
-        taskId: task.id,
-        status: task.status,
-        lane: config.layout === 'b' ? 'actual' : 'mixed',
-        kind: 'actual',
-        hour: session.hour,
-        minutes: session.minutes,
-      });
-    });
-  });
-
-  return points;
-};
-
 export const UiKitPlayground: React.FC = () => {
   const [running, setRunning] = useState(false);
   const [paused, setPaused] = useState(false);
@@ -198,6 +112,15 @@ export const UiKitPlayground: React.FC = () => {
   const [timelineLayoutMode, setTimelineLayoutMode] = useState<TimelineLayoutMode>('a');
   const [timelinePointsMode, setTimelinePointsMode] = useState<TimelinePointsMode>('a');
   const [timelineGranularityMode, setTimelineGranularityMode] = useState<TimelineGranularityMode>('a');
+  const [timelinePreviewVariant, setTimelinePreviewVariant] = useState<'a' | 'b'>('a');
+  const [timelineUnscheduledOpen, setTimelineUnscheduledOpen] = useState(false);
+  const [timelineTooltip, setTimelineTooltip] = useState<{
+    x: number;
+    y: number;
+    title: string;
+    status: TimelineStatus;
+    time: string;
+  } | null>(null);
 
   useEffect(() => {
     if (!running || paused) return;
@@ -213,126 +136,159 @@ export const UiKitPlayground: React.FC = () => {
   }, [running, paused]);
 
   const statusLabel = running ? (paused ? 'Paused' : 'Active') : 'Idle';
-  const unscheduledTasks = TIMELINE_TASKS.filter((task) => task.plannedStartHour === null);
-
-  const optionAConfig: TimelinePanelConfig = {
+  const unscheduledTasks = useMemo(() => TIMELINE_TASKS.filter((task) => task.plannedStartHour === null), []);
+  const activeTimelineConfig: TimelinePanelConfig = {
     layout: timelineLayoutMode,
     points: timelinePointsMode,
     granularity: timelineGranularityMode,
   };
+  const timelinePoints = useMemo(() => {
+    const points: TimelinePreviewPoint[] = [];
 
-  const optionBConfig: TimelinePanelConfig = {
-    layout: invertMode(timelineLayoutMode),
-    points: invertMode(timelinePointsMode),
-    granularity: invertMode(timelineGranularityMode),
-  };
+    TIMELINE_TASKS.forEach((task) => {
+      const hasPlan = typeof task.plannedStartHour === 'number';
+      const isUnscheduled = !hasPlan;
+      const firstSession = task.actualSessions[0] ?? null;
 
-  const renderTimelinePanel = (label: string, config: TimelinePanelConfig) => {
-    const points = buildTimelinePoints(TIMELINE_TASKS, config);
-    const rowY = config.layout === 'a' ? { mixed: 52, planned: 52, actual: 52 } : { mixed: 52, planned: 34, actual: 72 };
-    const pointsWithX = points.map((point, index) => {
-      const x =
-        config.granularity === 'a'
-          ? toHourPercent(point.hour, point.minutes)
-          : toClusterPercent(index, points.length);
-      return { ...point, x };
+      if (activeTimelineConfig.points === 'a') {
+        if (isUnscheduled) {
+          if (firstSession) {
+            points.push({
+              id: `${task.id}-unscheduled-anchor`,
+              taskId: task.id,
+              title: task.title,
+              status: task.status,
+              row: 'unscheduled',
+              kind: 'actual',
+              hour: firstSession.hour,
+              minutes: firstSession.minutes,
+            });
+          }
+          return;
+        }
+
+        if (activeTimelineConfig.layout === 'b') {
+          if (firstSession) {
+            points.push({
+              id: `${task.id}-actual-anchor`,
+              taskId: task.id,
+              title: task.title,
+              status: task.status,
+              row: 'actual',
+              kind: 'actual',
+              hour: firstSession.hour,
+              minutes: firstSession.minutes,
+            });
+          } else if (hasPlan) {
+            points.push({
+              id: `${task.id}-planned-anchor`,
+              taskId: task.id,
+              title: task.title,
+              status: task.status,
+              row: 'planned',
+              kind: 'planned',
+              hour: task.plannedStartHour as number,
+              minutes: 0,
+            });
+          }
+          return;
+        }
+
+        const fallbackHour = hasPlan ? (task.plannedStartHour as number) : 12;
+        const fallbackMinutes = firstSession?.minutes ?? 0;
+        points.push({
+          id: `${task.id}-single-anchor`,
+          taskId: task.id,
+          title: task.title,
+          status: task.status,
+          row: 'actual',
+          kind: firstSession ? 'actual' : 'planned',
+          hour: firstSession?.hour ?? fallbackHour,
+          minutes: fallbackMinutes,
+        });
+        return;
+      }
+
+      if (isUnscheduled) {
+        task.actualSessions.forEach((session, sessionIndex) => {
+          points.push({
+            id: `${task.id}-unscheduled-session-${sessionIndex}`,
+            taskId: task.id,
+            title: task.title,
+            status: task.status,
+            row: 'unscheduled',
+            kind: 'actual',
+            hour: session.hour,
+            minutes: session.minutes,
+          });
+        });
+        return;
+      }
+
+      if (activeTimelineConfig.layout === 'b' && hasPlan) {
+        points.push({
+          id: `${task.id}-planned`,
+          taskId: task.id,
+          title: task.title,
+          status: task.status,
+          row: 'planned',
+          kind: 'planned',
+          hour: task.plannedStartHour as number,
+          minutes: 0,
+        });
+      }
+
+      if (task.actualSessions.length > 0) {
+        task.actualSessions.forEach((session, sessionIndex) => {
+          points.push({
+            id: `${task.id}-actual-session-${sessionIndex}`,
+            taskId: task.id,
+            title: task.title,
+            status: task.status,
+            row: 'actual',
+            kind: 'actual',
+            hour: session.hour,
+            minutes: session.minutes,
+          });
+        });
+      } else if (activeTimelineConfig.layout === 'a' && hasPlan) {
+        points.push({
+          id: `${task.id}-single-planned`,
+          taskId: task.id,
+          title: task.title,
+          status: task.status,
+          row: 'actual',
+          kind: 'planned',
+          hour: task.plannedStartHour as number,
+          minutes: 0,
+        });
+      }
     });
 
-    return (
-      <Panel
-        title={label}
-        subtitle={`layout ${config.layout.toUpperCase()} • points ${config.points.toUpperCase()} • granularity ${config.granularity.toUpperCase()}`}
-      >
-        <div className="grid gap-4">
-          <div className="relative h-[270px] rounded-[12px] border border-[var(--ui-border)] bg-[var(--ui-panel-2)] p-4">
-            {config.layout === 'b' ? (
-              <>
-                <p className="absolute left-4 top-[22%] text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--ui-muted)]">Planned</p>
-                <p className="absolute left-4 top-[60%] text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--ui-muted)]">Actual</p>
-                <div className="absolute left-3 right-3 top-[31%] border-t border-[rgba(143,99,255,0.35)]" />
-                <div className="absolute left-3 right-3 top-[69%] border-t border-[rgba(143,99,255,0.35)]" />
-              </>
-            ) : (
-              <div className="absolute left-3 right-3 top-1/2 border-t border-[rgba(143,99,255,0.35)]" />
-            )}
+    return points;
+  }, [timelineLayoutMode, timelinePointsMode]);
 
-            {config.granularity === 'a' ? (
-              <div className="absolute bottom-3 left-3 right-3">
-                <div className="relative h-12">
-                  {HOUR_TICKS.map((tick) => {
-                    const left = (tick / 24) * 100;
-                    return (
-                      <div key={tick} className="absolute bottom-0" style={{ left: `${left}%`, transform: 'translateX(-50%)' }}>
-                        <div className="h-2 w-px bg-[rgba(143,99,255,0.65)]" />
-                        <div className="mt-1 text-[8px] font-semibold uppercase tracking-[0.12em] text-[var(--ui-muted)]">
-                          {tick.toString().padStart(2, '0')}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            ) : (
-              <div className="absolute bottom-4 left-1/2 -translate-x-1/2 text-[10px] font-semibold uppercase tracking-[0.25em] text-[var(--ui-muted)]">
-                DAY CLUSTER
-              </div>
-            )}
+  const timelinePointsWithPosition = useMemo(() => {
+    const rowGroups: Record<TimelineRow, TimelinePreviewPoint[]> = {
+      planned: [],
+      actual: [],
+      unscheduled: [],
+    };
 
-            {pointsWithX.map((point) => {
-              const color = STATUS_COLORS[point.status];
-              const filled = point.kind === 'actual' || config.layout === 'a';
-              const y = rowY[point.lane];
-              return (
-                <div
-                  key={point.id}
-                  className="absolute h-3.5 w-3.5 -translate-x-1/2 -translate-y-1/2 rounded-full border-2"
-                  style={{
-                    left: `${point.x}%`,
-                    top: `${y}%`,
-                    borderColor: color,
-                    backgroundColor: filled ? color : 'transparent',
-                    boxShadow: filled ? `0 0 8px ${color}88` : 'none',
-                  }}
-                  title={`${point.taskId} • ${point.kind} • ${point.hour.toString().padStart(2, '0')}:${point.minutes
-                    .toString()
-                    .padStart(2, '0')}`}
-                />
-              );
-            })}
-          </div>
+    timelinePoints.forEach((point) => {
+      rowGroups[point.row].push(point);
+    });
 
-          <div className="flex flex-wrap items-center gap-2">
-            {(['completed', 'scheduled', 'failed'] as TimelineStatus[]).map((status) => (
-              <span
-                key={status}
-                className="inline-flex items-center gap-2 rounded-[10px] border px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.18em]"
-                style={{
-                  borderColor: `${STATUS_COLORS[status]}66`,
-                  backgroundColor: `${STATUS_COLORS[status]}1F`,
-                  color: STATUS_COLORS[status],
-                }}
-              >
-                <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: STATUS_COLORS[status] }} />
-                {status}
-              </span>
-            ))}
-          </div>
-
-          <div className="flex flex-wrap gap-2">
-            {unscheduledTasks.map((task) => (
-              <span
-                key={`${label}-${task.id}`}
-                className="chamfer-all inline-flex items-center gap-1 border border-[var(--ui-border)] bg-[var(--ui-panel)] px-2 py-1 text-[9px] font-semibold uppercase tracking-[0.16em] text-[var(--ui-muted)]"
-              >
-                UNSCHEDULED
-                <span className="text-[var(--ui-text)]">{task.title}</span>
-              </span>
-            ))}
-          </div>
-        </div>
-      </Panel>
-    );
-  };
+    return timelinePoints.map((point) => {
+      const group = rowGroups[point.row];
+      const groupIndex = group.findIndex((entry) => entry.id === point.id);
+      const x =
+        activeTimelineConfig.granularity === 'a'
+          ? toHourPercent(point.hour, point.minutes)
+          : toClusterPercent(groupIndex, group.length);
+      return { ...point, x };
+    });
+  }, [timelinePoints, activeTimelineConfig.granularity]);
 
   return (
     <div className="h-full overflow-y-auto bg-[var(--ui-bg)] px-8 py-6 text-[var(--ui-text)]">
@@ -540,98 +496,240 @@ export const UiKitPlayground: React.FC = () => {
           </section>
         ) : activeTab === 'timeline_lab' ? (
           <section className="grid grid-cols-1 gap-4">
-            <Panel title="Timeline Lab" subtitle="A/B preview sandbox">
-              <div className="grid gap-3 lg:grid-cols-3">
-                <div className="chamfer-card border border-[var(--ui-border)] bg-[var(--ui-panel-2)] p-3">
-                  <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--ui-muted)]">Layout</p>
-                  <div className="mt-2 flex gap-2">
-                    <button
-                      type="button"
-                      onClick={() => setTimelineLayoutMode('a')}
-                      className={`ui-pressable chamfer-all border px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] ${
-                        timelineLayoutMode === 'a'
-                          ? 'border-[var(--ui-accent)] bg-[rgba(143,99,255,0.24)] text-white ui-glow'
-                          : 'border-[var(--ui-border)] bg-[var(--ui-panel)] text-[var(--ui-muted)]'
-                      }`}
-                    >
-                      A: mixed single line
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setTimelineLayoutMode('b')}
-                      className={`ui-pressable chamfer-all border px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] ${
-                        timelineLayoutMode === 'b'
-                          ? 'border-[var(--ui-accent)] bg-[rgba(143,99,255,0.24)] text-white ui-glow'
-                          : 'border-[var(--ui-border)] bg-[var(--ui-panel)] text-[var(--ui-muted)]'
-                      }`}
-                    >
-                      B: planned/actual stacked
-                    </button>
+            <div className="chamfer-card flex items-center justify-between border border-[var(--ui-border)] bg-[var(--ui-panel)] px-3 py-2">
+              <div>
+                <p className="text-[10px] font-semibold uppercase tracking-[0.24em] text-[var(--ui-text)]">TIMELINE LAB</p>
+                <p className="text-[10px] uppercase tracking-[0.2em] text-[var(--ui-muted)]">Day view prototype</p>
+              </div>
+              <div className="flex items-center gap-1 rounded-[10px] border border-[var(--ui-border)] bg-[var(--ui-panel-2)] p-1">
+                <button
+                  type="button"
+                  onClick={() => setTimelinePreviewVariant('a')}
+                  className={`ui-pressable chamfer-all border px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] ${
+                    timelinePreviewVariant === 'a'
+                      ? 'border-[var(--ui-accent)] bg-[rgba(143,99,255,0.24)] text-white ui-glow'
+                      : 'border-transparent bg-transparent text-[var(--ui-muted)]'
+                  }`}
+                >
+                  A
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setTimelinePreviewVariant('b')}
+                  className={`ui-pressable chamfer-all border px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] ${
+                    timelinePreviewVariant === 'b'
+                      ? 'border-[var(--ui-accent)] bg-[rgba(143,99,255,0.24)] text-white ui-glow'
+                      : 'border-transparent bg-transparent text-[var(--ui-muted)]'
+                  }`}
+                >
+                  B
+                </button>
+              </div>
+            </div>
+
+            <div className="chamfer-card flex flex-wrap items-center gap-3 border border-[var(--ui-border)] bg-[var(--ui-panel)] px-3 py-2">
+              <div className="flex items-center gap-1">
+                <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--ui-muted)]">Layout</span>
+                <button
+                  type="button"
+                  onClick={() => setTimelineLayoutMode('a')}
+                  className={`ui-pressable chamfer-all border px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] ${
+                    timelineLayoutMode === 'a'
+                      ? 'border-[var(--ui-accent)] bg-[rgba(143,99,255,0.24)] text-white'
+                      : 'border-[var(--ui-border)] bg-[var(--ui-panel-2)] text-[var(--ui-muted)]'
+                  }`}
+                >
+                  Single
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setTimelineLayoutMode('b')}
+                  className={`ui-pressable chamfer-all border px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] ${
+                    timelineLayoutMode === 'b'
+                      ? 'border-[var(--ui-accent)] bg-[rgba(143,99,255,0.24)] text-white'
+                      : 'border-[var(--ui-border)] bg-[var(--ui-panel-2)] text-[var(--ui-muted)]'
+                  }`}
+                >
+                  Planned/Actual
+                </button>
+              </div>
+
+              <div className="flex items-center gap-1">
+                <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--ui-muted)]">Points</span>
+                <button
+                  type="button"
+                  onClick={() => setTimelinePointsMode('a')}
+                  className={`ui-pressable chamfer-all border px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] ${
+                    timelinePointsMode === 'a'
+                      ? 'border-[var(--ui-accent)] bg-[rgba(143,99,255,0.24)] text-white'
+                      : 'border-[var(--ui-border)] bg-[var(--ui-panel-2)] text-[var(--ui-muted)]'
+                  }`}
+                >
+                  Tasks
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setTimelinePointsMode('b')}
+                  className={`ui-pressable chamfer-all border px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] ${
+                    timelinePointsMode === 'b'
+                      ? 'border-[var(--ui-accent)] bg-[rgba(143,99,255,0.24)] text-white'
+                      : 'border-[var(--ui-border)] bg-[var(--ui-panel-2)] text-[var(--ui-muted)]'
+                  }`}
+                >
+                  Sessions
+                </button>
+              </div>
+
+              <div className="flex items-center gap-1">
+                <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--ui-muted)]">Granularity</span>
+                <button
+                  type="button"
+                  onClick={() => setTimelineGranularityMode('a')}
+                  className={`ui-pressable chamfer-all border px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] ${
+                    timelineGranularityMode === 'a'
+                      ? 'border-[var(--ui-accent)] bg-[rgba(143,99,255,0.24)] text-white'
+                      : 'border-[var(--ui-border)] bg-[var(--ui-panel-2)] text-[var(--ui-muted)]'
+                  }`}
+                >
+                  Hourly
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setTimelineGranularityMode('b')}
+                  className={`ui-pressable chamfer-all border px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] ${
+                    timelineGranularityMode === 'b'
+                      ? 'border-[var(--ui-accent)] bg-[rgba(143,99,255,0.24)] text-white'
+                      : 'border-[var(--ui-border)] bg-[var(--ui-panel-2)] text-[var(--ui-muted)]'
+                  }`}
+                >
+                  Day-only
+                </button>
+              </div>
+            </div>
+
+            <Panel title={`Preview ${timelinePreviewVariant.toUpperCase()}`} subtitle="Single preview mode">
+              <div className="relative grid gap-3">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div className="flex flex-wrap items-center gap-2">
+                    {(['completed', 'scheduled', 'failed'] as TimelineStatus[]).map((status) => (
+                      <span
+                        key={status}
+                        className="inline-flex items-center gap-2 rounded-[10px] border px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.18em]"
+                        style={{
+                          borderColor: `${STATUS_COLORS[status]}66`,
+                          backgroundColor: `${STATUS_COLORS[status]}1F`,
+                          color: STATUS_COLORS[status],
+                        }}
+                      >
+                        <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: STATUS_COLORS[status] }} />
+                        {status}
+                      </span>
+                    ))}
                   </div>
+                  <button
+                    type="button"
+                    onClick={() => setTimelineUnscheduledOpen((prev) => !prev)}
+                    className="ui-pressable chamfer-all border border-[var(--ui-border)] bg-[var(--ui-panel-2)] px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--ui-text)] hover:border-[var(--ui-accent)]"
+                  >
+                    Unscheduled ({unscheduledTasks.length})
+                  </button>
                 </div>
 
-                <div className="chamfer-card border border-[var(--ui-border)] bg-[var(--ui-panel-2)] p-3">
-                  <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--ui-muted)]">Points</p>
-                  <div className="mt-2 flex gap-2">
-                    <button
-                      type="button"
-                      onClick={() => setTimelinePointsMode('a')}
-                      className={`ui-pressable chamfer-all border px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] ${
-                        timelinePointsMode === 'a'
-                          ? 'border-[var(--ui-accent)] bg-[rgba(143,99,255,0.24)] text-white ui-glow'
-                          : 'border-[var(--ui-border)] bg-[var(--ui-panel)] text-[var(--ui-muted)]'
-                      }`}
-                    >
-                      A: one point per task
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setTimelinePointsMode('b')}
-                      className={`ui-pressable chamfer-all border px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] ${
-                        timelinePointsMode === 'b'
-                          ? 'border-[var(--ui-accent)] bg-[rgba(143,99,255,0.24)] text-white ui-glow'
-                          : 'border-[var(--ui-border)] bg-[var(--ui-panel)] text-[var(--ui-muted)]'
-                      }`}
-                    >
-                      B: sessions as points
-                    </button>
-                  </div>
-                </div>
+                <div className="relative h-[320px] overflow-hidden rounded-[12px] border border-[var(--ui-border)] bg-[var(--ui-panel-2)] p-4">
+                  <div className="absolute left-4 right-4 top-[22%] border-t border-[rgba(143,99,255,0.35)]" />
+                  <div className="absolute left-4 right-4 top-[49%] border-t border-[rgba(143,99,255,0.35)]" />
+                  <div className="absolute left-4 right-4 top-[76%] border-t border-[rgba(143,99,255,0.35)]" />
+                  <p className="absolute left-4 top-[16%] text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--ui-muted)]">Planned</p>
+                  <p className="absolute left-4 top-[43%] text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--ui-muted)]">Actual</p>
+                  <p className="absolute left-4 top-[70%] text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--ui-muted)]">Unscheduled</p>
 
-                <div className="chamfer-card border border-[var(--ui-border)] bg-[var(--ui-panel-2)] p-3">
-                  <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--ui-muted)]">Granularity</p>
-                  <div className="mt-2 flex gap-2">
-                    <button
-                      type="button"
-                      onClick={() => setTimelineGranularityMode('a')}
-                      className={`ui-pressable chamfer-all border px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] ${
-                        timelineGranularityMode === 'a'
-                          ? 'border-[var(--ui-accent)] bg-[rgba(143,99,255,0.24)] text-white ui-glow'
-                          : 'border-[var(--ui-border)] bg-[var(--ui-panel)] text-[var(--ui-muted)]'
-                      }`}
+                  {HOUR_TICKS.map((tick) => {
+                    const left = (tick / 24) * 100;
+                    return (
+                      <div key={tick} className="absolute bottom-3" style={{ left: `${left}%`, transform: 'translateX(-50%)' }}>
+                        <div className="h-2 w-px bg-[rgba(143,99,255,0.65)]" />
+                        <div className="mt-1 text-[8px] font-semibold uppercase tracking-[0.12em] text-[var(--ui-muted)]">
+                          {tick.toString().padStart(2, '0')}
+                        </div>
+                      </div>
+                    );
+                  })}
+
+                  {timelinePointsWithPosition.map((point) => {
+                    const color = STATUS_COLORS[point.status];
+                    const rowY = point.row === 'planned' ? 22 : point.row === 'actual' ? 49 : 76;
+                    const isHollow = activeTimelineConfig.layout === 'b' && point.row === 'planned';
+                    const isVariantB = timelinePreviewVariant === 'b';
+                    const pointSize = isVariantB ? 14 : 12;
+                    return (
+                      <button
+                        key={point.id}
+                        type="button"
+                        onMouseEnter={(event) => {
+                          const parentRect = event.currentTarget.parentElement?.getBoundingClientRect();
+                          if (!parentRect) return;
+                          setTimelineTooltip({
+                            x: event.clientX - parentRect.left + 10,
+                            y: event.clientY - parentRect.top - 10,
+                            title: point.title,
+                            status: point.status,
+                            time: `${point.hour.toString().padStart(2, '0')}:${point.minutes.toString().padStart(2, '0')}`,
+                          });
+                        }}
+                        onMouseLeave={() => setTimelineTooltip(null)}
+                        className="absolute rounded-full border-2 outline-none"
+                        style={{
+                          left: `${point.x}%`,
+                          top: `${rowY}%`,
+                          width: pointSize,
+                          height: pointSize,
+                          transform: 'translate(-50%, -50%)',
+                          borderColor: color,
+                          backgroundColor: isHollow ? 'transparent' : color,
+                          boxShadow: isVariantB ? `0 0 10px ${color}99` : `0 0 6px ${color}66`,
+                        }}
+                      />
+                    );
+                  })}
+
+                  {timelineTooltip ? (
+                    <div
+                      className="pointer-events-none absolute z-10 rounded-[10px] border border-[var(--ui-border)] bg-[rgba(8,10,20,0.95)] px-3 py-2 text-[10px] uppercase tracking-[0.15em] text-[var(--ui-text)]"
+                      style={{ left: timelineTooltip.x, top: timelineTooltip.y }}
                     >
-                      A: hourly slots
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setTimelineGranularityMode('b')}
-                      className={`ui-pressable chamfer-all border px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] ${
-                        timelineGranularityMode === 'b'
-                          ? 'border-[var(--ui-accent)] bg-[rgba(143,99,255,0.24)] text-white ui-glow'
-                          : 'border-[var(--ui-border)] bg-[var(--ui-panel)] text-[var(--ui-muted)]'
-                      }`}
-                    >
-                      B: day only
-                    </button>
-                  </div>
+                      <p className="font-semibold">{timelineTooltip.title}</p>
+                      <p className="text-[var(--ui-muted)]">{timelineTooltip.status}</p>
+                      <p className="text-[var(--ui-muted)]">{timelineTooltip.time}</p>
+                    </div>
+                  ) : null}
+
+                  <aside
+                    className={`absolute bottom-0 right-0 top-0 w-[280px] border-l border-[var(--ui-border)] bg-[rgba(14,16,30,0.96)] p-3 transition-transform duration-150 ${
+                      timelineUnscheduledOpen ? 'translate-x-0' : 'translate-x-full'
+                    }`}
+                  >
+                    <div className="mb-2 flex items-center justify-between">
+                      <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--ui-text)]">Unscheduled Tasks</p>
+                      <button
+                        type="button"
+                        onClick={() => setTimelineUnscheduledOpen(false)}
+                        className="ui-pressable chamfer-all border border-[var(--ui-border)] bg-[var(--ui-panel-2)] px-2 py-1 text-[9px] uppercase tracking-[0.15em] text-[var(--ui-muted)]"
+                      >
+                        Close
+                      </button>
+                    </div>
+                    <div className="grid gap-2">
+                      {unscheduledTasks.map((task) => (
+                        <div key={task.id} className="chamfer-card border border-[var(--ui-border)] bg-[var(--ui-panel)] px-2 py-1.5">
+                          <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[var(--ui-text)]">{task.title}</p>
+                          <p className="text-[9px] uppercase tracking-[0.14em] text-[var(--ui-muted)]">{task.status}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </aside>
                 </div>
               </div>
             </Panel>
-
-            <div className="grid grid-cols-1 gap-4 2xl:grid-cols-2">
-              {renderTimelinePanel('Option A', optionAConfig)}
-              {renderTimelinePanel('Option B', optionBConfig)}
-            </div>
           </section>
         ) : (
           <section className="grid grid-cols-1">
