@@ -495,8 +495,8 @@ export const UiKitPlayground: React.FC = () => {
             </Panel>
           </section>
         ) : activeTab === 'timeline_lab' ? (
-          <section className="grid grid-cols-1 gap-4">
-            <div className="chamfer-card flex items-center justify-between border border-[var(--ui-border)] bg-[var(--ui-panel)] px-3 py-2">
+          <section className="mx-auto grid w-full max-w-[1280px] grid-cols-1 gap-3">
+            <div className="chamfer-card flex h-11 items-center justify-between border border-[var(--ui-border)] bg-[var(--ui-panel)] px-3">
               <div>
                 <p className="text-[10px] font-semibold uppercase tracking-[0.24em] text-[var(--ui-text)]">TIMELINE LAB</p>
                 <p className="text-[10px] uppercase tracking-[0.2em] text-[var(--ui-muted)]">Day view prototype</p>
@@ -527,8 +527,8 @@ export const UiKitPlayground: React.FC = () => {
               </div>
             </div>
 
-            <div className="chamfer-card flex flex-wrap items-center gap-3 border border-[var(--ui-border)] bg-[var(--ui-panel)] px-3 py-2">
-              <div className="flex items-center gap-1">
+            <div className="chamfer-card flex h-11 items-center gap-3 overflow-x-auto whitespace-nowrap border border-[var(--ui-border)] bg-[var(--ui-panel)] px-3">
+              <div className="flex shrink-0 items-center gap-1">
                 <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--ui-muted)]">Layout</span>
                 <button
                   type="button"
@@ -554,7 +554,7 @@ export const UiKitPlayground: React.FC = () => {
                 </button>
               </div>
 
-              <div className="flex items-center gap-1">
+              <div className="flex shrink-0 items-center gap-1">
                 <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--ui-muted)]">Points</span>
                 <button
                   type="button"
@@ -580,7 +580,7 @@ export const UiKitPlayground: React.FC = () => {
                 </button>
               </div>
 
-              <div className="flex items-center gap-1">
+              <div className="flex shrink-0 items-center gap-1">
                 <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--ui-muted)]">Granularity</span>
                 <button
                   type="button"
@@ -607,35 +607,34 @@ export const UiKitPlayground: React.FC = () => {
               </div>
             </div>
 
-            <Panel title={`Preview ${timelinePreviewVariant.toUpperCase()}`} subtitle="Single preview mode">
+            <Panel title={`Preview ${timelinePreviewVariant.toUpperCase()}`} subtitle="Single preview mode" className="min-h-[420px]">
               <div className="relative grid gap-3">
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <div className="flex flex-wrap items-center gap-2">
-                    {(['completed', 'scheduled', 'failed'] as TimelineStatus[]).map((status) => (
-                      <span
-                        key={status}
-                        className="inline-flex items-center gap-2 rounded-[10px] border px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.18em]"
-                        style={{
-                          borderColor: `${STATUS_COLORS[status]}66`,
-                          backgroundColor: `${STATUS_COLORS[status]}1F`,
-                          color: STATUS_COLORS[status],
-                        }}
-                      >
-                        <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: STATUS_COLORS[status] }} />
-                        {status}
-                      </span>
-                    ))}
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => setTimelineUnscheduledOpen((prev) => !prev)}
-                    className="ui-pressable chamfer-all border border-[var(--ui-border)] bg-[var(--ui-panel-2)] px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--ui-text)] hover:border-[var(--ui-accent)]"
-                  >
-                    Unscheduled ({unscheduledTasks.length})
-                  </button>
+                <div className="flex flex-wrap items-center gap-2">
+                  {(['completed', 'scheduled', 'failed'] as TimelineStatus[]).map((status) => (
+                    <span
+                      key={status}
+                      className="inline-flex items-center gap-2 rounded-[10px] border px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.18em]"
+                      style={{
+                        borderColor: `${STATUS_COLORS[status]}66`,
+                        backgroundColor: `${STATUS_COLORS[status]}1F`,
+                        color: STATUS_COLORS[status],
+                      }}
+                    >
+                      <span className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: STATUS_COLORS[status] }} />
+                      {status}
+                    </span>
+                  ))}
                 </div>
 
-                <div className="relative h-[320px] overflow-hidden rounded-[12px] border border-[var(--ui-border)] bg-[var(--ui-panel-2)] p-4">
+                <div className="relative h-[400px] overflow-hidden rounded-[12px] border border-[var(--ui-border)] bg-[var(--ui-panel-2)] p-4">
+                  <div
+                    className="pointer-events-none absolute inset-0 opacity-40"
+                    style={{
+                      backgroundImage:
+                        'linear-gradient(to right, rgba(143,99,255,0.08) 1px, transparent 1px), linear-gradient(to bottom, rgba(143,99,255,0.06) 1px, transparent 1px)',
+                      backgroundSize: 'calc(100% / 24) 100%, 100% 56px',
+                    }}
+                  />
                   <div className="absolute left-4 right-4 top-[22%] border-t border-[rgba(143,99,255,0.35)]" />
                   <div className="absolute left-4 right-4 top-[49%] border-t border-[rgba(143,99,255,0.35)]" />
                   <div className="absolute left-4 right-4 top-[76%] border-t border-[rgba(143,99,255,0.35)]" />
@@ -643,12 +642,21 @@ export const UiKitPlayground: React.FC = () => {
                   <p className="absolute left-4 top-[43%] text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--ui-muted)]">Actual</p>
                   <p className="absolute left-4 top-[70%] text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--ui-muted)]">Unscheduled</p>
 
+                  <button
+                    type="button"
+                    onClick={() => setTimelineUnscheduledOpen((prev) => !prev)}
+                    className="ui-pressable chamfer-all absolute right-4 top-4 z-[5] border border-[var(--ui-border)] bg-[var(--ui-panel)] px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--ui-text)] hover:border-[var(--ui-accent)]"
+                  >
+                    Unscheduled ({unscheduledTasks.length})
+                  </button>
+
                   {HOUR_TICKS.map((tick) => {
+                    if (tick % 2 !== 0 && tick !== 24) return null;
                     const left = (tick / 24) * 100;
                     return (
                       <div key={tick} className="absolute bottom-3" style={{ left: `${left}%`, transform: 'translateX(-50%)' }}>
-                        <div className="h-2 w-px bg-[rgba(143,99,255,0.65)]" />
-                        <div className="mt-1 text-[8px] font-semibold uppercase tracking-[0.12em] text-[var(--ui-muted)]">
+                        <div className="h-1.5 w-px bg-[rgba(143,99,255,0.5)]" />
+                        <div className="mt-1 text-[8px] font-semibold tracking-[0.08em] text-[var(--ui-muted)]">
                           {tick.toString().padStart(2, '0')}
                         </div>
                       </div>
@@ -694,7 +702,7 @@ export const UiKitPlayground: React.FC = () => {
 
                   {timelineTooltip ? (
                     <div
-                      className="pointer-events-none absolute z-10 rounded-[10px] border border-[var(--ui-border)] bg-[rgba(8,10,20,0.95)] px-3 py-2 text-[10px] uppercase tracking-[0.15em] text-[var(--ui-text)]"
+                      className="pointer-events-none absolute z-10 rounded-[8px] border border-[var(--ui-border)] bg-[rgba(8,10,20,0.96)] px-2.5 py-2 text-[10px] text-[var(--ui-text)] shadow-[0_6px_18px_rgba(0,0,0,0.35)]"
                       style={{ left: timelineTooltip.x, top: timelineTooltip.y }}
                     >
                       <p className="font-semibold">{timelineTooltip.title}</p>
