@@ -42,8 +42,8 @@ export const EyeOrb: React.FC<EyeOrbProps> = ({
       onClick={onClick}
       onMouseEnter={onMouseEnter}
       className={[
-        'eye-orb-trigger group relative flex items-center gap-3 px-4 py-2 text-[var(--app-text)]',
-        'hover:bg-[var(--app-panel-2)] transition-colors focus-visible:outline-none',
+        'eye-orb-trigger group relative flex h-[56px] w-[72px] items-center justify-center p-0 text-[var(--app-text)]',
+        'rounded-[16px] hover:bg-[color-mix(in_srgb,var(--app-panel-2)_70%,transparent)] transition-colors focus-visible:outline-none',
         'focus-visible:ring-2 focus-visible:ring-[var(--app-accent)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--app-bg)]',
         eventPulseActive ? 'eye-orb-trigger--event' : '',
         disabled ? 'opacity-60 cursor-not-allowed' : '',
@@ -178,9 +178,6 @@ export const EyeOrb: React.FC<EyeOrbProps> = ({
           </g>
         </svg>
       </span>
-
-      {/* Keep old hitbox width/alignment identical with invisible label */}
-      <span className="invisible font-bold text-sm tracking-widest uppercase select-none">PLAY</span>
     </button>
   );
 };
