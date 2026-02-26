@@ -714,13 +714,13 @@
   --eye-ring-duration: 7.4s;
   --eye-glow-duration: 6.2s;
   --eye-drift-duration: 12.2s;
-  --eye-arrow-duration: 7.4s;
+  --eye-reticle-duration: 7.4s;
 }
 
 .eye-orb-trigger:hover {
   --eye-ring-duration: 3.7s;
   --eye-glow-duration: 3.4s;
-  --eye-arrow-duration: 3.7s;
+  --eye-reticle-duration: 3.7s;
 }
 
 .eye-orb {
@@ -782,6 +782,12 @@
   animation: glowBreath var(--eye-glow-duration) ease-in-out infinite;
 }
 
+.eye-orb__svg #reticle-group {
+  transform-origin: 14.17px 14.17px;
+  transform-box: fill-box;
+  animation: reticleFocus var(--eye-reticle-duration) ease-in-out infinite;
+}
+
 .eye-orb__svg #arrow-n,
 .eye-orb__svg #arrow-e,
 .eye-orb__svg #arrow-s,
@@ -789,22 +795,7 @@
   transform-origin: 14.17px 14.17px;
   transform-box: fill-box;
   opacity: 0.65;
-}
-
-.eye-orb__svg #arrow-n {
-  animation: arrowNExpand var(--eye-arrow-duration) ease-in-out infinite;
-}
-
-.eye-orb__svg #arrow-e {
-  animation: arrowEExpand var(--eye-arrow-duration) ease-in-out infinite;
-}
-
-.eye-orb__svg #arrow-s {
-  animation: arrowSExpand var(--eye-arrow-duration) ease-in-out infinite;
-}
-
-.eye-orb__svg #arrow-w {
-  animation: arrowWExpand var(--eye-arrow-duration) ease-in-out infinite;
+  transition: opacity var(--ui-motion-med) var(--ui-ease);
 }
 
 .eye-orb-trigger:hover .eye-orb__svg #arrow-n,
@@ -860,51 +851,23 @@
   }
 }
 
-@keyframes arrowNExpand {
+@keyframes reticleFocus {
   0%,
   100% {
-    transform: translateY(-3px);
-    opacity: 0.65;
+    transform: translate(0px, 0px) scale(0.98);
+    opacity: 0.85;
   }
-  50% {
-    transform: translateY(-7px);
-    opacity: 0.95;
+  28% {
+    transform: translate(1.5px, -1.5px) scale(1.02);
+    opacity: 1;
   }
-}
-
-@keyframes arrowEExpand {
-  0%,
-  100% {
-    transform: translateX(3px);
-    opacity: 0.65;
+  58% {
+    transform: translate(-1.5px, 1px) scale(1.03);
+    opacity: 0.96;
   }
-  50% {
-    transform: translateX(7px);
-    opacity: 0.95;
-  }
-}
-
-@keyframes arrowSExpand {
-  0%,
-  100% {
-    transform: translateY(3px);
-    opacity: 0.65;
-  }
-  50% {
-    transform: translateY(7px);
-    opacity: 0.95;
-  }
-}
-
-@keyframes arrowWExpand {
-  0%,
-  100% {
-    transform: translateX(-3px);
-    opacity: 0.65;
-  }
-  50% {
-    transform: translateX(-7px);
-    opacity: 0.95;
+  78% {
+    transform: translate(-0.75px, -0.5px) scale(1);
+    opacity: 0.9;
   }
 }
 

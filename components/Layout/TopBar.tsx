@@ -106,12 +106,10 @@ export const TopBar: React.FC<TopBarProps> = ({
 
   return (
     <>
-      <div className="h-[60px] bg-[color-mix(in_srgb,var(--app-panel)_82%,transparent)] backdrop-blur-sm border-b border-[var(--app-border)] flex items-center relative z-40 select-none">
-      
-      {/* Left: Play Orb Trigger */}
-      <div className="relative z-10 flex items-center h-full pl-2 pr-2">
+      <div className="fixed left-2 top-1 z-[95] pointer-events-none">
         <EyeOrb
           ariaLabel="Play"
+          className="pointer-events-auto"
           onMouseEnter={playHoverSound}
           onClick={() => {
             playClickSound();
@@ -119,6 +117,8 @@ export const TopBar: React.FC<TopBarProps> = ({
           }}
         />
       </div>
+      <div className="h-[60px] bg-[color-mix(in_srgb,var(--app-panel)_82%,transparent)] backdrop-blur-sm border-b border-[var(--app-border)] flex items-center relative z-40 select-none">
+      <div className="h-full w-[132px] shrink-0" aria-hidden="true"></div>
 
       {/* Middle: Navigation */}
       <div className="flex-1 flex items-center h-full overflow-x-auto no-scrollbar">
