@@ -726,16 +726,13 @@
 .eye-orb {
   position: relative;
   display: inline-flex;
-  width: 44px;
-  height: 44px;
+  width: 132px;
+  height: 132px;
   align-items: center;
   justify-content: center;
-  border-radius: 999px;
-  border: 1px solid color-mix(in srgb, var(--app-accent) 55%, var(--app-border));
-  background: var(--app-panel);
-  box-shadow:
-    0 0 0 1px color-mix(in srgb, var(--app-accent) 14%, transparent),
-    0 0 12px color-mix(in srgb, var(--app-accent) 16%, transparent);
+  border: none;
+  background: transparent;
+  box-shadow: none;
   transition:
     transform var(--ui-motion-fast) var(--ui-ease),
     box-shadow var(--ui-motion-med) var(--ui-ease),
@@ -743,10 +740,8 @@
 }
 
 .eye-orb-trigger:hover .eye-orb {
-  transform: scale(1.05);
-  box-shadow:
-    0 0 0 1px color-mix(in srgb, var(--app-accent) 24%, transparent),
-    0 0 24px color-mix(in srgb, var(--app-accent) 42%, transparent);
+  transform: scale(1.03);
+  box-shadow: none;
   filter: saturate(1.08);
 }
 

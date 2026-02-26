@@ -109,7 +109,7 @@ export const TopBar: React.FC<TopBarProps> = ({
       <div className="h-[60px] bg-[color-mix(in_srgb,var(--app-panel)_82%,transparent)] backdrop-blur-sm border-b border-[var(--app-border)] flex items-center relative z-40 select-none">
       
       {/* Left: Play Orb Trigger */}
-      <div className="flex items-center h-full border-r border-[var(--app-border)] pl-2 pr-6 gap-4">
+      <div className="relative z-10 flex items-center h-full pl-2 pr-2">
         <EyeOrb
           ariaLabel="Play"
           onMouseEnter={playHoverSound}
