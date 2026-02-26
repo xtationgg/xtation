@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Settings, Bell, Trophy, Bot, X } from 'lucide-react';
 import { ClientView } from '../../types';
 import { NavTab } from '../UI/HextechUI';
-import { OrbButton } from '../UI/OrbButton';
+import { EyeOrb } from '../UI/EyeOrb';
 import { playClickSound, playHoverSound } from '../../utils/SoundEffects';
 import { useXP } from '../XP/xpStore';
 import { useAuth } from '../../src/auth/AuthProvider';
@@ -110,7 +110,7 @@ export const TopBar: React.FC<TopBarProps> = ({
       
       {/* Left: Play Orb Trigger */}
       <div className="flex items-center h-full border-r border-[var(--app-border)] pl-2 pr-6 gap-4">
-        <OrbButton
+        <EyeOrb
           ariaLabel="Play"
           onMouseEnter={playHoverSound}
           onClick={() => {
