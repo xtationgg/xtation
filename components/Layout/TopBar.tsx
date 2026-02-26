@@ -1,8 +1,9 @@
 
 import React, { useState } from 'react';
-import { Play, Settings, Bell, Trophy, Bot, X } from 'lucide-react';
+import { Settings, Bell, Trophy, Bot, X } from 'lucide-react';
 import { ClientView } from '../../types';
 import { NavTab } from '../UI/HextechUI';
+import { OrbButton } from '../UI/OrbButton';
 import { playClickSound, playHoverSound } from '../../utils/SoundEffects';
 import { useXP } from '../XP/xpStore';
 import { useAuth } from '../../src/auth/AuthProvider';
@@ -107,21 +108,16 @@ export const TopBar: React.FC<TopBarProps> = ({
     <>
       <div className="h-[60px] bg-[color-mix(in_srgb,var(--app-panel)_82%,transparent)] backdrop-blur-sm border-b border-[var(--app-border)] flex items-center relative z-40 select-none">
       
-      {/* Left: Play Button */}
+      {/* Left: Play Orb Trigger */}
       <div className="flex items-center h-full border-r border-[var(--app-border)] pl-2 pr-6 gap-4">
-        <button 
-            onClick={() => { playClickSound(); onPlayClick(); }}
-            onMouseEnter={playHoverSound}
-            className="group relative flex items-center gap-3 px-4 py-2 hover:bg-[var(--app-panel-2)] hover:text-[var(--app-text)] transition-colors"
-        >
-            <div className="w-8 h-8 flex items-center justify-center border border-current">
-                 <Play size={14} className="fill-current" />
-            </div>
-            
-            <div className="flex flex-col items-start font-mono">
-                <span className="font-bold text-sm tracking-widest uppercase">PLAY</span>
-            </div>
-        </button>
+        <OrbButton
+          ariaLabel="Play"
+          onMouseEnter={playHoverSound}
+          onClick={() => {
+            playClickSound();
+            onPlayClick();
+          }}
+        />
       </div>
 
       {/* Middle: Navigation */}

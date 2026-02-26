@@ -524,6 +524,183 @@
     0 0 calc(26px * var(--ui-glow-strength)) color-mix(in srgb, var(--ui-accent) calc(45% * var(--ui-glow-strength)), transparent);
 }
 
+.orb-button {
+  --orb-speed: 3600ms;
+  --orb-bracket-speed: 3000ms;
+  --orb-spin-speed: 16000ms;
+  --orb-glow-opacity: 0.34;
+}
+
+.orb-button:hover {
+  --orb-speed: 3150ms;
+  --orb-bracket-speed: 2625ms;
+  --orb-spin-speed: 14000ms;
+  --orb-glow-opacity: 0.48;
+}
+
+.orb-button__icon {
+  position: relative;
+  display: inline-flex;
+  width: 32px;
+  height: 32px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--app-accent) 55%, var(--app-border));
+  background: var(--app-panel);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--app-accent) 12%, transparent);
+  transition:
+    transform var(--ui-motion-fast) var(--ui-ease),
+    box-shadow var(--ui-motion-med) var(--ui-ease),
+    filter var(--ui-motion-med) var(--ui-ease);
+}
+
+.orb-button:hover .orb-button__icon {
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--app-accent) 18%, transparent),
+    0 0 14px color-mix(in srgb, var(--app-accent) 36%, transparent);
+  filter: saturate(1.07);
+}
+
+.orb-button:active .orb-button__icon {
+  transform: scale(0.94);
+}
+
+.orb-button__svg {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.orb-button__spin {
+  transform-origin: 32px 32px;
+  animation: orb-spin var(--orb-spin-speed) linear infinite;
+}
+
+.orb-button__halo {
+  opacity: var(--orb-glow-opacity);
+}
+
+.orb-button__ring {
+  fill: none;
+  stroke: color-mix(in srgb, var(--app-accent) 70%, var(--app-border));
+  stroke-width: 1.35;
+  transform-origin: 32px 32px;
+  animation: orb-breathe var(--orb-speed) ease-in-out infinite;
+}
+
+.orb-button__iris {
+  transform-origin: 32px 32px;
+  animation: orb-shimmer calc(var(--orb-speed) * 1.1) ease-in-out infinite;
+}
+
+.orb-button__pupil {
+  fill: color-mix(in srgb, var(--app-bg) 78%, black);
+  opacity: 0.95;
+}
+
+.orb-button__highlight {
+  fill: color-mix(in srgb, var(--app-text) 74%, transparent);
+  opacity: 0.66;
+}
+
+.orb-button__bracket {
+  stroke: color-mix(in srgb, var(--app-accent) 64%, var(--app-text));
+  stroke-width: 1.9;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 0.86;
+}
+
+.orb-button__bracket--tl {
+  animation: orb-bracket-tl var(--orb-bracket-speed) ease-in-out infinite;
+}
+
+.orb-button__bracket--tr {
+  animation: orb-bracket-tr var(--orb-bracket-speed) ease-in-out infinite;
+}
+
+.orb-button__bracket--bl {
+  animation: orb-bracket-bl var(--orb-bracket-speed) ease-in-out infinite;
+}
+
+.orb-button__bracket--br {
+  animation: orb-bracket-br var(--orb-bracket-speed) ease-in-out infinite;
+}
+
+@keyframes orb-breathe {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.82;
+    stroke-width: 1.3;
+  }
+  50% {
+    transform: scale(1.045);
+    opacity: 1;
+    stroke-width: 1.55;
+  }
+}
+
+@keyframes orb-shimmer {
+  0%,
+  100% {
+    filter: brightness(0.98);
+  }
+  50% {
+    filter: brightness(1.12);
+  }
+}
+
+@keyframes orb-spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes orb-bracket-tl {
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+  50% {
+    transform: translate(-1.8px, -1.8px);
+  }
+}
+
+@keyframes orb-bracket-tr {
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+  50% {
+    transform: translate(1.8px, -1.8px);
+  }
+}
+
+@keyframes orb-bracket-bl {
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+  50% {
+    transform: translate(-1.8px, 1.8px);
+  }
+}
+
+@keyframes orb-bracket-br {
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+  50% {
+    transform: translate(1.8px, 1.8px);
+  }
+}
+
 .ui-shape-all,
 .chamfer-all {
   --cut: var(--ui-cut-md);
