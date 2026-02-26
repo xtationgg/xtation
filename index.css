@@ -711,14 +711,16 @@
 }
 
 .eye-orb-trigger {
-  --eye-ring-duration: 7.2s;
+  --eye-ring-duration: 7.4s;
   --eye-glow-duration: 6.2s;
-  --eye-drift-duration: 12s;
+  --eye-drift-duration: 12.2s;
+  --eye-arrow-duration: 7.4s;
 }
 
 .eye-orb-trigger:hover {
-  --eye-ring-duration: 6.3s;
-  --eye-glow-duration: 5.4s;
+  --eye-ring-duration: 3.7s;
+  --eye-glow-duration: 3.4s;
+  --eye-arrow-duration: 3.7s;
 }
 
 .eye-orb {
@@ -741,9 +743,10 @@
 }
 
 .eye-orb-trigger:hover .eye-orb {
+  transform: scale(1.02);
   box-shadow:
     0 0 0 1px color-mix(in srgb, var(--app-accent) 24%, transparent),
-    0 0 18px color-mix(in srgb, var(--app-accent) 34%, transparent);
+    0 0 20px color-mix(in srgb, var(--app-accent) 36%, transparent);
   filter: saturate(1.08);
 }
 
@@ -755,78 +758,74 @@
   width: 100%;
   height: 100%;
   overflow: visible;
+  transform-origin: center;
 }
 
-.eye-orb__drift {
-  transform-origin: 32px 32px;
+.eye-orb__svg #orb-root {
+  transform-origin: 14.17px 14.17px;
+  transform-box: fill-box;
   animation: microDrift var(--eye-drift-duration) ease-in-out infinite;
 }
 
-.eye-orb__glow {
-  opacity: 0.45;
-  animation: glowBreath var(--eye-glow-duration) ease-in-out infinite;
-}
-
-.eye-orb__ring {
-  fill: none;
-  stroke: color-mix(in srgb, var(--app-accent) 64%, var(--app-border));
-  stroke-width: 1.35;
-  transform-origin: 32px 32px;
+.eye-orb__svg #orb-ring {
+  transform-origin: 14.17px 14.17px;
+  transform-box: fill-box;
+  opacity: 0.55;
   animation: ringPulse var(--eye-ring-duration) ease-in-out infinite;
 }
 
-.eye-orb__iris {
-  filter: saturate(1.03);
+.eye-orb__svg #orb-core {
+  transform-origin: 14.17px 14.17px;
+  transform-box: fill-box;
+  animation: corePulse var(--eye-ring-duration) ease-in-out infinite;
 }
 
-.eye-orb__pupil {
-  fill: color-mix(in srgb, var(--app-bg) 78%, black);
+.eye-orb__svg #orb-gloss {
+  transform-origin: 14.17px 14.17px;
+  transform-box: fill-box;
+  opacity: 0.25;
+  animation: glowBreath var(--eye-glow-duration) ease-in-out infinite;
+}
+
+.eye-orb__svg #arrow-n,
+.eye-orb__svg #arrow-e,
+.eye-orb__svg #arrow-s,
+.eye-orb__svg #arrow-w {
+  transform-origin: 14.17px 14.17px;
+  transform-box: fill-box;
+  opacity: 0.65;
+}
+
+.eye-orb__svg #arrow-n {
+  animation: arrowNExpand var(--eye-arrow-duration) ease-in-out infinite;
+}
+
+.eye-orb__svg #arrow-e {
+  animation: arrowEExpand var(--eye-arrow-duration) ease-in-out infinite;
+}
+
+.eye-orb__svg #arrow-s {
+  animation: arrowSExpand var(--eye-arrow-duration) ease-in-out infinite;
+}
+
+.eye-orb__svg #arrow-w {
+  animation: arrowWExpand var(--eye-arrow-duration) ease-in-out infinite;
+}
+
+.eye-orb-trigger:hover .eye-orb__svg #arrow-n,
+.eye-orb-trigger:hover .eye-orb__svg #arrow-e,
+.eye-orb-trigger:hover .eye-orb__svg #arrow-s,
+.eye-orb-trigger:hover .eye-orb__svg #arrow-w {
   opacity: 0.95;
 }
 
-.eye-orb__highlight {
-  fill: color-mix(in srgb, var(--app-text) 76%, transparent);
-  opacity: 0.68;
-}
-
-.eye-orb__highlight-soft {
-  fill: color-mix(in srgb, var(--app-text) 38%, transparent);
-  opacity: 0.55;
-}
-
-.eye-orb__arm {
-  fill: color-mix(in srgb, var(--app-accent) 74%, var(--app-text));
-  opacity: 0.85;
-  animation: crosshairExpand var(--eye-ring-duration) ease-in-out infinite;
-}
-
-.eye-orb__arm--top {
-  --dx: 0px;
-  --dy: -4px;
-}
-
-.eye-orb__arm--right {
-  --dx: 4px;
-  --dy: 0px;
-}
-
-.eye-orb__arm--bottom {
-  --dx: 0px;
-  --dy: 4px;
-}
-
-.eye-orb__arm--left {
-  --dx: -4px;
-  --dy: 0px;
-}
-
-.eye-orb-trigger--event .eye-orb__ring {
+.eye-orb-trigger--event .eye-orb__svg #orb-ring {
   animation:
     ringPulse var(--eye-ring-duration) ease-in-out infinite,
     eyeOrbEventPulse 860ms ease-out 1;
 }
 
-.eye-orb-trigger--event .eye-orb__glow {
+.eye-orb-trigger--event .eye-orb__svg #orb-gloss {
   animation:
     glowBreath var(--eye-glow-duration) ease-in-out infinite,
     eyeOrbEventGlow 860ms ease-out 1;
@@ -836,31 +835,81 @@
   0%,
   100% {
     transform: scale(0.97);
-    stroke-width: 1.28;
+    opacity: 0.55;
   }
   50% {
     transform: scale(1.03);
-    stroke-width: 1.56;
+    opacity: 0.85;
   }
 }
 
 @keyframes glowBreath {
   0%,
   100% {
-    opacity: 0.35;
+    transform: translate(0px, 0px);
+    opacity: 0.25;
   }
   50% {
-    opacity: 0.65;
+    transform: translate(1px, -1px);
+    opacity: 0.4;
   }
 }
 
-@keyframes crosshairExpand {
+@keyframes corePulse {
   0%,
   100% {
-    transform: translate(0, 0);
+    transform: scale(1);
   }
   50% {
-    transform: translate(var(--dx), var(--dy));
+    transform: scale(0.985);
+  }
+}
+
+@keyframes arrowNExpand {
+  0%,
+  100% {
+    transform: translateY(-3px);
+    opacity: 0.65;
+  }
+  50% {
+    transform: translateY(-7px);
+    opacity: 0.95;
+  }
+}
+
+@keyframes arrowEExpand {
+  0%,
+  100% {
+    transform: translateX(3px);
+    opacity: 0.65;
+  }
+  50% {
+    transform: translateX(7px);
+    opacity: 0.95;
+  }
+}
+
+@keyframes arrowSExpand {
+  0%,
+  100% {
+    transform: translateY(3px);
+    opacity: 0.65;
+  }
+  50% {
+    transform: translateY(7px);
+    opacity: 0.95;
+  }
+}
+
+@keyframes arrowWExpand {
+  0%,
+  100% {
+    transform: translateX(-3px);
+    opacity: 0.65;
+  }
+  50% {
+    transform: translateX(-7px);
+    opacity: 0.95;
   }
 }
 
@@ -870,7 +919,7 @@
     transform: translate(0px, 0px) rotate(-2deg);
   }
   50% {
-    transform: translate(1.5px, -1.2px) rotate(2deg);
+    transform: translate(1px, -1px) rotate(2deg);
   }
 }
 
