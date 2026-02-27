@@ -977,26 +977,32 @@
   }
 }
 
-.auth-top-column {
+.auth-skel-canvas {
+  background: #573778;
+}
+
+.auth-skel-shell {
+  background: color-mix(in srgb, var(--app-accent) 8%, transparent);
+}
+
+.auth-skel-thumb {
   background: linear-gradient(
     180deg,
-    color-mix(in srgb, var(--app-bg) 10%, var(--app-accent)) 0%,
-    color-mix(in srgb, var(--app-bg) 35%, #f59f45) 70%,
-    color-mix(in srgb, var(--app-bg) 45%, #e36a4f) 100%
+    color-mix(in srgb, var(--app-accent) 36%, #37235a),
+    color-mix(in srgb, #f1a84f 62%, #4f2a5f)
   );
   box-shadow:
-    inset 0 0 0 1px color-mix(in srgb, var(--app-text) 25%, transparent),
-    0 12px 28px color-mix(in srgb, #f7b551 26%, transparent);
+    inset 0 0 0 1px color-mix(in srgb, var(--app-text) 20%, transparent),
+    0 10px 24px color-mix(in srgb, #1b102a 32%, transparent);
 }
 
-.auth-top-rings {
-  border: 3px solid color-mix(in srgb, #a694c6 55%, transparent);
-  opacity: 0.72;
-  transform: rotate(19deg);
+.auth-skel-chip {
+  background: color-mix(in srgb, var(--app-accent) 54%, #7f63b7);
+  box-shadow: 0 6px 18px color-mix(in srgb, #160f25 32%, transparent);
 }
 
-.auth-top-stars::before,
-.auth-top-stars::after {
+.auth-skel-stars::before,
+.auth-skel-stars::after {
   content: '';
   position: absolute;
   width: 34%;
@@ -1006,86 +1012,33 @@
   opacity: 0.82;
 }
 
-.auth-top-stars::before {
+.auth-skel-stars::before {
   left: 0;
   top: 0;
 }
 
-.auth-top-stars::after {
+.auth-skel-stars::after {
   right: 0;
   bottom: 0;
   transform: rotate(180deg);
 }
 
-.auth-float-orb {
-  background: radial-gradient(circle at 30% 30%, color-mix(in srgb, #fff 60%, transparent), color-mix(in srgb, var(--app-accent) 55%, #2b1b42));
-  box-shadow: 0 8px 18px color-mix(in srgb, var(--app-bg) 60%, transparent);
-}
-
-.auth-float-orb--1 {
-  animation: authOrbFloat 6.8s ease-in-out infinite;
-}
-
-.auth-float-orb--2 {
-  animation: authOrbFloat 7.4s ease-in-out infinite reverse;
-}
-
-.auth-float-orb--3 {
-  animation: authOrbFloat 6.2s ease-in-out infinite;
-}
-
-.auth-cube {
-  background: linear-gradient(
-    145deg,
-    color-mix(in srgb, #fbe39e 55%, var(--app-text)),
-    color-mix(in srgb, #f78e56 75%, #8e2f4f)
-  );
-  box-shadow:
-    0 10px 20px color-mix(in srgb, #f59f45 30%, transparent),
-    inset 0 -8px 14px color-mix(in srgb, #47263a 48%, transparent);
-  animation: authCubePulse 5.8s ease-in-out infinite;
-}
-
-.auth-cube-glow {
-  background: radial-gradient(circle, color-mix(in srgb, #f6b55e 60%, transparent), transparent 72%);
-  opacity: 0.68;
-  animation: authGlowPulse 6s ease-in-out infinite;
-}
-
-.auth-bottom-glow {
-  background: radial-gradient(circle, color-mix(in srgb, #24153a 72%, transparent), transparent 74%);
-}
-
-.auth-portrait {
-  filter: drop-shadow(0 14px 20px color-mix(in srgb, #1e132f 48%, transparent));
-}
-
-.auth-portrait-hair {
-  background: linear-gradient(180deg, color-mix(in srgb, #3c285e 84%, #130d22), color-mix(in srgb, #1f132f 90%, #0c0815));
-}
-
-.auth-portrait-face {
+.auth-skel-portrait {
   background: radial-gradient(
-    circle at 50% 36%,
-    color-mix(in srgb, #9f72cf 45%, #37214f) 0%,
-    color-mix(in srgb, #4a2d68 58%, #1f132f) 65%,
-    color-mix(in srgb, #29183f 76%, #110a1b) 100%
+    ellipse at 50% 34%,
+    color-mix(in srgb, var(--app-accent) 52%, #6f4fb5) 0%,
+    color-mix(in srgb, var(--app-accent) 28%, #321f53) 56%,
+    color-mix(in srgb, var(--app-bg) 80%, #130c21) 100%
   );
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--app-text) 22%, transparent);
 }
 
-.auth-portrait-glasses {
-  background: linear-gradient(90deg, #e9cc7f 0%, #f3a451 45%, #f1615a 100%);
-  box-shadow: 0 0 0 2px color-mix(in srgb, #1c112c 55%, transparent);
-  opacity: 0.86;
-}
-
-.auth-portrait-neck {
-  background: linear-gradient(180deg, color-mix(in srgb, #6f4ba0 75%, #2b1a45), color-mix(in srgb, #251539 85%, #130c20));
-}
-
-.auth-portrait-scarf {
-  background: linear-gradient(110deg, #f4be55 0%, #f59b4f 40%, #ea6a47 74%, #c84653 100%);
-  box-shadow: 0 4px 16px color-mix(in srgb, #f59f45 35%, transparent);
+.auth-skel-portrait-glow {
+  background: radial-gradient(
+    ellipse at center,
+    color-mix(in srgb, var(--app-accent) 26%, #2b1945),
+    transparent 70%
+  );
 }
 
 .auth-rail-chevron {
@@ -1124,8 +1077,8 @@
 .auth-skel-bottom {
   background-image: linear-gradient(
     180deg,
-    color-mix(in srgb, var(--app-accent) 22%, transparent),
-    color-mix(in srgb, var(--app-accent) 14%, #201233)
+    color-mix(in srgb, var(--app-accent) 28%, transparent),
+    color-mix(in srgb, var(--app-accent) 14%, #1f1431)
   );
 }
 
@@ -1160,56 +1113,16 @@
   transform: rotate(180deg);
 }
 
-.auth-skel-top,
-.auth-skel-bottom,
-.auth-skel-rail-alert,
-.auth-skel-rail-pattern {
-  transition: transform var(--ui-motion-med) var(--ui-ease), box-shadow var(--ui-motion-med) var(--ui-ease);
+.auth-skel-card {
+  transition:
+    transform var(--ui-motion-med) var(--ui-ease),
+    box-shadow var(--ui-motion-med) var(--ui-ease);
 }
 
-.auth-modal-shell:hover .auth-skel-top {
-  transform: translateY(-1px) scale(1.003);
-}
-
-.auth-modal-shell:hover .auth-skel-bottom {
-  transform: translateY(1px) scale(1.003);
-}
-
-.auth-modal-shell:hover .auth-skel-rail-alert,
-.auth-modal-shell:hover .auth-skel-rail-pattern {
+.auth-modal-shell:hover .auth-skel-card {
   box-shadow:
-    inset 0 0 0 1px color-mix(in srgb, #fff 24%, transparent),
+    inset 0 0 0 1px color-mix(in srgb, var(--app-text) 24%, transparent),
     0 8px 16px color-mix(in srgb, #0a0613 24%, transparent);
-}
-
-@keyframes authOrbFloat {
-  0%,
-  100% {
-    transform: translate(0, 0);
-  }
-  50% {
-    transform: translate(2px, -6px) scale(1.04);
-  }
-}
-
-@keyframes authCubePulse {
-  0%,
-  100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-4px);
-  }
-}
-
-@keyframes authGlowPulse {
-  0%,
-  100% {
-    opacity: 0.55;
-  }
-  50% {
-    opacity: 0.78;
-  }
 }
 
 @keyframes authChevronPulse {
@@ -1244,6 +1157,11 @@
 
   .auth-modal-form form {
     gap: 8px;
+  }
+
+  .auth-skel-day,
+  .auth-skel-date {
+    opacity: 0;
   }
 }
 

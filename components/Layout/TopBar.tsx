@@ -265,12 +265,12 @@ export const TopBar: React.FC<TopBarProps> = ({
         triggerRef={loginTriggerRef as React.RefObject<HTMLElement | null>}
       >
         <div
-          className="auth-modal-shell relative aspect-[359.15/269.17] overflow-hidden rounded-[20px] border border-[var(--app-border)] bg-[color-mix(in_srgb,var(--app-accent)_38%,var(--app-panel))]"
-          style={{ width: 'min(94vw, calc(88dvh * 1.334), 1280px)' }}
+          className="auth-modal-shell relative aspect-[359.15/269.17] overflow-hidden rounded-[20px] border border-[var(--app-border)] bg-[#573778]"
+          style={{ width: 'min(96vw, calc(96dvh * 1.334), 1360px)' }}
         >
           <div className="pointer-events-none absolute inset-0">
-            <div className="absolute inset-0 bg-[linear-gradient(145deg,color-mix(in_srgb,var(--app-accent)_36%,#26163a),color-mix(in_srgb,var(--app-accent)_26%,#1f1532))]"></div>
-            <div className="auth-skel-left absolute left-[2.65%] top-[1.95%] h-[96.1%] w-[40.8%] rounded-[14px] border border-[color-mix(in_srgb,var(--app-border)_65%,var(--app-text)_15%)] bg-[color-mix(in_srgb,var(--app-bg)_82%,black)]">
+            <div className="auth-skel-canvas absolute inset-0"></div>
+            <div className="auth-skel-left absolute left-[2.65%] top-[1.95%] h-[96.1%] w-[40.8%] rounded-[14px] border border-[color-mix(in_srgb,var(--app-border)_65%,var(--app-text)_15%)] bg-[#1f162d]">
               <div className="absolute inset-[8px] rounded-[10px] border border-[color-mix(in_srgb,var(--app-text)_72%,var(--app-border))]"></div>
             </div>
 
@@ -278,31 +278,23 @@ export const TopBar: React.FC<TopBarProps> = ({
             <div className="auth-connector auth-connector--top absolute left-[2.12%] top-[30.8%] h-[3.8%] w-[2.15%]"></div>
             <div className="auth-connector auth-connector--bottom absolute left-[2.12%] top-[35.2%] h-[3.8%] w-[2.15%]"></div>
 
-            <div className="auth-skel-top absolute left-[51.5%] top-[4.4%] h-[44.2%] w-[35.8%] overflow-hidden rounded-[20px] border border-[color-mix(in_srgb,var(--app-text)_70%,var(--app-border))] bg-[color-mix(in_srgb,var(--app-accent)_20%,transparent)]">
-              <div className="auth-top-column absolute left-1/2 top-[4%] h-[94%] w-[34%] -translate-x-1/2 rounded-[18px] border border-[color-mix(in_srgb,var(--app-text)_45%,var(--app-border))]"></div>
-              <div className="auth-top-rings absolute left-1/2 top-[22%] h-[15%] w-[18%] -translate-x-1/2 rounded-[999px]"></div>
-              <div className="auth-float-orb auth-float-orb--1 absolute left-[56%] top-[9%] h-[10%] w-[16%] rounded-full"></div>
-              <div className="auth-float-orb auth-float-orb--2 absolute left-[60%] top-[33%] h-[8%] w-[12%] rounded-full"></div>
-              <div className="auth-float-orb auth-float-orb--3 absolute left-[36%] top-[49%] h-[9%] w-[13%] rounded-full"></div>
-              <div className="auth-cube absolute left-1/2 top-[67%] h-[18%] w-[30%] -translate-x-1/2 rounded-[12px]"></div>
-              <div className="auth-cube-glow absolute left-1/2 top-[84%] h-[10%] w-[40%] -translate-x-1/2 rounded-[999px]"></div>
-              <div className="auth-top-stars absolute left-[23%] top-[31%] h-[11%] w-[8%]"></div>
-              <div className="auth-top-stars absolute right-[23%] top-[58%] h-[11%] w-[8%]"></div>
+            <div className="auth-skel-top auth-skel-card absolute left-[51.5%] top-[4.4%] h-[44.2%] w-[35.8%] overflow-hidden rounded-[20px] border border-[color-mix(in_srgb,var(--app-text)_70%,var(--app-border))] bg-[color-mix(in_srgb,var(--app-accent)_20%,transparent)]">
+              <div className="auth-skel-shell absolute inset-[8%] rounded-[16px] border border-[color-mix(in_srgb,var(--app-text)_45%,var(--app-border))]"></div>
+              <div className="auth-skel-thumb absolute left-1/2 top-[6%] h-[88%] w-[34%] -translate-x-1/2 rounded-[14px]"></div>
+              <div className="auth-skel-chip absolute left-1/2 top-[66%] h-[18%] w-[31%] -translate-x-1/2 rounded-[12px]"></div>
+              <div className="auth-skel-stars absolute left-[22%] top-[30%] h-[11%] w-[8%]"></div>
+              <div className="auth-skel-stars absolute right-[22%] top-[59%] h-[11%] w-[8%]"></div>
             </div>
 
-            <div className="auth-skel-bottom absolute left-[51.5%] top-[52.0%] h-[43.4%] w-[35.8%] overflow-hidden rounded-[20px] border border-[color-mix(in_srgb,var(--app-text)_70%,var(--app-border))] bg-[color-mix(in_srgb,var(--app-accent)_20%,transparent)]">
-              <div className="auth-bottom-glow absolute left-1/2 top-[78%] h-[26%] w-[62%] -translate-x-1/2 rounded-[999px]"></div>
-              <div className="auth-portrait absolute left-1/2 top-[22%] h-[62%] w-[48%] -translate-x-1/2">
-                <div className="auth-portrait-hair absolute left-1/2 top-[4%] h-[42%] w-[84%] -translate-x-1/2 rounded-[48%]"></div>
-                <div className="auth-portrait-face absolute left-1/2 top-[20%] h-[44%] w-[58%] -translate-x-1/2 rounded-[42%]"></div>
-                <div className="auth-portrait-glasses absolute left-1/2 top-[34%] h-[12%] w-[52%] -translate-x-1/2 rounded-[999px]"></div>
-                <div className="auth-portrait-neck absolute left-1/2 top-[58%] h-[14%] w-[26%] -translate-x-1/2 rounded-[12px]"></div>
-                <div className="auth-portrait-scarf absolute left-1/2 top-[66%] h-[20%] w-[72%] -translate-x-1/2 rounded-[999px]"></div>
-              </div>
-              <div className="absolute left-1/2 top-[11%] text-center text-[clamp(16px,1.35vw,28px)] font-black uppercase leading-[1.1] tracking-[0.08em] text-[color-mix(in_srgb,var(--app-text)_94%,#ffffff)]">
-                LETS GET YOU
-                <br />
-                STARTED!
+            <div className="auth-skel-bottom auth-skel-card absolute left-[51.5%] top-[52.0%] h-[43.4%] w-[35.8%] overflow-hidden rounded-[20px] border border-[color-mix(in_srgb,var(--app-text)_70%,var(--app-border))] bg-[color-mix(in_srgb,var(--app-accent)_20%,transparent)]">
+              <div className="auth-skel-shell absolute inset-[8%] rounded-[16px] border border-[color-mix(in_srgb,var(--app-text)_45%,var(--app-border))]"></div>
+              <div className="absolute inset-[8%] flex items-end justify-center">
+                <img
+                  src="/ui-reference/auth/character.svg"
+                  alt="Character illustration"
+                  className="h-[98%] w-auto max-w-[92%] object-contain"
+                  draggable={false}
+                />
               </div>
             </div>
 
@@ -315,16 +307,16 @@ export const TopBar: React.FC<TopBarProps> = ({
             <div className="auth-skel-rail-pattern absolute right-[2.05%] top-[30.1%] h-[63.4%] w-[4.95%] overflow-hidden rounded-[12px] border border-[color-mix(in_srgb,#ffe7ac_90%,#d39f1b)] bg-[#f0c33f]">
               <div className="auth-rail-pattern absolute inset-[6%] rounded-[10px]"></div>
             </div>
-            <div className="auth-skel-day absolute right-[2.2%] top-[31.2%] h-[7.9%] w-[4.62%] rounded-[8px] border border-[color-mix(in_srgb,var(--app-text)_76%,var(--app-border))] bg-[color-mix(in_srgb,var(--app-accent)_34%,transparent)]">
+            <div className="auth-skel-day absolute right-[2.05%] top-[31.0%] h-[8.1%] w-[4.95%] rounded-[8px] border border-[color-mix(in_srgb,var(--app-text)_76%,var(--app-border))] bg-[color-mix(in_srgb,var(--app-accent)_34%,transparent)]">
               <div className="flex h-full w-full items-center justify-center">
-                <span className="-rotate-90 text-[clamp(9px,0.72vw,12px)] font-semibold uppercase tracking-[0.14em] text-[#de3e36]">
+                <span className="-rotate-90 text-[clamp(8px,0.68vw,11px)] font-semibold uppercase tracking-[0.1em] text-[#de3e36]">
                   {drawerDayLabel}
                 </span>
               </div>
             </div>
-            <div className="auth-skel-date absolute right-[2.2%] top-[42.6%] h-[11.6%] w-[4.62%] rounded-[8px] border border-[color-mix(in_srgb,var(--app-text)_76%,var(--app-border))] bg-[color-mix(in_srgb,var(--app-accent)_30%,transparent)]">
+            <div className="auth-skel-date absolute right-[2.05%] top-[42.6%] h-[12.6%] w-[4.95%] rounded-[8px] border border-[color-mix(in_srgb,var(--app-text)_76%,var(--app-border))] bg-[color-mix(in_srgb,var(--app-accent)_30%,transparent)]">
               <div className="flex h-full w-full items-center justify-center">
-                <span className="[writing-mode:vertical-rl] text-[clamp(9px,0.72vw,12px)] font-semibold tracking-[0.08em] text-[#de3e36]">
+                <span className="[writing-mode:vertical-rl] text-[clamp(8px,0.68vw,11px)] font-semibold tracking-[0.05em] text-[#de3e36]">
                   {drawerDateLabel}
                 </span>
               </div>
@@ -342,7 +334,7 @@ export const TopBar: React.FC<TopBarProps> = ({
             <X size={14} />
           </button>
 
-          <div className="auth-modal-form auth-drawer-stagger absolute left-[2.65%] top-[1.95%] z-10 h-[96.1%] w-[40.8%] rounded-[12px] bg-[color-mix(in_srgb,var(--app-bg)_82%,black)]">
+          <div className="auth-modal-form auth-drawer-stagger absolute left-[2.65%] top-[1.95%] z-10 h-[96.1%] w-[40.8%] rounded-[12px] bg-[#1f162d]">
             <div className="pointer-events-none absolute inset-[8px] rounded-[10px] border border-[color-mix(in_srgb,var(--app-text)_74%,var(--app-border))]"></div>
             <form
               className="relative z-10 flex h-full min-h-0 flex-col gap-2.5 overflow-y-auto px-7 pb-5 pt-7"
@@ -415,7 +407,9 @@ export const TopBar: React.FC<TopBarProps> = ({
               </div>
 
               {(authNotice || error) && (
-                <div className="min-h-[14px] text-[9px] uppercase tracking-[0.16em] text-[var(--ui-muted)]">{authNotice || error}</div>
+                <div className="min-h-[20px] text-[9px] leading-[1.35] tracking-[0.1em] text-[var(--ui-muted)]">
+                  {authNotice || error}
+                </div>
               )}
 
               <div className="mt-auto flex flex-col gap-2">
