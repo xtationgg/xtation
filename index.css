@@ -1069,15 +1069,6 @@
   box-shadow: none;
 }
 
-.auth-skel-top,
-.auth-skel-bottom {
-  background-image: linear-gradient(
-    180deg,
-    color-mix(in srgb, var(--app-accent) 28%, transparent),
-    color-mix(in srgb, var(--app-accent) 14%, #1f1431)
-  );
-}
-
 .auth-skel-rail,
 .auth-skel-rail-alert,
 .auth-skel-rail-pattern,
