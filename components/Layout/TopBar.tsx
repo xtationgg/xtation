@@ -279,7 +279,7 @@ export const TopBar: React.FC<TopBarProps> = ({
                 <img
                   src="/ui-reference/auth/illustration-up.svg"
                   alt="Top illustration"
-                  className="h-full w-full object-contain object-top"
+                  className="h-[104%] w-full -translate-y-[2%] object-contain object-top"
                   draggable={false}
                 />
               </div>
@@ -335,13 +335,21 @@ export const TopBar: React.FC<TopBarProps> = ({
 
           <div className="auth-modal-form auth-drawer-stagger absolute left-[2.2%] top-[2.2%] z-10 h-[95.6%] w-[40.8%] rounded-[12px] bg-[#1f162d]">
             <form
-              className="relative z-10 flex h-full min-h-0 flex-col justify-center gap-2.5 overflow-y-auto px-7 pb-5 pt-7"
+              className="relative z-10 flex h-full min-h-0 flex-col justify-center gap-2.5 overflow-y-auto px-7 py-6"
               onSubmit={(event) => {
                 event.preventDefault();
                 void handlePrimaryAuthSubmit();
               }}
             >
-              <div className="pt-2 text-center">
+              <div className="flex justify-center">
+                <EyeOrb
+                  onClick={() => {}}
+                  ariaLabel="Decorative orb"
+                  className="auth-mini-orb pointer-events-none cursor-default h-[52px] w-[52px] p-0"
+                />
+              </div>
+
+              <div className="text-center">
                 <div className="text-[12px] font-semibold uppercase tracking-[0.2em] text-[#f8c74c]">HELLO PLAYER</div>
               </div>
 
@@ -411,7 +419,7 @@ export const TopBar: React.FC<TopBarProps> = ({
                 </div>
               )}
 
-              <div className="mt-3 flex flex-col gap-2">
+              <div className="mt-1 flex flex-col gap-2">
                 <button
                   type="submit"
                   disabled={isAuthSubmitting}

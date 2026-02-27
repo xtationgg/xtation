@@ -817,6 +817,18 @@
     eyeOrbEventGlow 860ms ease-out 1;
 }
 
+.auth-mini-orb {
+  --eye-ring-duration: 8s;
+  --eye-glow-duration: 7s;
+  --eye-drift-duration: 13s;
+  --eye-reticle-duration: 8s;
+}
+
+.auth-mini-orb .eye-orb {
+  width: 52px;
+  height: 52px;
+}
+
 @keyframes ringPulse {
   0%,
   100% {
