@@ -162,13 +162,13 @@
 [data-theme='dusk'] {
   --app-bg: #0e1014;
   --app-panel: #1f162d;
-  --app-panel-2: #2a1f3d;
-  --app-border: #4a3a5f;
+  --app-panel-2: #3a2b53;
+  --app-border: #6a5784;
   --app-text: #f1ebff;
   --app-muted: #b6abc7;
   --app-accent: #573778;
-  --app-accent-weak: color-mix(in srgb, var(--app-accent) 24%, transparent);
-  --app-focus-ring: color-mix(in srgb, var(--app-accent) 46%, transparent);
+  --app-accent-weak: color-mix(in srgb, var(--app-accent) 18%, transparent);
+  --app-focus-ring: transparent;
   --app-danger: #e55d65;
   --app-radius-sm: 10px;
   --app-radius-md: 14px;
@@ -177,20 +177,19 @@
   --app-cut-md: 0px;
   --app-cut-lg: 0px;
   --app-stroke: 1px;
-  --app-shadow-soft: 0 10px 24px rgba(0, 0, 0, 0.34), inset 0 1px 0 rgba(255, 255, 255, 0.02);
-  --app-shadow-strong: 0 18px 44px rgba(0, 0, 0, 0.52);
-  --app-glow-accent: 0 0 0 1px color-mix(in srgb, var(--app-accent) 26%, transparent),
-    0 0 14px color-mix(in srgb, var(--app-accent) 18%, transparent);
-  --app-glow-strength: 0.08;
-  --app-hover-glow-base: 8%;
+  --app-shadow-soft: none;
+  --app-shadow-strong: none;
+  --app-glow-accent: none;
+  --app-glow-strength: 0;
+  --app-hover-glow-base: 0%;
   --app-noise-opacity: 0.02;
   --app-glass-opacity: 0.02;
   --app-blur: 0px;
   --app-panel-rgb: 31 22 45;
-  --app-panel-2-rgb: 42 31 61;
+  --app-panel-2-rgb: 58 43 83;
   --app-bg-overlay:
-    radial-gradient(120% 100% at 12% 0%, rgba(87, 55, 120, 0.18), transparent 58%),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.012), transparent 46%);
+    radial-gradient(120% 100% at 12% 0%, rgba(87, 55, 120, 0.1), transparent 58%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.008), transparent 46%);
   --app-motion-fast: 120ms;
   --app-motion-med: 180ms;
   --app-motion-slow: 240ms;
@@ -203,6 +202,20 @@
   --app-clip-left: none;
   --app-clip-card: none;
   --app-clip-pill: none;
+}
+
+/* Dusk cleanup: keep surfaces solid and shadow-free */
+[data-theme='dusk'] .ui-panel-surface,
+[data-theme='dusk'] .ui-glow,
+[data-theme='dusk'] .ui-pressable:hover,
+[data-theme='dusk'] .orb-button__icon,
+[data-theme='dusk'] .orb-button:hover .orb-button__icon {
+  box-shadow: none !important;
+  filter: none !important;
+}
+
+[data-theme='dusk'] *:focus-visible {
+  outline: none !important;
 }
 
 [data-theme='dark_minimal_rounded_solid'] {
