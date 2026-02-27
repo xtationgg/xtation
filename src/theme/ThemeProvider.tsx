@@ -5,6 +5,7 @@ export const XTATION_ACCENT_STORAGE_KEY = 'xtation_accent_pack';
 const LEGACY_THEME_STORAGE_KEY = 'xtation_theme';
 
 export type XtationTheme =
+  | 'dusk'
   | 'dark_minimal_solid'
   | 'dark_minimal_rounded_solid'
   | 'dark_minimal_rounded_glass'
@@ -24,6 +25,7 @@ export interface XtationAccentOption {
 }
 
 export const XTATION_THEME_OPTIONS: XtationThemeOption[] = [
+  { value: 'dusk', label: 'Dusk' },
   { value: 'dark_minimal_solid', label: 'Dark Minimal + Solid' },
   { value: 'dark_minimal_rounded_solid', label: 'DARK MINIMAL • ROUNDED • SOLID' },
   { value: 'dark_minimal_rounded_glass', label: 'DARK MINIMAL • ROUNDED • GLASS' },
@@ -40,8 +42,8 @@ export const XTATION_ACCENT_OPTIONS: XtationAccentOption[] = [
   { value: 'lime', label: 'Lime' },
 ];
 
-const DEFAULT_THEME: XtationTheme = 'dark_minimal_solid';
-const DEFAULT_ACCENT: XtationAccent = 'neutral';
+const DEFAULT_THEME: XtationTheme = 'dusk';
+const DEFAULT_ACCENT: XtationAccent = 'purple';
 const VALID_THEMES = new Set<XtationTheme>(XTATION_THEME_OPTIONS.map((option) => option.value));
 const VALID_ACCENTS = new Set<XtationAccent>(XTATION_ACCENT_OPTIONS.map((option) => option.value));
 
@@ -50,10 +52,11 @@ const isAccent = (value: string): value is XtationAccent => VALID_ACCENTS.has(va
 
 const normalizeTheme = (value: string | null): XtationTheme | null => {
   if (!value) return null;
+  if (value === 'dark_minimal_solid') return 'dusk';
   if (isTheme(value)) return value;
   if (value === 'dark_neon') return 'hud_clean';
-  if (value === 'light_minimal') return 'dark_minimal_solid';
-  if (value === 'dark_minimal') return 'dark_minimal_solid';
+  if (value === 'light_minimal') return 'dusk';
+  if (value === 'dark_minimal') return 'dusk';
   return null;
 };
 

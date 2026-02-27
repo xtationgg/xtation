@@ -13,14 +13,14 @@
   --ui-space-5: 20px;
   --ui-space-6: 24px;
 
-  /* Canonical theme tokens (default = dark_minimal_solid) */
-  --app-bg: #0d1118;
-  --app-panel: #151b24;
-  --app-panel-2: #1c2531;
-  --app-border: #2a3445;
-  --app-text: #e8edf8;
-  --app-muted: #9ea9bd;
-  --app-accent: #8ea2cc;
+  /* Canonical theme tokens (default = Dusk) */
+  --app-bg: #0e1014;
+  --app-panel: #1f162d;
+  --app-panel-2: #2a1f3d;
+  --app-border: #4a3a5f;
+  --app-text: #f1ebff;
+  --app-muted: #b6abc7;
+  --app-accent: #573778;
   --app-accent-weak: color-mix(in srgb, var(--app-accent) 18%, transparent);
   --app-focus-ring: color-mix(in srgb, var(--app-accent) 38%, transparent);
   --app-danger: #e55d65;
@@ -42,11 +42,11 @@
   --app-noise-opacity: 0.02;
   --app-glass-opacity: 0.02;
   --app-blur: 0px;
-  --app-panel-rgb: 21 27 36;
-  --app-panel-2-rgb: 28 37 49;
+  --app-panel-rgb: 31 22 45;
+  --app-panel-2-rgb: 42 31 61;
   --app-bg-overlay:
-    radial-gradient(120% 100% at 12% 0%, rgba(150, 169, 211, 0.045), transparent 58%),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.015), transparent 46%);
+    radial-gradient(120% 100% at 12% 0%, rgba(87, 55, 120, 0.18), transparent 58%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.012), transparent 46%);
 
   --app-motion-fast: 120ms;
   --app-motion-med: 180ms;
@@ -145,6 +145,52 @@
   --app-bg-overlay:
     radial-gradient(120% 100% at 12% 0%, rgba(150, 169, 211, 0.045), transparent 58%),
     linear-gradient(180deg, rgba(255, 255, 255, 0.015), transparent 46%);
+  --app-motion-fast: 120ms;
+  --app-motion-med: 180ms;
+  --app-motion-slow: 240ms;
+  --app-ease: cubic-bezier(0.24, 0.9, 0.26, 1);
+  --app-hover-lift-y: -1px;
+  --app-hover-scale: 1;
+  --app-body-letter-spacing: 0.01em;
+  --app-clip-all: none;
+  --app-clip-right: none;
+  --app-clip-left: none;
+  --app-clip-card: none;
+  --app-clip-pill: none;
+}
+
+[data-theme='dusk'] {
+  --app-bg: #0e1014;
+  --app-panel: #1f162d;
+  --app-panel-2: #2a1f3d;
+  --app-border: #4a3a5f;
+  --app-text: #f1ebff;
+  --app-muted: #b6abc7;
+  --app-accent: #573778;
+  --app-accent-weak: color-mix(in srgb, var(--app-accent) 24%, transparent);
+  --app-focus-ring: color-mix(in srgb, var(--app-accent) 46%, transparent);
+  --app-danger: #e55d65;
+  --app-radius-sm: 10px;
+  --app-radius-md: 14px;
+  --app-radius-lg: 18px;
+  --app-cut-sm: 0px;
+  --app-cut-md: 0px;
+  --app-cut-lg: 0px;
+  --app-stroke: 1px;
+  --app-shadow-soft: 0 10px 24px rgba(0, 0, 0, 0.34), inset 0 1px 0 rgba(255, 255, 255, 0.02);
+  --app-shadow-strong: 0 18px 44px rgba(0, 0, 0, 0.52);
+  --app-glow-accent: 0 0 0 1px color-mix(in srgb, var(--app-accent) 26%, transparent),
+    0 0 14px color-mix(in srgb, var(--app-accent) 18%, transparent);
+  --app-glow-strength: 0.08;
+  --app-hover-glow-base: 8%;
+  --app-noise-opacity: 0.02;
+  --app-glass-opacity: 0.02;
+  --app-blur: 0px;
+  --app-panel-rgb: 31 22 45;
+  --app-panel-2-rgb: 42 31 61;
+  --app-bg-overlay:
+    radial-gradient(120% 100% at 12% 0%, rgba(87, 55, 120, 0.18), transparent 58%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.012), transparent 46%);
   --app-motion-fast: 120ms;
   --app-motion-med: 180ms;
   --app-motion-slow: 240ms;
@@ -425,7 +471,7 @@
 }
 
 [data-accent='purple'] {
-  --app-accent: #8f63ff;
+  --app-accent: #573778;
   --app-accent-weak: color-mix(in srgb, var(--app-accent) 20%, transparent);
   --app-focus-ring: color-mix(in srgb, var(--app-accent) 42%, transparent);
 }
