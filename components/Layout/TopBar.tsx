@@ -274,12 +274,12 @@ export const TopBar: React.FC<TopBarProps> = ({
 
             <div className="auth-center-divider absolute left-[47.6%] top-[2.2%] h-[95.6%] w-[1px]"></div>
 
-            <div className="auth-skel-top auth-skel-card absolute left-[51.5%] top-[2.2%] h-[46.3%] w-[35.8%] overflow-hidden bg-transparent">
+            <div className="auth-skel-top auth-skel-card absolute left-[51.5%] top-0 h-[49%] w-[35.8%] overflow-hidden bg-transparent">
               <div className="absolute inset-0 flex items-start justify-center">
                 <img
                   src="/ui-reference/auth/illustration-up.svg"
                   alt="Top illustration"
-                  className="h-[104%] w-full -translate-y-[2%] object-contain object-top"
+                  className="h-[110%] w-full -translate-y-[4%] object-contain object-top"
                   draggable={false}
                 />
               </div>
