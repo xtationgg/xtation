@@ -266,7 +266,7 @@ export const TopBar: React.FC<TopBarProps> = ({
       >
         <div
           className="auth-modal-shell relative aspect-[359.15/269.17] overflow-hidden rounded-[20px] bg-[#573778]"
-          style={{ width: 'min(96vw, calc(96dvh * 1.334), 1360px)' }}
+          style={{ width: 'min(60vw, calc(60dvh * 1.334), 1040px)' }}
         >
           <div className="pointer-events-none absolute inset-0">
             <div className="auth-skel-canvas absolute inset-0"></div>
