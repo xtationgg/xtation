@@ -279,7 +279,7 @@ export const TopBar: React.FC<TopBarProps> = ({
                 <img
                   src="/ui-reference/auth/illustration-up.svg"
                   alt="Top illustration"
-                  className="h-[110%] w-full -translate-y-[4%] object-contain object-top"
+                  className="h-[132%] w-full -translate-y-[18%] object-contain object-top"
                   draggable={false}
                 />
               </div>
