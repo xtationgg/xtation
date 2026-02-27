@@ -382,6 +382,7 @@ export const TopBar: React.FC<TopBarProps> = ({
                   value={authEmail}
                   onChange={(event) => setAuthEmail(event.target.value)}
                   placeholder="Email"
+                  data-auth-initial-focus="true"
                   className="h-9 w-full rounded-[7px] border border-transparent bg-[color-mix(in_srgb,var(--app-bg)_80%,black)] px-4 text-sm text-[var(--ui-text)] outline-none transition-colors focus:border-[var(--ui-accent)]"
                   autoFocus
                 />

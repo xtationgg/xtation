@@ -24,9 +24,13 @@ export const AuthDrawer: React.FC<AuthDrawerProps> = ({
 }) => {
   const panelRef = useRef<HTMLDivElement | null>(null);
   const wasOpenRef = useRef(false);
+  const hasFocusedOnOpenRef = useRef(false);
 
   useEffect(() => {
-    if (!open) return;
+    if (!open) {
+      hasFocusedOnOpenRef.current = false;
+      return;
+    }
     wasOpenRef.current = true;
 
     const panel = panelRef.current;
@@ -37,7 +41,12 @@ export const AuthDrawer: React.FC<AuthDrawerProps> = ({
     );
     const firstFocusable = focusables[0];
     const lastFocusable = focusables[focusables.length - 1];
-    firstFocusable?.focus();
+
+    if (!hasFocusedOnOpenRef.current) {
+      const preferredFocusable = panel.querySelector<HTMLElement>('[data-auth-initial-focus="true"]');
+      (preferredFocusable ?? firstFocusable)?.focus();
+      hasFocusedOnOpenRef.current = true;
+    }
 
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
