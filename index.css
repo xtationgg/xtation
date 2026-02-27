@@ -1050,13 +1050,10 @@
 }
 
 .auth-rail-pattern {
-  background:
-    repeating-linear-gradient(
-      135deg,
-      transparent 0 6px,
-      #de3e36 6px 9px,
-      transparent 9px 14px
-    );
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='48' viewBox='0 0 40 48'%3E%3Cg fill='none' stroke='%23de3e36' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M8 6 L15 12 L8 18'/%3E%3Cpath d='M22 6 L29 12 L22 18'/%3E%3Cpath d='M8 24 L15 30 L8 36'/%3E%3Cpath d='M22 24 L29 30 L22 36'/%3E%3C/g%3E%3C/svg%3E");
+  background-repeat: repeat-y;
+  background-position: center top;
+  background-size: 82% 48px;
   animation: authPatternFlow 5s linear infinite;
 }
 
@@ -1071,9 +1068,7 @@
 
 .auth-skel-rail,
 .auth-skel-rail-alert,
-.auth-skel-rail-pattern,
-.auth-skel-day,
-.auth-skel-date {
+.auth-skel-rail-pattern {
   box-shadow: none;
 }
 
@@ -1104,16 +1099,16 @@
 
 @keyframes authPatternFlow {
   0% {
-    background-position: 0 0;
+    background-position: center 0;
   }
   100% {
-    background-position: 0 40px;
+    background-position: center 48px;
   }
 }
 
 @media (max-width: 1100px) {
   .auth-modal-shell {
-    width: min(72vw, calc(72dvh * 1.334), 1248px) !important;
+    width: min(82vw, calc(82dvh * 1.334), 1420px) !important;
   }
 
   .auth-modal-form form {
@@ -1124,8 +1119,8 @@
     gap: 8px;
   }
 
-  .auth-skel-day,
-  .auth-skel-date {
+  .auth-skel-day-text,
+  .auth-skel-date-text {
     opacity: 0;
   }
 }

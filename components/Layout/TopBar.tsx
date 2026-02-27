@@ -266,7 +266,7 @@ export const TopBar: React.FC<TopBarProps> = ({
       >
         <div
           className="auth-modal-shell relative aspect-[359.15/269.17] overflow-hidden rounded-[20px] bg-[#573778]"
-          style={{ width: 'min(72vw, calc(72dvh * 1.334), 1248px)' }}
+          style={{ width: 'min(82vw, calc(82dvh * 1.334), 1420px)' }}
         >
           <div className="pointer-events-none absolute inset-0">
             <div className="auth-skel-canvas absolute inset-0"></div>
@@ -279,7 +279,7 @@ export const TopBar: React.FC<TopBarProps> = ({
                 <img
                   src="/ui-reference/auth/illustration-up.svg"
                   alt="Top illustration"
-                  className="h-[112%] w-auto max-w-none object-contain object-top"
+                  className="h-[138%] w-auto max-w-none -translate-y-[12%] object-contain object-top"
                   draggable={false}
                 />
               </div>
@@ -290,7 +290,7 @@ export const TopBar: React.FC<TopBarProps> = ({
                 <img
                   src="/ui-reference/auth/character.svg"
                   alt="Character illustration"
-                  className="h-[100%] w-auto max-w-[100%] object-contain"
+                  className="h-[116%] w-auto max-w-none translate-y-[6%] object-contain"
                   draggable={false}
                 />
               </div>
@@ -302,19 +302,20 @@ export const TopBar: React.FC<TopBarProps> = ({
                 <span key={`chev-${index}`} className="auth-rail-chevron" style={{ animationDelay: `${index * 120}ms` }} />
               ))}
             </div>
-            <div className="auth-skel-rail-pattern absolute right-[2.05%] top-[34%] h-[65.5%] w-[4.95%] overflow-hidden rounded-[12px] bg-[#f0c33f]">
+            <div className="auth-skel-rail-pattern absolute right-[2.05%] top-[70.5%] h-[23%] w-[4.95%] overflow-hidden rounded-[12px] bg-[#f0c33f]">
               <div className="auth-rail-pattern absolute inset-[6%] rounded-[10px]"></div>
             </div>
-            <div className="auth-skel-day absolute right-[2.05%] top-[31.0%] h-[8.1%] w-[4.95%] rounded-[8px] bg-[color-mix(in_srgb,var(--app-accent)_34%,transparent)]">
+            <div className="auth-skel-day-text absolute right-[2.05%] top-[35.8%] h-[9%] w-[4.95%]">
               <div className="flex h-full w-full items-center justify-center">
-                <span className="-rotate-90 text-[clamp(8px,0.68vw,11px)] font-semibold uppercase tracking-[0.1em] text-[#de3e36]">
+                <span className="[writing-mode:vertical-rl] text-[clamp(10px,0.82vw,14px)] font-semibold tracking-[0.08em] text-[#de3e36]">
                   {drawerDayLabel}
                 </span>
               </div>
             </div>
-            <div className="auth-skel-date absolute right-[2.05%] top-[42.6%] h-[12.6%] w-[4.95%] rounded-[8px] bg-[color-mix(in_srgb,var(--app-accent)_30%,transparent)]">
+            <div className="absolute right-[4.45%] top-[48.6%] h-[6.2%] w-[1px] bg-[#de3e36]"></div>
+            <div className="auth-skel-date-text absolute right-[2.05%] top-[55.2%] h-[14%] w-[4.95%]">
               <div className="flex h-full w-full items-center justify-center">
-                <span className="[writing-mode:vertical-rl] text-[clamp(8px,0.68vw,11px)] font-semibold tracking-[0.05em] text-[#de3e36]">
+                <span className="[writing-mode:vertical-rl] text-[clamp(10px,0.82vw,14px)] font-semibold tracking-[0.05em] text-[#de3e36]">
                   {drawerDateLabel}
                 </span>
               </div>
