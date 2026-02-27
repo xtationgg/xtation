@@ -1113,7 +1113,7 @@
 
 @media (max-width: 1100px) {
   .auth-modal-shell {
-    width: min(60vw, calc(60dvh * 1.334), 1040px) !important;
+    width: min(72vw, calc(72dvh * 1.334), 1248px) !important;
   }
 
   .auth-modal-form form {

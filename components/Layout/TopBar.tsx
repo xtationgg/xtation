@@ -266,7 +266,7 @@ export const TopBar: React.FC<TopBarProps> = ({
       >
         <div
           className="auth-modal-shell relative aspect-[359.15/269.17] overflow-hidden rounded-[20px] bg-[#573778]"
-          style={{ width: 'min(60vw, calc(60dvh * 1.334), 1040px)' }}
+          style={{ width: 'min(72vw, calc(72dvh * 1.334), 1248px)' }}
         >
           <div className="pointer-events-none absolute inset-0">
             <div className="auth-skel-canvas absolute inset-0"></div>
@@ -274,12 +274,12 @@ export const TopBar: React.FC<TopBarProps> = ({
 
             <div className="auth-center-divider absolute left-[47.6%] top-[2.2%] h-[95.6%] w-[1px]"></div>
 
-            <div className="auth-skel-top auth-skel-card absolute left-[51.5%] top-[4.4%] h-[44.2%] w-[35.8%] overflow-visible bg-transparent">
-              <div className="absolute inset-0 flex items-center justify-center">
+            <div className="auth-skel-top auth-skel-card absolute left-[51.5%] top-[4.4%] h-[44.2%] w-[35.8%] overflow-hidden bg-transparent">
+              <div className="absolute inset-0 flex items-start justify-center">
                 <img
                   src="/ui-reference/auth/illustration-up.svg"
                   alt="Top illustration"
-                  className="h-[100%] w-auto max-w-[100%] object-contain"
+                  className="h-[112%] w-auto max-w-none object-contain object-top"
                   draggable={false}
                 />
               </div>
@@ -302,7 +302,7 @@ export const TopBar: React.FC<TopBarProps> = ({
                 <span key={`chev-${index}`} className="auth-rail-chevron" style={{ animationDelay: `${index * 120}ms` }} />
               ))}
             </div>
-            <div className="auth-skel-rail-pattern absolute right-[2.05%] top-[30.1%] h-[63.4%] w-[4.95%] overflow-hidden rounded-[12px] bg-[#f0c33f]">
+            <div className="auth-skel-rail-pattern absolute right-[2.05%] top-[34%] h-[65.5%] w-[4.95%] overflow-hidden rounded-[12px] bg-[#f0c33f]">
               <div className="auth-rail-pattern absolute inset-[6%] rounded-[10px]"></div>
             </div>
             <div className="auth-skel-day absolute right-[2.05%] top-[31.0%] h-[8.1%] w-[4.95%] rounded-[8px] bg-[color-mix(in_srgb,var(--app-accent)_34%,transparent)]">
