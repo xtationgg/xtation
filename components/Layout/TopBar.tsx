@@ -40,6 +40,11 @@ export const TopBar: React.FC<TopBarProps> = ({
   const [authNotice, setAuthNotice] = useState<string | null>(null);
   const [isAuthSubmitting, setIsAuthSubmitting] = useState(false);
   const loginTriggerRef = useRef<HTMLButtonElement | null>(null);
+  const drawerDate = new Date();
+  const drawerDayLabel = drawerDate.toLocaleDateString(undefined, { weekday: 'long' });
+  const drawerDateLabel = `${drawerDate.getFullYear()} / ${drawerDate
+    .toLocaleDateString(undefined, { month: 'short' })
+    .toLowerCase()} / ${String(drawerDate.getDate()).padStart(2, '0')}`;
 
   const openLoginModal = () => {
     setAuthMode('login');
@@ -256,9 +261,13 @@ export const TopBar: React.FC<TopBarProps> = ({
         onClose={closeLoginModal}
         disableClose={isAuthSubmitting}
         variant="center"
+        panelClassName="!w-auto !max-h-none !overflow-visible !rounded-none !border-0 !bg-transparent !shadow-none"
         triggerRef={loginTriggerRef as React.RefObject<HTMLElement | null>}
       >
-        <div className="auth-modal-shell relative aspect-[359.15/269.17] w-[min(92vw,1280px)] overflow-hidden rounded-[20px] border border-[var(--app-border)] bg-[color-mix(in_srgb,var(--app-accent)_38%,var(--app-panel))]">
+        <div
+          className="auth-modal-shell relative aspect-[359.15/269.17] overflow-hidden rounded-[20px] border border-[var(--app-border)] bg-[color-mix(in_srgb,var(--app-accent)_38%,var(--app-panel))]"
+          style={{ width: 'min(92vw, calc(92dvh * 1.334), 1280px)' }}
+        >
           <div className="pointer-events-none absolute inset-0">
             <div className="absolute left-[2.65%] top-[1.95%] h-[96.1%] w-[40.8%] rounded-[14px] border border-[color-mix(in_srgb,var(--app-border)_65%,var(--app-text)_15%)] bg-[color-mix(in_srgb,var(--app-bg)_82%,black)]">
               <div className="absolute inset-[8px] rounded-[10px] border border-[color-mix(in_srgb,var(--app-text)_72%,var(--app-border))]"></div>
@@ -269,6 +278,20 @@ export const TopBar: React.FC<TopBarProps> = ({
             <div className="absolute right-[1.65%] top-[1.95%] h-[96.1%] w-[5.75%] rounded-[12px] border border-[color-mix(in_srgb,var(--app-text)_70%,var(--app-border))] bg-[color-mix(in_srgb,var(--app-accent)_18%,transparent)]"></div>
             <div className="absolute right-[2.05%] top-[14.2%] h-[14.8%] w-[4.95%] rounded-[12px] bg-[color-mix(in_srgb,var(--app-accent)_26%,transparent)]"></div>
             <div className="absolute right-[2.05%] top-[30.1%] h-[31.7%] w-[4.95%] rounded-[12px] bg-[color-mix(in_srgb,var(--app-accent)_22%,transparent)]"></div>
+            <div className="absolute right-[2.2%] top-[31.2%] h-[7.9%] w-[4.62%] rounded-[8px] border border-[color-mix(in_srgb,var(--app-text)_76%,var(--app-border))] bg-[color-mix(in_srgb,var(--app-accent)_34%,transparent)]">
+              <div className="flex h-full w-full items-center justify-center">
+                <span className="-rotate-90 text-[clamp(9px,0.72vw,12px)] font-semibold uppercase tracking-[0.14em] text-[var(--app-accent)]">
+                  {drawerDayLabel}
+                </span>
+              </div>
+            </div>
+            <div className="absolute right-[2.2%] top-[42.6%] h-[11.6%] w-[4.62%] rounded-[8px] border border-[color-mix(in_srgb,var(--app-text)_76%,var(--app-border))] bg-[color-mix(in_srgb,var(--app-accent)_30%,transparent)]">
+              <div className="flex h-full w-full items-center justify-center">
+                <span className="[writing-mode:vertical-rl] text-[clamp(9px,0.72vw,12px)] font-semibold tracking-[0.08em] text-[var(--app-accent)]">
+                  {drawerDateLabel}
+                </span>
+              </div>
+            </div>
           </div>
 
           <button
