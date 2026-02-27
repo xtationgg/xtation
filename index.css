@@ -991,14 +991,12 @@
     color-mix(in srgb, var(--app-accent) 36%, #37235a),
     color-mix(in srgb, #f1a84f 62%, #4f2a5f)
   );
-  box-shadow:
-    inset 0 0 0 1px color-mix(in srgb, var(--app-text) 20%, transparent),
-    0 10px 24px color-mix(in srgb, #1b102a 32%, transparent);
+  box-shadow: none;
 }
 
 .auth-skel-chip {
   background: color-mix(in srgb, var(--app-accent) 54%, #7f63b7);
-  box-shadow: 0 6px 18px color-mix(in srgb, #160f25 32%, transparent);
+  box-shadow: none;
 }
 
 .auth-skel-stars::before,
@@ -1063,14 +1061,12 @@
 }
 
 .auth-modal-shell {
-  box-shadow:
-    0 20px 40px color-mix(in srgb, #09060f 58%, transparent),
-    inset 0 0 0 1px color-mix(in srgb, var(--app-text) 8%, transparent);
+  box-shadow: none;
 }
 
 .auth-skel-left,
 .auth-modal-form {
-  box-shadow: 0 10px 24px color-mix(in srgb, #070510 32%, transparent);
+  box-shadow: none;
 }
 
 .auth-skel-top,
@@ -1087,7 +1083,7 @@
 .auth-skel-rail-pattern,
 .auth-skel-day,
 .auth-skel-date {
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, #fff 14%, transparent);
+  box-shadow: none;
 }
 
 .auth-center-divider {
@@ -1099,30 +1095,8 @@
   );
 }
 
-.auth-connector {
-  background: color-mix(in srgb, var(--app-accent) 52%, #5e3a89);
-  clip-path: polygon(0 50%, 100% 0, 100% 100%);
-  filter: drop-shadow(0 2px 4px color-mix(in srgb, #09060f 45%, transparent));
-}
-
-.auth-connector--top {
-  transform: rotate(180deg);
-}
-
-.auth-connector--bottom {
-  transform: rotate(180deg);
-}
-
 .auth-skel-card {
-  transition:
-    transform var(--ui-motion-med) var(--ui-ease),
-    box-shadow var(--ui-motion-med) var(--ui-ease);
-}
-
-.auth-modal-shell:hover .auth-skel-card {
-  box-shadow:
-    inset 0 0 0 1px color-mix(in srgb, var(--app-text) 24%, transparent),
-    0 8px 16px color-mix(in srgb, #0a0613 24%, transparent);
+  transition: transform var(--ui-motion-med) var(--ui-ease);
 }
 
 @keyframes authChevronPulse {
