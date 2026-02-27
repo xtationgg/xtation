@@ -366,7 +366,10 @@ export const HextechAssistant: React.FC<HextechAssistantProps> = ({ isOpen, onCl
   if (!isOpen) return null;
 
   return (
-    <div ref={containerRef} className="absolute top-[64px] right-[24px] w-[420px] z-50 animate-fade-in font-mono origin-top-right">
+    <div
+      ref={containerRef}
+      className="absolute top-[60px] right-2 sm:right-4 md:right-[24px] w-[calc(100vw-16px)] sm:w-[420px] max-w-[420px] z-50 animate-fade-in font-mono origin-top-right"
+    >
       <div className="relative rounded-2xl border border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-[color-mix(in_srgb,var(--app-bg)_90%,transparent)] backdrop-blur-xl shadow-[0_24px_55px_rgba(0,0,0,0.6)] overflow-hidden">
         <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_20%_0%,color-mix(in_srgb,var(--app-accent)_12%,transparent),transparent_55%)] opacity-70" />
         <div className="absolute inset-0 pointer-events-none bg-[linear-gradient(180deg,rgba(255,255,255,0.04)_0%,transparent_40%)]" />

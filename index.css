@@ -1196,6 +1196,59 @@
   }
 }
 
+@media (max-width: 768px) {
+  .eye-orb-trigger {
+    width: 84px !important;
+    height: 84px !important;
+  }
+
+  .eye-orb {
+    width: 84px;
+    height: 84px;
+  }
+
+  .auth-modal-shell {
+    width: min(96vw, 560px) !important;
+    max-height: 92dvh;
+    aspect-ratio: auto !important;
+  }
+
+  .auth-skel-top,
+  .auth-skel-bottom,
+  .auth-skel-rail,
+  .auth-skel-rail-alert,
+  .auth-skel-rail-pattern,
+  .auth-skel-day-text,
+  .auth-skel-date-text,
+  .auth-center-divider {
+    display: none !important;
+  }
+
+  .auth-skel-left,
+  .auth-modal-form {
+    left: 2% !important;
+    top: 2% !important;
+    width: 96% !important;
+    height: 96% !important;
+    border-radius: 12px !important;
+  }
+
+  .auth-modal-form form {
+    justify-content: flex-start !important;
+    padding: 20px 14px !important;
+    gap: 10px !important;
+  }
+
+  .auth-modal-close {
+    top: 3.5% !important;
+    right: 4% !important;
+    width: 36px !important;
+    height: 36px !important;
+    min-width: 36px !important;
+    min-height: 36px !important;
+  }
+}
+
 .ui-shape-all,
 .chamfer-all {
   --cut: var(--ui-cut-md);

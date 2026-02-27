@@ -113,7 +113,7 @@ export const TopBar: React.FC<TopBarProps> = ({
 
   return (
     <>
-      <div className="fixed left-2 top-1 z-[95] pointer-events-none">
+      <div className="fixed left-2 top-1 z-[95] pointer-events-none md:left-2">
         <EyeOrb
           ariaLabel="Play"
           className="pointer-events-auto"
@@ -124,11 +124,11 @@ export const TopBar: React.FC<TopBarProps> = ({
           }}
         />
       </div>
-      <div className="h-[60px] bg-[color-mix(in_srgb,var(--app-panel)_82%,transparent)] backdrop-blur-sm border-b border-[var(--app-border)] flex items-center relative z-40 select-none">
-      <div className="h-full w-[132px] shrink-0" aria-hidden="true"></div>
+      <div className="h-[56px] md:h-[60px] bg-[color-mix(in_srgb,var(--app-panel)_82%,transparent)] backdrop-blur-sm border-b border-[var(--app-border)] flex items-center relative z-40 select-none">
+      <div className="h-full w-[84px] sm:w-[96px] md:w-[132px] shrink-0" aria-hidden="true"></div>
 
       {/* Middle: Navigation */}
-      <div className="flex-1 flex items-center h-full overflow-x-auto no-scrollbar">
+      <div className="flex-1 flex items-center h-full overflow-x-auto no-scrollbar min-w-0">
         <NavTab label="Home" isActive={currentView === ClientView.HOME} onClick={() => onChangeView(ClientView.HOME)} />
         <NavTab label="Earth" isActive={currentView === ClientView.TFT} onClick={() => onChangeView(ClientView.TFT)} />
         <NavTab label="Multiplayer" isActive={currentView === ClientView.MULTIPLAYER} onClick={() => onChangeView(ClientView.MULTIPLAYER)} />
@@ -140,14 +140,14 @@ export const TopBar: React.FC<TopBarProps> = ({
       </div>
 
       {/* Right: Assistant, Currency & System */}
-      <div className="flex items-center px-6 h-full border-l border-[var(--app-border)] gap-6 bg-[var(--app-panel)]">
+      <div className="flex items-center px-2 sm:px-3 md:px-4 h-full border-l border-[var(--app-border)] gap-2 sm:gap-3 md:gap-4 bg-[var(--app-panel)] min-w-0">
         {/* AI Assistant Toggle (Moved here) */}
         <button 
             id="hextech-assistant-toggle"
             onClick={() => { playClickSound(); onToggleAssistant(); }}
             onMouseEnter={playHoverSound}
             className={`
-                group relative flex items-center justify-center gap-2 w-32 h-10 border transition-all duration-300 mr-2
+                group relative flex items-center justify-center gap-2 w-9 sm:w-24 md:w-32 h-9 md:h-10 border transition-all duration-300
                 ${isAssistantOpen 
                     ? 'bg-[var(--app-accent)] border-[var(--app-accent)] text-[var(--app-text)]' 
                     : activeTasksCount > 0
@@ -156,12 +156,12 @@ export const TopBar: React.FC<TopBarProps> = ({
                 }
             `}
         >
-            <Bot size={18} className={activeTasksCount > 0 && !isAssistantOpen ? 'animate-pulse' : ''} />
-            <span className="text-[10px] font-bold font-mono tracking-widest">QUESTS</span>
+            <Bot size={16} className={activeTasksCount > 0 && !isAssistantOpen ? 'animate-pulse' : ''} />
+            <span className="hidden sm:inline text-[9px] md:text-[10px] font-bold font-mono tracking-widest">QUESTS</span>
         </button>
 
         {/* Server Status Indicator -> Active Mission Count */}
-        <div className="flex items-center gap-2 mr-4 min-w-[60px] justify-end">
+        <div className="hidden xl:flex items-center gap-2 mr-2 min-w-[60px] justify-end">
              <div className={`w-2 h-2 rounded-full ${activeTasksCount > 0 ? 'bg-[var(--app-accent)] animate-pulse shadow-[var(--app-glow-accent)]' : 'bg-[var(--app-border)]'}`}></div>
              {activeTasksCount > 0 ? (
                  <span className="text-[10px] text-[var(--app-accent)] font-mono uppercase font-bold tracking-widest">ACTIVE: {activeTasksCount}</span>
@@ -175,7 +175,7 @@ export const TopBar: React.FC<TopBarProps> = ({
         </div>
 
         {/* XP Summary */}
-        <div className="flex flex-col items-end font-mono text-xs gap-0.5">
+        <div className="hidden lg:flex flex-col items-end font-mono text-xs gap-0.5">
             <div className="text-[9px] uppercase tracking-[0.2em] text-[var(--app-muted)]">Today</div>
             <div className="flex items-center gap-2 text-[var(--app-text)]">
                 <span className="font-bold tracking-wider">{todayTrackedMinutes}</span>
@@ -187,7 +187,7 @@ export const TopBar: React.FC<TopBarProps> = ({
             </div>
         </div>
 
-        <div className="flex flex-col items-end font-mono text-xs gap-0.5">
+        <div className="hidden lg:flex flex-col items-end font-mono text-xs gap-0.5">
             <div className="text-[9px] uppercase tracking-[0.2em] text-[var(--app-muted)]">Today Min</div>
             <div className="flex items-center gap-2 text-[var(--app-text)]">
                 <span className="font-bold tracking-wider">{todayTrackedMinutes} MIN</span>
@@ -200,7 +200,7 @@ export const TopBar: React.FC<TopBarProps> = ({
         ) : null}
 
         {/* Auth (minimal UI) */}
-        <div className="flex items-center gap-2 min-w-[180px] justify-end">
+        <div className="flex items-center gap-2 min-w-0 justify-end">
             {loading ? (
                 <span className="text-[11px] text-[var(--app-muted)] font-mono">…</span>
             ) : null}
@@ -213,14 +213,14 @@ export const TopBar: React.FC<TopBarProps> = ({
                           <span>{userInitial}</span>
                         )}
                     </div>
-                    <span className="text-[10px] text-[color-mix(in_srgb,var(--app-text)_82%,var(--app-muted))] max-w-[140px] truncate">{userLabel}</span>
+                    <span className="hidden sm:inline text-[10px] text-[color-mix(in_srgb,var(--app-text)_82%,var(--app-muted))] max-w-[140px] truncate">{userLabel}</span>
                     <button
                         onMouseEnter={playHoverSound}
                         onClick={() => {
                             playClickSound();
                             void signOut();
                         }}
-                        className="h-8 px-3 border border-[var(--app-border)] text-[9px] uppercase tracking-[0.2em] text-[var(--app-text)] hover:border-[var(--app-accent)] hover:text-[var(--app-accent)] transition-colors"
+                    className="h-8 px-2 sm:px-3 border border-[var(--app-border)] text-[8px] sm:text-[9px] uppercase tracking-[0.2em] text-[var(--app-text)] hover:border-[var(--app-accent)] hover:text-[var(--app-accent)] transition-colors"
                     >
                         Logout
                     </button>
@@ -233,7 +233,7 @@ export const TopBar: React.FC<TopBarProps> = ({
                         playClickSound();
                         openLoginModal();
                     }}
-                    className="h-8 px-3 border border-[var(--app-border)] text-[9px] uppercase tracking-[0.2em] transition-colors text-[var(--app-text)] hover:border-[var(--app-accent)] hover:text-[var(--app-accent)]"
+                    className="h-8 px-2 sm:px-3 border border-[var(--app-border)] text-[8px] sm:text-[9px] uppercase tracking-[0.2em] transition-colors text-[var(--app-text)] hover:border-[var(--app-accent)] hover:text-[var(--app-accent)]"
                 >
                     LOGIN
                 </button>
@@ -245,13 +245,13 @@ export const TopBar: React.FC<TopBarProps> = ({
             )}
         </div>
 
-        <div className="w-[1px] h-6 bg-[var(--app-border)]"></div>
+        <div className="hidden sm:block w-[1px] h-6 bg-[var(--app-border)]"></div>
 
         {/* System Icons */}
-        <div className="flex items-center gap-1 text-[var(--app-muted)]">
-            <button onMouseEnter={playHoverSound} onClick={playClickSound} className="hover:text-[var(--app-text)] p-2 transition-colors"><Trophy size={16} /></button>
-            <button onMouseEnter={playHoverSound} onClick={playClickSound} className="hover:text-[var(--app-text)] p-2 transition-colors"><Bell size={16} /></button>
-            <button onMouseEnter={playHoverSound} onClick={() => onChangeView(ClientView.SETTINGS)} className="hover:text-[var(--app-text)] p-2 transition-colors"><Settings size={16} /></button>
+        <div className="hidden sm:flex items-center gap-1 text-[var(--app-muted)]">
+            <button onMouseEnter={playHoverSound} onClick={playClickSound} className="hover:text-[var(--app-text)] p-1.5 md:p-2 transition-colors"><Trophy size={15} /></button>
+            <button onMouseEnter={playHoverSound} onClick={playClickSound} className="hover:text-[var(--app-text)] p-1.5 md:p-2 transition-colors"><Bell size={15} /></button>
+            <button onMouseEnter={playHoverSound} onClick={() => onChangeView(ClientView.SETTINGS)} className="hover:text-[var(--app-text)] p-1.5 md:p-2 transition-colors"><Settings size={15} /></button>
         </div>
       </div>
       </div>

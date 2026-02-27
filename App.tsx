@@ -377,7 +377,7 @@ const App: React.FC = () => {
 
   return (
     <div 
-        className="w-screen h-screen flex flex-col overflow-hidden text-[var(--ui-text)] font-mono bg-cover bg-center transition-all duration-200 ease-out relative"
+        className="w-full min-h-[100dvh] md:h-screen flex flex-col overflow-x-hidden overflow-y-auto md:overflow-hidden text-[var(--ui-text)] font-mono bg-cover bg-center transition-all duration-200 ease-out relative"
         style={getBackgroundStyle()}
     >
       <ScheduledTaskPrompt />
@@ -396,10 +396,10 @@ const App: React.FC = () => {
       />
 
       {/* Main Content Area */}
-      <div className="flex-1 flex overflow-hidden relative z-10">
+      <div className="flex-1 min-h-0 flex overflow-x-hidden overflow-y-auto md:overflow-hidden relative z-10">
         
         {/* Center Viewport */}
-        <div key={`viewport-${userScopeRenderKey}`} className="flex-1 relative transition-all duration-300 bg-transparent">
+        <div key={`viewport-${userScopeRenderKey}`} className="flex-1 min-h-0 relative overflow-y-auto md:overflow-hidden transition-all duration-300 bg-transparent">
             {renderContent()}
         </div>
       </div>

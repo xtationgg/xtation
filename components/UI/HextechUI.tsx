@@ -148,7 +148,7 @@ export const NavTab: React.FC<NavTabProps> = ({ label, isActive, onClick }) => {
     <button
       onClick={handleClick}
       onMouseEnter={playHoverSound}
-      className={`relative h-full px-8 font-mono uppercase tracking-[0.15em] text-xs font-bold
+      className={`relative h-full px-4 sm:px-6 md:px-8 font-mono uppercase tracking-[0.15em] text-[10px] sm:text-xs font-bold
         transition-all duration-200 border-r border-[var(--app-border)] group overflow-hidden flex items-center justify-center
         ${isActive 
           ? 'text-[var(--app-text)] bg-[color-mix(in_srgb,var(--app-accent)_22%,var(--app-panel))] shadow-[inset_0_0_20px_rgba(0,0,0,0.2)]' 
