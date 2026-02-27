@@ -255,118 +255,121 @@ export const TopBar: React.FC<TopBarProps> = ({
         open={isLoginModalOpen && !user}
         onClose={closeLoginModal}
         disableClose={isAuthSubmitting}
+        variant="center"
         triggerRef={loginTriggerRef as React.RefObject<HTMLElement | null>}
       >
-        <div className="auth-drawer-stagger flex h-full flex-col px-6 pb-6 pt-5">
-          <div className="flex items-center justify-between">
-            <div>
-              <div className="text-[11px] font-semibold uppercase tracking-[0.28em] text-[var(--ui-text)]">LOGIN</div>
-              <div className="mt-1 text-[10px] uppercase tracking-[0.18em] text-[var(--ui-muted)]">SIGN IN INSIDE THE APP</div>
-            </div>
-            <button
-              type="button"
-              onClick={closeLoginModal}
-              disabled={isAuthSubmitting}
-              className="ui-pressable flex h-9 w-9 items-center justify-center rounded-[12px] border border-[var(--ui-border)] bg-[var(--ui-panel-2)] text-[var(--ui-muted)] hover:text-[var(--ui-text)] disabled:cursor-not-allowed disabled:opacity-60"
-              aria-label="Close login drawer"
-            >
-              <X size={14} />
-            </button>
-          </div>
+        <div className="auth-modal-shell relative aspect-[359.15/269.17] w-[min(92vw,1280px)] overflow-hidden rounded-[20px] border border-[var(--app-border)] bg-[var(--app-panel)]">
+          <img
+            src="/ui-reference/auth/login-signin-tab.svg"
+            alt=""
+            aria-hidden="true"
+            className="pointer-events-none absolute inset-0 h-full w-full select-none object-cover"
+          />
+          <div className="absolute inset-0 bg-[color-mix(in_srgb,var(--app-bg)_18%,transparent)]"></div>
 
-          <div className="grid grid-cols-2 gap-2 rounded-[12px] border border-[var(--ui-border)] bg-[var(--ui-panel-2)] p-1">
-            <button
-              type="button"
-              onClick={() => {
-                setAuthMode('login');
-                setAuthNotice(null);
-              }}
-              className={`ui-pressable h-9 rounded-[10px] border text-[10px] font-semibold uppercase tracking-[0.2em] ${
-                authMode === 'login'
-                  ? 'border-[var(--ui-accent)] bg-[color-mix(in_srgb,var(--app-accent)_24%,transparent)] text-[var(--ui-text)]'
-                  : 'border-transparent bg-transparent text-[var(--ui-muted)]'
-              }`}
-            >
-              LOGIN
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setAuthMode('signup');
-                setAuthNotice(null);
-              }}
-              className={`ui-pressable h-9 rounded-[10px] border text-[10px] font-semibold uppercase tracking-[0.2em] ${
-                authMode === 'signup'
-                  ? 'border-[var(--ui-accent)] bg-[color-mix(in_srgb,var(--app-accent)_24%,transparent)] text-[var(--ui-text)]'
-                  : 'border-transparent bg-transparent text-[var(--ui-muted)]'
-              }`}
-            >
-              SIGN UP
-            </button>
-          </div>
-
-          <form
-            className="flex flex-1 flex-col gap-3"
-            onSubmit={(event) => {
-              event.preventDefault();
-              void handlePrimaryAuthSubmit();
-            }}
+          <button
+            type="button"
+            onClick={closeLoginModal}
+            disabled={isAuthSubmitting}
+            className="auth-modal-close ui-pressable absolute right-[1.2%] top-[1.7%] z-20 flex h-11 w-11 items-center justify-center rounded-[12px] border border-[var(--ui-border)] bg-[color-mix(in_srgb,var(--app-panel)_75%,black)] text-[var(--ui-muted)] hover:text-[var(--ui-text)] disabled:cursor-not-allowed disabled:opacity-60"
+            aria-label="Close login modal"
           >
-            <div>
-              <label className="mb-2 block text-[10px] uppercase tracking-[0.2em] text-[var(--ui-muted)]">Email</label>
-              <input
-                type="email"
-                value={authEmail}
-                onChange={(event) => setAuthEmail(event.target.value)}
-                placeholder="you@example.com"
-                className="h-11 w-full rounded-[12px] border border-[var(--ui-border)] bg-[var(--ui-panel-2)] px-3 text-sm text-[var(--ui-text)] outline-none transition-colors focus:border-[var(--ui-accent)] focus:ring-2 focus:ring-[color-mix(in_srgb,var(--app-accent)_30%,transparent)]"
-                autoFocus
-              />
-            </div>
+            <X size={16} />
+          </button>
 
-            <div>
-              <label className="mb-2 block text-[10px] uppercase tracking-[0.2em] text-[var(--ui-muted)]">Password</label>
-              <input
-                type="password"
-                value={authPassword}
-                onChange={(event) => setAuthPassword(event.target.value)}
-                placeholder="••••••••"
-                className="h-11 w-full rounded-[12px] border border-[var(--ui-border)] bg-[var(--ui-panel-2)] px-3 text-sm text-[var(--ui-text)] outline-none transition-colors focus:border-[var(--ui-accent)] focus:ring-2 focus:ring-[color-mix(in_srgb,var(--app-accent)_30%,transparent)]"
-              />
-              {authMode === 'login' && (
+          <div className="auth-modal-form auth-drawer-stagger absolute bottom-[2.8%] left-[2.8%] right-[2.8%] top-[2.8%] z-10 overflow-hidden rounded-[16px] border border-[color-mix(in_srgb,var(--app-border)_65%,var(--app-text)_15%)] bg-[color-mix(in_srgb,var(--app-bg)_86%,black)] p-6 lg:right-auto lg:w-[40.2%] lg:p-8">
+            <form
+              className="flex h-full flex-col gap-4"
+              onSubmit={(event) => {
+                event.preventDefault();
+                void handlePrimaryAuthSubmit();
+              }}
+            >
+              <div className="pt-2 text-center">
+                <div className="text-[12px] font-semibold uppercase tracking-[0.22em] text-[var(--ui-accent)]">HELLO PLAYER</div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
                 <button
                   type="button"
-                  onClick={() => void handleSendResetLink()}
-                  disabled={isAuthSubmitting}
-                  className="mt-2 text-left text-[10px] uppercase tracking-[0.2em] text-[var(--ui-muted)] hover:text-[var(--ui-text)] disabled:cursor-not-allowed disabled:opacity-60"
+                  onClick={() => {
+                    setAuthMode('login');
+                    setAuthNotice(null);
+                  }}
+                  className={`ui-pressable h-11 rounded-[10px] border text-[12px] font-semibold uppercase tracking-[0.2em] ${
+                    authMode === 'login'
+                      ? 'border-[var(--ui-accent)] bg-[color-mix(in_srgb,var(--app-accent)_50%,transparent)] text-[var(--ui-text)]'
+                      : 'border-[var(--ui-border)] bg-transparent text-[var(--ui-text)]'
+                  }`}
                 >
-                  Forgot password?
+                  LOGIN
                 </button>
-              )}
-            </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setAuthMode('signup');
+                    setAuthNotice(null);
+                  }}
+                  className={`ui-pressable h-11 rounded-[10px] border text-[12px] font-semibold uppercase tracking-[0.2em] ${
+                    authMode === 'signup'
+                      ? 'border-[var(--ui-accent)] bg-[color-mix(in_srgb,var(--app-accent)_50%,transparent)] text-[var(--ui-text)]'
+                      : 'border-[var(--ui-border)] bg-transparent text-[var(--ui-text)]'
+                  }`}
+                >
+                  SIGN UP
+                </button>
+              </div>
 
-            <div className="mt-auto flex flex-col gap-2">
-              <button
-                type="submit"
-                disabled={isAuthSubmitting}
-                className="ui-pressable flex h-11 items-center justify-center gap-2 rounded-[12px] border border-[var(--ui-accent)] bg-[color-mix(in_srgb,var(--app-accent)_22%,transparent)] text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--ui-text)] hover:-translate-y-[1px] hover:bg-[color-mix(in_srgb,var(--app-accent)_30%,transparent)] disabled:cursor-not-allowed disabled:opacity-60"
-              >
-                {authMode === 'login' ? 'LOGIN' : 'SIGN UP'}
-              </button>
-              <button
-                type="button"
-                onClick={() => void handleGoogleSignIn()}
-                disabled={isAuthSubmitting}
-                className="ui-pressable h-11 rounded-[12px] border border-[var(--ui-border)] bg-[var(--ui-panel-2)] text-[10px] font-semibold uppercase tracking-[0.2em] text-[var(--ui-text)] hover:-translate-y-[1px] hover:border-[var(--ui-accent)] disabled:cursor-not-allowed disabled:opacity-60"
-              >
-                GOOGLE OAUTH
-              </button>
-            </div>
+              <div className="space-y-3">
+                <input
+                  type="email"
+                  value={authEmail}
+                  onChange={(event) => setAuthEmail(event.target.value)}
+                  placeholder="Email"
+                  className="h-11 w-full rounded-[10px] border border-transparent bg-[color-mix(in_srgb,var(--app-bg)_78%,black)] px-4 text-sm text-[var(--ui-text)] outline-none transition-colors focus:border-[var(--ui-accent)]"
+                  autoFocus
+                />
+                <input
+                  type="password"
+                  value={authPassword}
+                  onChange={(event) => setAuthPassword(event.target.value)}
+                  placeholder="Password"
+                  className="h-11 w-full rounded-[10px] border border-transparent bg-[color-mix(in_srgb,var(--app-bg)_78%,black)] px-4 text-sm text-[var(--ui-text)] outline-none transition-colors focus:border-[var(--ui-accent)]"
+                />
+                {authMode === 'login' && (
+                  <button
+                    type="button"
+                    onClick={() => void handleSendResetLink()}
+                    disabled={isAuthSubmitting}
+                    className="text-left text-[10px] uppercase tracking-[0.2em] text-[var(--ui-muted)] hover:text-[var(--ui-text)] disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    FORGOT PASSWORD?
+                  </button>
+                )}
+              </div>
 
-            {(authNotice || error) && (
-              <div className="text-[10px] uppercase tracking-[0.18em] text-[var(--ui-muted)]">{authNotice || error}</div>
-            )}
-          </form>
+              <div className="mt-auto flex flex-col gap-3">
+                <button
+                  type="submit"
+                  disabled={isAuthSubmitting}
+                  className="ui-pressable h-11 rounded-[10px] border border-[var(--ui-accent)] bg-[color-mix(in_srgb,var(--app-accent)_56%,transparent)] text-[12px] font-semibold uppercase tracking-[0.2em] text-[var(--ui-text)] hover:-translate-y-[1px] disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {authMode === 'login' ? 'SIGN IN' : 'SIGN UP'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => void handleGoogleSignIn()}
+                  disabled={isAuthSubmitting}
+                  className="ui-pressable h-11 rounded-[10px] border border-[var(--ui-border)] bg-transparent text-[12px] font-semibold uppercase tracking-[0.2em] text-[var(--ui-text)] hover:-translate-y-[1px] hover:border-[var(--ui-accent)] disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  GOOGLE OAUTH
+                </button>
+                {(authNotice || error) && (
+                  <div className="min-h-[16px] text-[10px] uppercase tracking-[0.18em] text-[var(--ui-muted)]">{authNotice || error}</div>
+                )}
+              </div>
+            </form>
+          </div>
         </div>
       </AuthDrawer>
     </>

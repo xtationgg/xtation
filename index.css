@@ -914,6 +914,11 @@
   animation: authDrawerIn 320ms cubic-bezier(0.2, 0.85, 0.25, 1) forwards;
 }
 
+.auth-center-panel {
+  opacity: 0;
+  animation: authCenterIn 280ms cubic-bezier(0.2, 0.85, 0.25, 1) forwards;
+}
+
 .auth-drawer-stagger > * {
   opacity: 0;
   transform: translateY(8px);
@@ -947,6 +952,17 @@
   }
   to {
     transform: translateX(0%);
+  }
+}
+
+@keyframes authCenterIn {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -47%) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
   }
 }
 

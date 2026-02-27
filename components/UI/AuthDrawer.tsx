@@ -5,6 +5,8 @@ interface AuthDrawerProps {
   onClose: () => void;
   disableClose?: boolean;
   triggerRef?: React.RefObject<HTMLElement | null>;
+  variant?: 'drawer' | 'center';
+  panelClassName?: string;
   children: React.ReactNode;
 }
 
@@ -16,6 +18,8 @@ export const AuthDrawer: React.FC<AuthDrawerProps> = ({
   onClose,
   disableClose = false,
   triggerRef,
+  variant = 'drawer',
+  panelClassName = '',
   children,
 }) => {
   const panelRef = useRef<HTMLDivElement | null>(null);
@@ -81,8 +85,13 @@ export const AuthDrawer: React.FC<AuthDrawerProps> = ({
       }}
     >
       <div
-        className="auth-drawer-panel absolute right-0 top-0 h-[100dvh] max-w-full border-l border-[var(--app-border)] bg-[var(--app-panel)] shadow-[var(--app-shadow)]"
-        style={{ width: 'clamp(360px, 34vw, 520px)' }}
+        className={[
+          variant === 'drawer'
+            ? 'auth-drawer-panel absolute right-0 top-0 h-[100dvh] max-w-full border-l border-[var(--app-border)] bg-[var(--app-panel)] shadow-[var(--app-shadow)]'
+            : 'auth-center-panel absolute left-1/2 top-1/2 h-auto w-[min(92vw,1280px)] max-h-[92dvh] -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-[20px] border border-[var(--app-border)] bg-[var(--app-panel)] shadow-[var(--app-shadow)]',
+          panelClassName,
+        ].join(' ')}
+        style={variant === 'drawer' ? { width: 'clamp(360px, 34vw, 520px)' } : undefined}
         onClick={(event) => event.stopPropagation()}
         role="dialog"
         aria-modal="true"
@@ -93,4 +102,3 @@ export const AuthDrawer: React.FC<AuthDrawerProps> = ({
     </div>
   );
 };
-
