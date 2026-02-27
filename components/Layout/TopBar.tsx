@@ -266,7 +266,7 @@ export const TopBar: React.FC<TopBarProps> = ({
       >
         <div
           className="auth-modal-shell relative aspect-[359.15/269.17] overflow-hidden rounded-[20px] border border-[var(--app-border)] bg-[color-mix(in_srgb,var(--app-accent)_38%,var(--app-panel))]"
-          style={{ width: 'min(92vw, calc(92dvh * 1.334), 1280px)' }}
+          style={{ width: 'min(94vw, calc(88dvh * 1.334), 1280px)' }}
         >
           <div className="pointer-events-none absolute inset-0">
             <div className="absolute left-[2.65%] top-[1.95%] h-[96.1%] w-[40.8%] rounded-[14px] border border-[color-mix(in_srgb,var(--app-border)_65%,var(--app-text)_15%)] bg-[color-mix(in_srgb,var(--app-bg)_82%,black)]">
@@ -280,14 +280,14 @@ export const TopBar: React.FC<TopBarProps> = ({
             <div className="absolute right-[2.05%] top-[30.1%] h-[31.7%] w-[4.95%] rounded-[12px] bg-[color-mix(in_srgb,var(--app-accent)_22%,transparent)]"></div>
             <div className="absolute right-[2.2%] top-[31.2%] h-[7.9%] w-[4.62%] rounded-[8px] border border-[color-mix(in_srgb,var(--app-text)_76%,var(--app-border))] bg-[color-mix(in_srgb,var(--app-accent)_34%,transparent)]">
               <div className="flex h-full w-full items-center justify-center">
-                <span className="-rotate-90 text-[clamp(9px,0.72vw,12px)] font-semibold uppercase tracking-[0.14em] text-[var(--app-accent)]">
+                <span className="-rotate-90 text-[clamp(9px,0.72vw,12px)] font-semibold uppercase tracking-[0.14em] text-[#de3e36]">
                   {drawerDayLabel}
                 </span>
               </div>
             </div>
             <div className="absolute right-[2.2%] top-[42.6%] h-[11.6%] w-[4.62%] rounded-[8px] border border-[color-mix(in_srgb,var(--app-text)_76%,var(--app-border))] bg-[color-mix(in_srgb,var(--app-accent)_30%,transparent)]">
               <div className="flex h-full w-full items-center justify-center">
-                <span className="[writing-mode:vertical-rl] text-[clamp(9px,0.72vw,12px)] font-semibold tracking-[0.08em] text-[var(--app-accent)]">
+                <span className="[writing-mode:vertical-rl] text-[clamp(9px,0.72vw,12px)] font-semibold tracking-[0.08em] text-[#de3e36]">
                   {drawerDateLabel}
                 </span>
               </div>
@@ -308,13 +308,13 @@ export const TopBar: React.FC<TopBarProps> = ({
           <div className="auth-modal-form auth-drawer-stagger absolute left-[2.65%] top-[1.95%] z-10 h-[96.1%] w-[40.8%] rounded-[12px] bg-[color-mix(in_srgb,var(--app-bg)_82%,black)]">
             <div className="pointer-events-none absolute inset-[8px] rounded-[10px] border border-[color-mix(in_srgb,var(--app-text)_74%,var(--app-border))]"></div>
             <form
-              className="relative z-10 flex h-full flex-col gap-3 px-7 pb-6 pt-8"
+              className="relative z-10 flex h-full min-h-0 flex-col gap-2.5 overflow-y-auto px-7 pb-5 pt-7"
               onSubmit={(event) => {
                 event.preventDefault();
                 void handlePrimaryAuthSubmit();
               }}
             >
-              <div className="pt-4 text-center">
+              <div className="pt-2 text-center">
                 <div className="text-[12px] font-semibold uppercase tracking-[0.2em] text-[#f8c74c]">HELLO PLAYER</div>
               </div>
 
@@ -325,7 +325,7 @@ export const TopBar: React.FC<TopBarProps> = ({
                     setAuthMode('login');
                     setAuthNotice(null);
                   }}
-                  className={`ui-pressable h-10 rounded-[8px] border text-[11px] font-semibold uppercase tracking-[0.2em] ${
+                  className={`ui-pressable h-9 rounded-[8px] border text-[11px] font-semibold uppercase tracking-[0.2em] ${
                     authMode === 'login'
                       ? 'border-[var(--ui-accent)] bg-[color-mix(in_srgb,var(--app-accent)_58%,transparent)] text-[var(--ui-text)]'
                       : 'border-[color-mix(in_srgb,var(--app-accent)_35%,var(--app-border))] bg-transparent text-[var(--ui-text)]'
@@ -339,7 +339,7 @@ export const TopBar: React.FC<TopBarProps> = ({
                     setAuthMode('signup');
                     setAuthNotice(null);
                   }}
-                  className={`ui-pressable h-10 rounded-[8px] border text-[11px] font-semibold uppercase tracking-[0.2em] ${
+                  className={`ui-pressable h-9 rounded-[8px] border text-[11px] font-semibold uppercase tracking-[0.2em] ${
                     authMode === 'signup'
                       ? 'border-[var(--ui-accent)] bg-[color-mix(in_srgb,var(--app-accent)_58%,transparent)] text-[var(--ui-text)]'
                       : 'border-[color-mix(in_srgb,var(--app-accent)_35%,var(--app-border))] bg-transparent text-[var(--ui-text)]'
@@ -349,13 +349,13 @@ export const TopBar: React.FC<TopBarProps> = ({
                 </button>
               </div>
 
-              <div className="space-y-2.5">
+              <div className="space-y-2">
                 <input
                   type="email"
                   value={authEmail}
                   onChange={(event) => setAuthEmail(event.target.value)}
                   placeholder="Email"
-                  className="h-10 w-full rounded-[7px] border border-transparent bg-[color-mix(in_srgb,var(--app-bg)_80%,black)] px-4 text-sm text-[var(--ui-text)] outline-none transition-colors focus:border-[var(--ui-accent)]"
+                  className="h-9 w-full rounded-[7px] border border-transparent bg-[color-mix(in_srgb,var(--app-bg)_80%,black)] px-4 text-sm text-[var(--ui-text)] outline-none transition-colors focus:border-[var(--ui-accent)]"
                   autoFocus
                 />
                 <input
@@ -363,7 +363,7 @@ export const TopBar: React.FC<TopBarProps> = ({
                   value={authPassword}
                   onChange={(event) => setAuthPassword(event.target.value)}
                   placeholder="Password"
-                  className="h-10 w-full rounded-[7px] border border-transparent bg-[color-mix(in_srgb,var(--app-bg)_80%,black)] px-4 text-sm text-[var(--ui-text)] outline-none transition-colors focus:border-[var(--ui-accent)]"
+                  className="h-9 w-full rounded-[7px] border border-transparent bg-[color-mix(in_srgb,var(--app-bg)_80%,black)] px-4 text-sm text-[var(--ui-text)] outline-none transition-colors focus:border-[var(--ui-accent)]"
                 />
                 {authMode === 'login' && (
                   <button
@@ -381,11 +381,11 @@ export const TopBar: React.FC<TopBarProps> = ({
                 <div className="min-h-[14px] text-[9px] uppercase tracking-[0.16em] text-[var(--ui-muted)]">{authNotice || error}</div>
               )}
 
-              <div className="mt-auto flex flex-col gap-2.5">
+              <div className="mt-auto flex flex-col gap-2">
                 <button
                   type="submit"
                   disabled={isAuthSubmitting}
-                  className="ui-pressable h-10 rounded-[8px] border border-[var(--ui-accent)] bg-[color-mix(in_srgb,var(--app-accent)_62%,transparent)] text-[11px] font-semibold uppercase tracking-[0.2em] text-[var(--ui-text)] hover:-translate-y-[1px] disabled:cursor-not-allowed disabled:opacity-60"
+                  className="ui-pressable h-9 rounded-[8px] border border-[var(--ui-accent)] bg-[color-mix(in_srgb,var(--app-accent)_62%,transparent)] text-[11px] font-semibold uppercase tracking-[0.2em] text-[var(--ui-text)] hover:-translate-y-[1px] disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   {authMode === 'login' ? 'SIGN IN' : 'SIGN UP'}
                 </button>
@@ -393,7 +393,7 @@ export const TopBar: React.FC<TopBarProps> = ({
                   type="button"
                   onClick={() => void handleGoogleSignIn()}
                   disabled={isAuthSubmitting}
-                  className="ui-pressable h-10 rounded-[8px] border border-[color-mix(in_srgb,var(--app-accent)_35%,var(--app-border))] bg-transparent text-[11px] font-semibold uppercase tracking-[0.2em] text-[var(--ui-text)] hover:-translate-y-[1px] hover:border-[var(--ui-accent)] disabled:cursor-not-allowed disabled:opacity-60"
+                  className="ui-pressable h-9 rounded-[8px] border border-[color-mix(in_srgb,var(--app-accent)_35%,var(--app-border))] bg-transparent text-[11px] font-semibold uppercase tracking-[0.2em] text-[var(--ui-text)] hover:-translate-y-[1px] hover:border-[var(--ui-accent)] disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   GOOGLE OAUTH
                 </button>
