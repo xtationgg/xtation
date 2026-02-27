@@ -26,13 +26,12 @@ export const TopBar: React.FC<TopBarProps> = ({
   isAssistantOpen,
   activeTasksCount
 }) => {
-  const { stats, selectors, dateKey, authStatus } = useXP();
+  const { selectors, dateKey, authStatus } = useXP();
   const { user, loading, error, signInWithGoogle, signUpWithPassword, signInWithPassword, requestPasswordReset, signOut } = useAuth();
   const userLabel = user?.name || user?.email || 'Signed in';
   const userInitial = (user?.name || user?.email || 'U').charAt(0).toUpperCase();
   const todayTrackedMinutes = selectors.getTrackedMinutesForDay(dateKey);
   const todayTargetMinutes = selectors.getTargetXP(dateKey);
-  const todayProgressPct = selectors.getProgressPct(dateKey);
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
   const [authMode, setAuthMode] = useState<'login' | 'signup'>('login');
   const [authEmail, setAuthEmail] = useState('');
@@ -175,24 +174,13 @@ export const TopBar: React.FC<TopBarProps> = ({
         </div>
 
         {/* XP Summary */}
-        <div className="hidden lg:flex flex-col items-end font-mono text-xs gap-0.5">
+        <div className="hidden lg:flex flex-col items-center text-center font-mono text-xs leading-tight gap-0.5">
             <div className="text-[9px] uppercase tracking-[0.2em] text-[var(--app-muted)]">Today</div>
-            <div className="flex items-center gap-2 text-[var(--app-text)]">
+            <div className="text-[var(--app-text)]">
                 <span className="font-bold tracking-wider">{todayTrackedMinutes}</span>
-                <span className="text-[var(--app-muted)] text-[10px]">/ {todayTargetMinutes}</span>
+                <span className="text-[var(--app-muted)] text-[10px]"> / {todayTargetMinutes}</span>
             </div>
-            <div className="flex items-center gap-2 text-[color-mix(in_srgb,var(--app-text)_82%,var(--app-muted))]">
-                <span className="text-[10px] uppercase tracking-[0.2em]">{stats.evaluationLabel}</span>
-                <span className="text-[10px] text-[var(--app-muted)]">{todayProgressPct}%</span>
-            </div>
-        </div>
-
-        <div className="hidden lg:flex flex-col items-end font-mono text-xs gap-0.5">
-            <div className="text-[9px] uppercase tracking-[0.2em] text-[var(--app-muted)]">Today Min</div>
-            <div className="flex items-center gap-2 text-[var(--app-text)]">
-                <span className="font-bold tracking-wider">{todayTrackedMinutes} MIN</span>
-            </div>
-            <div className="text-[10px] text-[var(--app-muted)]">Daily tracked</div>
+            <div className="text-[10px] uppercase tracking-[0.2em] text-[var(--app-muted)]">{todayTrackedMinutes} MIN</div>
         </div>
 
         {authStatus === 'loadingCloud' ? (
