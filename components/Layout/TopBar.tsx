@@ -280,20 +280,26 @@ export const TopBar: React.FC<TopBarProps> = ({
 
             <div className="auth-skel-top absolute left-[51.5%] top-[4.4%] h-[44.2%] w-[35.8%] overflow-hidden rounded-[20px] border border-[color-mix(in_srgb,var(--app-text)_70%,var(--app-border))] bg-[color-mix(in_srgb,var(--app-accent)_20%,transparent)]">
               <div className="auth-top-column absolute left-1/2 top-[4%] h-[94%] w-[34%] -translate-x-1/2 rounded-[18px] border border-[color-mix(in_srgb,var(--app-text)_45%,var(--app-border))]"></div>
-              <div className="auth-float-orb auth-float-orb--1 absolute left-[56%] top-[11%] h-[10%] w-[16%] rounded-full"></div>
-              <div className="auth-float-orb auth-float-orb--2 absolute left-[63%] top-[28%] h-[8%] w-[12%] rounded-full"></div>
-              <div className="auth-float-orb auth-float-orb--3 absolute left-[40%] top-[50%] h-[9%] w-[13%] rounded-full"></div>
-              <div className="auth-cube absolute left-1/2 top-[70%] h-[16%] w-[28%] -translate-x-1/2 rounded-[12px]"></div>
-              <div className="auth-cube-glow absolute left-1/2 top-[83%] h-[10%] w-[38%] -translate-x-1/2 rounded-[999px]"></div>
+              <div className="auth-top-rings absolute left-1/2 top-[22%] h-[15%] w-[18%] -translate-x-1/2 rounded-[999px]"></div>
+              <div className="auth-float-orb auth-float-orb--1 absolute left-[56%] top-[9%] h-[10%] w-[16%] rounded-full"></div>
+              <div className="auth-float-orb auth-float-orb--2 absolute left-[60%] top-[33%] h-[8%] w-[12%] rounded-full"></div>
+              <div className="auth-float-orb auth-float-orb--3 absolute left-[36%] top-[49%] h-[9%] w-[13%] rounded-full"></div>
+              <div className="auth-cube absolute left-1/2 top-[67%] h-[18%] w-[30%] -translate-x-1/2 rounded-[12px]"></div>
+              <div className="auth-cube-glow absolute left-1/2 top-[84%] h-[10%] w-[40%] -translate-x-1/2 rounded-[999px]"></div>
+              <div className="auth-top-stars absolute left-[23%] top-[31%] h-[11%] w-[8%]"></div>
+              <div className="auth-top-stars absolute right-[23%] top-[58%] h-[11%] w-[8%]"></div>
             </div>
 
             <div className="auth-skel-bottom absolute left-[51.5%] top-[52.0%] h-[43.4%] w-[35.8%] overflow-hidden rounded-[20px] border border-[color-mix(in_srgb,var(--app-text)_70%,var(--app-border))] bg-[color-mix(in_srgb,var(--app-accent)_20%,transparent)]">
-              <div className="auth-avatar-shadow absolute left-1/2 top-[76%] h-[28%] w-[56%] -translate-x-1/2 rounded-[999px]"></div>
-              <div className="auth-avatar-head absolute left-1/2 top-[17%] h-[58%] w-[40%] -translate-x-1/2 rounded-[42%]"></div>
-              <div className="auth-avatar-neck absolute left-1/2 top-[61%] h-[18%] w-[22%] -translate-x-1/2 rounded-[12px]"></div>
-              <div className="auth-avatar-scarf absolute left-1/2 top-[68%] h-[14%] w-[38%] -translate-x-1/2 rounded-[999px]"></div>
-              <div className="absolute left-1/2 top-[36%] h-[8%] w-[18%] -translate-x-1/2 rounded-[999px] bg-[color-mix(in_srgb,var(--app-text)_20%,transparent)]"></div>
-              <div className="absolute left-1/2 top-[16%] text-center text-[clamp(18px,1.6vw,34px)] font-black uppercase leading-[1.1] tracking-[0.08em] text-[color-mix(in_srgb,var(--app-text)_94%,#ffffff)]">
+              <div className="auth-bottom-glow absolute left-1/2 top-[78%] h-[26%] w-[62%] -translate-x-1/2 rounded-[999px]"></div>
+              <div className="auth-portrait absolute left-1/2 top-[22%] h-[62%] w-[48%] -translate-x-1/2">
+                <div className="auth-portrait-hair absolute left-1/2 top-[4%] h-[42%] w-[84%] -translate-x-1/2 rounded-[48%]"></div>
+                <div className="auth-portrait-face absolute left-1/2 top-[20%] h-[44%] w-[58%] -translate-x-1/2 rounded-[42%]"></div>
+                <div className="auth-portrait-glasses absolute left-1/2 top-[34%] h-[12%] w-[52%] -translate-x-1/2 rounded-[999px]"></div>
+                <div className="auth-portrait-neck absolute left-1/2 top-[58%] h-[14%] w-[26%] -translate-x-1/2 rounded-[12px]"></div>
+                <div className="auth-portrait-scarf absolute left-1/2 top-[66%] h-[20%] w-[72%] -translate-x-1/2 rounded-[999px]"></div>
+              </div>
+              <div className="absolute left-1/2 top-[11%] text-center text-[clamp(16px,1.35vw,28px)] font-black uppercase leading-[1.1] tracking-[0.08em] text-[color-mix(in_srgb,var(--app-text)_94%,#ffffff)]">
                 LETS GET YOU
                 <br />
                 STARTED!
