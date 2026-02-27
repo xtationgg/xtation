@@ -977,6 +977,232 @@
   }
 }
 
+.auth-top-column {
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--app-bg) 10%, var(--app-accent)) 0%,
+    color-mix(in srgb, var(--app-bg) 35%, #f59f45) 70%,
+    color-mix(in srgb, var(--app-bg) 45%, #e36a4f) 100%
+  );
+  box-shadow:
+    inset 0 0 0 1px color-mix(in srgb, var(--app-text) 25%, transparent),
+    0 12px 28px color-mix(in srgb, #f7b551 26%, transparent);
+}
+
+.auth-float-orb {
+  background: radial-gradient(circle at 30% 30%, color-mix(in srgb, #fff 60%, transparent), color-mix(in srgb, var(--app-accent) 55%, #2b1b42));
+  box-shadow: 0 8px 18px color-mix(in srgb, var(--app-bg) 60%, transparent);
+}
+
+.auth-float-orb--1 {
+  animation: authOrbFloat 6.8s ease-in-out infinite;
+}
+
+.auth-float-orb--2 {
+  animation: authOrbFloat 7.4s ease-in-out infinite reverse;
+}
+
+.auth-float-orb--3 {
+  animation: authOrbFloat 6.2s ease-in-out infinite;
+}
+
+.auth-cube {
+  background: linear-gradient(
+    145deg,
+    color-mix(in srgb, #fbe39e 55%, var(--app-text)),
+    color-mix(in srgb, #f78e56 75%, #8e2f4f)
+  );
+  box-shadow:
+    0 10px 20px color-mix(in srgb, #f59f45 30%, transparent),
+    inset 0 -8px 14px color-mix(in srgb, #47263a 48%, transparent);
+  animation: authCubePulse 5.8s ease-in-out infinite;
+}
+
+.auth-cube-glow {
+  background: radial-gradient(circle, color-mix(in srgb, #f6b55e 60%, transparent), transparent 72%);
+  opacity: 0.68;
+  animation: authGlowPulse 6s ease-in-out infinite;
+}
+
+.auth-avatar-shadow {
+  background: radial-gradient(circle, color-mix(in srgb, #24153a 72%, transparent), transparent 74%);
+}
+
+.auth-avatar-head {
+  background: radial-gradient(circle at 50% 35%, color-mix(in srgb, #8c61b9 62%, #2b1c44), color-mix(in srgb, #2b1940 80%, black));
+  box-shadow:
+    0 14px 22px color-mix(in srgb, #1e132f 55%, transparent),
+    inset 0 -10px 18px color-mix(in srgb, #180f27 66%, transparent);
+}
+
+.auth-avatar-neck {
+  background: linear-gradient(180deg, color-mix(in srgb, #6f4ba0 75%, #2b1a45), color-mix(in srgb, #251539 85%, #130c20));
+}
+
+.auth-avatar-scarf {
+  background: linear-gradient(110deg, #f4be55 0%, #f59b4f 40%, #ea6a47 74%, #c84653 100%);
+  box-shadow: 0 4px 16px color-mix(in srgb, #f59f45 35%, transparent);
+}
+
+.auth-rail-chevron {
+  width: clamp(10px, 0.85vw, 14px);
+  height: clamp(10px, 0.85vw, 14px);
+  border-top: 3px solid #ffe9c3;
+  border-left: 3px solid #ffe9c3;
+  transform: rotate(45deg);
+  opacity: 0.88;
+  animation: authChevronPulse 1.3s ease-in-out infinite;
+}
+
+.auth-rail-pattern {
+  background:
+    repeating-linear-gradient(
+      135deg,
+      transparent 0 6px,
+      #de3e36 6px 9px,
+      transparent 9px 14px
+    );
+  animation: authPatternFlow 5s linear infinite;
+}
+
+.auth-modal-shell {
+  box-shadow:
+    0 20px 40px color-mix(in srgb, #09060f 58%, transparent),
+    inset 0 0 0 1px color-mix(in srgb, var(--app-text) 8%, transparent);
+}
+
+.auth-skel-left,
+.auth-modal-form {
+  box-shadow: 0 10px 24px color-mix(in srgb, #070510 32%, transparent);
+}
+
+.auth-skel-top,
+.auth-skel-bottom {
+  background-image: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--app-accent) 22%, transparent),
+    color-mix(in srgb, var(--app-accent) 14%, #201233)
+  );
+}
+
+.auth-skel-rail,
+.auth-skel-rail-alert,
+.auth-skel-rail-pattern,
+.auth-skel-day,
+.auth-skel-date {
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, #fff 14%, transparent);
+}
+
+.auth-center-divider {
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--app-text) 15%, transparent),
+    color-mix(in srgb, var(--app-text) 45%, transparent),
+    color-mix(in srgb, var(--app-text) 15%, transparent)
+  );
+}
+
+.auth-connector {
+  background: color-mix(in srgb, var(--app-accent) 52%, #5e3a89);
+  clip-path: polygon(0 50%, 100% 0, 100% 100%);
+  filter: drop-shadow(0 2px 4px color-mix(in srgb, #09060f 45%, transparent));
+}
+
+.auth-connector--top {
+  transform: rotate(180deg);
+}
+
+.auth-connector--bottom {
+  transform: rotate(180deg);
+}
+
+.auth-skel-top,
+.auth-skel-bottom,
+.auth-skel-rail-alert,
+.auth-skel-rail-pattern {
+  transition: transform var(--ui-motion-med) var(--ui-ease), box-shadow var(--ui-motion-med) var(--ui-ease);
+}
+
+.auth-modal-shell:hover .auth-skel-top {
+  transform: translateY(-1px);
+}
+
+.auth-modal-shell:hover .auth-skel-bottom {
+  transform: translateY(1px);
+}
+
+.auth-modal-shell:hover .auth-skel-rail-alert,
+.auth-modal-shell:hover .auth-skel-rail-pattern {
+  box-shadow:
+    inset 0 0 0 1px color-mix(in srgb, #fff 24%, transparent),
+    0 8px 16px color-mix(in srgb, #0a0613 24%, transparent);
+}
+
+@keyframes authOrbFloat {
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+  50% {
+    transform: translate(2px, -6px);
+  }
+}
+
+@keyframes authCubePulse {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+@keyframes authGlowPulse {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 0.78;
+  }
+}
+
+@keyframes authChevronPulse {
+  0%,
+  100% {
+    opacity: 0.6;
+    transform: rotate(45deg) translateY(0);
+  }
+  50% {
+    opacity: 1;
+    transform: rotate(45deg) translateY(-2px);
+  }
+}
+
+@keyframes authPatternFlow {
+  0% {
+    background-position: 0 0;
+  }
+  100% {
+    background-position: 0 40px;
+  }
+}
+
+@media (max-width: 1100px) {
+  .auth-modal-shell {
+    width: min(96vw, calc(86dvh * 1.334), 1180px) !important;
+  }
+
+  .auth-modal-form form {
+    padding-inline: 20px;
+  }
+
+  .auth-modal-form form {
+    gap: 8px;
+  }
+}
+
 .ui-shape-all,
 .chamfer-all {
   --cut: var(--ui-cut-md);

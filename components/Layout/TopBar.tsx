@@ -269,23 +269,54 @@ export const TopBar: React.FC<TopBarProps> = ({
           style={{ width: 'min(94vw, calc(88dvh * 1.334), 1280px)' }}
         >
           <div className="pointer-events-none absolute inset-0">
-            <div className="absolute left-[2.65%] top-[1.95%] h-[96.1%] w-[40.8%] rounded-[14px] border border-[color-mix(in_srgb,var(--app-border)_65%,var(--app-text)_15%)] bg-[color-mix(in_srgb,var(--app-bg)_82%,black)]">
+            <div className="absolute inset-0 bg-[linear-gradient(145deg,color-mix(in_srgb,var(--app-accent)_36%,#26163a),color-mix(in_srgb,var(--app-accent)_26%,#1f1532))]"></div>
+            <div className="auth-skel-left absolute left-[2.65%] top-[1.95%] h-[96.1%] w-[40.8%] rounded-[14px] border border-[color-mix(in_srgb,var(--app-border)_65%,var(--app-text)_15%)] bg-[color-mix(in_srgb,var(--app-bg)_82%,black)]">
               <div className="absolute inset-[8px] rounded-[10px] border border-[color-mix(in_srgb,var(--app-text)_72%,var(--app-border))]"></div>
             </div>
 
-            <div className="absolute left-[51.5%] top-[4.4%] h-[44.2%] w-[35.8%] rounded-[20px] border border-[color-mix(in_srgb,var(--app-text)_70%,var(--app-border))]"></div>
-            <div className="absolute left-[51.5%] top-[52.0%] h-[43.4%] w-[35.8%] rounded-[20px] border border-[color-mix(in_srgb,var(--app-text)_70%,var(--app-border))]"></div>
-            <div className="absolute right-[1.65%] top-[1.95%] h-[96.1%] w-[5.75%] rounded-[12px] border border-[color-mix(in_srgb,var(--app-text)_70%,var(--app-border))] bg-[color-mix(in_srgb,var(--app-accent)_18%,transparent)]"></div>
-            <div className="absolute right-[2.05%] top-[14.2%] h-[14.8%] w-[4.95%] rounded-[12px] bg-[color-mix(in_srgb,var(--app-accent)_26%,transparent)]"></div>
-            <div className="absolute right-[2.05%] top-[30.1%] h-[31.7%] w-[4.95%] rounded-[12px] bg-[color-mix(in_srgb,var(--app-accent)_22%,transparent)]"></div>
-            <div className="absolute right-[2.2%] top-[31.2%] h-[7.9%] w-[4.62%] rounded-[8px] border border-[color-mix(in_srgb,var(--app-text)_76%,var(--app-border))] bg-[color-mix(in_srgb,var(--app-accent)_34%,transparent)]">
+            <div className="auth-center-divider absolute left-[47.6%] top-[2.2%] h-[95.6%] w-[1px]"></div>
+            <div className="auth-connector auth-connector--top absolute left-[2.12%] top-[30.8%] h-[3.8%] w-[2.15%]"></div>
+            <div className="auth-connector auth-connector--bottom absolute left-[2.12%] top-[35.2%] h-[3.8%] w-[2.15%]"></div>
+
+            <div className="auth-skel-top absolute left-[51.5%] top-[4.4%] h-[44.2%] w-[35.8%] overflow-hidden rounded-[20px] border border-[color-mix(in_srgb,var(--app-text)_70%,var(--app-border))] bg-[color-mix(in_srgb,var(--app-accent)_20%,transparent)]">
+              <div className="auth-top-column absolute left-1/2 top-[4%] h-[94%] w-[34%] -translate-x-1/2 rounded-[18px] border border-[color-mix(in_srgb,var(--app-text)_45%,var(--app-border))]"></div>
+              <div className="auth-float-orb auth-float-orb--1 absolute left-[56%] top-[11%] h-[10%] w-[16%] rounded-full"></div>
+              <div className="auth-float-orb auth-float-orb--2 absolute left-[63%] top-[28%] h-[8%] w-[12%] rounded-full"></div>
+              <div className="auth-float-orb auth-float-orb--3 absolute left-[40%] top-[50%] h-[9%] w-[13%] rounded-full"></div>
+              <div className="auth-cube absolute left-1/2 top-[70%] h-[16%] w-[28%] -translate-x-1/2 rounded-[12px]"></div>
+              <div className="auth-cube-glow absolute left-1/2 top-[83%] h-[10%] w-[38%] -translate-x-1/2 rounded-[999px]"></div>
+            </div>
+
+            <div className="auth-skel-bottom absolute left-[51.5%] top-[52.0%] h-[43.4%] w-[35.8%] overflow-hidden rounded-[20px] border border-[color-mix(in_srgb,var(--app-text)_70%,var(--app-border))] bg-[color-mix(in_srgb,var(--app-accent)_20%,transparent)]">
+              <div className="auth-avatar-shadow absolute left-1/2 top-[76%] h-[28%] w-[56%] -translate-x-1/2 rounded-[999px]"></div>
+              <div className="auth-avatar-head absolute left-1/2 top-[17%] h-[58%] w-[40%] -translate-x-1/2 rounded-[42%]"></div>
+              <div className="auth-avatar-neck absolute left-1/2 top-[61%] h-[18%] w-[22%] -translate-x-1/2 rounded-[12px]"></div>
+              <div className="auth-avatar-scarf absolute left-1/2 top-[68%] h-[14%] w-[38%] -translate-x-1/2 rounded-[999px]"></div>
+              <div className="absolute left-1/2 top-[36%] h-[8%] w-[18%] -translate-x-1/2 rounded-[999px] bg-[color-mix(in_srgb,var(--app-text)_20%,transparent)]"></div>
+              <div className="absolute left-1/2 top-[16%] text-center text-[clamp(18px,1.6vw,34px)] font-black uppercase leading-[1.1] tracking-[0.08em] text-[color-mix(in_srgb,var(--app-text)_94%,#ffffff)]">
+                LETS GET YOU
+                <br />
+                STARTED!
+              </div>
+            </div>
+
+            <div className="auth-skel-rail absolute right-[1.65%] top-[1.95%] h-[96.1%] w-[5.75%] rounded-[12px] border border-[color-mix(in_srgb,var(--app-text)_70%,var(--app-border))] bg-[#f0c33f]"></div>
+            <div className="auth-skel-rail-alert absolute right-[2.05%] top-[14.2%] flex h-[14.8%] w-[4.95%] flex-col items-center justify-center gap-3 overflow-hidden rounded-[12px] bg-[#ef3131]">
+              {Array.from({ length: 4 }).map((_, index) => (
+                <span key={`chev-${index}`} className="auth-rail-chevron" style={{ animationDelay: `${index * 120}ms` }} />
+              ))}
+            </div>
+            <div className="auth-skel-rail-pattern absolute right-[2.05%] top-[30.1%] h-[63.4%] w-[4.95%] overflow-hidden rounded-[12px] border border-[color-mix(in_srgb,#ffe7ac_90%,#d39f1b)] bg-[#f0c33f]">
+              <div className="auth-rail-pattern absolute inset-[6%] rounded-[10px]"></div>
+            </div>
+            <div className="auth-skel-day absolute right-[2.2%] top-[31.2%] h-[7.9%] w-[4.62%] rounded-[8px] border border-[color-mix(in_srgb,var(--app-text)_76%,var(--app-border))] bg-[color-mix(in_srgb,var(--app-accent)_34%,transparent)]">
               <div className="flex h-full w-full items-center justify-center">
                 <span className="-rotate-90 text-[clamp(9px,0.72vw,12px)] font-semibold uppercase tracking-[0.14em] text-[#de3e36]">
                   {drawerDayLabel}
                 </span>
               </div>
             </div>
-            <div className="absolute right-[2.2%] top-[42.6%] h-[11.6%] w-[4.62%] rounded-[8px] border border-[color-mix(in_srgb,var(--app-text)_76%,var(--app-border))] bg-[color-mix(in_srgb,var(--app-accent)_30%,transparent)]">
+            <div className="auth-skel-date absolute right-[2.2%] top-[42.6%] h-[11.6%] w-[4.62%] rounded-[8px] border border-[color-mix(in_srgb,var(--app-text)_76%,var(--app-border))] bg-[color-mix(in_srgb,var(--app-accent)_30%,transparent)]">
               <div className="flex h-full w-full items-center justify-center">
                 <span className="[writing-mode:vertical-rl] text-[clamp(9px,0.72vw,12px)] font-semibold tracking-[0.08em] text-[#de3e36]">
                   {drawerDateLabel}
@@ -298,7 +329,7 @@ export const TopBar: React.FC<TopBarProps> = ({
             type="button"
             onClick={closeLoginModal}
             disabled={isAuthSubmitting}
-            className="auth-modal-close ui-pressable absolute right-[1.15%] top-[1.65%] z-20 h-[6.2%] min-h-[38px] w-[3.7%] min-w-[38px] rounded-[10px] border border-transparent bg-transparent text-transparent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ui-accent)] disabled:cursor-not-allowed disabled:opacity-60"
+            className="auth-modal-close ui-pressable absolute right-[2.05%] top-[1.95%] z-20 flex h-[6.2%] min-h-[38px] w-[4.95%] min-w-[38px] items-center justify-center rounded-[10px] border border-[color-mix(in_srgb,var(--app-text)_45%,var(--app-border))] bg-[color-mix(in_srgb,var(--app-bg)_62%,#1b1530)] text-[var(--app-text)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ui-accent)] disabled:cursor-not-allowed disabled:opacity-60"
             aria-label="Close login modal"
             title="Close"
           >
