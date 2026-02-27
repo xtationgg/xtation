@@ -341,7 +341,7 @@ export const TopBar: React.FC<TopBarProps> = ({
                 void handlePrimaryAuthSubmit();
               }}
             >
-              <div className="flex justify-center">
+              <div className="flex justify-center pt-1 pb-8">
                 <EyeOrb
                   onClick={() => {}}
                   ariaLabel="Decorative orb"
