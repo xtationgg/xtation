@@ -42,9 +42,9 @@ export const TopBar: React.FC<TopBarProps> = ({
   const loginTriggerRef = useRef<HTMLButtonElement | null>(null);
   const drawerDate = new Date();
   const drawerDayLabel = drawerDate.toLocaleDateString(undefined, { weekday: 'long' });
-  const drawerDateLabel = `${drawerDate.getFullYear()} / ${drawerDate
+  const drawerDateLabel = `${drawerDate.getFullYear()}/${drawerDate
     .toLocaleDateString(undefined, { month: 'short' })
-    .toLowerCase()} / ${String(drawerDate.getDate()).padStart(2, '0')}`;
+    .toLowerCase()}/${String(drawerDate.getDate()).padStart(2, '0')}`;
 
   const openLoginModal = () => {
     setAuthMode('login');
@@ -274,7 +274,7 @@ export const TopBar: React.FC<TopBarProps> = ({
 
             <div className="auth-center-divider absolute left-[47.6%] top-[2.2%] h-[95.6%] w-[1px]"></div>
 
-            <div className="auth-skel-top auth-skel-card absolute left-[51.5%] top-[4.4%] h-[44.2%] w-[35.8%] overflow-hidden bg-transparent">
+            <div className="auth-skel-top auth-skel-card absolute left-[51.5%] top-0 h-[48.5%] w-[35.8%] overflow-hidden bg-transparent">
               <div className="absolute inset-0 flex items-start justify-center">
                 <img
                   src="/ui-reference/auth/illustration-up.svg"
@@ -285,7 +285,7 @@ export const TopBar: React.FC<TopBarProps> = ({
               </div>
             </div>
 
-            <div className="auth-skel-bottom auth-skel-card absolute left-[51.5%] top-[52.0%] h-[43.4%] w-[35.8%] overflow-visible bg-transparent">
+            <div className="auth-skel-bottom auth-skel-card absolute left-[51.5%] top-[54.5%] h-[42.4%] w-[35.8%] overflow-visible bg-transparent">
               <div className="absolute inset-0 flex items-end justify-center">
                 <img
                   src="/ui-reference/auth/character.svg"
@@ -307,7 +307,7 @@ export const TopBar: React.FC<TopBarProps> = ({
             </div>
             <div className="auth-skel-day-text absolute right-[2.05%] top-[35.8%] h-[9%] w-[4.95%]">
               <div className="flex h-full w-full items-center justify-center">
-                <span className="[writing-mode:vertical-rl] text-[clamp(10px,0.82vw,14px)] font-semibold tracking-[0.08em] text-[#de3e36]">
+                <span className="whitespace-nowrap [writing-mode:vertical-rl] text-[clamp(10px,0.82vw,14px)] font-semibold tracking-[0.08em] text-[#de3e36]">
                   {drawerDayLabel}
                 </span>
               </div>
@@ -315,7 +315,7 @@ export const TopBar: React.FC<TopBarProps> = ({
             <div className="absolute right-[4.45%] top-[48.6%] h-[6.2%] w-[1px] bg-[#de3e36]"></div>
             <div className="auth-skel-date-text absolute right-[2.05%] top-[55.2%] h-[14%] w-[4.95%]">
               <div className="flex h-full w-full items-center justify-center">
-                <span className="[writing-mode:vertical-rl] text-[clamp(10px,0.82vw,14px)] font-semibold tracking-[0.05em] text-[#de3e36]">
+                <span className="whitespace-nowrap [writing-mode:vertical-rl] text-[clamp(10px,0.82vw,14px)] font-semibold tracking-[0.05em] text-[#de3e36]">
                   {drawerDateLabel}
                 </span>
               </div>
@@ -335,7 +335,7 @@ export const TopBar: React.FC<TopBarProps> = ({
 
           <div className="auth-modal-form auth-drawer-stagger absolute left-[2.65%] top-[1.95%] z-10 h-[96.1%] w-[40.8%] rounded-[12px] bg-[#1f162d]">
             <form
-              className="relative z-10 flex h-full min-h-0 flex-col gap-2.5 overflow-y-auto px-7 pb-5 pt-7"
+              className="relative z-10 flex h-full min-h-0 flex-col justify-center gap-2.5 overflow-y-auto px-7 pb-5 pt-7"
               onSubmit={(event) => {
                 event.preventDefault();
                 void handlePrimaryAuthSubmit();
@@ -410,7 +410,7 @@ export const TopBar: React.FC<TopBarProps> = ({
                 </div>
               )}
 
-              <div className="mt-auto flex flex-col gap-2">
+              <div className="mt-3 flex flex-col gap-2">
                 <button
                   type="submit"
                   disabled={isAuthSubmitting}
