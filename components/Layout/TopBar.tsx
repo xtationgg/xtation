@@ -263,9 +263,9 @@ export const TopBar: React.FC<TopBarProps> = ({
             src="/ui-reference/auth/login-signin-tab.svg"
             alt=""
             aria-hidden="true"
-            className="pointer-events-none absolute inset-0 h-full w-full select-none object-cover"
+            className="pointer-events-none absolute inset-0 h-full w-full select-none object-contain"
           />
-          <div className="absolute inset-0 bg-[color-mix(in_srgb,var(--app-bg)_18%,transparent)]"></div>
+          <div className="absolute inset-0 bg-[color-mix(in_srgb,var(--app-bg)_6%,transparent)]"></div>
 
           <button
             type="button"
@@ -277,15 +277,15 @@ export const TopBar: React.FC<TopBarProps> = ({
             <X size={16} />
           </button>
 
-          <div className="auth-modal-form auth-drawer-stagger absolute bottom-[2.8%] left-[2.8%] right-[2.8%] top-[2.8%] z-10 overflow-hidden rounded-[16px] border border-[color-mix(in_srgb,var(--app-border)_65%,var(--app-text)_15%)] bg-[color-mix(in_srgb,var(--app-bg)_86%,black)] p-6 lg:right-auto lg:w-[40.2%] lg:p-8">
+          <div className="auth-modal-form auth-drawer-stagger absolute z-10 left-[7.8%] top-[18.6%] w-[33.8%] h-[67.8%]">
             <form
-              className="flex h-full flex-col gap-4"
+              className="flex h-full flex-col gap-3"
               onSubmit={(event) => {
                 event.preventDefault();
                 void handlePrimaryAuthSubmit();
               }}
             >
-              <div className="pt-2 text-center">
+              <div className="text-center">
                 <div className="text-[12px] font-semibold uppercase tracking-[0.22em] text-[var(--ui-accent)]">HELLO PLAYER</div>
               </div>
 
@@ -296,7 +296,7 @@ export const TopBar: React.FC<TopBarProps> = ({
                     setAuthMode('login');
                     setAuthNotice(null);
                   }}
-                  className={`ui-pressable h-11 rounded-[10px] border text-[12px] font-semibold uppercase tracking-[0.2em] ${
+                  className={`ui-pressable h-10 rounded-[10px] border text-[11px] font-semibold uppercase tracking-[0.2em] ${
                     authMode === 'login'
                       ? 'border-[var(--ui-accent)] bg-[color-mix(in_srgb,var(--app-accent)_50%,transparent)] text-[var(--ui-text)]'
                       : 'border-[var(--ui-border)] bg-transparent text-[var(--ui-text)]'
@@ -310,7 +310,7 @@ export const TopBar: React.FC<TopBarProps> = ({
                     setAuthMode('signup');
                     setAuthNotice(null);
                   }}
-                  className={`ui-pressable h-11 rounded-[10px] border text-[12px] font-semibold uppercase tracking-[0.2em] ${
+                  className={`ui-pressable h-10 rounded-[10px] border text-[11px] font-semibold uppercase tracking-[0.2em] ${
                     authMode === 'signup'
                       ? 'border-[var(--ui-accent)] bg-[color-mix(in_srgb,var(--app-accent)_50%,transparent)] text-[var(--ui-text)]'
                       : 'border-[var(--ui-border)] bg-transparent text-[var(--ui-text)]'
@@ -320,13 +320,13 @@ export const TopBar: React.FC<TopBarProps> = ({
                 </button>
               </div>
 
-              <div className="space-y-3">
+              <div className="space-y-2.5">
                 <input
                   type="email"
                   value={authEmail}
                   onChange={(event) => setAuthEmail(event.target.value)}
                   placeholder="Email"
-                  className="h-11 w-full rounded-[10px] border border-transparent bg-[color-mix(in_srgb,var(--app-bg)_78%,black)] px-4 text-sm text-[var(--ui-text)] outline-none transition-colors focus:border-[var(--ui-accent)]"
+                  className="h-10 w-full rounded-[8px] border border-transparent bg-[color-mix(in_srgb,var(--app-bg)_78%,black)] px-4 text-sm text-[var(--ui-text)] outline-none transition-colors focus:border-[var(--ui-accent)]"
                   autoFocus
                 />
                 <input
@@ -334,25 +334,29 @@ export const TopBar: React.FC<TopBarProps> = ({
                   value={authPassword}
                   onChange={(event) => setAuthPassword(event.target.value)}
                   placeholder="Password"
-                  className="h-11 w-full rounded-[10px] border border-transparent bg-[color-mix(in_srgb,var(--app-bg)_78%,black)] px-4 text-sm text-[var(--ui-text)] outline-none transition-colors focus:border-[var(--ui-accent)]"
+                  className="h-10 w-full rounded-[8px] border border-transparent bg-[color-mix(in_srgb,var(--app-bg)_78%,black)] px-4 text-sm text-[var(--ui-text)] outline-none transition-colors focus:border-[var(--ui-accent)]"
                 />
                 {authMode === 'login' && (
                   <button
                     type="button"
                     onClick={() => void handleSendResetLink()}
                     disabled={isAuthSubmitting}
-                    className="text-left text-[10px] uppercase tracking-[0.2em] text-[var(--ui-muted)] hover:text-[var(--ui-text)] disabled:cursor-not-allowed disabled:opacity-60"
+                    className="text-left text-[9px] uppercase tracking-[0.18em] text-[var(--ui-muted)] hover:text-[var(--ui-text)] disabled:cursor-not-allowed disabled:opacity-60"
                   >
                     FORGOT PASSWORD?
                   </button>
                 )}
               </div>
 
-              <div className="mt-auto flex flex-col gap-3">
+              {(authNotice || error) && (
+                <div className="min-h-[14px] text-[9px] uppercase tracking-[0.16em] text-[var(--ui-muted)]">{authNotice || error}</div>
+              )}
+
+              <div className="mt-auto flex flex-col gap-2.5">
                 <button
                   type="submit"
                   disabled={isAuthSubmitting}
-                  className="ui-pressable h-11 rounded-[10px] border border-[var(--ui-accent)] bg-[color-mix(in_srgb,var(--app-accent)_56%,transparent)] text-[12px] font-semibold uppercase tracking-[0.2em] text-[var(--ui-text)] hover:-translate-y-[1px] disabled:cursor-not-allowed disabled:opacity-60"
+                  className="ui-pressable h-10 rounded-[10px] border border-[var(--ui-accent)] bg-[color-mix(in_srgb,var(--app-accent)_56%,transparent)] text-[11px] font-semibold uppercase tracking-[0.2em] text-[var(--ui-text)] hover:-translate-y-[1px] disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   {authMode === 'login' ? 'SIGN IN' : 'SIGN UP'}
                 </button>
@@ -360,13 +364,10 @@ export const TopBar: React.FC<TopBarProps> = ({
                   type="button"
                   onClick={() => void handleGoogleSignIn()}
                   disabled={isAuthSubmitting}
-                  className="ui-pressable h-11 rounded-[10px] border border-[var(--ui-border)] bg-transparent text-[12px] font-semibold uppercase tracking-[0.2em] text-[var(--ui-text)] hover:-translate-y-[1px] hover:border-[var(--ui-accent)] disabled:cursor-not-allowed disabled:opacity-60"
+                  className="ui-pressable h-10 rounded-[10px] border border-[var(--ui-border)] bg-transparent text-[11px] font-semibold uppercase tracking-[0.2em] text-[var(--ui-text)] hover:-translate-y-[1px] hover:border-[var(--ui-accent)] disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   GOOGLE OAUTH
                 </button>
-                {(authNotice || error) && (
-                  <div className="min-h-[16px] text-[10px] uppercase tracking-[0.18em] text-[var(--ui-muted)]">{authNotice || error}</div>
-                )}
               </div>
             </form>
           </div>
