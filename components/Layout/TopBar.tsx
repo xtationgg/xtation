@@ -270,22 +270,22 @@ export const TopBar: React.FC<TopBarProps> = ({
         >
           <div className="pointer-events-none absolute inset-0">
             <div className="auth-skel-canvas absolute inset-0"></div>
-            <div className="auth-skel-left absolute left-[2.65%] top-[1.95%] h-[96.1%] w-[40.8%] rounded-[14px] bg-[#1f162d]"></div>
+            <div className="auth-skel-left absolute left-[2.2%] top-[2.2%] h-[95.6%] w-[40.8%] rounded-[14px] bg-[#1f162d]"></div>
 
             <div className="auth-center-divider absolute left-[47.6%] top-[2.2%] h-[95.6%] w-[1px]"></div>
 
-            <div className="auth-skel-top auth-skel-card absolute left-[51.5%] top-0 h-[48.5%] w-[35.8%] overflow-hidden bg-transparent">
+            <div className="auth-skel-top auth-skel-card absolute left-[51.5%] top-[2.2%] h-[46.3%] w-[35.8%] overflow-hidden bg-transparent">
               <div className="absolute inset-0 flex items-start justify-center">
                 <img
                   src="/ui-reference/auth/illustration-up.svg"
                   alt="Top illustration"
-                  className="h-[138%] w-auto max-w-none -translate-y-[12%] object-contain object-top"
+                  className="h-full w-full object-contain object-top"
                   draggable={false}
                 />
               </div>
             </div>
 
-            <div className="auth-skel-bottom auth-skel-card absolute left-[51.5%] top-[54.5%] h-[42.4%] w-[35.8%] overflow-visible bg-transparent">
+            <div className="auth-skel-bottom auth-skel-card absolute left-[51.5%] top-[53.9%] h-[43.9%] w-[35.8%] overflow-visible bg-transparent">
               <div className="absolute inset-0 flex items-end justify-center">
                 <img
                   src="/ui-reference/auth/character.svg"
@@ -333,7 +333,7 @@ export const TopBar: React.FC<TopBarProps> = ({
             <X size={14} />
           </button>
 
-          <div className="auth-modal-form auth-drawer-stagger absolute left-[2.65%] top-[1.95%] z-10 h-[96.1%] w-[40.8%] rounded-[12px] bg-[#1f162d]">
+          <div className="auth-modal-form auth-drawer-stagger absolute left-[2.2%] top-[2.2%] z-10 h-[95.6%] w-[40.8%] rounded-[12px] bg-[#1f162d]">
             <form
               className="relative z-10 flex h-full min-h-0 flex-col justify-center gap-2.5 overflow-y-auto px-7 pb-5 pt-7"
               onSubmit={(event) => {
