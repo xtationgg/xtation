@@ -345,7 +345,7 @@ export const TopBar: React.FC<TopBarProps> = ({
                 <EyeOrb
                   onClick={() => {}}
                   ariaLabel="Decorative orb"
-                  className="auth-mini-orb pointer-events-none cursor-default h-[52px] w-[52px] p-0"
+                  className="auth-mini-orb pointer-events-none cursor-default h-[156px] w-[156px] p-0"
                 />
               </div>
 
