@@ -258,35 +258,41 @@ export const TopBar: React.FC<TopBarProps> = ({
         variant="center"
         triggerRef={loginTriggerRef as React.RefObject<HTMLElement | null>}
       >
-        <div className="auth-modal-shell relative aspect-[359.15/269.17] w-[min(92vw,1280px)] overflow-hidden rounded-[20px] border border-[var(--app-border)] bg-[var(--app-panel)]">
-          <img
-            src="/ui-reference/auth/login-signin-tab.svg"
-            alt=""
-            aria-hidden="true"
-            className="pointer-events-none absolute inset-0 h-full w-full select-none object-contain"
-          />
-          <div className="absolute inset-0 bg-[color-mix(in_srgb,var(--app-bg)_6%,transparent)]"></div>
+        <div className="auth-modal-shell relative aspect-[359.15/269.17] w-[min(92vw,1280px)] overflow-hidden rounded-[20px] border border-[var(--app-border)] bg-[color-mix(in_srgb,var(--app-accent)_38%,var(--app-panel))]">
+          <div className="pointer-events-none absolute inset-0">
+            <div className="absolute left-[2.65%] top-[1.95%] h-[96.1%] w-[40.8%] rounded-[14px] border border-[color-mix(in_srgb,var(--app-border)_65%,var(--app-text)_15%)] bg-[color-mix(in_srgb,var(--app-bg)_82%,black)]">
+              <div className="absolute inset-[8px] rounded-[10px] border border-[color-mix(in_srgb,var(--app-text)_72%,var(--app-border))]"></div>
+            </div>
+
+            <div className="absolute left-[51.5%] top-[4.4%] h-[44.2%] w-[35.8%] rounded-[20px] border border-[color-mix(in_srgb,var(--app-text)_70%,var(--app-border))]"></div>
+            <div className="absolute left-[51.5%] top-[52.0%] h-[43.4%] w-[35.8%] rounded-[20px] border border-[color-mix(in_srgb,var(--app-text)_70%,var(--app-border))]"></div>
+            <div className="absolute right-[1.65%] top-[1.95%] h-[96.1%] w-[5.75%] rounded-[12px] border border-[color-mix(in_srgb,var(--app-text)_70%,var(--app-border))] bg-[color-mix(in_srgb,var(--app-accent)_18%,transparent)]"></div>
+            <div className="absolute right-[2.05%] top-[14.2%] h-[14.8%] w-[4.95%] rounded-[12px] bg-[color-mix(in_srgb,var(--app-accent)_26%,transparent)]"></div>
+            <div className="absolute right-[2.05%] top-[30.1%] h-[31.7%] w-[4.95%] rounded-[12px] bg-[color-mix(in_srgb,var(--app-accent)_22%,transparent)]"></div>
+          </div>
 
           <button
             type="button"
             onClick={closeLoginModal}
             disabled={isAuthSubmitting}
-            className="auth-modal-close ui-pressable absolute right-[1.2%] top-[1.7%] z-20 flex h-11 w-11 items-center justify-center rounded-[12px] border border-[var(--ui-border)] bg-[color-mix(in_srgb,var(--app-panel)_75%,black)] text-[var(--ui-muted)] hover:text-[var(--ui-text)] disabled:cursor-not-allowed disabled:opacity-60"
+            className="auth-modal-close ui-pressable absolute right-[1.15%] top-[1.65%] z-20 h-[6.2%] min-h-[38px] w-[3.7%] min-w-[38px] rounded-[10px] border border-transparent bg-transparent text-transparent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ui-accent)] disabled:cursor-not-allowed disabled:opacity-60"
             aria-label="Close login modal"
+            title="Close"
           >
-            <X size={16} />
+            <X size={14} />
           </button>
 
-          <div className="auth-modal-form auth-drawer-stagger absolute z-10 left-[7.8%] top-[18.6%] w-[33.8%] h-[67.8%]">
+          <div className="auth-modal-form auth-drawer-stagger absolute left-[2.65%] top-[1.95%] z-10 h-[96.1%] w-[40.8%] rounded-[12px] bg-[color-mix(in_srgb,var(--app-bg)_82%,black)]">
+            <div className="pointer-events-none absolute inset-[8px] rounded-[10px] border border-[color-mix(in_srgb,var(--app-text)_74%,var(--app-border))]"></div>
             <form
-              className="flex h-full flex-col gap-3"
+              className="relative z-10 flex h-full flex-col gap-3 px-7 pb-6 pt-8"
               onSubmit={(event) => {
                 event.preventDefault();
                 void handlePrimaryAuthSubmit();
               }}
             >
-              <div className="text-center">
-                <div className="text-[12px] font-semibold uppercase tracking-[0.22em] text-[var(--ui-accent)]">HELLO PLAYER</div>
+              <div className="pt-4 text-center">
+                <div className="text-[12px] font-semibold uppercase tracking-[0.2em] text-[#f8c74c]">HELLO PLAYER</div>
               </div>
 
               <div className="grid grid-cols-2 gap-3">
@@ -296,10 +302,10 @@ export const TopBar: React.FC<TopBarProps> = ({
                     setAuthMode('login');
                     setAuthNotice(null);
                   }}
-                  className={`ui-pressable h-10 rounded-[10px] border text-[11px] font-semibold uppercase tracking-[0.2em] ${
+                  className={`ui-pressable h-10 rounded-[8px] border text-[11px] font-semibold uppercase tracking-[0.2em] ${
                     authMode === 'login'
-                      ? 'border-[var(--ui-accent)] bg-[color-mix(in_srgb,var(--app-accent)_50%,transparent)] text-[var(--ui-text)]'
-                      : 'border-[var(--ui-border)] bg-transparent text-[var(--ui-text)]'
+                      ? 'border-[var(--ui-accent)] bg-[color-mix(in_srgb,var(--app-accent)_58%,transparent)] text-[var(--ui-text)]'
+                      : 'border-[color-mix(in_srgb,var(--app-accent)_35%,var(--app-border))] bg-transparent text-[var(--ui-text)]'
                   }`}
                 >
                   LOGIN
@@ -310,10 +316,10 @@ export const TopBar: React.FC<TopBarProps> = ({
                     setAuthMode('signup');
                     setAuthNotice(null);
                   }}
-                  className={`ui-pressable h-10 rounded-[10px] border text-[11px] font-semibold uppercase tracking-[0.2em] ${
+                  className={`ui-pressable h-10 rounded-[8px] border text-[11px] font-semibold uppercase tracking-[0.2em] ${
                     authMode === 'signup'
-                      ? 'border-[var(--ui-accent)] bg-[color-mix(in_srgb,var(--app-accent)_50%,transparent)] text-[var(--ui-text)]'
-                      : 'border-[var(--ui-border)] bg-transparent text-[var(--ui-text)]'
+                      ? 'border-[var(--ui-accent)] bg-[color-mix(in_srgb,var(--app-accent)_58%,transparent)] text-[var(--ui-text)]'
+                      : 'border-[color-mix(in_srgb,var(--app-accent)_35%,var(--app-border))] bg-transparent text-[var(--ui-text)]'
                   }`}
                 >
                   SIGN UP
@@ -326,7 +332,7 @@ export const TopBar: React.FC<TopBarProps> = ({
                   value={authEmail}
                   onChange={(event) => setAuthEmail(event.target.value)}
                   placeholder="Email"
-                  className="h-10 w-full rounded-[8px] border border-transparent bg-[color-mix(in_srgb,var(--app-bg)_78%,black)] px-4 text-sm text-[var(--ui-text)] outline-none transition-colors focus:border-[var(--ui-accent)]"
+                  className="h-10 w-full rounded-[7px] border border-transparent bg-[color-mix(in_srgb,var(--app-bg)_80%,black)] px-4 text-sm text-[var(--ui-text)] outline-none transition-colors focus:border-[var(--ui-accent)]"
                   autoFocus
                 />
                 <input
@@ -334,7 +340,7 @@ export const TopBar: React.FC<TopBarProps> = ({
                   value={authPassword}
                   onChange={(event) => setAuthPassword(event.target.value)}
                   placeholder="Password"
-                  className="h-10 w-full rounded-[8px] border border-transparent bg-[color-mix(in_srgb,var(--app-bg)_78%,black)] px-4 text-sm text-[var(--ui-text)] outline-none transition-colors focus:border-[var(--ui-accent)]"
+                  className="h-10 w-full rounded-[7px] border border-transparent bg-[color-mix(in_srgb,var(--app-bg)_80%,black)] px-4 text-sm text-[var(--ui-text)] outline-none transition-colors focus:border-[var(--ui-accent)]"
                 />
                 {authMode === 'login' && (
                   <button
@@ -356,7 +362,7 @@ export const TopBar: React.FC<TopBarProps> = ({
                 <button
                   type="submit"
                   disabled={isAuthSubmitting}
-                  className="ui-pressable h-10 rounded-[10px] border border-[var(--ui-accent)] bg-[color-mix(in_srgb,var(--app-accent)_56%,transparent)] text-[11px] font-semibold uppercase tracking-[0.2em] text-[var(--ui-text)] hover:-translate-y-[1px] disabled:cursor-not-allowed disabled:opacity-60"
+                  className="ui-pressable h-10 rounded-[8px] border border-[var(--ui-accent)] bg-[color-mix(in_srgb,var(--app-accent)_62%,transparent)] text-[11px] font-semibold uppercase tracking-[0.2em] text-[var(--ui-text)] hover:-translate-y-[1px] disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   {authMode === 'login' ? 'SIGN IN' : 'SIGN UP'}
                 </button>
@@ -364,7 +370,7 @@ export const TopBar: React.FC<TopBarProps> = ({
                   type="button"
                   onClick={() => void handleGoogleSignIn()}
                   disabled={isAuthSubmitting}
-                  className="ui-pressable h-10 rounded-[10px] border border-[var(--ui-border)] bg-transparent text-[11px] font-semibold uppercase tracking-[0.2em] text-[var(--ui-text)] hover:-translate-y-[1px] hover:border-[var(--ui-accent)] disabled:cursor-not-allowed disabled:opacity-60"
+                  className="ui-pressable h-10 rounded-[8px] border border-[color-mix(in_srgb,var(--app-accent)_35%,var(--app-border))] bg-transparent text-[11px] font-semibold uppercase tracking-[0.2em] text-[var(--ui-text)] hover:-translate-y-[1px] hover:border-[var(--ui-accent)] disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   GOOGLE OAUTH
                 </button>
