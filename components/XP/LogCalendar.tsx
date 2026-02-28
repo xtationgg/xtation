@@ -379,9 +379,12 @@ export const LogCalendar: React.FC = () => {
   const [highlightedGroupKey, setHighlightedGroupKey] = useState<string | null>(null);
   const [detailItem, setDetailItem] = useState<NormalizedLogItem | null>(null);
   const [expandedPanelItemId, setExpandedPanelItemId] = useState<string | null>(null);
+  const [highlightedPanelKey, setHighlightedPanelKey] = useState<string | null>(null);
   const [timelineExpanded, setTimelineExpanded] = useState(false);
   const [mobileConsoleOpen, setMobileConsoleOpen] = useState(false);
   const [scheduledOpen, setScheduledOpen] = useState(false);
+  const [historyModalOpen, setHistoryModalOpen] = useState(false);
+  const [hoveredDotId, setHoveredDotId] = useState<string | null>(null);
 
   const todayKey = toDateKey(new Date(now));
   const selectedDate = fromDateKey(selectedKey);
@@ -512,6 +515,10 @@ export const LogCalendar: React.FC = () => {
       };
     });
   }, [normalized, selectedKey]);
+  const hoveredDot = useMemo(
+    () => (hoveredDotId ? timelineDots.find((dot) => dot.id === hoveredDotId) || null : null),
+    [timelineDots, hoveredDotId]
+  );
 
   const rangeLabel = useMemo(
     () => RANGE_OPTIONS.find((option) => option.value === rangeMode)?.label ?? rangeMode,
@@ -559,27 +566,30 @@ export const LogCalendar: React.FC = () => {
     setViewMonth((prev) => new Date(prev.getFullYear(), prev.getMonth() + 1, 1));
   }, [rangeMode, selectedKey]);
 
-  const jumpToGroup = useCallback((item: NormalizedLogItem) => {
-    const targetGroup = item.groupKey || (item.taskId ? `task:${item.taskId}` : undefined);
-    if (!targetGroup) {
-      setDetailItem(item);
-      return;
-    }
+  const jumpToGroup = useCallback(
+    (item: NormalizedLogItem) => {
+      const targetGroup = item.groupKey || (item.taskId ? `task:${item.taskId}` : undefined);
+      if (!targetGroup) {
+        if (historyModalOpen) setDetailItem(item);
+        return;
+      }
 
-    setExpandedGroupKey(targetGroup);
-    setHighlightedGroupKey(targetGroup);
-    window.setTimeout(() => {
-      setHighlightedGroupKey((prev) => (prev === targetGroup ? null : prev));
-    }, 1400);
+      setExpandedGroupKey(targetGroup);
+      setHighlightedGroupKey(targetGroup);
+      window.setTimeout(() => {
+        setHighlightedGroupKey((prev) => (prev === targetGroup ? null : prev));
+      }, 1400);
 
-    const element = document.getElementById(`day-history-group-${targetGroup}`);
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      return;
-    }
+      const element = document.getElementById(`day-history-group-${targetGroup}`);
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        return;
+      }
 
-    setDetailItem(item);
-  }, []);
+      if (historyModalOpen) setDetailItem(item);
+    },
+    [historyModalOpen]
+  );
 
   const openQuestAddFlow = useCallback(() => {
     const toggleBtn = document.getElementById('hextech-assistant-toggle') as HTMLButtonElement | null;
@@ -604,9 +614,21 @@ export const LogCalendar: React.FC = () => {
 
   const handlePanelItemClick = useCallback(
     (item: NormalizedLogItem) => {
-      jumpToGroup(item);
+      const panelKey = item.groupKey || (item.taskId ? `task:${item.taskId}` : item.sourceRef || item.id);
+      setExpandedPanelItemId(panelKey);
+      setHighlightedPanelKey(panelKey);
+      window.setTimeout(() => {
+        setHighlightedPanelKey((prev) => (prev === panelKey ? null : prev));
+      }, 1400);
+
+      const panelRow = document.getElementById(`day-console-row-${panelKey}`);
+      if (panelRow) {
+        panelRow.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+
+      if (historyModalOpen) jumpToGroup(item);
     },
-    [jumpToGroup]
+    [jumpToGroup, historyModalOpen]
   );
 
   const renderCompactItemList = (mobile = false) => (
@@ -624,7 +646,12 @@ export const LogCalendar: React.FC = () => {
           return (
             <div
               key={row.key}
-              className="rounded-lg border border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-[var(--app-panel)] overflow-hidden"
+              id={`day-console-row-${row.key}`}
+              className={`rounded-lg border overflow-hidden transition-colors ${
+                highlightedPanelKey === row.key
+                  ? 'border-[color-mix(in_srgb,var(--app-accent)_60%,transparent)] bg-[color-mix(in_srgb,var(--app-accent)_12%,var(--app-panel))]'
+                  : 'border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-[var(--app-panel)]'
+              }`}
             >
               <button
                 type="button"
@@ -788,10 +815,26 @@ export const LogCalendar: React.FC = () => {
                         bottom: `${dot.yPx}px`,
                         backgroundColor: dotColorByStatus(dot.status),
                       }}
+                      onMouseEnter={() => setHoveredDotId(dot.id)}
+                      onMouseLeave={() => setHoveredDotId((prev) => (prev === dot.id ? null : prev))}
+                      onFocus={() => setHoveredDotId(dot.id)}
+                      onBlur={() => setHoveredDotId((prev) => (prev === dot.id ? null : prev))}
                       title={`${dot.title} · ${toPanelBadge(dot.status)} · ${formatTime(dot.time)}`}
                       aria-label={`${dot.title} ${toPanelBadge(dot.status)} ${formatTime(dot.time)}`}
                     />
                   ))}
+                  {hoveredDot ? (
+                    <div
+                      className="pointer-events-none absolute z-10 rounded-md border border-[color-mix(in_srgb,var(--app-text)_20%,transparent)] bg-[var(--app-panel)] px-2 py-1 text-[10px] uppercase tracking-[0.12em] text-[var(--app-text)] shadow-[0_8px_20px_rgba(0,0,0,0.35)]"
+                      style={{
+                        left: `calc(${hoveredDot.xPct}% + 16px)`,
+                        bottom: `${Math.min(hoveredDot.yPx + 18, 72)}px`,
+                        transform: 'translateX(-50%)',
+                      }}
+                    >
+                      {hoveredDot.title} • {formatTime(hoveredDot.time)} • {toPanelBadge(hoveredDot.status)}
+                    </div>
+                  ) : null}
                 </div>
               </>
             ) : (
@@ -846,8 +889,24 @@ export const LogCalendar: React.FC = () => {
                       bottom: `${dot.yPx}px`,
                       backgroundColor: dotColorByStatus(dot.status),
                     }}
+                    onMouseEnter={() => setHoveredDotId(dot.id)}
+                    onMouseLeave={() => setHoveredDotId((prev) => (prev === dot.id ? null : prev))}
+                    onFocus={() => setHoveredDotId(dot.id)}
+                    onBlur={() => setHoveredDotId((prev) => (prev === dot.id ? null : prev))}
                   />
                 ))}
+                {hoveredDot ? (
+                  <div
+                    className="pointer-events-none absolute z-10 rounded-md border border-[color-mix(in_srgb,var(--app-text)_20%,transparent)] bg-[var(--app-panel)] px-2 py-1 text-[10px] uppercase tracking-[0.12em] text-[var(--app-text)] shadow-[0_8px_20px_rgba(0,0,0,0.35)]"
+                    style={{
+                      left: `calc(${hoveredDot.xPct}% + 16px)`,
+                      bottom: `${Math.min(hoveredDot.yPx + 18, 72)}px`,
+                      transform: 'translateX(-50%)',
+                    }}
+                  >
+                    {hoveredDot.title} • {formatTime(hoveredDot.time)} • {toPanelBadge(hoveredDot.status)}
+                  </div>
+                ) : null}
               </div>
             </div>
           ) : (
@@ -1080,143 +1139,20 @@ export const LogCalendar: React.FC = () => {
 
         {dayConsole}
 
-        <div className="rounded-2xl border border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-[var(--app-panel-2)] shadow-[0_10px_24px_rgba(0,0,0,0.35)] p-4">
-          <div className="flex items-center justify-between mb-3">
+        <div className="rounded-2xl border border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-[var(--app-panel-2)] p-4">
+          <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <div className="text-sm font-medium text-[var(--app-text)] uppercase tracking-[0.16em]">Day History</div>
-              <div className="text-xs text-[var(--app-muted)]">{selectedDateLabel}</div>
+              <div className="text-sm font-medium text-[var(--app-text)] uppercase tracking-[0.16em]">Full Day History</div>
+              <div className="text-xs text-[var(--app-muted)]">Open full grouped history in a modal drawer.</div>
             </div>
-            <div className="flex items-center gap-2 text-[10px] uppercase tracking-[0.16em]">
-              <span className="rounded-full px-2 py-1 bg-[var(--app-panel)] text-[var(--app-text)]">{selectedDaySummary.minutesTracked}m tracked</span>
-              <span className="rounded-full px-2 py-1 bg-[color-mix(in_srgb,var(--app-accent)_18%,var(--app-panel))] text-[var(--app-accent)]">{selectedDaySummary.activityCount} items</span>
-            </div>
+            <button
+              type="button"
+              onClick={() => setHistoryModalOpen(true)}
+              className="px-3 py-2 rounded-md border border-[color-mix(in_srgb,var(--app-accent)_45%,transparent)] bg-[color-mix(in_srgb,var(--app-accent)_12%,var(--app-panel))] text-[10px] uppercase tracking-[0.16em] text-[var(--app-accent)] hover:border-[var(--app-accent)]"
+            >
+              Show Full History
+            </button>
           </div>
-
-          {selectedActivityGroups.length === 0 ? (
-            <div className="text-sm text-[var(--app-muted)]">No activity found on this date.</div>
-          ) : (
-            <div className="space-y-2 max-h-[520px] overflow-y-auto pr-1">
-              {selectedActivityGroups.map((group) => {
-                const statusText = group.hasCompletion
-                  ? group.totalMinutes > 0
-                    ? 'COMPLETED'
-                    : 'COMPLETED (NO TIME)'
-                  : group.hasRunning
-                    ? 'RUNNING'
-                    : group.hasRetro && !group.hasSession
-                      ? 'RETRO'
-                      : group.hasCreated
-                        ? group.latestStatusLabel
-                        : 'TRACKED';
-                const detailText = `${group.totalMinutes}m · ${group.entries.length} entries`;
-                const isExpanded = expandedGroupKey === group.key;
-                const hasCreated = group.entries.some((entry) => entry.kind === 'created' && entry.statusLabel === 'CREATED');
-                const hasScheduled = group.entries.some((entry) => entry.kind === 'created' && entry.statusLabel === 'SCHEDULED');
-                const hasHidden = group.entries.some((entry) => entry.kind === 'created' && entry.statusLabel === 'HIDDEN');
-                const retroMinutes = group.entries
-                  .filter((entry) => entry.kind === 'manual')
-                  .reduce((sum, entry) => sum + Math.max(0, entry.minutes), 0);
-                const trackedMinutes = group.entries
-                  .filter((entry) => entry.kind === 'session')
-                  .reduce((sum, entry) => sum + Math.max(0, entry.minutes), 0);
-                const isHighlighted = highlightedGroupKey === group.key;
-                return (
-                  <div
-                    id={`day-history-group-${group.key}`}
-                    key={group.key}
-                    className={`rounded-lg border px-3 py-2 transition-colors ${
-                      isHighlighted
-                        ? 'border-[color-mix(in_srgb,var(--app-accent)_65%,transparent)] bg-[color-mix(in_srgb,var(--app-accent)_12%,var(--app-panel-2))]'
-                        : 'border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-[var(--app-panel-2)]'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between gap-3">
-                      <div className="min-w-0">
-                        <div className="text-sm font-normal text-[var(--app-text)] truncate">{group.title}</div>
-                        <div className="text-xs text-[var(--app-muted)] mt-1 flex items-center gap-2">
-                          <span className="uppercase tracking-[0.18em]">{statusText}</span>
-                          <span>·</span>
-                          <span>{detailText}</span>
-                          <span>·</span>
-                          <span>{formatTime(group.latestAt)}</span>
-                        </div>
-                        <div className="mt-2 flex items-center gap-2 flex-wrap">
-                          {hasCreated ? (
-                            <span className="text-[10px] rounded px-2 py-0.5 bg-[var(--app-panel)] text-[var(--app-text)]">CREATED</span>
-                          ) : null}
-                          {hasScheduled ? (
-                            <span className="text-[10px] rounded px-2 py-0.5 bg-[var(--app-panel)] text-[var(--app-text)]">SCHEDULED</span>
-                          ) : null}
-                          {group.hasCompletion ? (
-                            <span className="text-[10px] rounded px-2 py-0.5 bg-[color-mix(in_srgb,var(--app-accent)_18%,var(--app-panel))] text-[var(--app-accent)]">DONE</span>
-                          ) : null}
-                          {retroMinutes > 0 ? (
-                            <span className="text-[10px] rounded px-2 py-0.5 bg-[var(--app-panel)] text-[var(--app-text)]">RETRO +{retroMinutes}m</span>
-                          ) : null}
-                          {trackedMinutes > 0 ? (
-                            <span className="text-[10px] rounded px-2 py-0.5 bg-[color-mix(in_srgb,var(--app-accent)_20%,var(--app-panel))] text-[var(--app-accent)]">TRACKED {trackedMinutes}m</span>
-                          ) : null}
-                          {hasHidden ? (
-                            <span className="text-[10px] rounded px-2 py-0.5 bg-[var(--app-panel)] text-[var(--app-text)]">HIDDEN</span>
-                          ) : null}
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2 shrink-0">
-                        <button
-                          type="button"
-                          onClick={() => setExpandedGroupKey((prev) => (prev === group.key ? null : group.key))}
-                          className="px-2 py-1 rounded border border-[color-mix(in_srgb,var(--app-text)_20%,transparent)] text-[11px] text-[var(--app-muted)] hover:border-[color-mix(in_srgb,var(--app-text)_40%,transparent)]"
-                        >
-                          {isExpanded ? 'Hide' : 'Details'}
-                        </button>
-                        {group.taskId ? (
-                          <button
-                            type="button"
-                            onClick={() => {
-                              const ok = window.confirm('Delete this quest and all linked activity?');
-                              if (!ok) return;
-                              deleteTaskCompletely(group.taskId);
-                              setExpandedGroupKey((prev) => (prev === group.key ? null : prev));
-                            }}
-                            className="px-2 py-1 rounded border border-[color-mix(in_srgb,var(--app-accent)_45%,transparent)] text-[11px] uppercase tracking-[0.12em] text-[var(--app-accent)] hover:border-[var(--app-accent)]"
-                            title="Delete quest and all linked activity"
-                          >
-                            Delete Quest
-                          </button>
-                        ) : null}
-                      </div>
-                    </div>
-                    {isExpanded ? (
-                      <div className="mt-2 pt-2 border-t border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] space-y-2">
-                        {group.entries.map((entry) => {
-                          const entryLabel =
-                            entry.kind === 'completion'
-                              ? entry.minutes > 0
-                                ? `COMPLETED ${entry.minutes}m`
-                                : 'COMPLETED NO TIME'
-                              : entry.kind === 'manual'
-                                ? `RETRO +${entry.minutes}m`
-                                : entry.kind === 'created'
-                                  ? entry.statusLabel
-                                  : `${entry.minutes}m TRACKED`;
-                          return (
-                            <div
-                              key={`${group.key}-${entry.kind}-${entry.id}`}
-                              className="rounded border border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-[var(--app-panel)] px-2 py-1.5"
-                            >
-                              <div className="text-[11px] text-[var(--app-muted)] uppercase tracking-[0.14em] truncate">
-                                {entryLabel} · {formatTime(entry.createdAt)}
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    ) : null}
-                  </div>
-                );
-              })}
-            </div>
-          )}
         </div>
 
         <div className="rounded-2xl border border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-[var(--app-panel-2)] p-4">
@@ -1258,6 +1194,155 @@ export const LogCalendar: React.FC = () => {
           ) : null}
         </div>
       </div>
+
+      {historyModalOpen ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <button
+            type="button"
+            onClick={() => setHistoryModalOpen(false)}
+            className="absolute inset-0 bg-black/55"
+            aria-label="Close full history"
+          />
+          <div className="relative w-full max-w-5xl rounded-xl border border-[color-mix(in_srgb,var(--app-text)_12%,transparent)] bg-[var(--app-panel-2)] p-4">
+            <div className="flex flex-wrap items-center justify-between gap-3 mb-3">
+              <div>
+                <div className="text-sm font-medium text-[var(--app-text)] uppercase tracking-[0.16em]">Day History</div>
+                <div className="text-xs text-[var(--app-muted)]">{selectedDateLabel}</div>
+              </div>
+              <div className="flex items-center gap-2 text-[10px] uppercase tracking-[0.16em]">
+                <span className="rounded-full px-2 py-1 bg-[var(--app-panel)] text-[var(--app-text)]">{selectedDaySummary.minutesTracked}m tracked</span>
+                <span className="rounded-full px-2 py-1 bg-[color-mix(in_srgb,var(--app-accent)_18%,var(--app-panel))] text-[var(--app-accent)]">{selectedDaySummary.activityCount} items</span>
+              </div>
+            </div>
+
+            {selectedActivityGroups.length === 0 ? (
+              <div className="text-sm text-[var(--app-muted)]">No activity found on this date.</div>
+            ) : (
+              <div className="space-y-2 max-h-[70dvh] overflow-y-auto pr-1">
+                {selectedActivityGroups.map((group) => {
+                  const statusText = group.hasCompletion
+                    ? group.totalMinutes > 0
+                      ? 'COMPLETED'
+                      : 'COMPLETED (NO TIME)'
+                    : group.hasRunning
+                      ? 'RUNNING'
+                      : group.hasRetro && !group.hasSession
+                        ? 'RETRO'
+                        : group.hasCreated
+                          ? group.latestStatusLabel
+                          : 'TRACKED';
+                  const detailText = `${group.totalMinutes}m · ${group.entries.length} entries`;
+                  const isExpanded = expandedGroupKey === group.key;
+                  const hasCreated = group.entries.some((entry) => entry.kind === 'created' && entry.statusLabel === 'CREATED');
+                  const hasScheduled = group.entries.some((entry) => entry.kind === 'created' && entry.statusLabel === 'SCHEDULED');
+                  const hasHidden = group.entries.some((entry) => entry.kind === 'created' && entry.statusLabel === 'HIDDEN');
+                  const retroMinutes = group.entries
+                    .filter((entry) => entry.kind === 'manual')
+                    .reduce((sum, entry) => sum + Math.max(0, entry.minutes), 0);
+                  const trackedMinutes = group.entries
+                    .filter((entry) => entry.kind === 'session')
+                    .reduce((sum, entry) => sum + Math.max(0, entry.minutes), 0);
+                  const isHighlighted = highlightedGroupKey === group.key;
+                  return (
+                    <div
+                      id={`day-history-group-${group.key}`}
+                      key={group.key}
+                      className={`rounded-lg border px-3 py-2 transition-colors ${
+                        isHighlighted
+                          ? 'border-[color-mix(in_srgb,var(--app-accent)_65%,transparent)] bg-[color-mix(in_srgb,var(--app-accent)_12%,var(--app-panel-2))]'
+                          : 'border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-[var(--app-panel)]'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between gap-3">
+                        <div className="min-w-0">
+                          <div className="text-sm font-normal text-[var(--app-text)] truncate">{group.title}</div>
+                          <div className="text-xs text-[var(--app-muted)] mt-1 flex items-center gap-2">
+                            <span className="uppercase tracking-[0.18em]">{statusText}</span>
+                            <span>·</span>
+                            <span>{detailText}</span>
+                            <span>·</span>
+                            <span>{formatTime(group.latestAt)}</span>
+                          </div>
+                          <div className="mt-2 flex items-center gap-2 flex-wrap">
+                            {hasCreated ? (
+                              <span className="text-[10px] rounded px-2 py-0.5 bg-[var(--app-panel-2)] text-[var(--app-text)]">CREATED</span>
+                            ) : null}
+                            {hasScheduled ? (
+                              <span className="text-[10px] rounded px-2 py-0.5 bg-[var(--app-panel-2)] text-[var(--app-text)]">SCHEDULED</span>
+                            ) : null}
+                            {group.hasCompletion ? (
+                              <span className="text-[10px] rounded px-2 py-0.5 bg-[color-mix(in_srgb,var(--app-accent)_18%,var(--app-panel-2))] text-[var(--app-accent)]">DONE</span>
+                            ) : null}
+                            {retroMinutes > 0 ? (
+                              <span className="text-[10px] rounded px-2 py-0.5 bg-[var(--app-panel-2)] text-[var(--app-text)]">RETRO +{retroMinutes}m</span>
+                            ) : null}
+                            {trackedMinutes > 0 ? (
+                              <span className="text-[10px] rounded px-2 py-0.5 bg-[color-mix(in_srgb,var(--app-accent)_20%,var(--app-panel-2))] text-[var(--app-accent)]">TRACKED {trackedMinutes}m</span>
+                            ) : null}
+                            {hasHidden ? (
+                              <span className="text-[10px] rounded px-2 py-0.5 bg-[var(--app-panel-2)] text-[var(--app-text)]">HIDDEN</span>
+                            ) : null}
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2 shrink-0">
+                          <button
+                            type="button"
+                            onClick={() => setExpandedGroupKey((prev) => (prev === group.key ? null : group.key))}
+                            className="px-2 py-1 rounded border border-[color-mix(in_srgb,var(--app-text)_20%,transparent)] text-[11px] text-[var(--app-muted)] hover:border-[color-mix(in_srgb,var(--app-text)_40%,transparent)]"
+                          >
+                            {isExpanded ? 'Hide' : 'Details'}
+                          </button>
+                          {group.taskId ? (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const ok = window.confirm('Delete this quest and all linked activity?');
+                                if (!ok) return;
+                                deleteTaskCompletely(group.taskId);
+                                setExpandedGroupKey((prev) => (prev === group.key ? null : prev));
+                              }}
+                              className="px-2 py-1 rounded border border-[color-mix(in_srgb,var(--app-accent)_45%,transparent)] text-[11px] uppercase tracking-[0.12em] text-[var(--app-accent)] hover:border-[var(--app-accent)]"
+                              title="Delete quest and all linked activity"
+                            >
+                              Delete Quest
+                            </button>
+                          ) : null}
+                        </div>
+                      </div>
+                      {isExpanded ? (
+                        <div className="mt-2 pt-2 border-t border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] space-y-2">
+                          {group.entries.map((entry) => {
+                            const entryLabel =
+                              entry.kind === 'completion'
+                                ? entry.minutes > 0
+                                  ? `COMPLETED ${entry.minutes}m`
+                                  : 'COMPLETED NO TIME'
+                                : entry.kind === 'manual'
+                                  ? `RETRO +${entry.minutes}m`
+                                  : entry.kind === 'created'
+                                    ? entry.statusLabel
+                                    : `${entry.minutes}m TRACKED`;
+                            return (
+                              <div
+                                key={`${group.key}-${entry.kind}-${entry.id}`}
+                                className="rounded border border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-[var(--app-panel-2)] px-2 py-1.5"
+                              >
+                                <div className="text-[11px] text-[var(--app-muted)] uppercase tracking-[0.14em] truncate">
+                                  {entryLabel} · {formatTime(entry.createdAt)}
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      ) : null}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </div>
+      ) : null}
 
       {timelineExpanded ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
