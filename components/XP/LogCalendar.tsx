@@ -90,16 +90,16 @@ type RangeMode = (typeof RANGE_OPTIONS)[number]['value'];
 type SidePanelTab = (typeof SIDE_PANEL_TABS)[number]['value'];
 
 type NormalizedLogItemStatus =
+  | 'todo'
+  | 'done'
   | 'created'
   | 'scheduled'
   | 'running'
   | 'tracked'
-  | 'completed'
   | 'retro'
-  | 'unfinished'
   | 'failed';
 
-type NormalizedLogItemType = 'timeline' | 'unfinished' | 'completed' | 'scheduled';
+type NormalizedLogItemType = 'timeline' | 'task' | 'summary';
 
 type NormalizedLogItem = {
   id: string;
@@ -108,31 +108,117 @@ type NormalizedLogItem = {
   status: NormalizedLogItemStatus;
   startAt?: number;
   endAt?: number;
-  scheduledAt?: number;
   durationMin?: number;
-  sourceKey?: string;
+  sourceRef: string;
   taskId?: string;
   groupKey?: string;
   subtitle?: string;
 };
 
-type NormalizedBuckets = {
-  timeline: NormalizedLogItem[];
-  unfinished: NormalizedLogItem[];
-  completed: NormalizedLogItem[];
-  scheduled: NormalizedLogItem[];
-};
-
 const mapActivityStatus = (entry: XPDayActivityItem): NormalizedLogItemStatus => {
-  if (entry.kind === 'completion') return 'completed';
+  if (entry.kind === 'completion') return 'done';
   if (entry.kind === 'manual') return 'retro';
   if (entry.kind === 'created') {
     const normalized = entry.statusLabel.toLowerCase();
     if (normalized.includes('scheduled')) return 'scheduled';
+    if (normalized.includes('completed')) return 'done';
     return 'created';
   }
   if (entry.statusLabel === 'RUNNING') return 'running';
   return 'tracked';
+};
+
+const mapTimelineEvents = (selectedActivity: XPDayActivityItem[], now: number): NormalizedLogItem[] =>
+  selectedActivity.map<NormalizedLogItem>((entry) => {
+    const safeCreatedAt = toSafeTimestamp(entry.createdAt) ?? now;
+    return {
+      id: `timeline:${entry.kind}:${entry.id}`,
+      type: 'timeline',
+      title: entry.title,
+      status: mapActivityStatus(entry),
+      startAt: safeCreatedAt,
+      durationMin: Math.max(0, entry.minutes),
+      sourceRef: `${entry.kind}:${entry.id}`,
+      taskId: entry.taskId,
+      groupKey: entry.taskId ? `task:${entry.taskId}` : undefined,
+    };
+  });
+
+const mapCompletedItems = (selectedActivityGroups: XPDayActivityGroup[]): NormalizedLogItem[] =>
+  selectedActivityGroups
+    .filter((group) => group.hasCompletion)
+    .map<NormalizedLogItem>((group) => ({
+      id: `summary:completed:${group.key}`,
+      type: 'summary',
+      title: group.title,
+      status: 'done',
+      startAt: group.latestAt,
+      durationMin: Math.max(0, group.totalMinutes),
+      sourceRef: `group:${group.key}`,
+      taskId: group.taskId,
+      groupKey: group.key,
+      subtitle: group.totalMinutes > 0 ? `${group.totalMinutes}m tracked` : 'No time logged',
+    }));
+
+const mapScheduledItems = (
+  dateKey: string,
+  todayKey: string,
+  now: number,
+  selectedScheduledTasks: Task[]
+): NormalizedLogItem[] => {
+  const selectedDayIsToday = dateKey === todayKey;
+  return selectedScheduledTasks
+    .filter((task) => !selectedDayIsToday || (task.scheduledAt || 0) >= now)
+    .map<NormalizedLogItem>((task) => {
+      const startAt =
+        toSafeTimestamp(task.scheduledAt) || toSafeTimestamp(task.updatedAt) || toSafeTimestamp(task.createdAt);
+      return {
+        id: `task:scheduled:${task.id}`,
+        type: 'task',
+        title: task.title,
+        status: 'scheduled',
+        startAt,
+        sourceRef: `task:${task.id}`,
+        taskId: task.id,
+        groupKey: `task:${task.id}`,
+        subtitle: `Prio: ${task.priority.toUpperCase()}`,
+      };
+    });
+};
+
+const mapUnfinishedItems = (
+  tasks: Task[],
+  selectedScheduledTasks: Task[],
+  selectedActivityGroups: XPDayActivityGroup[]
+): NormalizedLogItem[] => {
+  const scheduledIds = new Set(selectedScheduledTasks.map((task) => task.id));
+  const activeGroupIds = new Set(
+    selectedActivityGroups.map((group) => group.taskId).filter((taskId): taskId is string => !!taskId)
+  );
+
+  return tasks
+    .filter((task) => {
+      if (task.archivedAt) return false;
+      if (task.status === 'done') return false;
+      if (!(task.status === 'todo' || task.status === 'active' || task.status === 'dropped')) return false;
+      return scheduledIds.has(task.id) || activeGroupIds.has(task.id);
+    })
+    .map<NormalizedLogItem>((task) => ({
+      id: `task:unfinished:${task.id}`,
+      type: 'task',
+      title: task.title,
+      status: task.status === 'active' ? 'running' : task.status === 'dropped' ? 'failed' : 'todo',
+      startAt: toSafeTimestamp(task.scheduledAt) || toSafeTimestamp(task.updatedAt) || toSafeTimestamp(task.createdAt),
+      sourceRef: `task:${task.id}`,
+      taskId: task.id,
+      groupKey: `task:${task.id}`,
+      subtitle:
+        task.status === 'dropped'
+          ? 'Failed / dropped'
+          : task.status === 'active'
+            ? 'In progress'
+            : 'Todo',
+    }));
 };
 
 const normalizeDayItems = (params: {
@@ -143,105 +229,36 @@ const normalizeDayItems = (params: {
   selectedActivity: XPDayActivityItem[];
   selectedActivityGroups: XPDayActivityGroup[];
   selectedScheduledTasks: Task[];
-}): NormalizedBuckets => {
-  const {
-    dateKey,
-    now,
-    todayKey,
-    tasks,
-    selectedActivity,
-    selectedActivityGroups,
-    selectedScheduledTasks,
-  } = params;
+}): NormalizedLogItem[] => {
+  const { dateKey, now, todayKey, tasks, selectedActivity, selectedActivityGroups, selectedScheduledTasks } = params;
+  return [
+    ...mapTimelineEvents(selectedActivity, now),
+    ...mapCompletedItems(selectedActivityGroups),
+    ...mapScheduledItems(dateKey, todayKey, now, selectedScheduledTasks),
+    ...mapUnfinishedItems(tasks, selectedScheduledTasks, selectedActivityGroups),
+  ];
+};
 
-  const timeline = selectedActivity
-    .map<NormalizedLogItem>((entry) => {
-      const safeCreatedAt = toSafeTimestamp(entry.createdAt) ?? now;
-      const status = mapActivityStatus(entry);
-      return {
-        id: `${entry.kind}:${entry.id}`,
-        type: 'timeline',
-        title: entry.title,
-        status,
-        startAt: safeCreatedAt,
-        durationMin: Math.max(0, entry.minutes),
-        sourceKey: `${entry.kind}:${entry.id}`,
-        taskId: entry.taskId,
-        groupKey: entry.taskId ? `task:${entry.taskId}` : undefined,
-      };
-    })
-    .sort((a, b) => (b.startAt || 0) - (a.startAt || 0));
+const filterPanelItems = (items: NormalizedLogItem[], tab: SidePanelTab, now: number): NormalizedLogItem[] => {
+  const orderedDesc = [...items].sort((a, b) => (b.startAt || 0) - (a.startAt || 0));
 
-  const completed = selectedActivityGroups
-    .filter((group) => group.hasCompletion)
-    .map<NormalizedLogItem>((group) => ({
-      id: `completed:${group.key}`,
-      type: 'completed',
-      title: group.title,
-      status: 'completed',
-      startAt: group.latestAt,
-      durationMin: Math.max(0, group.totalMinutes),
-      sourceKey: group.key,
-      taskId: group.taskId,
-      groupKey: group.key,
-      subtitle: group.totalMinutes > 0 ? `${group.totalMinutes}m tracked` : 'No time logged',
-    }))
-    .sort((a, b) => (b.startAt || 0) - (a.startAt || 0));
-
-  const selectedDayIsToday = dateKey === todayKey;
-  const scheduled = selectedScheduledTasks
-    .filter((task) => !selectedDayIsToday || (task.scheduledAt || 0) >= now)
-    .map<NormalizedLogItem>((task) => ({
-      id: `scheduled:${task.id}`,
-      type: 'scheduled',
-      title: task.title,
-      status: 'scheduled',
-      scheduledAt: toSafeTimestamp(task.scheduledAt),
-      startAt: toSafeTimestamp(task.scheduledAt) || toSafeTimestamp(task.updatedAt) || toSafeTimestamp(task.createdAt),
-      sourceKey: `task:${task.id}`,
-      taskId: task.id,
-      groupKey: `task:${task.id}`,
-      subtitle: `Prio: ${task.priority.toUpperCase()}`,
-    }))
-    .sort((a, b) => (a.scheduledAt || a.startAt || 0) - (b.scheduledAt || b.startAt || 0));
-
-  const scheduledIds = new Set(selectedScheduledTasks.map((task) => task.id));
-  const activeGroupIds = new Set(
-    selectedActivityGroups.map((group) => group.taskId).filter((taskId): taskId is string => !!taskId)
-  );
-
-  const unfinished = tasks
-    .filter((task) => {
-      if (task.archivedAt) return false;
-      if (task.status === 'done') return false;
-      if (!(task.status === 'todo' || task.status === 'active' || task.status === 'dropped')) return false;
-      return scheduledIds.has(task.id) || activeGroupIds.has(task.id);
-    })
-    .map<NormalizedLogItem>((task) => ({
-      id: `unfinished:${task.id}`,
-      type: 'unfinished',
-      title: task.title,
-      status: task.status === 'dropped' ? 'failed' : 'unfinished',
-      startAt: toSafeTimestamp(task.scheduledAt) || toSafeTimestamp(task.updatedAt) || toSafeTimestamp(task.createdAt),
-      scheduledAt: toSafeTimestamp(task.scheduledAt),
-      sourceKey: `task:${task.id}`,
-      taskId: task.id,
-      groupKey: `task:${task.id}`,
-      subtitle:
-        task.status === 'dropped'
-          ? 'Failed / dropped'
-          : task.status === 'active'
-            ? 'In progress'
-            : 'Todo',
-    }))
-    .sort((a, b) => (b.startAt || 0) - (a.startAt || 0));
-
-  return { timeline, unfinished, completed, scheduled };
+  if (tab === 'timeline') {
+    return orderedDesc.filter((item) => item.type === 'timeline');
+  }
+  if (tab === 'unfinished') {
+    return orderedDesc.filter((item) => item.status === 'todo' || item.status === 'running' || item.status === 'failed');
+  }
+  if (tab === 'completed') {
+    return orderedDesc.filter((item) => item.status === 'done');
+  }
+  return [...items]
+    .filter((item) => item.status === 'scheduled' && (item.startAt || 0) >= now)
+    .sort((a, b) => (a.startAt || 0) - (b.startAt || 0));
 };
 
 const toPanelBadge = (status: NormalizedLogItemStatus) => {
   switch (status) {
-    case 'completed':
+    case 'done':
       return 'DONE';
     case 'retro':
       return 'RETRO';
@@ -251,10 +268,10 @@ const toPanelBadge = (status: NormalizedLogItemStatus) => {
       return 'RUNNING';
     case 'failed':
       return 'FAILED';
+    case 'todo':
+      return 'UNFINISHED';
     case 'created':
       return 'CREATED';
-    case 'unfinished':
-      return 'UNFINISHED';
     case 'tracked':
     default:
       return 'TRACKED';
@@ -263,11 +280,11 @@ const toPanelBadge = (status: NormalizedLogItemStatus) => {
 
 const toPanelSubtitle = (item: NormalizedLogItem) => {
   if (item.subtitle) return item.subtitle;
-  if (item.status === 'completed') {
+  if (item.status === 'done') {
     return item.durationMin && item.durationMin > 0 ? `${item.durationMin}m tracked` : 'No time logged';
   }
   if (item.status === 'scheduled') {
-    return item.scheduledAt ? `Starts ${formatTime(item.scheduledAt)}` : 'Scheduled';
+    return item.startAt ? `Starts ${formatTime(item.startAt)}` : 'Scheduled';
   }
   if (item.status === 'retro') {
     return `Retro +${Math.max(0, item.durationMin || 0)}m`;
@@ -410,7 +427,7 @@ export const LogCalendar: React.FC = () => {
     [selectedKey, now, todayKey, tasks, selectedActivity, selectedActivityGroups, selectedScheduledTasks]
   );
 
-  const panelItems = useMemo(() => ensureArray(normalized?.[sidePanelTab]), [normalized, sidePanelTab]);
+  const panelItems = useMemo(() => filterPanelItems(normalized, sidePanelTab, now), [normalized, sidePanelTab, now]);
 
   const rangeLabel = useMemo(
     () => RANGE_OPTIONS.find((option) => option.value === rangeMode)?.label ?? rangeMode,
@@ -536,7 +553,7 @@ export const LogCalendar: React.FC = () => {
                   <div className="text-[10px] uppercase tracking-[0.16em] text-[var(--app-muted)] mt-1 truncate">{toPanelSubtitle(item)}</div>
                 </div>
                 <span className="text-[10px] uppercase tracking-[0.16em] text-[var(--app-muted)]">
-                  {item.scheduledAt ? formatTime(item.scheduledAt) : item.startAt ? formatTime(item.startAt) : '--:--'}
+                  {item.startAt ? formatTime(item.startAt) : '--:--'}
                 </span>
               </div>
               <div className="mt-2 inline-flex rounded px-1.5 py-0.5 text-[10px] uppercase tracking-[0.14em] bg-[color-mix(in_srgb,var(--app-accent)_18%,var(--app-panel))] text-[var(--app-accent)]">
@@ -946,7 +963,7 @@ export const LogCalendar: React.FC = () => {
             <div className="text-sm uppercase tracking-[0.18em] text-[var(--app-text)]">{detailItem.title}</div>
             <div className="mt-2 text-xs uppercase tracking-[0.16em] text-[var(--app-muted)]">{toPanelSubtitle(detailItem)}</div>
             <div className="mt-3 text-[11px] uppercase tracking-[0.16em] text-[var(--app-muted)]">
-              {detailItem.scheduledAt ? formatTime(detailItem.scheduledAt) : detailItem.startAt ? formatTime(detailItem.startAt) : '--:--'}
+              {detailItem.startAt ? formatTime(detailItem.startAt) : '--:--'}
             </div>
             <button
               type="button"
