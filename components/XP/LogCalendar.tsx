@@ -76,6 +76,16 @@ const getDateBounds = (dateKey: string) => {
   return { start, end: start + 86400000 };
 };
 
+const ensureArray = <T,>(value: T[] | null | undefined): T[] => (Array.isArray(value) ? value : []);
+
+const EMPTY_DAY_SUMMARY = {
+  minutesTracked: 0,
+  activityCount: 0,
+  completedCount: 0,
+  scheduledCount: 0,
+  runningCount: 0,
+} as const;
+
 type RangeMode = (typeof RANGE_OPTIONS)[number]['value'];
 type SidePanelTab = (typeof SIDE_PANEL_TABS)[number]['value'];
 
@@ -346,7 +356,7 @@ export const LogCalendar: React.FC = () => {
   const summaryByDay = useMemo(() => {
     const map = new Map<string, { activityCount: number; loggedMinutes: number; running: boolean }>();
     gridKeys.forEach((key) => {
-      const daySummary = selectors.getDaySummary(key, now);
+      const daySummary = selectors.getDaySummary(key, now) || EMPTY_DAY_SUMMARY;
       map.set(key, {
         activityCount: daySummary.activityCount,
         loggedMinutes: daySummary.minutesTracked,
@@ -367,21 +377,21 @@ export const LogCalendar: React.FC = () => {
     [selectedDate]
   );
 
-  const selectedDaySummary = selectors.getDaySummary(selectedKey, now);
+  const selectedDaySummary = selectors.getDaySummary(selectedKey, now) || EMPTY_DAY_SUMMARY;
 
   const selectedActivity = useMemo(
-    () => selectors.getDayActivity(selectedKey, now),
+    () => ensureArray(selectors.getDayActivity(selectedKey, now)),
     [selectors, selectedKey, now]
   );
 
   const selectedActivityGroups = useMemo(
-    () => selectors.getDayActivityGrouped(selectedKey, now),
+    () => ensureArray(selectors.getDayActivityGrouped(selectedKey, now)),
     [selectors, selectedKey, now]
   );
 
   const selectedScheduledTasks = useMemo(() => {
     const { start, end } = getDateBounds(selectedKey);
-    return tasks
+    return ensureArray(tasks)
       .filter((task) => !!task.scheduledAt && task.scheduledAt >= start && task.scheduledAt < end)
       .sort((a, b) => (a.scheduledAt || 0) - (b.scheduledAt || 0));
   }, [tasks, selectedKey]);
@@ -392,7 +402,7 @@ export const LogCalendar: React.FC = () => {
         dateKey: selectedKey,
         now,
         todayKey,
-        tasks,
+        tasks: ensureArray(tasks),
         selectedActivity,
         selectedActivityGroups,
         selectedScheduledTasks,
@@ -400,7 +410,12 @@ export const LogCalendar: React.FC = () => {
     [selectedKey, now, todayKey, tasks, selectedActivity, selectedActivityGroups, selectedScheduledTasks]
   );
 
-  const panelItems = useMemo(() => normalized[sidePanelTab], [normalized, sidePanelTab]);
+  const panelItems = useMemo(() => ensureArray(normalized?.[sidePanelTab]), [normalized, sidePanelTab]);
+
+  const rangeLabel = useMemo(
+    () => RANGE_OPTIONS.find((option) => option.value === rangeMode)?.label ?? rangeMode,
+    [rangeMode]
+  );
 
   const selectDate = (dateKey: string, monthDate?: Date) => {
     setSelectedKey(dateKey);
@@ -536,6 +551,18 @@ export const LogCalendar: React.FC = () => {
 
   return (
     <div className="relative xl:pr-[416px] text-[var(--app-text)]">
+      {import.meta.env.DEV ? (
+        <div className="mb-3 rounded-md border border-[color-mix(in_srgb,var(--app-accent)_45%,transparent)] bg-[color-mix(in_srgb,var(--app-accent)_12%,var(--app-panel))] px-3 py-2 text-[10px] uppercase tracking-[0.14em] text-[var(--app-muted)]">
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
+            <span className="text-[var(--app-text)]">selectedDate: {selectedKey}</span>
+            <span>activeRange: {rangeLabel}</span>
+            <span>tracked: {selectedDaySummary.minutesTracked}m</span>
+            <span>completed: {selectedDaySummary.completedCount}</span>
+            <span>scheduled: {selectedDaySummary.scheduledCount}</span>
+            <span>total: {selectedDaySummary.activityCount}</span>
+          </div>
+        </div>
+      ) : null}
       <div className="space-y-4">
         <div className="rounded-2xl border border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-gradient-to-b from-[color-mix(in_srgb,var(--app-panel-2)_90%,var(--app-panel))] to-[var(--app-panel)] shadow-[0_12px_28px_rgba(0,0,0,0.45)] p-4">
           <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between mb-4">
@@ -589,7 +616,7 @@ export const LogCalendar: React.FC = () => {
           {rangeMode === 'week' ? (
             <div className="grid grid-cols-2 md:grid-cols-7 gap-2">
               {weekDays.map((day) => {
-                const daySummary = selectors.getDaySummary(day.key, now);
+                const daySummary = selectors.getDaySummary(day.key, now) || EMPTY_DAY_SUMMARY;
                 const isSelected = day.key === selectedKey;
                 const isToday = day.key === todayKey;
                 return (
@@ -679,7 +706,7 @@ export const LogCalendar: React.FC = () => {
             <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3">
               {yearMonths.map((monthDate) => {
                 const monthKey = toDateKey(monthDate);
-                const monthSummary = selectors.getDaySummary(monthKey, now);
+                const monthSummary = selectors.getDaySummary(monthKey, now) || EMPTY_DAY_SUMMARY;
                 const isSelectedMonth =
                   viewMonth.getFullYear() === monthDate.getFullYear() &&
                   viewMonth.getMonth() === monthDate.getMonth();
