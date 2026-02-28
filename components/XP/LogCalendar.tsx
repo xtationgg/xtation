@@ -15,6 +15,7 @@ const SIDE_PANEL_TABS = [
   { value: 'completed', label: 'Completed' },
   { value: 'scheduled', label: 'Scheduled' },
 ] as const;
+const TIMELINE_HOUR_MARKERS = [0, 4, 8, 12, 16, 20, 24] as const;
 
 const toDateKey = (date: Date) => {
   const y = date.getFullYear();
@@ -356,19 +357,20 @@ const normalizeDayItemsToTaskCards = (
 
 const dotColorByQuestState = (state: QuestRowState) => {
   if (state === 'active') return 'var(--app-accent)';
-  if (state === 'done') return 'color-mix(in_srgb,var(--app-accent)_72%,white)';
-  if (state === 'failed') return 'color-mix(in_srgb,#ff5a6a_75%,var(--app-accent))';
-  if (state === 'scheduled') return 'transparent';
-  if (state === 'todo') return 'transparent';
-  return 'color-mix(in_srgb,var(--app-accent)_30%,var(--app-text))';
+  if (state === 'done') return '#43d39e';
+  if (state === 'failed') return '#ff5a6a';
+  if (state === 'scheduled') return '#5f9dff';
+  if (state === 'todo') return '#8a84a4';
+  return 'var(--app-accent)';
 };
 
 const dotBorderByQuestState = (state: QuestRowState) => {
   if (state === 'active') return 'var(--app-accent)';
-  if (state === 'done') return 'color-mix(in_srgb,var(--app-accent)_72%,white)';
-  if (state === 'failed') return 'color-mix(in_srgb,#ff5a6a_75%,var(--app-accent))';
-  if (state === 'scheduled') return 'color-mix(in_srgb,var(--app-accent)_58%,var(--app-text))';
-  return 'color-mix(in_srgb,var(--app-text)_58%,var(--app-panel-2))';
+  if (state === 'done') return '#43d39e';
+  if (state === 'failed') return '#ff5a6a';
+  if (state === 'scheduled') return '#5f9dff';
+  if (state === 'todo') return '#8a84a4';
+  return 'var(--app-text)';
 };
 
 const toPanelBadge = (status: NormalizedLogItemStatus) => {
@@ -405,7 +407,7 @@ const toQuestStateBadge = (state: QuestRowState) => {
       return 'Failed';
     case 'todo':
     default:
-      return 'Todo';
+      return 'Uncompleted';
   }
 };
 
@@ -573,10 +575,7 @@ export const LogCalendar: React.FC = () => {
     () => normalizeDayItemsToTaskCards(normalized, 'all', now, selectedKey, ensureArray(tasks)),
     [normalized, now, selectedKey, tasks]
   );
-  const timelineRows = useMemo(
-    () => normalizeDayItemsToTaskCards(normalized, 'timeline', now, selectedKey, ensureArray(tasks)),
-    [normalized, now, selectedKey, tasks]
-  );
+  const timelineRows = dayConsoleRows;
   const timelineDots = useMemo(() => {
     const dayStart = fromDateKey(selectedKey).getTime();
     const dayEnd = dayStart + 86400000;
@@ -593,7 +592,7 @@ export const LogCalendar: React.FC = () => {
         rowTaskId: row.taskId,
         time: safeTime,
         xPct: (minute / 1439) * 100,
-        yPx: 18 + (index % 4) * 14,
+        yPx: 22 + (index % 10) * 14,
       };
     });
   }, [timelineRows, selectedKey]);
@@ -843,8 +842,69 @@ export const LogCalendar: React.FC = () => {
     </div>
   );
 
+  const renderTimelineChart = (mobile = false) => {
+    const stackCap = mobile ? 92 : 122;
+    return (
+      <div className={`${mobile ? 'h-[156px]' : 'h-[204px]'} rounded-xl bg-[color-mix(in_srgb,var(--app-panel-2)_55%,var(--app-panel))] px-2 py-2 relative overflow-hidden`}>
+        <div className="absolute inset-x-5 top-3 bottom-9">
+          <div className="absolute inset-x-0 bottom-0 h-px bg-[color-mix(in_srgb,var(--app-text)_20%,transparent)]" />
+          {TIMELINE_HOUR_MARKERS.map((hour) => (
+            <div
+              key={`timeline-grid-${hour}`}
+              className="absolute top-0 bottom-0 border-l border-[color-mix(in_srgb,var(--app-text)_9%,transparent)]"
+              style={{ left: `${(hour / 24) * 100}%` }}
+            />
+          ))}
+          {timelineDots.map((dot) => (
+            <button
+              key={`timeline-dot-${mobile ? 'mobile-' : ''}${dot.id}`}
+              type="button"
+              onClick={() => handleTimelineDotClick(dot.rowKey)}
+              className="absolute h-2.5 w-2.5 rounded-full border transition-transform hover:scale-110"
+              style={{
+                left: `${dot.xPct}%`,
+                bottom: `${Math.min(dot.yPx, stackCap)}px`,
+                transform: 'translateX(-50%)',
+                backgroundColor: dotColorByQuestState(dot.status),
+                borderColor: dotBorderByQuestState(dot.status),
+              }}
+              onMouseEnter={() => setHoveredDotId(dot.id)}
+              onMouseLeave={() => setHoveredDotId((prev) => (prev === dot.id ? null : prev))}
+              onFocus={() => setHoveredDotId(dot.id)}
+              onBlur={() => setHoveredDotId((prev) => (prev === dot.id ? null : prev))}
+              title={`${dot.title} · ${toQuestStateBadge(dot.status)} · ${formatTime(dot.time)}`}
+              aria-label={`${dot.title} ${toQuestStateBadge(dot.status)} ${formatTime(dot.time)}`}
+            />
+          ))}
+          {timelineDots.length === 0 ? (
+            <div className="absolute inset-0 grid place-items-center text-[10px] uppercase tracking-[0.14em] text-[var(--app-muted)]">
+              No items for this tab.
+            </div>
+          ) : null}
+          {hoveredDot ? (
+            <div
+              className="pointer-events-none absolute z-10 rounded-md border border-[color-mix(in_srgb,var(--app-text)_20%,transparent)] bg-[var(--app-panel)] px-2 py-1 text-[10px] uppercase tracking-[0.12em] text-[var(--app-text)]"
+              style={{
+                left: `${hoveredDot.xPct}%`,
+                bottom: `${Math.min(Math.min(hoveredDot.yPx, stackCap) + 20, stackCap + 24)}px`,
+                transform: 'translateX(-50%)',
+              }}
+            >
+              {hoveredDot.title} • {formatTime(hoveredDot.time)} • {toQuestStateBadge(hoveredDot.status)}
+            </div>
+          ) : null}
+        </div>
+        <div className="absolute inset-x-5 bottom-2 flex items-center justify-between text-[9px] uppercase tracking-[0.12em] text-[var(--app-muted)]">
+          {TIMELINE_HOUR_MARKERS.map((hour) => (
+            <span key={`timeline-hour-${hour}`}>{`${String(hour).padStart(2, '0')}:00`}</span>
+          ))}
+        </div>
+      </div>
+    );
+  };
+
   const dayConsole = (
-    <div className="rounded-2xl border border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-[var(--app-panel-2)] overflow-hidden">
+    <div className="rounded-2xl bg-[var(--app-panel-2)] overflow-hidden">
       <div className="px-4 py-3 border-b border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-[var(--app-panel)]">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
@@ -888,160 +948,67 @@ export const LogCalendar: React.FC = () => {
       </div>
 
       <div className="p-3">
-        <div className="hidden lg:grid gap-3 lg:grid-cols-[minmax(0,13fr)_minmax(0,7fr)]">
-          <div className="rounded-xl border border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-[var(--app-panel)] p-3">
-            {sidePanelTab === 'timeline' ? (
-              <>
-                <div className="mb-2 flex items-center justify-between gap-2">
-                  <div className="text-[10px] uppercase tracking-[0.16em] text-[var(--app-muted)]">24h Heatline</div>
-                  <button
-                    type="button"
-                    onClick={() => setTimelineExpanded(true)}
-                    className="px-2 py-1 rounded border border-[color-mix(in_srgb,var(--app-text)_20%,transparent)] text-[10px] uppercase tracking-[0.14em] text-[var(--app-muted)] hover:text-[var(--app-text)]"
-                  >
-                    Expand
-                  </button>
-                </div>
-                <div className="h-[88px] rounded-lg border border-[color-mix(in_srgb,var(--app-text)_8%,transparent)] bg-[color-mix(in_srgb,var(--app-panel-2)_65%,var(--app-panel))] px-2 py-2 relative overflow-hidden">
-                  <div className="absolute inset-x-2 bottom-5 h-px bg-[color-mix(in_srgb,var(--app-text)_16%,transparent)]" />
-                  <div className="absolute inset-x-2 top-2 h-[1px] bg-[linear-gradient(to_right,color-mix(in_srgb,var(--app-text)_7%,transparent)_1px,transparent_1px)] bg-[size:32px_100%] opacity-70" />
-                  {timelineDots.map((dot) => (
-                    <button
-                      key={`timeline-dot-${dot.id}`}
-                      type="button"
-                      onClick={() => handleTimelineDotClick(dot.rowKey)}
-                      className="absolute h-2.5 w-2.5 rounded-full border border-[color-mix(in_srgb,var(--app-text)_24%,transparent)]"
-                      style={{
-                        left: `calc(${dot.xPct}% + 8px)`,
-                        bottom: `${dot.yPx}px`,
-                        backgroundColor: dotColorByQuestState(dot.status),
-                        borderColor: dotBorderByQuestState(dot.status),
-                      }}
-                      onMouseEnter={() => setHoveredDotId(dot.id)}
-                      onMouseLeave={() => setHoveredDotId((prev) => (prev === dot.id ? null : prev))}
-                      onFocus={() => setHoveredDotId(dot.id)}
-                      onBlur={() => setHoveredDotId((prev) => (prev === dot.id ? null : prev))}
-                      title={`${dot.title} · ${toQuestStateBadge(dot.status)} · ${formatTime(dot.time)}`}
-                      aria-label={`${dot.title} ${toQuestStateBadge(dot.status)} ${formatTime(dot.time)}`}
-                    />
-                  ))}
-                  {hoveredDot ? (
-                    <div
-                      className="pointer-events-none absolute z-10 rounded-md border border-[color-mix(in_srgb,var(--app-text)_20%,transparent)] bg-[var(--app-panel)] px-2 py-1 text-[10px] uppercase tracking-[0.12em] text-[var(--app-text)] shadow-[0_8px_20px_rgba(0,0,0,0.35)]"
-                      style={{
-                        left: `calc(${hoveredDot.xPct}% + 16px)`,
-                        bottom: `${Math.min(hoveredDot.yPx + 18, 72)}px`,
-                        transform: 'translateX(-50%)',
-                      }}
-                    >
-                      {hoveredDot.title} • {formatTime(hoveredDot.time)} • {toQuestStateBadge(hoveredDot.status)}
-                    </div>
-                  ) : null}
-                </div>
-                <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-[10px] uppercase tracking-[0.12em] text-[var(--app-muted)]">
-                  {QUEST_STATE_LEGEND.map((entry) => (
-                    <span key={`legend-desktop-${entry.state}`} className="inline-flex items-center gap-1.5">
-                      <span
-                        className="h-2.5 w-2.5 rounded-full border"
-                        style={{
-                          backgroundColor: dotColorByQuestState(entry.state),
-                          borderColor: dotBorderByQuestState(entry.state),
-                        }}
-                      />
-                      {entry.label}
-                    </span>
-                  ))}
-                </div>
-              </>
-            ) : (
-              <div className="h-[88px] rounded-lg border border-[color-mix(in_srgb,var(--app-text)_8%,transparent)] bg-[color-mix(in_srgb,var(--app-panel-2)_65%,var(--app-panel))] px-3 py-2 flex items-center justify-between">
-                <div>
-                  <div className="text-[10px] uppercase tracking-[0.16em] text-[var(--app-muted)]">{activeTabLabel}</div>
-                  <div className="text-xs uppercase tracking-[0.14em] text-[var(--app-text)] mt-1">
-                    {dayConsoleRows.length} grouped items
-                  </div>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setMobileConsoleOpen(true)}
-                  className="px-2 py-1 rounded border border-[color-mix(in_srgb,var(--app-text)_20%,transparent)] text-[10px] uppercase tracking-[0.14em] text-[var(--app-muted)] hover:text-[var(--app-text)]"
-                >
-                  Quick Open
-                </button>
-              </div>
-            )}
+        <div className="hidden lg:grid lg:grid-cols-[minmax(0,14fr)_minmax(0,6fr)] gap-3 items-start">
+          <div className="rounded-xl bg-[var(--app-panel)] px-3 py-3">
+            <div className="mb-2 flex items-center justify-between gap-2">
+              <div className="text-[10px] uppercase tracking-[0.16em] text-[var(--app-muted)]">{activeTabLabel} • 24h timeline</div>
+              <button
+                type="button"
+                onClick={() => setTimelineExpanded(true)}
+                className="px-2 py-1 rounded border border-[color-mix(in_srgb,var(--app-text)_20%,transparent)] text-[10px] uppercase tracking-[0.14em] text-[var(--app-muted)] hover:text-[var(--app-text)]"
+              >
+                Expand
+              </button>
+            </div>
+            {renderTimelineChart()}
+            <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-[10px] uppercase tracking-[0.12em] text-[var(--app-muted)]">
+              {QUEST_STATE_LEGEND.map((entry) => (
+                <span key={`legend-desktop-${entry.state}`} className="inline-flex items-center gap-1.5">
+                  <span
+                    className="h-2.5 w-2.5 rounded-full border"
+                    style={{
+                      backgroundColor: dotColorByQuestState(entry.state),
+                      borderColor: dotBorderByQuestState(entry.state),
+                    }}
+                  />
+                  {entry.label}
+                </span>
+              ))}
+            </div>
           </div>
-          <div className="rounded-xl border border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-[var(--app-panel)] p-2.5">
+          <div className="rounded-xl bg-[var(--app-panel)] p-2.5">
             {renderCompactItemList()}
           </div>
         </div>
 
         <div className="lg:hidden space-y-2">
-          {sidePanelTab === 'timeline' ? (
-            <div className="rounded-xl border border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-[var(--app-panel)] p-3">
-              <div className="mb-2 flex items-center justify-between gap-2">
-                <div className="text-[10px] uppercase tracking-[0.16em] text-[var(--app-muted)]">24h Heatline</div>
-                <button
-                  type="button"
-                  onClick={() => setTimelineExpanded(true)}
-                  className="px-2 py-1 rounded border border-[color-mix(in_srgb,var(--app-text)_20%,transparent)] text-[10px] uppercase tracking-[0.14em] text-[var(--app-muted)]"
-                >
-                  Expand
-                </button>
-              </div>
-              <div className="h-[88px] rounded-lg border border-[color-mix(in_srgb,var(--app-text)_8%,transparent)] bg-[color-mix(in_srgb,var(--app-panel-2)_65%,var(--app-panel))] px-2 py-2 relative overflow-hidden">
-                <div className="absolute inset-x-2 bottom-5 h-px bg-[color-mix(in_srgb,var(--app-text)_16%,transparent)]" />
-                {timelineDots.map((dot) => (
-                  <button
-                    key={`timeline-mobile-dot-${dot.id}`}
-                    type="button"
-                    onClick={() => handleTimelineDotClick(dot.rowKey)}
-                    className="absolute h-2.5 w-2.5 rounded-full border border-[color-mix(in_srgb,var(--app-text)_24%,transparent)]"
+          <div className="rounded-xl bg-[var(--app-panel)] p-3">
+            <div className="mb-2 flex items-center justify-between gap-2">
+              <div className="text-[10px] uppercase tracking-[0.16em] text-[var(--app-muted)]">{activeTabLabel} • 24h timeline</div>
+              <button
+                type="button"
+                onClick={() => setTimelineExpanded(true)}
+                className="px-2 py-1 rounded border border-[color-mix(in_srgb,var(--app-text)_20%,transparent)] text-[10px] uppercase tracking-[0.14em] text-[var(--app-muted)]"
+              >
+                Expand
+              </button>
+            </div>
+            {renderTimelineChart(true)}
+            <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-[10px] uppercase tracking-[0.12em] text-[var(--app-muted)]">
+              {QUEST_STATE_LEGEND.map((entry) => (
+                <span key={`legend-mobile-${entry.state}`} className="inline-flex items-center gap-1.5">
+                  <span
+                    className="h-2.5 w-2.5 rounded-full border"
                     style={{
-                      left: `calc(${dot.xPct}% + 8px)`,
-                      bottom: `${dot.yPx}px`,
-                      backgroundColor: dotColorByQuestState(dot.status),
-                      borderColor: dotBorderByQuestState(dot.status),
+                      backgroundColor: dotColorByQuestState(entry.state),
+                      borderColor: dotBorderByQuestState(entry.state),
                     }}
-                    onMouseEnter={() => setHoveredDotId(dot.id)}
-                    onMouseLeave={() => setHoveredDotId((prev) => (prev === dot.id ? null : prev))}
-                    onFocus={() => setHoveredDotId(dot.id)}
-                    onBlur={() => setHoveredDotId((prev) => (prev === dot.id ? null : prev))}
                   />
-                ))}
-                {hoveredDot ? (
-                  <div
-                    className="pointer-events-none absolute z-10 rounded-md border border-[color-mix(in_srgb,var(--app-text)_20%,transparent)] bg-[var(--app-panel)] px-2 py-1 text-[10px] uppercase tracking-[0.12em] text-[var(--app-text)] shadow-[0_8px_20px_rgba(0,0,0,0.35)]"
-                    style={{
-                      left: `calc(${hoveredDot.xPct}% + 16px)`,
-                      bottom: `${Math.min(hoveredDot.yPx + 18, 72)}px`,
-                      transform: 'translateX(-50%)',
-                    }}
-                  >
-                    {hoveredDot.title} • {formatTime(hoveredDot.time)} • {toQuestStateBadge(hoveredDot.status)}
-                  </div>
-                ) : null}
-              </div>
-              <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-[10px] uppercase tracking-[0.12em] text-[var(--app-muted)]">
-                {QUEST_STATE_LEGEND.map((entry) => (
-                  <span key={`legend-mobile-${entry.state}`} className="inline-flex items-center gap-1.5">
-                    <span
-                      className="h-2.5 w-2.5 rounded-full border"
-                      style={{
-                        backgroundColor: dotColorByQuestState(entry.state),
-                        borderColor: dotBorderByQuestState(entry.state),
-                      }}
-                    />
-                    {entry.label}
-                  </span>
-                ))}
-              </div>
+                  {entry.label}
+                </span>
+              ))}
             </div>
-          ) : (
-            <div className="rounded-xl border border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-[var(--app-panel)] px-3 py-2 text-[10px] uppercase tracking-[0.16em] text-[var(--app-muted)]">
-              {activeTabLabel} list ({dayConsoleRows.length})
-            </div>
-          )}
+          </div>
           <button
             type="button"
             onClick={() => setMobileConsoleOpen(true)}
@@ -1469,24 +1436,38 @@ export const LogCalendar: React.FC = () => {
                 Close
               </button>
             </div>
-            <div className="h-[280px] rounded-lg border border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-[var(--app-panel)] px-4 py-4 relative overflow-hidden">
-              <div className="absolute inset-x-4 bottom-10 h-px bg-[color-mix(in_srgb,var(--app-text)_16%,transparent)]" />
-              <div className="absolute inset-x-4 top-4 h-[1px] bg-[linear-gradient(to_right,color-mix(in_srgb,var(--app-text)_7%,transparent)_1px,transparent_1px)] bg-[size:40px_100%] opacity-75" />
-              {timelineDots.map((dot, index) => (
-                <button
-                  key={`timeline-expanded-${dot.id}-${index}`}
-                  type="button"
-                  onClick={() => handleTimelineDotClick(dot.rowKey)}
-                  className="absolute h-3 w-3 rounded-full border border-[color-mix(in_srgb,var(--app-text)_24%,transparent)]"
-                  style={{
-                    left: `calc(${dot.xPct}% + 12px)`,
-                    bottom: `${32 + (index % 8) * 22}px`,
-                    backgroundColor: dotColorByQuestState(dot.status),
-                    borderColor: dotBorderByQuestState(dot.status),
-                  }}
-                  title={`${dot.title} · ${toQuestStateBadge(dot.status)} · ${formatTime(dot.time)}`}
-                />
-              ))}
+            <div className="h-[280px] rounded-lg bg-[var(--app-panel)] px-4 py-4 relative overflow-hidden">
+              <div className="absolute inset-x-5 top-4 bottom-12">
+                <div className="absolute inset-x-0 bottom-0 h-px bg-[color-mix(in_srgb,var(--app-text)_16%,transparent)]" />
+                {TIMELINE_HOUR_MARKERS.map((hour) => (
+                  <div
+                    key={`timeline-expanded-grid-${hour}`}
+                    className="absolute top-0 bottom-0 border-l border-[color-mix(in_srgb,var(--app-text)_9%,transparent)]"
+                    style={{ left: `${(hour / 24) * 100}%` }}
+                  />
+                ))}
+                {timelineDots.map((dot, index) => (
+                  <button
+                    key={`timeline-expanded-${dot.id}-${index}`}
+                    type="button"
+                    onClick={() => handleTimelineDotClick(dot.rowKey)}
+                    className="absolute h-3 w-3 rounded-full border border-[color-mix(in_srgb,var(--app-text)_24%,transparent)]"
+                    style={{
+                      left: `${dot.xPct}%`,
+                      bottom: `${Math.min(26 + (index % 10) * 20, 188)}px`,
+                      transform: 'translateX(-50%)',
+                      backgroundColor: dotColorByQuestState(dot.status),
+                      borderColor: dotBorderByQuestState(dot.status),
+                    }}
+                    title={`${dot.title} · ${toQuestStateBadge(dot.status)} · ${formatTime(dot.time)}`}
+                  />
+                ))}
+              </div>
+              <div className="absolute inset-x-5 bottom-4 flex items-center justify-between text-[9px] uppercase tracking-[0.12em] text-[var(--app-muted)]">
+                {TIMELINE_HOUR_MARKERS.map((hour) => (
+                  <span key={`timeline-expanded-hour-${hour}`}>{`${String(hour).padStart(2, '0')}:00`}</span>
+                ))}
+              </div>
             </div>
             <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-[10px] uppercase tracking-[0.12em] text-[var(--app-muted)]">
               {QUEST_STATE_LEGEND.map((entry) => (
