@@ -116,6 +116,7 @@ type NormalizedLogItem = {
 };
 
 type QuestRowState = 'done' | 'active' | 'scheduled' | 'failed' | 'skipped';
+type TaskCardTab = SidePanelTab | 'all';
 
 type DayConsoleRow = {
   key: string;
@@ -251,7 +252,10 @@ const normalizeDayItems = (params: {
   ];
 };
 
-const filterPanelItems = (items: NormalizedLogItem[], tab: SidePanelTab, now: number): NormalizedLogItem[] => {
+const filterTaskCardItems = (items: NormalizedLogItem[], tab: TaskCardTab, now: number): NormalizedLogItem[] => {
+  if (tab === 'all') {
+    return [...items].sort((a, b) => (b.startAt || 0) - (a.startAt || 0));
+  }
   const orderedDesc = [...items].sort((a, b) => (b.startAt || 0) - (a.startAt || 0));
 
   if (tab === 'timeline') {
@@ -268,11 +272,11 @@ const filterPanelItems = (items: NormalizedLogItem[], tab: SidePanelTab, now: nu
     .sort((a, b) => (a.startAt || 0) - (b.startAt || 0));
 };
 
-const getQuestRowKey = (item: NormalizedLogItem) => {
+const getQuestRowKey = (item: NormalizedLogItem, dateKey = '') => {
   if (item.taskId) return `task:${item.taskId}`;
   if (item.groupKey && item.groupKey.startsWith('task:')) return item.groupKey;
   const normalizedTitle = item.title.trim().toLowerCase();
-  if (normalizedTitle) return `title:${normalizedTitle}`;
+  if (normalizedTitle) return `title:${normalizedTitle}:${dateKey || 'day'}`;
   return item.groupKey || item.sourceRef || item.id;
 };
 
@@ -296,10 +300,16 @@ const getPrimaryTime = (items: NormalizedLogItem[]): number | undefined => {
     .reduce((latest, ts) => (ts > latest ? ts : latest), 0) || undefined;
 };
 
-const groupPanelItems = (items: NormalizedLogItem[]): DayConsoleRow[] => {
+const normalizeDayItemsToTaskCards = (
+  items: NormalizedLogItem[],
+  tab: TaskCardTab,
+  now: number,
+  dateKey: string
+): DayConsoleRow[] => {
+  const filtered = filterTaskCardItems(items, tab, now);
   const grouped = new Map<string, NormalizedLogItem[]>();
-  for (const item of items) {
-    const key = getQuestRowKey(item);
+  for (const item of filtered) {
+    const key = getQuestRowKey(item, dateKey);
     const existing = grouped.get(key) || [];
     existing.push(item);
     grouped.set(key, existing);
@@ -322,12 +332,11 @@ const groupPanelItems = (items: NormalizedLogItem[]): DayConsoleRow[] => {
     .sort((a, b) => (b.primaryTime || 0) - (a.primaryTime || 0));
 };
 
-const dotColorByStatus = (status: NormalizedLogItemStatus) => {
-  if (status === 'running') return 'var(--app-accent)';
-  if (status === 'done') return 'color-mix(in_srgb,var(--app-accent)_72%,white)';
-  if (status === 'failed') return 'color-mix(in_srgb,#ff5a6a_75%,var(--app-accent))';
-  if (status === 'scheduled') return 'color-mix(in_srgb,var(--app-accent)_45%,var(--app-text))';
-  if (status === 'todo') return 'color-mix(in_srgb,var(--app-text)_68%,var(--app-panel-2))';
+const dotColorByQuestState = (state: QuestRowState) => {
+  if (state === 'active') return 'var(--app-accent)';
+  if (state === 'done') return 'color-mix(in_srgb,var(--app-accent)_72%,white)';
+  if (state === 'failed') return 'color-mix(in_srgb,#ff5a6a_75%,var(--app-accent))';
+  if (state === 'scheduled') return 'color-mix(in_srgb,var(--app-accent)_45%,var(--app-text))';
   return 'color-mix(in_srgb,var(--app-accent)_30%,var(--app-text))';
 };
 
@@ -525,25 +534,38 @@ export const LogCalendar: React.FC = () => {
     [selectedKey, now, todayKey, tasks, selectedActivity, selectedActivityGroups, selectedScheduledTasks]
   );
 
-  const panelItems = useMemo(() => filterPanelItems(normalized, sidePanelTab, now), [normalized, sidePanelTab, now]);
-  const dayConsoleRows = useMemo(() => groupPanelItems(panelItems), [panelItems]);
+  const dayConsoleRows = useMemo(
+    () => normalizeDayItemsToTaskCards(normalized, sidePanelTab, now, selectedKey),
+    [normalized, sidePanelTab, now, selectedKey]
+  );
+  const fullHistoryRows = useMemo(
+    () => normalizeDayItemsToTaskCards(normalized, 'all', now, selectedKey),
+    [normalized, now, selectedKey]
+  );
+  const timelineRows = useMemo(
+    () => normalizeDayItemsToTaskCards(normalized, 'timeline', now, selectedKey),
+    [normalized, now, selectedKey]
+  );
   const timelineDots = useMemo(() => {
     const dayStart = fromDateKey(selectedKey).getTime();
     const dayEnd = dayStart + 86400000;
-    return normalized.map((item, index) => {
-      const startAt = item.startAt && Number.isFinite(item.startAt) ? item.startAt : undefined;
-      const safeTime = startAt ? Math.min(Math.max(startAt, dayStart), dayEnd - 1) : dayStart + index * 60000;
+    return timelineRows.map((row, index) => {
+      const safeTime = row.primaryTime
+        ? Math.min(Math.max(row.primaryTime, dayStart), dayEnd - 1)
+        : dayStart + index * 60000;
       const minute = Math.max(0, Math.floor((safeTime - dayStart) / 60000));
       return {
-        id: item.id,
-        title: item.title,
-        status: item.status,
+        id: row.key,
+        title: row.title,
+        status: row.state,
+        rowKey: row.key,
+        rowTaskId: row.taskId,
         time: safeTime,
         xPct: (minute / 1439) * 100,
         yPx: 18 + (index % 4) * 14,
       };
     });
-  }, [normalized, selectedKey]);
+  }, [timelineRows, selectedKey]);
   const hoveredDot = useMemo(
     () => (hoveredDotId ? timelineDots.find((dot) => dot.id === hoveredDotId) || null : null),
     [timelineDots, hoveredDotId]
@@ -643,7 +665,7 @@ export const LogCalendar: React.FC = () => {
 
   const handlePanelItemClick = useCallback(
     (item: NormalizedLogItem) => {
-      const panelKey = getQuestRowKey(item);
+      const panelKey = getQuestRowKey(item, selectedKey);
       setExpandedPanelItemId(panelKey);
       setHighlightedPanelKey(panelKey);
       window.setTimeout(() => {
@@ -657,7 +679,30 @@ export const LogCalendar: React.FC = () => {
 
       if (historyModalOpen) jumpToGroup(item);
     },
-    [jumpToGroup, historyModalOpen]
+    [jumpToGroup, historyModalOpen, selectedKey]
+  );
+
+  const handleTimelineDotClick = useCallback(
+    (rowKey: string) => {
+      const row = timelineRows.find((candidate) => candidate.key === rowKey);
+      if (!row) return;
+      setExpandedPanelItemId(row.key);
+      setHighlightedPanelKey(row.key);
+      window.setTimeout(() => {
+        setHighlightedPanelKey((prev) => (prev === row.key ? null : prev));
+      }, 1400);
+
+      const panelRow = document.getElementById(`day-console-row-${row.key}`);
+      if (panelRow) {
+        panelRow.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+
+      const headItem = row.items[0];
+      if (headItem && historyModalOpen) {
+        jumpToGroup(headItem);
+      }
+    },
+    [timelineRows, historyModalOpen, jumpToGroup]
   );
 
   const renderCompactItemList = (mobile = false) => (
@@ -833,22 +878,19 @@ export const LogCalendar: React.FC = () => {
                     <button
                       key={`timeline-dot-${dot.id}`}
                       type="button"
-                      onClick={() => {
-                        const match = normalized.find((item) => item.id === dot.id);
-                        if (match) handlePanelItemClick(match);
-                      }}
+                      onClick={() => handleTimelineDotClick(dot.rowKey)}
                       className="absolute h-2.5 w-2.5 rounded-full border border-[color-mix(in_srgb,var(--app-text)_24%,transparent)]"
                       style={{
                         left: `calc(${dot.xPct}% + 8px)`,
                         bottom: `${dot.yPx}px`,
-                        backgroundColor: dotColorByStatus(dot.status),
+                        backgroundColor: dotColorByQuestState(dot.status),
                       }}
                       onMouseEnter={() => setHoveredDotId(dot.id)}
                       onMouseLeave={() => setHoveredDotId((prev) => (prev === dot.id ? null : prev))}
                       onFocus={() => setHoveredDotId(dot.id)}
                       onBlur={() => setHoveredDotId((prev) => (prev === dot.id ? null : prev))}
-                      title={`${dot.title} · ${toPanelBadge(dot.status)} · ${formatTime(dot.time)}`}
-                      aria-label={`${dot.title} ${toPanelBadge(dot.status)} ${formatTime(dot.time)}`}
+                      title={`${dot.title} · ${toQuestStateBadge(dot.status)} · ${formatTime(dot.time)}`}
+                      aria-label={`${dot.title} ${toQuestStateBadge(dot.status)} ${formatTime(dot.time)}`}
                     />
                   ))}
                   {hoveredDot ? (
@@ -860,7 +902,7 @@ export const LogCalendar: React.FC = () => {
                         transform: 'translateX(-50%)',
                       }}
                     >
-                      {hoveredDot.title} • {formatTime(hoveredDot.time)} • {toPanelBadge(hoveredDot.status)}
+                      {hoveredDot.title} • {formatTime(hoveredDot.time)} • {toQuestStateBadge(hoveredDot.status)}
                     </div>
                   ) : null}
                 </div>
@@ -907,15 +949,12 @@ export const LogCalendar: React.FC = () => {
                   <button
                     key={`timeline-mobile-dot-${dot.id}`}
                     type="button"
-                    onClick={() => {
-                      const match = normalized.find((item) => item.id === dot.id);
-                      if (match) handlePanelItemClick(match);
-                    }}
+                    onClick={() => handleTimelineDotClick(dot.rowKey)}
                     className="absolute h-2.5 w-2.5 rounded-full border border-[color-mix(in_srgb,var(--app-text)_24%,transparent)]"
                     style={{
                       left: `calc(${dot.xPct}% + 8px)`,
                       bottom: `${dot.yPx}px`,
-                      backgroundColor: dotColorByStatus(dot.status),
+                      backgroundColor: dotColorByQuestState(dot.status),
                     }}
                     onMouseEnter={() => setHoveredDotId(dot.id)}
                     onMouseLeave={() => setHoveredDotId((prev) => (prev === dot.id ? null : prev))}
@@ -932,7 +971,7 @@ export const LogCalendar: React.FC = () => {
                       transform: 'translateX(-50%)',
                     }}
                   >
-                    {hoveredDot.title} • {formatTime(hoveredDot.time)} • {toPanelBadge(hoveredDot.status)}
+                    {hoveredDot.title} • {formatTime(hoveredDot.time)} • {toQuestStateBadge(hoveredDot.status)}
                   </div>
                 ) : null}
               </div>
@@ -1243,38 +1282,18 @@ export const LogCalendar: React.FC = () => {
               </div>
             </div>
 
-            {selectedActivityGroups.length === 0 ? (
+            {fullHistoryRows.length === 0 ? (
               <div className="text-sm text-[var(--app-muted)]">No activity found on this date.</div>
             ) : (
               <div className="space-y-2 max-h-[70dvh] overflow-y-auto pr-1">
-                {selectedActivityGroups.map((group) => {
-                  const statusText = group.hasCompletion
-                    ? group.totalMinutes > 0
-                      ? 'COMPLETED'
-                      : 'COMPLETED (NO TIME)'
-                    : group.hasRunning
-                      ? 'RUNNING'
-                      : group.hasRetro && !group.hasSession
-                        ? 'RETRO'
-                        : group.hasCreated
-                          ? group.latestStatusLabel
-                          : 'TRACKED';
-                  const detailText = `${group.totalMinutes}m · ${group.entries.length} entries`;
-                  const isExpanded = expandedGroupKey === group.key;
-                  const hasCreated = group.entries.some((entry) => entry.kind === 'created' && entry.statusLabel === 'CREATED');
-                  const hasScheduled = group.entries.some((entry) => entry.kind === 'created' && entry.statusLabel === 'SCHEDULED');
-                  const hasHidden = group.entries.some((entry) => entry.kind === 'created' && entry.statusLabel === 'HIDDEN');
-                  const retroMinutes = group.entries
-                    .filter((entry) => entry.kind === 'manual')
-                    .reduce((sum, entry) => sum + Math.max(0, entry.minutes), 0);
-                  const trackedMinutes = group.entries
-                    .filter((entry) => entry.kind === 'session')
-                    .reduce((sum, entry) => sum + Math.max(0, entry.minutes), 0);
-                  const isHighlighted = highlightedGroupKey === group.key;
+                {fullHistoryRows.map((row) => {
+                  const isExpanded = expandedGroupKey === row.key;
+                  const isHighlighted = highlightedGroupKey === row.key;
+                  const headItem = row.items[0];
                   return (
                     <div
-                      id={`day-history-group-${group.key}`}
-                      key={group.key}
+                      id={`day-history-group-${row.key}`}
+                      key={row.key}
                       className={`rounded-lg border px-3 py-2 transition-colors ${
                         isHighlighted
                           ? 'border-[color-mix(in_srgb,var(--app-accent)_65%,transparent)] bg-[color-mix(in_srgb,var(--app-accent)_12%,var(--app-panel-2))]'
@@ -1282,52 +1301,31 @@ export const LogCalendar: React.FC = () => {
                       }`}
                     >
                       <div className="flex items-center justify-between gap-3">
-                        <div className="min-w-0">
-                          <div className="text-sm font-normal text-[var(--app-text)] truncate">{group.title}</div>
-                          <div className="text-xs text-[var(--app-muted)] mt-1 flex items-center gap-2">
-                            <span className="uppercase tracking-[0.18em]">{statusText}</span>
-                            <span>·</span>
-                            <span>{detailText}</span>
-                            <span>·</span>
-                            <span>{formatTime(group.latestAt)}</span>
-                          </div>
-                          <div className="mt-2 flex items-center gap-2 flex-wrap">
-                            {hasCreated ? (
-                              <span className="text-[10px] rounded px-2 py-0.5 bg-[var(--app-panel-2)] text-[var(--app-text)]">CREATED</span>
-                            ) : null}
-                            {hasScheduled ? (
-                              <span className="text-[10px] rounded px-2 py-0.5 bg-[var(--app-panel-2)] text-[var(--app-text)]">SCHEDULED</span>
-                            ) : null}
-                            {group.hasCompletion ? (
-                              <span className="text-[10px] rounded px-2 py-0.5 bg-[color-mix(in_srgb,var(--app-accent)_18%,var(--app-panel-2))] text-[var(--app-accent)]">DONE</span>
-                            ) : null}
-                            {retroMinutes > 0 ? (
-                              <span className="text-[10px] rounded px-2 py-0.5 bg-[var(--app-panel-2)] text-[var(--app-text)]">RETRO +{retroMinutes}m</span>
-                            ) : null}
-                            {trackedMinutes > 0 ? (
-                              <span className="text-[10px] rounded px-2 py-0.5 bg-[color-mix(in_srgb,var(--app-accent)_20%,var(--app-panel-2))] text-[var(--app-accent)]">TRACKED {trackedMinutes}m</span>
-                            ) : null}
-                            {hasHidden ? (
-                              <span className="text-[10px] rounded px-2 py-0.5 bg-[var(--app-panel-2)] text-[var(--app-text)]">HIDDEN</span>
-                            ) : null}
-                          </div>
+                        <div className="min-w-0 flex-1 flex items-center gap-2">
+                          <div className="text-sm font-normal text-[var(--app-text)] truncate">{row.title}</div>
+                          <span className="inline-flex rounded px-1.5 py-0.5 text-[9px] uppercase tracking-[0.14em] bg-[color-mix(in_srgb,var(--app-accent)_16%,var(--app-panel-2))] text-[var(--app-accent)] shrink-0">
+                            {toQuestStateBadge(row.state)}
+                          </span>
+                          <span className="text-[10px] uppercase tracking-[0.12em] text-[var(--app-muted)] shrink-0">
+                            {row.primaryTime ? formatTime(row.primaryTime) : '--:--'}
+                          </span>
                         </div>
                         <div className="flex items-center gap-2 shrink-0">
                           <button
                             type="button"
-                            onClick={() => setExpandedGroupKey((prev) => (prev === group.key ? null : group.key))}
+                            onClick={() => setExpandedGroupKey((prev) => (prev === row.key ? null : row.key))}
                             className="px-2 py-1 rounded border border-[color-mix(in_srgb,var(--app-text)_20%,transparent)] text-[11px] text-[var(--app-muted)] hover:border-[color-mix(in_srgb,var(--app-text)_40%,transparent)]"
                           >
                             {isExpanded ? 'Hide' : 'Details'}
                           </button>
-                          {group.taskId ? (
+                          {row.taskId ? (
                             <button
                               type="button"
                               onClick={() => {
                                 const ok = window.confirm('Delete this quest and all linked activity?');
                                 if (!ok) return;
-                                deleteTaskCompletely(group.taskId);
-                                setExpandedGroupKey((prev) => (prev === group.key ? null : prev));
+                                deleteTaskCompletely(row.taskId);
+                                setExpandedGroupKey((prev) => (prev === row.key ? null : prev));
                               }}
                               className="px-2 py-1 rounded border border-[color-mix(in_srgb,var(--app-accent)_45%,transparent)] text-[11px] uppercase tracking-[0.12em] text-[var(--app-accent)] hover:border-[var(--app-accent)]"
                               title="Delete quest and all linked activity"
@@ -1339,28 +1337,47 @@ export const LogCalendar: React.FC = () => {
                       </div>
                       {isExpanded ? (
                         <div className="mt-2 pt-2 border-t border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] space-y-2">
-                          {group.entries.map((entry) => {
-                            const entryLabel =
-                              entry.kind === 'completion'
-                                ? entry.minutes > 0
-                                  ? `COMPLETED ${entry.minutes}m`
-                                  : 'COMPLETED NO TIME'
-                                : entry.kind === 'manual'
-                                  ? `RETRO +${entry.minutes}m`
-                                  : entry.kind === 'created'
-                                    ? entry.statusLabel
-                                    : `${entry.minutes}m TRACKED`;
+                          {row.items.map((entry) => {
                             return (
-                              <div
-                                key={`${group.key}-${entry.kind}-${entry.id}`}
-                                className="rounded border border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-[var(--app-panel-2)] px-2 py-1.5"
+                              <button
+                                type="button"
+                                key={`${row.key}-${entry.id}`}
+                                onClick={() => handlePanelItemClick(entry)}
+                                className="w-full rounded border border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-[var(--app-panel-2)] px-2 py-1.5 text-left hover:border-[color-mix(in_srgb,var(--app-accent)_40%,transparent)]"
                               >
                                 <div className="text-[11px] text-[var(--app-muted)] uppercase tracking-[0.14em] truncate">
-                                  {entryLabel} · {formatTime(entry.createdAt)}
+                                  {toPanelSubtitle(entry)} · {entry.startAt ? formatTime(entry.startAt) : '--:--'}
                                 </div>
-                              </div>
+                              </button>
                             );
                           })}
+                          <div className="flex flex-wrap items-center gap-1.5">
+                            <button
+                              type="button"
+                              onClick={() => {
+                                if (headItem) setDetailItem(headItem);
+                              }}
+                              className="px-2 py-1 rounded border border-[color-mix(in_srgb,var(--app-text)_20%,transparent)] text-[10px] uppercase tracking-[0.14em] text-[var(--app-muted)] hover:text-[var(--app-text)]"
+                            >
+                              Details
+                            </button>
+                            {row.taskId ? (
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  startSession({
+                                    title: row.title,
+                                    tag: 'calendar',
+                                    source: 'timer',
+                                    linkedTaskIds: [row.taskId],
+                                  })
+                                }
+                                className="px-2 py-1 rounded border border-[color-mix(in_srgb,var(--app-accent)_45%,transparent)] text-[10px] uppercase tracking-[0.14em] text-[var(--app-accent)] hover:border-[var(--app-accent)]"
+                              >
+                                Start
+                              </button>
+                            ) : null}
+                          </div>
                         </div>
                       ) : null}
                     </div>
@@ -1398,17 +1415,14 @@ export const LogCalendar: React.FC = () => {
                 <button
                   key={`timeline-expanded-${dot.id}-${index}`}
                   type="button"
-                  onClick={() => {
-                    const match = normalized.find((item) => item.id === dot.id);
-                    if (match) handlePanelItemClick(match);
-                  }}
+                  onClick={() => handleTimelineDotClick(dot.rowKey)}
                   className="absolute h-3 w-3 rounded-full border border-[color-mix(in_srgb,var(--app-text)_24%,transparent)]"
                   style={{
                     left: `calc(${dot.xPct}% + 12px)`,
                     bottom: `${32 + (index % 8) * 22}px`,
-                    backgroundColor: dotColorByStatus(dot.status),
+                    backgroundColor: dotColorByQuestState(dot.status),
                   }}
-                  title={`${dot.title} · ${toPanelBadge(dot.status)} · ${formatTime(dot.time)}`}
+                  title={`${dot.title} · ${toQuestStateBadge(dot.status)} · ${formatTime(dot.time)}`}
                 />
               ))}
             </div>
