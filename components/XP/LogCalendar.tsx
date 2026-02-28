@@ -115,11 +115,13 @@ type NormalizedLogItem = {
   subtitle?: string;
 };
 
+type QuestRowState = 'done' | 'active' | 'scheduled' | 'failed' | 'skipped';
+
 type DayConsoleRow = {
   key: string;
   title: string;
-  status: NormalizedLogItemStatus;
-  startAt?: number;
+  state: QuestRowState;
+  primaryTime?: number;
   groupKey?: string;
   taskId?: string;
   items: NormalizedLogItem[];
@@ -266,27 +268,38 @@ const filterPanelItems = (items: NormalizedLogItem[], tab: SidePanelTab, now: nu
     .sort((a, b) => (a.startAt || 0) - (b.startAt || 0));
 };
 
-const statusRank: Record<NormalizedLogItemStatus, number> = {
-  running: 7,
-  failed: 6,
-  todo: 5,
-  scheduled: 4,
-  done: 3,
-  retro: 2,
-  tracked: 1,
-  created: 0,
+const getQuestRowKey = (item: NormalizedLogItem) => {
+  if (item.taskId) return `task:${item.taskId}`;
+  if (item.groupKey && item.groupKey.startsWith('task:')) return item.groupKey;
+  const normalizedTitle = item.title.trim().toLowerCase();
+  if (normalizedTitle) return `title:${normalizedTitle}`;
+  return item.groupKey || item.sourceRef || item.id;
 };
 
-const toRowStatus = (items: NormalizedLogItem[]): NormalizedLogItemStatus =>
-  items.reduce(
-    (best, item) => (statusRank[item.status] > statusRank[best] ? item.status : best),
-    items[0]?.status ?? 'tracked'
-  );
+const toQuestState = (items: NormalizedLogItem[]): QuestRowState => {
+  const statuses = new Set(items.map((item) => item.status));
+  if (statuses.has('running') || statuses.has('todo')) return 'active';
+  if (statuses.has('scheduled')) return 'scheduled';
+  if (statuses.has('done')) return 'done';
+  if (statuses.has('failed')) return 'failed';
+  return 'skipped';
+};
+
+const getPrimaryTime = (items: NormalizedLogItem[]): number | undefined => {
+  const scheduledTimes = items
+    .filter((item) => item.status === 'scheduled' && Number.isFinite(item.startAt))
+    .map((item) => item.startAt as number)
+    .sort((a, b) => a - b);
+  if (scheduledTimes.length > 0) return scheduledTimes[0];
+  return items
+    .map((item) => (Number.isFinite(item.startAt) ? (item.startAt as number) : 0))
+    .reduce((latest, ts) => (ts > latest ? ts : latest), 0) || undefined;
+};
 
 const groupPanelItems = (items: NormalizedLogItem[]): DayConsoleRow[] => {
   const grouped = new Map<string, NormalizedLogItem[]>();
   for (const item of items) {
-    const key = item.groupKey || item.taskId || item.sourceRef || item.id;
+    const key = getQuestRowKey(item);
     const existing = grouped.get(key) || [];
     existing.push(item);
     grouped.set(key, existing);
@@ -299,14 +312,14 @@ const groupPanelItems = (items: NormalizedLogItem[]): DayConsoleRow[] => {
       return {
         key,
         title: head?.title || 'Untitled',
-        status: toRowStatus(sorted),
-        startAt: head?.startAt,
+        state: toQuestState(sorted),
+        primaryTime: getPrimaryTime(sorted),
         groupKey: head?.groupKey,
         taskId: head?.taskId,
         items: sorted,
       } satisfies DayConsoleRow;
     })
-    .sort((a, b) => (b.startAt || 0) - (a.startAt || 0));
+    .sort((a, b) => (b.primaryTime || 0) - (a.primaryTime || 0));
 };
 
 const dotColorByStatus = (status: NormalizedLogItemStatus) => {
@@ -337,6 +350,22 @@ const toPanelBadge = (status: NormalizedLogItemStatus) => {
     case 'tracked':
     default:
       return 'TRACKED';
+  }
+};
+
+const toQuestStateBadge = (state: QuestRowState) => {
+  switch (state) {
+    case 'done':
+      return 'Done';
+    case 'active':
+      return 'Active';
+    case 'scheduled':
+      return 'Scheduled';
+    case 'failed':
+      return 'Failed';
+    case 'skipped':
+    default:
+      return 'Skipped';
   }
 };
 
@@ -614,7 +643,7 @@ export const LogCalendar: React.FC = () => {
 
   const handlePanelItemClick = useCallback(
     (item: NormalizedLogItem) => {
-      const panelKey = item.groupKey || (item.taskId ? `task:${item.taskId}` : item.sourceRef || item.id);
+      const panelKey = getQuestRowKey(item);
       setExpandedPanelItemId(panelKey);
       setHighlightedPanelKey(panelKey);
       window.setTimeout(() => {
@@ -632,7 +661,7 @@ export const LogCalendar: React.FC = () => {
   );
 
   const renderCompactItemList = (mobile = false) => (
-    <div className={`${mobile ? 'max-h-[58dvh]' : 'max-h-[45vh]'} overflow-y-auto pr-1 space-y-1.5`}>
+    <div className={`${mobile ? 'max-h-[58dvh]' : 'max-h-[55vh]'} overflow-y-auto pr-1 space-y-1.5`}>
       {dayConsoleRows.length === 0 ? (
         <div className="rounded-lg border border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-[var(--app-panel)] p-3 text-[11px] uppercase tracking-[0.14em] text-[var(--app-muted)]">
           No items for this tab.
@@ -641,8 +670,7 @@ export const LogCalendar: React.FC = () => {
         dayConsoleRows.map((row) => {
           const expanded = expandedPanelItemId === row.key;
           const headItem = row.items[0];
-          const isStartable =
-            !!row.taskId && (row.status === 'todo' || row.status === 'scheduled' || row.status === 'failed');
+          const isStartable = !!row.taskId && (row.state === 'scheduled' || row.state === 'failed' || row.state === 'skipped');
           return (
             <div
               key={row.key}
@@ -666,10 +694,10 @@ export const LogCalendar: React.FC = () => {
                     {row.title}
                   </div>
                   <span className="inline-flex rounded px-1.5 py-0.5 text-[9px] uppercase tracking-[0.14em] bg-[color-mix(in_srgb,var(--app-accent)_16%,var(--app-panel-2))] text-[var(--app-accent)] shrink-0">
-                    {toPanelBadge(row.status)}
+                    {toQuestStateBadge(row.state)}
                   </span>
                   <span className="text-[10px] uppercase tracking-[0.12em] text-[var(--app-muted)] shrink-0">
-                    {row.startAt ? formatTime(row.startAt) : '--:--'}
+                    {row.primaryTime ? formatTime(row.primaryTime) : '--:--'}
                   </span>
                 </div>
               </button>
