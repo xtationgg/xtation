@@ -629,6 +629,15 @@ export const LogCalendar: React.FC = () => {
     () => normalizeDayItemsToTaskCards(normalized, sidePanelTab, now, selectedKey, ensureArray(tasks)),
     [normalized, sidePanelTab, now, selectedKey, tasks]
   );
+  const sidePanelTabCounts = useMemo<Record<SidePanelTab, number>>(() => {
+    const safeTasks = ensureArray(tasks);
+    return {
+      timeline: normalizeDayItemsToTaskCards(normalized, 'timeline', now, selectedKey, safeTasks).length,
+      unfinished: normalizeDayItemsToTaskCards(normalized, 'unfinished', now, selectedKey, safeTasks).length,
+      completed: normalizeDayItemsToTaskCards(normalized, 'completed', now, selectedKey, safeTasks).length,
+      scheduled: normalizeDayItemsToTaskCards(normalized, 'scheduled', now, selectedKey, safeTasks).length,
+    };
+  }, [normalized, now, selectedKey, tasks]);
   const fullHistoryRows = useMemo(
     () => normalizeDayItemsToTaskCards(normalized, 'all', now, selectedKey, ensureArray(tasks)),
     [normalized, now, selectedKey, tasks]
@@ -696,6 +705,12 @@ export const LogCalendar: React.FC = () => {
     () => (hoveredDotId ? visibleTimelineDots.find((dot) => dot.id === hoveredDotId) || null : null),
     [visibleTimelineDots, hoveredDotId]
   );
+  const nowMarkerX = useMemo(() => {
+    if (selectedKey !== todayKey) return null;
+    const nowDate = new Date(now);
+    const minutes = nowDate.getHours() * 60 + nowDate.getMinutes();
+    return (minutes / 1439) * 100;
+  }, [selectedKey, todayKey, now]);
 
   const rangeLabel = useMemo(
     () => RANGE_OPTIONS.find((option) => option.value === rangeMode)?.label ?? rangeMode,
@@ -1040,6 +1055,16 @@ export const LogCalendar: React.FC = () => {
               style={{ left: `${hoveredDot.xPct}%` }}
             />
           ) : null}
+          {nowMarkerX !== null ? (
+            <div
+              className="pointer-events-none absolute top-0 bottom-0 border-l border-dashed border-[color-mix(in_srgb,var(--app-accent)_55%,transparent)]"
+              style={{ left: `${nowMarkerX}%` }}
+            >
+              <span className="absolute -top-4 -translate-x-1/2 rounded px-1 py-0.5 text-[8px] uppercase tracking-[0.12em] text-[var(--app-accent)] bg-[color-mix(in_srgb,var(--app-accent)_14%,var(--app-panel))]">
+                Now
+              </span>
+            </div>
+          ) : null}
           {visibleTimelineDots.map((dot) => (
             <button
               key={`timeline-dot-${mobile ? 'mobile-' : ''}${dot.id}`}
@@ -1155,7 +1180,7 @@ export const LogCalendar: React.FC = () => {
                 : 'border-[color-mix(in_srgb,var(--app-text)_14%,transparent)] bg-[var(--app-panel-2)] text-[var(--app-muted)] hover:text-[var(--app-text)] hover:-translate-y-[1px]'
             }`}
           >
-            {tab.label}
+            {tab.label} ({sidePanelTabCounts[tab.value]})
           </button>
         ))}
       </div>
@@ -1273,7 +1298,7 @@ export const LogCalendar: React.FC = () => {
             onClick={() => setMobileConsoleOpen(true)}
             className="w-full px-3 py-2 rounded-lg border border-[color-mix(in_srgb,var(--app-accent)_45%,transparent)] bg-[color-mix(in_srgb,var(--app-accent)_12%,var(--app-panel))] text-[10px] uppercase tracking-[0.16em] text-[var(--app-accent)]"
           >
-            Open {activeTabLabel}
+            Open {activeTabLabel} ({sidePanelTabCounts[sidePanelTab]})
           </button>
         </div>
       </div>
@@ -1717,6 +1742,16 @@ export const LogCalendar: React.FC = () => {
                 ))}
                 <div className="absolute left-0 top-[10px] text-[9px] uppercase tracking-[0.14em] text-[var(--app-muted)]">Planned</div>
                 <div className="absolute left-0 top-[86px] text-[9px] uppercase tracking-[0.14em] text-[var(--app-muted)]">Actual</div>
+                {nowMarkerX !== null ? (
+                  <div
+                    className="pointer-events-none absolute top-0 bottom-0 border-l border-dashed border-[color-mix(in_srgb,var(--app-accent)_55%,transparent)]"
+                    style={{ left: `${nowMarkerX}%` }}
+                  >
+                    <span className="absolute -top-4 -translate-x-1/2 rounded px-1 py-0.5 text-[8px] uppercase tracking-[0.12em] text-[var(--app-accent)] bg-[color-mix(in_srgb,var(--app-accent)_14%,var(--app-panel))]">
+                      Now
+                    </span>
+                  </div>
+                ) : null}
                 {visibleTimelineDots.map((dot, index) => (
                   <button
                     key={`timeline-expanded-${dot.id}-${index}`}
