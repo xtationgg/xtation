@@ -127,7 +127,7 @@ export const TopBar: React.FC<TopBarProps> = ({
       <div className="h-full w-[84px] sm:w-[96px] md:w-[132px] shrink-0" aria-hidden="true"></div>
 
       {/* Middle: Navigation */}
-      <div className="flex-1 flex items-center h-full overflow-x-auto no-scrollbar min-w-0">
+      <div className="xt-nav-tabs flex-1 flex items-center h-full overflow-x-auto no-scrollbar min-w-0">
         <NavTab label="Home" isActive={currentView === ClientView.HOME} onClick={() => onChangeView(ClientView.HOME)} />
         <NavTab label="Earth" isActive={currentView === ClientView.TFT} onClick={() => onChangeView(ClientView.TFT)} />
         <NavTab label="Multiplayer" isActive={currentView === ClientView.MULTIPLAYER} onClick={() => onChangeView(ClientView.MULTIPLAYER)} />

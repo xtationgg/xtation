@@ -146,9 +146,10 @@ export const NavTab: React.FC<NavTabProps> = ({ label, isActive, onClick }) => {
 
   return (
     <button
+      data-active={isActive ? 'true' : 'false'}
       onClick={handleClick}
       onMouseEnter={playHoverSound}
-      className={`relative h-full px-4 sm:px-6 md:px-8 font-mono uppercase tracking-[0.15em] text-[10px] sm:text-xs font-bold
+      className={`xt-nav-tab relative h-full px-4 sm:px-6 md:px-8 font-mono uppercase tracking-[0.15em] text-[10px] sm:text-xs font-bold
         transition-all duration-200 border-r border-[var(--app-border)] group overflow-hidden flex items-center justify-center
         ${isActive 
           ? 'text-[var(--app-text)] bg-[color-mix(in_srgb,var(--app-accent)_22%,var(--app-panel))] shadow-[inset_0_0_20px_rgba(0,0,0,0.2)]' 
@@ -157,13 +158,13 @@ export const NavTab: React.FC<NavTabProps> = ({ label, isActive, onClick }) => {
     >
       {/* Active Background Pattern */}
       {isActive && (
-        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0IiBoZWlnaHQ9IjQiPgo8cmVjdCB3aWR0aD0iMSIgaGVpZ2h0PSIxIiBmaWxsPSIjMDAwIiBmaWxsLW9wYWNpdHk9IjAuMSIvPjwvc3ZnPg==')] opacity-60" />
+        <div className="xt-nav-active-bg absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0IiBoZWlnaHQ9IjQiPgo8cmVjdCB3aWR0aD0iMSIgaGVpZ2h0PSIxIiBmaWxsPSIjMDAwIiBmaWxsLW9wYWNpdHk9IjAuMSIvPjwvc3ZnPg==')] opacity-60" />
       )}
 
-      <span className={`relative z-10 flex items-center gap-2 ${!isActive ? 'hover-text-glitch' : ''}`}>
+      <span className={`xt-nav-label relative z-10 flex items-center gap-2 ${!isActive ? 'hover-text-glitch' : ''}`}>
         {/* Terminal Activation Cursor */}
         {isActive && (
-          <span className="text-[var(--app-accent)] animate-blink font-black">
+          <span className="xt-nav-caret text-[var(--app-accent)] animate-blink font-black">
             {'>'}
           </span>
         )}
@@ -173,16 +174,16 @@ export const NavTab: React.FC<NavTabProps> = ({ label, isActive, onClick }) => {
       {/* Active Indicators - Terminal Highlights */}
       {isActive && (
         <>
-          <div className="absolute top-0 left-0 w-full h-[2px] bg-[var(--app-accent)]" />
-          <div className="absolute bottom-0 right-0 w-3 h-3 bg-[var(--app-accent)]" />
-          <div className="absolute top-0 right-0 w-1 h-1 bg-[var(--app-bg)]" />
-          <div className="absolute bottom-0 left-0 w-1 h-1 bg-[var(--app-bg)]" />
+          <div className="xt-nav-active-indicators absolute top-0 left-0 w-full h-[2px] bg-[var(--app-accent)]" />
+          <div className="xt-nav-active-indicators absolute bottom-0 right-0 w-3 h-3 bg-[var(--app-accent)]" />
+          <div className="xt-nav-active-indicators absolute top-0 right-0 w-1 h-1 bg-[var(--app-bg)]" />
+          <div className="xt-nav-active-indicators absolute bottom-0 left-0 w-1 h-1 bg-[var(--app-bg)]" />
         </>
       )}
       
       {/* Hover decorative line */}
       {!isActive && (
-        <div className="absolute bottom-0 left-0 h-[2px] w-0 bg-[var(--app-accent)] group-hover:w-full transition-all duration-300" />
+        <div className="xt-nav-hover-line absolute bottom-0 left-0 h-[2px] w-0 bg-[var(--app-accent)] group-hover:w-full transition-all duration-300" />
       )}
     </button>
   );
