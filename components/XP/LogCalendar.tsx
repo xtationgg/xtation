@@ -632,6 +632,19 @@ export const LogCalendar: React.FC = () => {
     [normalized, now, selectedKey, tasks]
   );
   const timelineRows = dayConsoleRows;
+  const stateCountByLegend = useMemo(() => {
+    const counts: Record<QuestRowState, number> = {
+      active: 0,
+      done: 0,
+      todo: 0,
+      scheduled: 0,
+      failed: 0,
+    };
+    timelineRows.forEach((row) => {
+      counts[row.state] += 1;
+    });
+    return counts;
+  }, [timelineRows]);
   const timelineDots = useMemo(() => {
     const dayStart = fromDateKey(selectedKey).getTime();
     const dayEnd = dayStart + 86400000;
@@ -826,7 +839,7 @@ export const LogCalendar: React.FC = () => {
   }, []);
 
   const renderCompactItemList = (mobile = false) => (
-    <div className={`${mobile ? 'max-h-[58dvh]' : 'max-h-[40vh] xl:max-h-[52vh]'} overflow-y-auto pr-1 space-y-2`}>
+    <div className={`${mobile ? 'max-h-[58dvh]' : 'max-h-[40vh] xl:max-h-[52vh]'} overflow-y-auto overscroll-contain pr-1 space-y-2`}>
       {dayConsoleRows.length === 0 ? (
         <div className="rounded-lg border border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-[var(--app-panel)] p-3 text-[11px] uppercase tracking-[0.14em] text-[var(--app-muted)]">
           No items for this tab.
@@ -1005,10 +1018,26 @@ export const LogCalendar: React.FC = () => {
                 borderColor: dotBorderByQuestState(dot.status),
                 borderStyle: dot.inferred ? 'dashed' : 'solid',
               }}
-              onMouseEnter={() => setHoveredDotId(dot.id)}
-              onMouseLeave={() => setHoveredDotId((prev) => (prev === dot.id ? null : prev))}
-              onFocus={() => setHoveredDotId(dot.id)}
-              onBlur={() => setHoveredDotId((prev) => (prev === dot.id ? null : prev))}
+              onMouseEnter={() => {
+                setHoveredDotId(dot.id);
+                setHighlightedPanelKey(dot.rowKey);
+              }}
+              onMouseLeave={() => {
+                setHoveredDotId((prev) => (prev === dot.id ? null : prev));
+                setHighlightedPanelKey((prev) =>
+                  prev === dot.rowKey && expandedPanelItemId !== dot.rowKey ? null : prev
+                );
+              }}
+              onFocus={() => {
+                setHoveredDotId(dot.id);
+                setHighlightedPanelKey(dot.rowKey);
+              }}
+              onBlur={() => {
+                setHoveredDotId((prev) => (prev === dot.id ? null : prev));
+                setHighlightedPanelKey((prev) =>
+                  prev === dot.rowKey && expandedPanelItemId !== dot.rowKey ? null : prev
+                );
+              }}
               title={`${dot.title} · ${toQuestStateBadge(dot.status)} · ${formatTime(dot.time)}${dot.inferred ? ' · inferred' : ''}`}
               aria-label={`${dot.title} ${toQuestStateBadge(dot.status)} ${formatTime(dot.time)}${dot.inferred ? ' inferred' : ''}`}
             />
@@ -1123,7 +1152,7 @@ export const LogCalendar: React.FC = () => {
                       borderColor: dotBorderByQuestState(entry.state),
                     }}
                   />
-                  {entry.label}
+                  {entry.label} ({stateCountByLegend[entry.state]})
                 </button>
               ))}
               <button
@@ -1179,7 +1208,7 @@ export const LogCalendar: React.FC = () => {
                       borderColor: dotBorderByQuestState(entry.state),
                     }}
                   />
-                  {entry.label}
+                  {entry.label} ({stateCountByLegend[entry.state]})
                 </button>
               ))}
               <button
@@ -1660,6 +1689,16 @@ export const LogCalendar: React.FC = () => {
                       borderColor: dotBorderByQuestState(dot.status),
                       borderStyle: dot.inferred ? 'dashed' : 'solid',
                     }}
+                    onMouseEnter={() => {
+                      setHoveredDotId(dot.id);
+                      setHighlightedPanelKey(dot.rowKey);
+                    }}
+                    onMouseLeave={() => {
+                      setHoveredDotId((prev) => (prev === dot.id ? null : prev));
+                      setHighlightedPanelKey((prev) =>
+                        prev === dot.rowKey && expandedPanelItemId !== dot.rowKey ? null : prev
+                      );
+                    }}
                     title={`${dot.title} · ${toQuestStateBadge(dot.status)} · ${formatTime(dot.time)}${dot.inferred ? ' · inferred' : ''}`}
                   />
                 ))}
@@ -1682,9 +1721,9 @@ export const LogCalendar: React.FC = () => {
                       : ''
                   }`}
                   title={entry.note ? `${entry.label} (${entry.note})` : entry.label}
-                >
-                  <span
-                    className="h-2.5 w-2.5 rounded-full border"
+                  >
+                    <span
+                      className="h-2.5 w-2.5 rounded-full border"
                     style={{
                       backgroundColor:
                         entry.state === 'todo' || entry.state === 'scheduled'
@@ -1692,8 +1731,8 @@ export const LogCalendar: React.FC = () => {
                           : dotColorByQuestState(entry.state),
                       borderColor: dotBorderByQuestState(entry.state),
                     }}
-                  />
-                  {entry.label}
+                    />
+                  {entry.label} ({stateCountByLegend[entry.state]})
                 </button>
               ))}
               <button
