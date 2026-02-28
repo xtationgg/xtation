@@ -340,8 +340,8 @@
   outline: none !important;
   border-radius: 5.5px !important;
   overflow: hidden;
-  -webkit-clip-path: polygon(0 0, calc(100% - 2px) 0, 100% 2px, 100% 100%, 0 100%);
-  clip-path: polygon(0 0, calc(100% - 2px) 0, 100% 2px, 100% 100%, 0 100%);
+  -webkit-clip-path: polygon(0 0, calc(100% - 14px) 0, calc(100% - 5px) 5px, 100% 14px, 100% 100%, 0 100%);
+  clip-path: polygon(0 0, calc(100% - 14px) 0, calc(100% - 5px) 5px, 100% 14px, 100% 100%, 0 100%);
 }
 
 [data-theme='dusk'] .xt-home-news-media,
@@ -357,8 +357,8 @@
   background: #7f5cae !important;
   border: none !important;
   border-radius: 5.5px !important;
-  -webkit-clip-path: polygon(0 0, calc(100% - 2px) 0, 100% 2px, 100% 100%, 0 100%);
-  clip-path: polygon(0 0, calc(100% - 2px) 0, 100% 2px, 100% 100%, 0 100%);
+  -webkit-clip-path: polygon(0 0, calc(100% - 10px) 0, calc(100% - 4px) 4px, 100% 10px, 100% 100%, 0 100%);
+  clip-path: polygon(0 0, calc(100% - 10px) 0, calc(100% - 4px) 4px, 100% 10px, 100% 100%, 0 100%);
 }
 
 [data-theme='dark_minimal_rounded_solid'] {
