@@ -322,7 +322,9 @@
 [data-theme='dusk_soft'] .xt-nav-tab[data-active='true'] {
   color: #f4ecff !important;
   background: #7f5cae !important;
-  border-color: #8c69bb !important;
+  border: none !important;
+  box-shadow: none !important;
+  outline: none !important;
   position: relative;
   overflow: hidden;
   border-radius: 5.5px !important;
