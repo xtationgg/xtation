@@ -115,7 +115,14 @@ type NormalizedLogItem = {
   subtitle?: string;
 };
 
-type QuestRowState = 'done' | 'active' | 'scheduled' | 'failed' | 'skipped';
+type QuestRowState = 'done' | 'active' | 'scheduled' | 'failed' | 'todo';
+const QUEST_STATE_LEGEND: Array<{ state: QuestRowState; label: string }> = [
+  { state: 'active', label: 'Active' },
+  { state: 'done', label: 'Completed' },
+  { state: 'todo', label: 'Uncompleted' },
+  { state: 'scheduled', label: 'Scheduled' },
+  { state: 'failed', label: 'Failed' },
+];
 type TaskCardTab = SidePanelTab | 'all';
 
 type DayConsoleRow = {
@@ -280,21 +287,33 @@ const getQuestRowKey = (item: NormalizedLogItem, dateKey = '') => {
   return item.groupKey || item.sourceRef || item.id;
 };
 
-const toQuestState = (items: NormalizedLogItem[]): QuestRowState => {
+const toQuestState = (items: NormalizedLogItem[], now: number, taskStatus?: Task['status']): QuestRowState => {
   const statuses = new Set(items.map((item) => item.status));
-  if (statuses.has('running') || statuses.has('todo')) return 'active';
-  if (statuses.has('scheduled')) return 'scheduled';
-  if (statuses.has('done')) return 'done';
-  if (statuses.has('failed')) return 'failed';
-  return 'skipped';
+  const hasRunning = statuses.has('running') || taskStatus === 'active';
+  const hasDone = statuses.has('done') || taskStatus === 'done';
+  const hasFutureSchedule = items.some((item) => item.status === 'scheduled' && (item.startAt || 0) >= now);
+  const hasFailed = statuses.has('failed') || taskStatus === 'dropped';
+  const hasTodoLike =
+    statuses.has('todo') ||
+    statuses.has('created') ||
+    statuses.has('tracked') ||
+    statuses.has('retro') ||
+    taskStatus === 'todo';
+
+  if (hasRunning) return 'active';
+  if (hasDone) return 'done';
+  if (hasFutureSchedule) return 'scheduled';
+  if (hasFailed) return 'failed';
+  if (hasTodoLike) return 'todo';
+  return 'todo';
 };
 
-const getPrimaryTime = (items: NormalizedLogItem[]): number | undefined => {
-  const scheduledTimes = items
-    .filter((item) => item.status === 'scheduled' && Number.isFinite(item.startAt))
+const getPrimaryTime = (items: NormalizedLogItem[], now: number): number | undefined => {
+  const futureScheduledTimes = items
+    .filter((item) => item.status === 'scheduled' && Number.isFinite(item.startAt) && (item.startAt || 0) >= now)
     .map((item) => item.startAt as number)
     .sort((a, b) => a - b);
-  if (scheduledTimes.length > 0) return scheduledTimes[0];
+  if (futureScheduledTimes.length > 0) return futureScheduledTimes[0];
   return items
     .map((item) => (Number.isFinite(item.startAt) ? (item.startAt as number) : 0))
     .reduce((latest, ts) => (ts > latest ? ts : latest), 0) || undefined;
@@ -304,9 +323,11 @@ const normalizeDayItemsToTaskCards = (
   items: NormalizedLogItem[],
   tab: TaskCardTab,
   now: number,
-  dateKey: string
+  dateKey: string,
+  tasks: Task[]
 ): DayConsoleRow[] => {
   const filtered = filterTaskCardItems(items, tab, now);
+  const taskById = new Map(tasks.map((task) => [task.id, task]));
   const grouped = new Map<string, NormalizedLogItem[]>();
   for (const item of filtered) {
     const key = getQuestRowKey(item, dateKey);
@@ -319,11 +340,12 @@ const normalizeDayItemsToTaskCards = (
     .map(([key, groupItems]) => {
       const sorted = [...groupItems].sort((a, b) => (b.startAt || 0) - (a.startAt || 0));
       const head = sorted[0];
+      const taskStatus = head?.taskId ? taskById.get(head.taskId)?.status : undefined;
       return {
         key,
         title: head?.title || 'Untitled',
-        state: toQuestState(sorted),
-        primaryTime: getPrimaryTime(sorted),
+        state: toQuestState(sorted, now, taskStatus),
+        primaryTime: getPrimaryTime(sorted, now),
         groupKey: head?.groupKey,
         taskId: head?.taskId,
         items: sorted,
@@ -336,8 +358,17 @@ const dotColorByQuestState = (state: QuestRowState) => {
   if (state === 'active') return 'var(--app-accent)';
   if (state === 'done') return 'color-mix(in_srgb,var(--app-accent)_72%,white)';
   if (state === 'failed') return 'color-mix(in_srgb,#ff5a6a_75%,var(--app-accent))';
-  if (state === 'scheduled') return 'color-mix(in_srgb,var(--app-accent)_45%,var(--app-text))';
+  if (state === 'scheduled') return 'transparent';
+  if (state === 'todo') return 'transparent';
   return 'color-mix(in_srgb,var(--app-accent)_30%,var(--app-text))';
+};
+
+const dotBorderByQuestState = (state: QuestRowState) => {
+  if (state === 'active') return 'var(--app-accent)';
+  if (state === 'done') return 'color-mix(in_srgb,var(--app-accent)_72%,white)';
+  if (state === 'failed') return 'color-mix(in_srgb,#ff5a6a_75%,var(--app-accent))';
+  if (state === 'scheduled') return 'color-mix(in_srgb,var(--app-accent)_58%,var(--app-text))';
+  return 'color-mix(in_srgb,var(--app-text)_58%,var(--app-panel-2))';
 };
 
 const toPanelBadge = (status: NormalizedLogItemStatus) => {
@@ -372,9 +403,9 @@ const toQuestStateBadge = (state: QuestRowState) => {
       return 'Scheduled';
     case 'failed':
       return 'Failed';
-    case 'skipped':
+    case 'todo':
     default:
-      return 'Skipped';
+      return 'Todo';
   }
 };
 
@@ -535,16 +566,16 @@ export const LogCalendar: React.FC = () => {
   );
 
   const dayConsoleRows = useMemo(
-    () => normalizeDayItemsToTaskCards(normalized, sidePanelTab, now, selectedKey),
-    [normalized, sidePanelTab, now, selectedKey]
+    () => normalizeDayItemsToTaskCards(normalized, sidePanelTab, now, selectedKey, ensureArray(tasks)),
+    [normalized, sidePanelTab, now, selectedKey, tasks]
   );
   const fullHistoryRows = useMemo(
-    () => normalizeDayItemsToTaskCards(normalized, 'all', now, selectedKey),
-    [normalized, now, selectedKey]
+    () => normalizeDayItemsToTaskCards(normalized, 'all', now, selectedKey, ensureArray(tasks)),
+    [normalized, now, selectedKey, tasks]
   );
   const timelineRows = useMemo(
-    () => normalizeDayItemsToTaskCards(normalized, 'timeline', now, selectedKey),
-    [normalized, now, selectedKey]
+    () => normalizeDayItemsToTaskCards(normalized, 'timeline', now, selectedKey, ensureArray(tasks)),
+    [normalized, now, selectedKey, tasks]
   );
   const timelineDots = useMemo(() => {
     const dayStart = fromDateKey(selectedKey).getTime();
@@ -715,7 +746,7 @@ export const LogCalendar: React.FC = () => {
         dayConsoleRows.map((row) => {
           const expanded = expandedPanelItemId === row.key;
           const headItem = row.items[0];
-          const isStartable = !!row.taskId && (row.state === 'scheduled' || row.state === 'failed' || row.state === 'skipped');
+          const isStartable = !!row.taskId && (row.state === 'scheduled' || row.state === 'failed' || row.state === 'todo');
           return (
             <div
               key={row.key}
@@ -884,6 +915,7 @@ export const LogCalendar: React.FC = () => {
                         left: `calc(${dot.xPct}% + 8px)`,
                         bottom: `${dot.yPx}px`,
                         backgroundColor: dotColorByQuestState(dot.status),
+                        borderColor: dotBorderByQuestState(dot.status),
                       }}
                       onMouseEnter={() => setHoveredDotId(dot.id)}
                       onMouseLeave={() => setHoveredDotId((prev) => (prev === dot.id ? null : prev))}
@@ -905,6 +937,20 @@ export const LogCalendar: React.FC = () => {
                       {hoveredDot.title} • {formatTime(hoveredDot.time)} • {toQuestStateBadge(hoveredDot.status)}
                     </div>
                   ) : null}
+                </div>
+                <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-[10px] uppercase tracking-[0.12em] text-[var(--app-muted)]">
+                  {QUEST_STATE_LEGEND.map((entry) => (
+                    <span key={`legend-desktop-${entry.state}`} className="inline-flex items-center gap-1.5">
+                      <span
+                        className="h-2.5 w-2.5 rounded-full border"
+                        style={{
+                          backgroundColor: dotColorByQuestState(entry.state),
+                          borderColor: dotBorderByQuestState(entry.state),
+                        }}
+                      />
+                      {entry.label}
+                    </span>
+                  ))}
                 </div>
               </>
             ) : (
@@ -955,6 +1001,7 @@ export const LogCalendar: React.FC = () => {
                       left: `calc(${dot.xPct}% + 8px)`,
                       bottom: `${dot.yPx}px`,
                       backgroundColor: dotColorByQuestState(dot.status),
+                      borderColor: dotBorderByQuestState(dot.status),
                     }}
                     onMouseEnter={() => setHoveredDotId(dot.id)}
                     onMouseLeave={() => setHoveredDotId((prev) => (prev === dot.id ? null : prev))}
@@ -974,6 +1021,20 @@ export const LogCalendar: React.FC = () => {
                     {hoveredDot.title} • {formatTime(hoveredDot.time)} • {toQuestStateBadge(hoveredDot.status)}
                   </div>
                 ) : null}
+              </div>
+              <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-[10px] uppercase tracking-[0.12em] text-[var(--app-muted)]">
+                {QUEST_STATE_LEGEND.map((entry) => (
+                  <span key={`legend-mobile-${entry.state}`} className="inline-flex items-center gap-1.5">
+                    <span
+                      className="h-2.5 w-2.5 rounded-full border"
+                      style={{
+                        backgroundColor: dotColorByQuestState(entry.state),
+                        borderColor: dotBorderByQuestState(entry.state),
+                      }}
+                    />
+                    {entry.label}
+                  </span>
+                ))}
               </div>
             </div>
           ) : (
@@ -1421,9 +1482,24 @@ export const LogCalendar: React.FC = () => {
                     left: `calc(${dot.xPct}% + 12px)`,
                     bottom: `${32 + (index % 8) * 22}px`,
                     backgroundColor: dotColorByQuestState(dot.status),
+                    borderColor: dotBorderByQuestState(dot.status),
                   }}
                   title={`${dot.title} · ${toQuestStateBadge(dot.status)} · ${formatTime(dot.time)}`}
                 />
+              ))}
+            </div>
+            <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-[10px] uppercase tracking-[0.12em] text-[var(--app-muted)]">
+              {QUEST_STATE_LEGEND.map((entry) => (
+                <span key={`legend-expanded-${entry.state}`} className="inline-flex items-center gap-1.5">
+                  <span
+                    className="h-2.5 w-2.5 rounded-full border"
+                    style={{
+                      backgroundColor: dotColorByQuestState(entry.state),
+                      borderColor: dotBorderByQuestState(entry.state),
+                    }}
+                  />
+                  {entry.label}
+                </span>
               ))}
             </div>
           </div>
