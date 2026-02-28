@@ -189,6 +189,25 @@ const QUEST_STATE_META: Record<QuestRowState, QuestStateMeta> = {
   },
 };
 
+const QUEST_STATE_PRIORITY: Record<QuestRowState, number> = {
+  active: 5,
+  done: 4,
+  failed: 3,
+  scheduled: 2,
+  todo: 1,
+};
+
+const NORMALIZED_STATUS_TO_QUEST_STATE: Record<NormalizedLogItemStatus, QuestRowState> = {
+  running: 'active',
+  done: 'done',
+  failed: 'failed',
+  scheduled: 'scheduled',
+  todo: 'todo',
+  created: 'todo',
+  tracked: 'todo',
+  retro: 'todo',
+};
+
 const DAY_ROW_STATUS_CHIP_WIDTH = 96;
 const DAY_ROW_TIME_WIDTH = 74;
 
@@ -348,24 +367,20 @@ const toQuestState = (items: NormalizedLogItem[], now: number, taskStatus?: Task
   if (taskStatus === 'active') return 'active';
   if (taskStatus === 'done') return 'done';
   if (taskStatus === 'dropped') return 'failed';
-  const statuses = new Set(items.map((item) => item.status));
-  const hasRunning = statuses.has('running');
-  const hasDone = statuses.has('done');
-  const hasFutureSchedule = items.some((item) => item.status === 'scheduled' && (item.startAt || 0) >= now);
-  const hasFailed = statuses.has('failed');
-  const hasTodoLike =
-    statuses.has('todo') ||
-    statuses.has('created') ||
-    statuses.has('tracked') ||
-    statuses.has('retro') ||
-    taskStatus === 'todo';
 
-  if (hasRunning) return 'active';
-  if (hasDone) return 'done';
-  if (hasFailed) return 'failed';
-  if (hasFutureSchedule) return 'scheduled';
-  if (hasTodoLike) return 'todo';
-  return 'todo';
+  const derivedStates = items.map<QuestRowState>((item) => {
+    if (item.status === 'scheduled') {
+      const startAt = item.startAt || 0;
+      return startAt >= now ? 'scheduled' : 'todo';
+    }
+    return NORMALIZED_STATUS_TO_QUEST_STATE[item.status];
+  });
+
+  if (derivedStates.length === 0) return 'todo';
+
+  return derivedStates.reduce<QuestRowState>((current, candidate) =>
+    QUEST_STATE_PRIORITY[candidate] > QUEST_STATE_PRIORITY[current] ? candidate : current
+  );
 };
 
 const getPrimaryTime = (items: NormalizedLogItem[], now: number): { value?: number; inferred: boolean } => {
@@ -419,9 +434,11 @@ const normalizeDayItemsToTaskCards = (
     .sort((a, b) => (b.primaryTime || 0) - (a.primaryTime || 0));
 };
 
-const dotColorByQuestState = (state: QuestRowState) => QUEST_STATE_META[state].dotFill;
+const getQuestStateMeta = (state: QuestRowState): QuestStateMeta => QUEST_STATE_META[state];
 
-const dotBorderByQuestState = (state: QuestRowState) => QUEST_STATE_META[state].dotBorder;
+const dotColorByQuestState = (state: QuestRowState) => getQuestStateMeta(state).dotFill;
+
+const dotBorderByQuestState = (state: QuestRowState) => getQuestStateMeta(state).dotBorder;
 
 const toPanelBadge = (status: NormalizedLogItemStatus) => {
   switch (status) {
@@ -445,7 +462,7 @@ const toPanelBadge = (status: NormalizedLogItemStatus) => {
   }
 };
 
-const toQuestStateBadge = (state: QuestRowState) => QUEST_STATE_META[state].label;
+const toQuestStateBadge = (state: QuestRowState) => getQuestStateMeta(state).label;
 
 const toPanelSubtitle = (item: NormalizedLogItem) => {
   if (item.subtitle) return item.subtitle;
@@ -809,7 +826,7 @@ export const LogCalendar: React.FC = () => {
   }, []);
 
   const renderCompactItemList = (mobile = false) => (
-    <div className={`${mobile ? 'max-h-[58dvh]' : 'max-h-[52vh]'} overflow-y-auto pr-1 space-y-2`}>
+    <div className={`${mobile ? 'max-h-[58dvh]' : 'max-h-[40vh] xl:max-h-[52vh]'} overflow-y-auto pr-1 space-y-2`}>
       {dayConsoleRows.length === 0 ? (
         <div className="rounded-lg border border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-[var(--app-panel)] p-3 text-[11px] uppercase tracking-[0.14em] text-[var(--app-muted)]">
           No items for this tab.
@@ -819,12 +836,12 @@ export const LogCalendar: React.FC = () => {
           const expanded = expandedPanelItemId === row.key;
           const headItem = row.items[0];
           const isStartable = !!row.taskId && (row.state === 'scheduled' || row.state === 'failed' || row.state === 'todo');
-          const stateMeta = QUEST_STATE_META[row.state];
+          const stateMeta = getQuestStateMeta(row.state);
           return (
             <div
               key={row.key}
               id={`day-console-row-${row.key}`}
-              className={`rounded-lg border overflow-hidden transition-colors duration-200 ${
+              className={`rounded-lg border overflow-hidden transition-all duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] ${
                 highlightedPanelKey === row.key
                   ? 'border-[color-mix(in_srgb,var(--app-accent)_60%,transparent)] bg-[color-mix(in_srgb,var(--app-accent)_12%,var(--app-panel))]'
                   : 'border-[color-mix(in_srgb,var(--app-text)_6%,transparent)] bg-[var(--app-panel)]'
@@ -848,7 +865,7 @@ export const LogCalendar: React.FC = () => {
                 data-day-console-row-button="true"
                 data-row-key={row.key}
                 aria-expanded={expanded}
-                className="w-full text-left px-3 py-2.5 transition-colors duration-150 hover:bg-[color-mix(in_srgb,var(--app-accent)_10%,var(--app-panel))] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color-mix(in_srgb,var(--app-accent)_55%,transparent)]"
+                className="w-full text-left px-3 py-2.5 transition-all duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] hover:bg-[color-mix(in_srgb,var(--app-accent)_10%,var(--app-panel))] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color-mix(in_srgb,var(--app-accent)_55%,transparent)]"
               >
                 <div className="flex items-center gap-2">
                   <div className="min-w-0 flex-1 text-xs uppercase tracking-[0.12em] text-[var(--app-text)] truncate">
@@ -948,7 +965,7 @@ export const LogCalendar: React.FC = () => {
   );
 
   const renderTimelineChart = (mobile = false) => {
-    const chartHeight = mobile ? 210 : 320;
+    const chartHeight = mobile ? 220 : 340;
     const chartInnerTop = 24;
     const chartInnerBottom = 30;
     return (
@@ -976,7 +993,7 @@ export const LogCalendar: React.FC = () => {
               key={`timeline-dot-${mobile ? 'mobile-' : ''}${dot.id}`}
               type="button"
               onClick={() => handleTimelineDotClick(dot.rowKey)}
-              className={`absolute h-2.5 w-2.5 rounded-full border transition-transform duration-150 hover:scale-110 ${hoveredDotId === dot.id ? 'scale-125' : ''}`}
+              className={`absolute h-2.5 w-2.5 rounded-full border transition-all duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] hover:scale-110 hover:shadow-[0_0_0_4px_color-mix(in_srgb,var(--app-accent)_12%,transparent)] ${hoveredDotId === dot.id ? 'scale-125' : ''}`}
               style={{
                 left: `${dot.xPct}%`,
                 top: `${dot.laneDotTop}px`,
@@ -1058,10 +1075,10 @@ export const LogCalendar: React.FC = () => {
               setExpandedPanelItemId(null);
               setLegendFilterStates([]);
             }}
-            className={`px-2.5 py-1 rounded-md border text-[10px] uppercase tracking-[0.14em] transition-colors whitespace-nowrap ${
+            className={`px-2.5 py-1 rounded-md border text-[10px] uppercase tracking-[0.14em] transition-all duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] whitespace-nowrap ${
               sidePanelTab === tab.value
                 ? 'border-[color-mix(in_srgb,var(--app-accent)_55%,transparent)] bg-[color-mix(in_srgb,var(--app-accent)_14%,var(--app-panel))] text-[var(--app-accent)]'
-                : 'border-[color-mix(in_srgb,var(--app-text)_14%,transparent)] bg-[var(--app-panel-2)] text-[var(--app-muted)] hover:text-[var(--app-text)]'
+                : 'border-[color-mix(in_srgb,var(--app-text)_14%,transparent)] bg-[var(--app-panel-2)] text-[var(--app-muted)] hover:text-[var(--app-text)] hover:-translate-y-[1px]'
             }`}
           >
             {tab.label}
@@ -1070,7 +1087,7 @@ export const LogCalendar: React.FC = () => {
       </div>
 
       <div className="p-3">
-        <div className="hidden lg:grid lg:grid-cols-[minmax(0,14fr)_minmax(0,6fr)] gap-3 items-start">
+        <div className="hidden lg:grid lg:grid-cols-1 xl:grid-cols-[minmax(0,14fr)_minmax(0,6fr)] gap-3 items-start">
           <div className="px-1 py-1">
             <div className="mb-2 flex items-center justify-between gap-2">
               <div className="text-[10px] uppercase tracking-[0.16em] text-[var(--app-muted)]">{activeTabLabel} • 24h timeline</div>
@@ -1486,7 +1503,7 @@ export const LogCalendar: React.FC = () => {
                   const isExpanded = expandedGroupKey === row.key;
                   const isHighlighted = highlightedGroupKey === row.key;
                   const headItem = row.items[0];
-                  const stateMeta = QUEST_STATE_META[row.state];
+                  const stateMeta = getQuestStateMeta(row.state);
                   return (
                     <div
                       id={`day-history-group-${row.key}`}
