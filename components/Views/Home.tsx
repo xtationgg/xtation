@@ -32,14 +32,14 @@ export const Home: React.FC = () => {
       {/* News Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {NEWS_ITEMS.map(news => (
-            <HexCard key={news.id} className="group cursor-pointer h-full border-[#333] hover:border-white transition-all bg-[#0A0A0A]">
-                <div className="h-40 mb-4 border border-[#333] relative overflow-hidden">
+            <HexCard key={news.id} className="xt-home-news-tab group cursor-pointer h-full transition-all !bg-[var(--app-panel-2)]">
+                <div className="xt-home-news-media h-40 mb-4 relative overflow-hidden">
                     <img 
                         src={news.image} 
                         alt={news.title} 
                         className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-300"
                     />
-                    <div className="absolute top-0 right-0 bg-white text-black px-2 py-1 text-[10px] font-bold uppercase tracking-wider">
+                    <div className="xt-home-news-badge absolute top-0 right-0 px-2 py-1 text-[10px] font-bold uppercase tracking-wider">
                         {news.category}
                     </div>
                 </div>

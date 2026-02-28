@@ -332,6 +332,35 @@
   clip-path: polygon(0 0, calc(100% - 2px) 0, 100% 2px, 100% 100%, 0 100%);
 }
 
+/* Dusk: Home news cards use same rounded + 2px chamfer language */
+[data-theme='dusk'] .xt-home-news-tab,
+[data-theme='dusk_soft'] .xt-home-news-tab {
+  border: none !important;
+  box-shadow: none !important;
+  outline: none !important;
+  border-radius: 5.5px !important;
+  overflow: hidden;
+  -webkit-clip-path: polygon(0 0, calc(100% - 2px) 0, 100% 2px, 100% 100%, 0 100%);
+  clip-path: polygon(0 0, calc(100% - 2px) 0, 100% 2px, 100% 100%, 0 100%);
+}
+
+[data-theme='dusk'] .xt-home-news-media,
+[data-theme='dusk_soft'] .xt-home-news-media {
+  border: none !important;
+  border-radius: 5.5px;
+  overflow: hidden;
+}
+
+[data-theme='dusk'] .xt-home-news-badge,
+[data-theme='dusk_soft'] .xt-home-news-badge {
+  color: #f4ecff !important;
+  background: #7f5cae !important;
+  border: none !important;
+  border-radius: 5.5px !important;
+  -webkit-clip-path: polygon(0 0, calc(100% - 2px) 0, 100% 2px, 100% 100%, 0 100%);
+  clip-path: polygon(0 0, calc(100% - 2px) 0, 100% 2px, 100% 100%, 0 100%);
+}
+
 [data-theme='dark_minimal_rounded_solid'] {
   --app-bg: #0d1118;
   --app-panel: #161d28;
