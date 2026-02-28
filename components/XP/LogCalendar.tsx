@@ -117,12 +117,12 @@ type NormalizedLogItem = {
 };
 
 type QuestRowState = 'done' | 'active' | 'scheduled' | 'failed' | 'todo';
-const QUEST_STATE_LEGEND: Array<{ state: QuestRowState; label: string }> = [
+const QUEST_STATE_LEGEND: Array<{ state: QuestRowState; label: string; note?: string }> = [
   { state: 'active', label: 'Active' },
   { state: 'done', label: 'Completed' },
   { state: 'todo', label: 'Uncompleted' },
   { state: 'scheduled', label: 'Scheduled' },
-  { state: 'failed', label: 'Failed' },
+  { state: 'failed', label: 'Failed', note: 'Dropped' },
 ];
 type TaskCardTab = SidePanelTab | 'all';
 
@@ -131,6 +131,7 @@ type DayConsoleRow = {
   title: string;
   state: QuestRowState;
   primaryTime?: number;
+  inferredTime: boolean;
   groupKey?: string;
   taskId?: string;
   items: NormalizedLogItem[];
@@ -344,11 +345,14 @@ const getQuestRowKey = (item: NormalizedLogItem, dateKey = '') => {
 };
 
 const toQuestState = (items: NormalizedLogItem[], now: number, taskStatus?: Task['status']): QuestRowState => {
+  if (taskStatus === 'active') return 'active';
+  if (taskStatus === 'done') return 'done';
+  if (taskStatus === 'dropped') return 'failed';
   const statuses = new Set(items.map((item) => item.status));
-  const hasRunning = statuses.has('running') || taskStatus === 'active';
-  const hasDone = statuses.has('done') || taskStatus === 'done';
+  const hasRunning = statuses.has('running');
+  const hasDone = statuses.has('done');
   const hasFutureSchedule = items.some((item) => item.status === 'scheduled' && (item.startAt || 0) >= now);
-  const hasFailed = statuses.has('failed') || taskStatus === 'dropped';
+  const hasFailed = statuses.has('failed');
   const hasTodoLike =
     statuses.has('todo') ||
     statuses.has('created') ||
@@ -358,21 +362,24 @@ const toQuestState = (items: NormalizedLogItem[], now: number, taskStatus?: Task
 
   if (hasRunning) return 'active';
   if (hasDone) return 'done';
-  if (hasFutureSchedule) return 'scheduled';
   if (hasFailed) return 'failed';
+  if (hasFutureSchedule) return 'scheduled';
   if (hasTodoLike) return 'todo';
   return 'todo';
 };
 
-const getPrimaryTime = (items: NormalizedLogItem[], now: number): number | undefined => {
+const getPrimaryTime = (items: NormalizedLogItem[], now: number): { value?: number; inferred: boolean } => {
   const futureScheduledTimes = items
     .filter((item) => item.status === 'scheduled' && Number.isFinite(item.startAt) && (item.startAt || 0) >= now)
     .map((item) => item.startAt as number)
     .sort((a, b) => a - b);
-  if (futureScheduledTimes.length > 0) return futureScheduledTimes[0];
-  return items
+  if (futureScheduledTimes.length > 0) return { value: futureScheduledTimes[0], inferred: false };
+  const latestTrackedTime =
+    items
     .map((item) => (Number.isFinite(item.startAt) ? (item.startAt as number) : 0))
     .reduce((latest, ts) => (ts > latest ? ts : latest), 0) || undefined;
+  if (latestTrackedTime) return { value: latestTrackedTime, inferred: false };
+  return { value: undefined, inferred: true };
 };
 
 const normalizeDayItemsToTaskCards = (
@@ -397,11 +404,13 @@ const normalizeDayItemsToTaskCards = (
       const sorted = [...groupItems].sort((a, b) => (b.startAt || 0) - (a.startAt || 0));
       const head = sorted[0];
       const taskStatus = head?.taskId ? taskById.get(head.taskId)?.status : undefined;
+      const primaryTime = getPrimaryTime(sorted, now);
       return {
         key,
         title: head?.title || 'Untitled',
         state: toQuestState(sorted, now, taskStatus),
-        primaryTime: getPrimaryTime(sorted, now),
+        primaryTime: primaryTime.value,
+        inferredTime: primaryTime.inferred,
         groupKey: head?.groupKey,
         taskId: head?.taskId,
         items: sorted,
@@ -485,6 +494,7 @@ export const LogCalendar: React.FC = () => {
   const [scheduledOpen, setScheduledOpen] = useState(false);
   const [historyModalOpen, setHistoryModalOpen] = useState(false);
   const [hoveredDotId, setHoveredDotId] = useState<string | null>(null);
+  const [legendFilterStates, setLegendFilterStates] = useState<QuestRowState[]>([]);
 
   const todayKey = toDateKey(new Date(now));
   const selectedDate = fromDateKey(selectedKey);
@@ -632,12 +642,20 @@ export const LogCalendar: React.FC = () => {
         lane,
         laneDotTop,
         stackIndex,
+        inferred: row.inferredTime,
       };
     });
   }, [timelineRows, selectedKey]);
+  const visibleTimelineDots = useMemo(
+    () =>
+      legendFilterStates.length === 0
+        ? timelineDots
+        : timelineDots.filter((dot) => legendFilterStates.includes(dot.status)),
+    [timelineDots, legendFilterStates]
+  );
   const hoveredDot = useMemo(
-    () => (hoveredDotId ? timelineDots.find((dot) => dot.id === hoveredDotId) || null : null),
-    [timelineDots, hoveredDotId]
+    () => (hoveredDotId ? visibleTimelineDots.find((dot) => dot.id === hoveredDotId) || null : null),
+    [visibleTimelineDots, hoveredDotId]
   );
 
   const rangeLabel = useMemo(
@@ -665,6 +683,12 @@ export const LogCalendar: React.FC = () => {
       selectDate(toDateKey(today), today);
     }
   };
+
+  const toggleLegendState = useCallback((state: QuestRowState) => {
+    setLegendFilterStates((current) =>
+      current.includes(state) ? current.filter((value) => value !== state) : [...current, state]
+    );
+  }, []);
 
   const handlePrev = useCallback(() => {
     if (rangeMode === 'week') {
@@ -842,7 +866,7 @@ export const LogCalendar: React.FC = () => {
                     {toQuestStateBadge(row.state)}
                   </span>
                   <span className="text-right text-[10px] uppercase tracking-[0.12em] text-[var(--app-muted)] shrink-0 tabular-nums font-mono" style={{ width: DAY_ROW_TIME_WIDTH }}>
-                    {row.primaryTime ? formatTime(row.primaryTime) : '--:--'}
+                    {row.primaryTime ? `${row.inferredTime ? '~' : ''}${formatTime(row.primaryTime)}` : '--:--'}
                   </span>
                 </div>
               </button>
@@ -924,7 +948,7 @@ export const LogCalendar: React.FC = () => {
   );
 
   const renderTimelineChart = (mobile = false) => {
-    const chartHeight = mobile ? 190 : 272;
+    const chartHeight = mobile ? 210 : 320;
     const chartInnerTop = 24;
     const chartInnerBottom = 30;
     return (
@@ -947,7 +971,7 @@ export const LogCalendar: React.FC = () => {
               style={{ left: `${hoveredDot.xPct}%` }}
             />
           ) : null}
-          {timelineDots.map((dot) => (
+          {visibleTimelineDots.map((dot) => (
             <button
               key={`timeline-dot-${mobile ? 'mobile-' : ''}${dot.id}`}
               type="button"
@@ -957,20 +981,24 @@ export const LogCalendar: React.FC = () => {
                 left: `${dot.xPct}%`,
                 top: `${dot.laneDotTop}px`,
                 transform: 'translateX(-50%)',
-                backgroundColor: dotColorByQuestState(dot.status),
+                backgroundColor:
+                  dot.status === 'todo' || dot.status === 'scheduled' || dot.inferred
+                    ? 'var(--app-panel)'
+                    : dotColorByQuestState(dot.status),
                 borderColor: dotBorderByQuestState(dot.status),
+                borderStyle: dot.inferred ? 'dashed' : 'solid',
               }}
               onMouseEnter={() => setHoveredDotId(dot.id)}
               onMouseLeave={() => setHoveredDotId((prev) => (prev === dot.id ? null : prev))}
               onFocus={() => setHoveredDotId(dot.id)}
               onBlur={() => setHoveredDotId((prev) => (prev === dot.id ? null : prev))}
-              title={`${dot.title} · ${toQuestStateBadge(dot.status)} · ${formatTime(dot.time)}`}
-              aria-label={`${dot.title} ${toQuestStateBadge(dot.status)} ${formatTime(dot.time)}`}
+              title={`${dot.title} · ${toQuestStateBadge(dot.status)} · ${formatTime(dot.time)}${dot.inferred ? ' · inferred' : ''}`}
+              aria-label={`${dot.title} ${toQuestStateBadge(dot.status)} ${formatTime(dot.time)}${dot.inferred ? ' inferred' : ''}`}
             />
           ))}
-          {timelineDots.length === 0 ? (
+          {visibleTimelineDots.length === 0 ? (
             <div className="absolute inset-0 grid place-items-center text-[10px] uppercase tracking-[0.14em] text-[var(--app-muted)]">
-              No items for this tab.
+              {legendFilterStates.length ? 'No dots for active legend filter.' : 'No items for this tab.'}
             </div>
           ) : null}
           {hoveredDot ? (
@@ -983,6 +1011,7 @@ export const LogCalendar: React.FC = () => {
               }}
             >
               {hoveredDot.title} • {formatTime(hoveredDot.time)} • {toQuestStateBadge(hoveredDot.status)}
+              {hoveredDot.inferred ? ' • inferred time' : ''}
             </div>
           ) : null}
         </div>
@@ -1027,6 +1056,7 @@ export const LogCalendar: React.FC = () => {
             onClick={() => {
               setSidePanelTab(tab.value);
               setExpandedPanelItemId(null);
+              setLegendFilterStates([]);
             }}
             className={`px-2.5 py-1 rounded-md border text-[10px] uppercase tracking-[0.14em] transition-colors whitespace-nowrap ${
               sidePanelTab === tab.value
@@ -1055,20 +1085,40 @@ export const LogCalendar: React.FC = () => {
             {renderTimelineChart()}
             <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-[10px] uppercase tracking-[0.12em] text-[var(--app-muted)]">
               {QUEST_STATE_LEGEND.map((entry) => (
-                <span key={`legend-desktop-${entry.state}`} className="inline-flex items-center gap-1.5">
+                <button
+                  key={`legend-desktop-${entry.state}`}
+                  type="button"
+                  onClick={() => toggleLegendState(entry.state)}
+                  className={`inline-flex items-center gap-1.5 rounded px-1.5 py-0.5 transition-colors ${
+                    legendFilterStates.includes(entry.state)
+                      ? 'bg-[color-mix(in_srgb,var(--app-accent)_14%,var(--app-panel))] text-[var(--app-text)]'
+                      : ''
+                  }`}
+                  title={entry.note ? `${entry.label} (${entry.note})` : entry.label}
+                >
                   <span
                     className="h-2.5 w-2.5 rounded-full border"
                     style={{
-                      backgroundColor: dotColorByQuestState(entry.state),
+                      backgroundColor:
+                        entry.state === 'todo' || entry.state === 'scheduled'
+                          ? 'var(--app-panel)'
+                          : dotColorByQuestState(entry.state),
                       borderColor: dotBorderByQuestState(entry.state),
                     }}
                   />
                   {entry.label}
-                </span>
+                </button>
               ))}
+              <button
+                type="button"
+                onClick={() => setLegendFilterStates([])}
+                className="inline-flex items-center gap-1 text-[9px] uppercase tracking-[0.16em] text-[var(--app-muted)] hover:text-[var(--app-text)]"
+              >
+                Clear
+              </button>
             </div>
             <div className="mt-1 text-[9px] uppercase tracking-[0.12em] text-[var(--app-muted)]">
-              Status derived from task state and latest event.
+              Status derived from task state and latest event. Hollow dots indicate planned/uncompleted.
             </div>
           </div>
           <div className="rounded-xl bg-[var(--app-panel)] p-2.5">
@@ -1091,20 +1141,40 @@ export const LogCalendar: React.FC = () => {
             {renderTimelineChart(true)}
             <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-[10px] uppercase tracking-[0.12em] text-[var(--app-muted)]">
               {QUEST_STATE_LEGEND.map((entry) => (
-                <span key={`legend-mobile-${entry.state}`} className="inline-flex items-center gap-1.5">
+                <button
+                  key={`legend-mobile-${entry.state}`}
+                  type="button"
+                  onClick={() => toggleLegendState(entry.state)}
+                  className={`inline-flex items-center gap-1.5 rounded px-1.5 py-0.5 transition-colors ${
+                    legendFilterStates.includes(entry.state)
+                      ? 'bg-[color-mix(in_srgb,var(--app-accent)_14%,var(--app-panel))] text-[var(--app-text)]'
+                      : ''
+                  }`}
+                  title={entry.note ? `${entry.label} (${entry.note})` : entry.label}
+                >
                   <span
                     className="h-2.5 w-2.5 rounded-full border"
                     style={{
-                      backgroundColor: dotColorByQuestState(entry.state),
+                      backgroundColor:
+                        entry.state === 'todo' || entry.state === 'scheduled'
+                          ? 'var(--app-panel)'
+                          : dotColorByQuestState(entry.state),
                       borderColor: dotBorderByQuestState(entry.state),
                     }}
                   />
                   {entry.label}
-                </span>
+                </button>
               ))}
+              <button
+                type="button"
+                onClick={() => setLegendFilterStates([])}
+                className="inline-flex items-center gap-1 text-[9px] uppercase tracking-[0.16em] text-[var(--app-muted)] hover:text-[var(--app-text)]"
+              >
+                Clear
+              </button>
             </div>
             <div className="mt-1 text-[9px] uppercase tracking-[0.12em] text-[var(--app-muted)]">
-              Status derived from task state and latest event.
+              Status derived from task state and latest event. Hollow dots indicate planned/uncompleted.
             </div>
           </div>
           <button
@@ -1442,7 +1512,7 @@ export const LogCalendar: React.FC = () => {
                             {toQuestStateBadge(row.state)}
                           </span>
                           <span className="text-right text-[10px] uppercase tracking-[0.12em] text-[var(--app-muted)] shrink-0 tabular-nums font-mono" style={{ width: DAY_ROW_TIME_WIDTH }}>
-                            {row.primaryTime ? formatTime(row.primaryTime) : '--:--'}
+                            {row.primaryTime ? `${row.inferredTime ? '~' : ''}${formatTime(row.primaryTime)}` : '--:--'}
                           </span>
                         </div>
                         <div className="flex items-center gap-2 shrink-0">
@@ -1556,7 +1626,7 @@ export const LogCalendar: React.FC = () => {
                 ))}
                 <div className="absolute left-0 top-[10px] text-[9px] uppercase tracking-[0.14em] text-[var(--app-muted)]">Planned</div>
                 <div className="absolute left-0 top-[86px] text-[9px] uppercase tracking-[0.14em] text-[var(--app-muted)]">Actual</div>
-                {timelineDots.map((dot, index) => (
+                {visibleTimelineDots.map((dot, index) => (
                   <button
                     key={`timeline-expanded-${dot.id}-${index}`}
                     type="button"
@@ -1566,10 +1636,14 @@ export const LogCalendar: React.FC = () => {
                       left: `${dot.xPct}%`,
                       top: `${Math.max(10, dot.lane === 'planned' ? 34 - dot.stackIndex * 11 : 98 - dot.stackIndex * 11)}px`,
                       transform: 'translateX(-50%)',
-                      backgroundColor: dotColorByQuestState(dot.status),
+                      backgroundColor:
+                        dot.status === 'todo' || dot.status === 'scheduled' || dot.inferred
+                          ? 'var(--app-panel)'
+                          : dotColorByQuestState(dot.status),
                       borderColor: dotBorderByQuestState(dot.status),
+                      borderStyle: dot.inferred ? 'dashed' : 'solid',
                     }}
-                    title={`${dot.title} · ${toQuestStateBadge(dot.status)} · ${formatTime(dot.time)}`}
+                    title={`${dot.title} · ${toQuestStateBadge(dot.status)} · ${formatTime(dot.time)}${dot.inferred ? ' · inferred' : ''}`}
                   />
                 ))}
               </div>
@@ -1581,17 +1655,37 @@ export const LogCalendar: React.FC = () => {
             </div>
             <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-[10px] uppercase tracking-[0.12em] text-[var(--app-muted)]">
               {QUEST_STATE_LEGEND.map((entry) => (
-                <span key={`legend-expanded-${entry.state}`} className="inline-flex items-center gap-1.5">
+                <button
+                  key={`legend-expanded-${entry.state}`}
+                  type="button"
+                  onClick={() => toggleLegendState(entry.state)}
+                  className={`inline-flex items-center gap-1.5 rounded px-1.5 py-0.5 transition-colors ${
+                    legendFilterStates.includes(entry.state)
+                      ? 'bg-[color-mix(in_srgb,var(--app-accent)_14%,var(--app-panel))] text-[var(--app-text)]'
+                      : ''
+                  }`}
+                  title={entry.note ? `${entry.label} (${entry.note})` : entry.label}
+                >
                   <span
                     className="h-2.5 w-2.5 rounded-full border"
                     style={{
-                      backgroundColor: dotColorByQuestState(entry.state),
+                      backgroundColor:
+                        entry.state === 'todo' || entry.state === 'scheduled'
+                          ? 'var(--app-panel)'
+                          : dotColorByQuestState(entry.state),
                       borderColor: dotBorderByQuestState(entry.state),
                     }}
                   />
                   {entry.label}
-                </span>
+                </button>
               ))}
+              <button
+                type="button"
+                onClick={() => setLegendFilterStates([])}
+                className="inline-flex items-center gap-1 text-[9px] uppercase tracking-[0.16em] text-[var(--app-muted)] hover:text-[var(--app-text)]"
+              >
+                Clear
+              </button>
             </div>
           </div>
         </div>
