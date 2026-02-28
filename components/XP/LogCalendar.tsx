@@ -414,6 +414,8 @@ const normalizeDayItemsToTaskCards = (
     grouped.set(key, existing);
   }
 
+  const sortDirection = tab === 'scheduled' ? 1 : -1;
+
   return Array.from(grouped.entries())
     .map(([key, groupItems]) => {
       const sorted = [...groupItems].sort((a, b) => (b.startAt || 0) - (a.startAt || 0));
@@ -431,7 +433,7 @@ const normalizeDayItemsToTaskCards = (
         items: sorted,
       } satisfies DayConsoleRow;
     })
-    .sort((a, b) => (b.primaryTime || 0) - (a.primaryTime || 0));
+    .sort((a, b) => ((a.primaryTime || 0) - (b.primaryTime || 0)) * sortDirection);
 };
 
 const getQuestStateMeta = (state: QuestRowState): QuestStateMeta => QUEST_STATE_META[state];
@@ -683,6 +685,13 @@ export const LogCalendar: React.FC = () => {
         : timelineDots.filter((dot) => legendFilterStates.includes(dot.status)),
     [timelineDots, legendFilterStates]
   );
+  const firstDotByRowKey = useMemo(() => {
+    const map = new Map<string, string>();
+    visibleTimelineDots.forEach((dot) => {
+      if (!map.has(dot.rowKey)) map.set(dot.rowKey, dot.id);
+    });
+    return map;
+  }, [visibleTimelineDots]);
   const hoveredDot = useMemo(
     () => (hoveredDotId ? visibleTimelineDots.find((dot) => dot.id === hoveredDotId) || null : null),
     [visibleTimelineDots, hoveredDotId]
@@ -866,6 +875,36 @@ export const LogCalendar: React.FC = () => {
                   if (headItem) handlePanelItemClick(headItem);
                   setExpandedPanelItemId((prev) => (prev === row.key ? null : row.key));
                 }}
+                onMouseEnter={() => {
+                  setHighlightedPanelKey(row.key);
+                  const dotId = firstDotByRowKey.get(row.key);
+                  if (dotId) setHoveredDotId(dotId);
+                }}
+                onMouseLeave={() => {
+                  setHoveredDotId((prev) => {
+                    if (!prev) return prev;
+                    const dotId = firstDotByRowKey.get(row.key);
+                    return prev === dotId ? null : prev;
+                  });
+                  setHighlightedPanelKey((prev) =>
+                    prev === row.key && expandedPanelItemId !== row.key ? null : prev
+                  );
+                }}
+                onFocus={() => {
+                  setHighlightedPanelKey(row.key);
+                  const dotId = firstDotByRowKey.get(row.key);
+                  if (dotId) setHoveredDotId(dotId);
+                }}
+                onBlur={() => {
+                  setHoveredDotId((prev) => {
+                    if (!prev) return prev;
+                    const dotId = firstDotByRowKey.get(row.key);
+                    return prev === dotId ? null : prev;
+                  });
+                  setHighlightedPanelKey((prev) =>
+                    prev === row.key && expandedPanelItemId !== row.key ? null : prev
+                  );
+                }}
                 onKeyDown={(event) => {
                   if (event.key === 'ArrowDown') {
                     event.preventDefault();
@@ -1006,7 +1045,9 @@ export const LogCalendar: React.FC = () => {
               key={`timeline-dot-${mobile ? 'mobile-' : ''}${dot.id}`}
               type="button"
               onClick={() => handleTimelineDotClick(dot.rowKey)}
-              className={`absolute h-2.5 w-2.5 rounded-full border transition-all duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] hover:scale-110 hover:shadow-[0_0_0_4px_color-mix(in_srgb,var(--app-accent)_12%,transparent)] ${hoveredDotId === dot.id ? 'scale-125' : ''}`}
+              className={`absolute h-2.5 w-2.5 rounded-full border transition-all duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] hover:scale-110 hover:shadow-[0_0_0_4px_color-mix(in_srgb,var(--app-accent)_12%,transparent)] ${
+                hoveredDotId === dot.id ? 'scale-125' : expandedPanelItemId === dot.rowKey ? 'scale-110' : ''
+              }`}
               style={{
                 left: `${dot.xPct}%`,
                 top: `${dot.laneDotTop}px`,
@@ -1017,6 +1058,10 @@ export const LogCalendar: React.FC = () => {
                     : dotColorByQuestState(dot.status),
                 borderColor: dotBorderByQuestState(dot.status),
                 borderStyle: dot.inferred ? 'dashed' : 'solid',
+                boxShadow:
+                  expandedPanelItemId === dot.rowKey
+                    ? '0 0 0 3px color-mix(in_srgb,var(--app-accent)_18%,transparent)'
+                    : undefined,
               }}
               onMouseEnter={() => {
                 setHoveredDotId(dot.id);
@@ -1688,6 +1733,10 @@ export const LogCalendar: React.FC = () => {
                           : dotColorByQuestState(dot.status),
                       borderColor: dotBorderByQuestState(dot.status),
                       borderStyle: dot.inferred ? 'dashed' : 'solid',
+                      boxShadow:
+                        expandedPanelItemId === dot.rowKey
+                          ? '0 0 0 3px color-mix(in_srgb,var(--app-accent)_18%,transparent)'
+                          : undefined,
                     }}
                     onMouseEnter={() => {
                       setHoveredDotId(dot.id);
