@@ -76,20 +76,30 @@ const getDateBounds = (dateKey: string) => {
   return { start, end: start + 86400000 };
 };
 
+const ensureArray = <T,>(value: T[] | null | undefined): T[] => (Array.isArray(value) ? value : []);
+
+const EMPTY_DAY_SUMMARY = {
+  minutesTracked: 0,
+  activityCount: 0,
+  completedCount: 0,
+  scheduledCount: 0,
+  runningCount: 0,
+} as const;
+
 type RangeMode = (typeof RANGE_OPTIONS)[number]['value'];
 type SidePanelTab = (typeof SIDE_PANEL_TABS)[number]['value'];
 
 type NormalizedLogItemStatus =
+  | 'todo'
+  | 'done'
   | 'created'
   | 'scheduled'
   | 'running'
   | 'tracked'
-  | 'completed'
   | 'retro'
-  | 'unfinished'
   | 'failed';
 
-type NormalizedLogItemType = 'timeline' | 'unfinished' | 'completed' | 'scheduled';
+type NormalizedLogItemType = 'timeline' | 'task' | 'summary';
 
 type NormalizedLogItem = {
   id: string;
@@ -98,31 +108,117 @@ type NormalizedLogItem = {
   status: NormalizedLogItemStatus;
   startAt?: number;
   endAt?: number;
-  scheduledAt?: number;
   durationMin?: number;
-  sourceKey?: string;
+  sourceRef: string;
   taskId?: string;
   groupKey?: string;
   subtitle?: string;
 };
 
-type NormalizedBuckets = {
-  timeline: NormalizedLogItem[];
-  unfinished: NormalizedLogItem[];
-  completed: NormalizedLogItem[];
-  scheduled: NormalizedLogItem[];
-};
-
 const mapActivityStatus = (entry: XPDayActivityItem): NormalizedLogItemStatus => {
-  if (entry.kind === 'completion') return 'completed';
+  if (entry.kind === 'completion') return 'done';
   if (entry.kind === 'manual') return 'retro';
   if (entry.kind === 'created') {
     const normalized = entry.statusLabel.toLowerCase();
     if (normalized.includes('scheduled')) return 'scheduled';
+    if (normalized.includes('completed')) return 'done';
     return 'created';
   }
   if (entry.statusLabel === 'RUNNING') return 'running';
   return 'tracked';
+};
+
+const mapTimelineEvents = (selectedActivity: XPDayActivityItem[], now: number): NormalizedLogItem[] =>
+  selectedActivity.map<NormalizedLogItem>((entry) => {
+    const safeCreatedAt = toSafeTimestamp(entry.createdAt) ?? now;
+    return {
+      id: `timeline:${entry.kind}:${entry.id}`,
+      type: 'timeline',
+      title: entry.title,
+      status: mapActivityStatus(entry),
+      startAt: safeCreatedAt,
+      durationMin: Math.max(0, entry.minutes),
+      sourceRef: `${entry.kind}:${entry.id}`,
+      taskId: entry.taskId,
+      groupKey: entry.taskId ? `task:${entry.taskId}` : undefined,
+    };
+  });
+
+const mapCompletedItems = (selectedActivityGroups: XPDayActivityGroup[]): NormalizedLogItem[] =>
+  selectedActivityGroups
+    .filter((group) => group.hasCompletion)
+    .map<NormalizedLogItem>((group) => ({
+      id: `summary:completed:${group.key}`,
+      type: 'summary',
+      title: group.title,
+      status: 'done',
+      startAt: group.latestAt,
+      durationMin: Math.max(0, group.totalMinutes),
+      sourceRef: `group:${group.key}`,
+      taskId: group.taskId,
+      groupKey: group.key,
+      subtitle: group.totalMinutes > 0 ? `${group.totalMinutes}m tracked` : 'No time logged',
+    }));
+
+const mapScheduledItems = (
+  dateKey: string,
+  todayKey: string,
+  now: number,
+  selectedScheduledTasks: Task[]
+): NormalizedLogItem[] => {
+  const selectedDayIsToday = dateKey === todayKey;
+  return selectedScheduledTasks
+    .filter((task) => !selectedDayIsToday || (task.scheduledAt || 0) >= now)
+    .map<NormalizedLogItem>((task) => {
+      const startAt =
+        toSafeTimestamp(task.scheduledAt) || toSafeTimestamp(task.updatedAt) || toSafeTimestamp(task.createdAt);
+      return {
+        id: `task:scheduled:${task.id}`,
+        type: 'task',
+        title: task.title,
+        status: 'scheduled',
+        startAt,
+        sourceRef: `task:${task.id}`,
+        taskId: task.id,
+        groupKey: `task:${task.id}`,
+        subtitle: `Prio: ${task.priority.toUpperCase()}`,
+      };
+    });
+};
+
+const mapUnfinishedItems = (
+  tasks: Task[],
+  selectedScheduledTasks: Task[],
+  selectedActivityGroups: XPDayActivityGroup[]
+): NormalizedLogItem[] => {
+  const scheduledIds = new Set(selectedScheduledTasks.map((task) => task.id));
+  const activeGroupIds = new Set(
+    selectedActivityGroups.map((group) => group.taskId).filter((taskId): taskId is string => !!taskId)
+  );
+
+  return tasks
+    .filter((task) => {
+      if (task.archivedAt) return false;
+      if (task.status === 'done') return false;
+      if (!(task.status === 'todo' || task.status === 'active' || task.status === 'dropped')) return false;
+      return scheduledIds.has(task.id) || activeGroupIds.has(task.id);
+    })
+    .map<NormalizedLogItem>((task) => ({
+      id: `task:unfinished:${task.id}`,
+      type: 'task',
+      title: task.title,
+      status: task.status === 'active' ? 'running' : task.status === 'dropped' ? 'failed' : 'todo',
+      startAt: toSafeTimestamp(task.scheduledAt) || toSafeTimestamp(task.updatedAt) || toSafeTimestamp(task.createdAt),
+      sourceRef: `task:${task.id}`,
+      taskId: task.id,
+      groupKey: `task:${task.id}`,
+      subtitle:
+        task.status === 'dropped'
+          ? 'Failed / dropped'
+          : task.status === 'active'
+            ? 'In progress'
+            : 'Todo',
+    }));
 };
 
 const normalizeDayItems = (params: {
@@ -133,105 +229,36 @@ const normalizeDayItems = (params: {
   selectedActivity: XPDayActivityItem[];
   selectedActivityGroups: XPDayActivityGroup[];
   selectedScheduledTasks: Task[];
-}): NormalizedBuckets => {
-  const {
-    dateKey,
-    now,
-    todayKey,
-    tasks,
-    selectedActivity,
-    selectedActivityGroups,
-    selectedScheduledTasks,
-  } = params;
+}): NormalizedLogItem[] => {
+  const { dateKey, now, todayKey, tasks, selectedActivity, selectedActivityGroups, selectedScheduledTasks } = params;
+  return [
+    ...mapTimelineEvents(selectedActivity, now),
+    ...mapCompletedItems(selectedActivityGroups),
+    ...mapScheduledItems(dateKey, todayKey, now, selectedScheduledTasks),
+    ...mapUnfinishedItems(tasks, selectedScheduledTasks, selectedActivityGroups),
+  ];
+};
 
-  const timeline = selectedActivity
-    .map<NormalizedLogItem>((entry) => {
-      const safeCreatedAt = toSafeTimestamp(entry.createdAt) ?? now;
-      const status = mapActivityStatus(entry);
-      return {
-        id: `${entry.kind}:${entry.id}`,
-        type: 'timeline',
-        title: entry.title,
-        status,
-        startAt: safeCreatedAt,
-        durationMin: Math.max(0, entry.minutes),
-        sourceKey: `${entry.kind}:${entry.id}`,
-        taskId: entry.taskId,
-        groupKey: entry.taskId ? `task:${entry.taskId}` : undefined,
-      };
-    })
-    .sort((a, b) => (b.startAt || 0) - (a.startAt || 0));
+const filterPanelItems = (items: NormalizedLogItem[], tab: SidePanelTab, now: number): NormalizedLogItem[] => {
+  const orderedDesc = [...items].sort((a, b) => (b.startAt || 0) - (a.startAt || 0));
 
-  const completed = selectedActivityGroups
-    .filter((group) => group.hasCompletion)
-    .map<NormalizedLogItem>((group) => ({
-      id: `completed:${group.key}`,
-      type: 'completed',
-      title: group.title,
-      status: 'completed',
-      startAt: group.latestAt,
-      durationMin: Math.max(0, group.totalMinutes),
-      sourceKey: group.key,
-      taskId: group.taskId,
-      groupKey: group.key,
-      subtitle: group.totalMinutes > 0 ? `${group.totalMinutes}m tracked` : 'No time logged',
-    }))
-    .sort((a, b) => (b.startAt || 0) - (a.startAt || 0));
-
-  const selectedDayIsToday = dateKey === todayKey;
-  const scheduled = selectedScheduledTasks
-    .filter((task) => !selectedDayIsToday || (task.scheduledAt || 0) >= now)
-    .map<NormalizedLogItem>((task) => ({
-      id: `scheduled:${task.id}`,
-      type: 'scheduled',
-      title: task.title,
-      status: 'scheduled',
-      scheduledAt: toSafeTimestamp(task.scheduledAt),
-      startAt: toSafeTimestamp(task.scheduledAt) || toSafeTimestamp(task.updatedAt) || toSafeTimestamp(task.createdAt),
-      sourceKey: `task:${task.id}`,
-      taskId: task.id,
-      groupKey: `task:${task.id}`,
-      subtitle: `Prio: ${task.priority.toUpperCase()}`,
-    }))
-    .sort((a, b) => (a.scheduledAt || a.startAt || 0) - (b.scheduledAt || b.startAt || 0));
-
-  const scheduledIds = new Set(selectedScheduledTasks.map((task) => task.id));
-  const activeGroupIds = new Set(
-    selectedActivityGroups.map((group) => group.taskId).filter((taskId): taskId is string => !!taskId)
-  );
-
-  const unfinished = tasks
-    .filter((task) => {
-      if (task.archivedAt) return false;
-      if (task.status === 'done') return false;
-      if (!(task.status === 'todo' || task.status === 'active' || task.status === 'dropped')) return false;
-      return scheduledIds.has(task.id) || activeGroupIds.has(task.id);
-    })
-    .map<NormalizedLogItem>((task) => ({
-      id: `unfinished:${task.id}`,
-      type: 'unfinished',
-      title: task.title,
-      status: task.status === 'dropped' ? 'failed' : 'unfinished',
-      startAt: toSafeTimestamp(task.scheduledAt) || toSafeTimestamp(task.updatedAt) || toSafeTimestamp(task.createdAt),
-      scheduledAt: toSafeTimestamp(task.scheduledAt),
-      sourceKey: `task:${task.id}`,
-      taskId: task.id,
-      groupKey: `task:${task.id}`,
-      subtitle:
-        task.status === 'dropped'
-          ? 'Failed / dropped'
-          : task.status === 'active'
-            ? 'In progress'
-            : 'Todo',
-    }))
-    .sort((a, b) => (b.startAt || 0) - (a.startAt || 0));
-
-  return { timeline, unfinished, completed, scheduled };
+  if (tab === 'timeline') {
+    return orderedDesc.filter((item) => item.type === 'timeline');
+  }
+  if (tab === 'unfinished') {
+    return orderedDesc.filter((item) => item.status === 'todo' || item.status === 'running' || item.status === 'failed');
+  }
+  if (tab === 'completed') {
+    return orderedDesc.filter((item) => item.status === 'done');
+  }
+  return [...items]
+    .filter((item) => item.status === 'scheduled' && (item.startAt || 0) >= now)
+    .sort((a, b) => (a.startAt || 0) - (b.startAt || 0));
 };
 
 const toPanelBadge = (status: NormalizedLogItemStatus) => {
   switch (status) {
-    case 'completed':
+    case 'done':
       return 'DONE';
     case 'retro':
       return 'RETRO';
@@ -241,10 +268,10 @@ const toPanelBadge = (status: NormalizedLogItemStatus) => {
       return 'RUNNING';
     case 'failed':
       return 'FAILED';
+    case 'todo':
+      return 'UNFINISHED';
     case 'created':
       return 'CREATED';
-    case 'unfinished':
-      return 'UNFINISHED';
     case 'tracked':
     default:
       return 'TRACKED';
@@ -253,11 +280,11 @@ const toPanelBadge = (status: NormalizedLogItemStatus) => {
 
 const toPanelSubtitle = (item: NormalizedLogItem) => {
   if (item.subtitle) return item.subtitle;
-  if (item.status === 'completed') {
+  if (item.status === 'done') {
     return item.durationMin && item.durationMin > 0 ? `${item.durationMin}m tracked` : 'No time logged';
   }
   if (item.status === 'scheduled') {
-    return item.scheduledAt ? `Starts ${formatTime(item.scheduledAt)}` : 'Scheduled';
+    return item.startAt ? `Starts ${formatTime(item.startAt)}` : 'Scheduled';
   }
   if (item.status === 'retro') {
     return `Retro +${Math.max(0, item.durationMin || 0)}m`;
@@ -289,6 +316,7 @@ export const LogCalendar: React.FC = () => {
   const [highlightedGroupKey, setHighlightedGroupKey] = useState<string | null>(null);
   const [mobilePanelOpen, setMobilePanelOpen] = useState(false);
   const [detailItem, setDetailItem] = useState<NormalizedLogItem | null>(null);
+  const [expandedPanelItemId, setExpandedPanelItemId] = useState<string | null>(null);
 
   const todayKey = toDateKey(new Date(now));
   const selectedDate = fromDateKey(selectedKey);
@@ -346,7 +374,7 @@ export const LogCalendar: React.FC = () => {
   const summaryByDay = useMemo(() => {
     const map = new Map<string, { activityCount: number; loggedMinutes: number; running: boolean }>();
     gridKeys.forEach((key) => {
-      const daySummary = selectors.getDaySummary(key, now);
+      const daySummary = selectors.getDaySummary(key, now) || EMPTY_DAY_SUMMARY;
       map.set(key, {
         activityCount: daySummary.activityCount,
         loggedMinutes: daySummary.minutesTracked,
@@ -367,21 +395,21 @@ export const LogCalendar: React.FC = () => {
     [selectedDate]
   );
 
-  const selectedDaySummary = selectors.getDaySummary(selectedKey, now);
+  const selectedDaySummary = selectors.getDaySummary(selectedKey, now) || EMPTY_DAY_SUMMARY;
 
   const selectedActivity = useMemo(
-    () => selectors.getDayActivity(selectedKey, now),
+    () => ensureArray(selectors.getDayActivity(selectedKey, now)),
     [selectors, selectedKey, now]
   );
 
   const selectedActivityGroups = useMemo(
-    () => selectors.getDayActivityGrouped(selectedKey, now),
+    () => ensureArray(selectors.getDayActivityGrouped(selectedKey, now)),
     [selectors, selectedKey, now]
   );
 
   const selectedScheduledTasks = useMemo(() => {
     const { start, end } = getDateBounds(selectedKey);
-    return tasks
+    return ensureArray(tasks)
       .filter((task) => !!task.scheduledAt && task.scheduledAt >= start && task.scheduledAt < end)
       .sort((a, b) => (a.scheduledAt || 0) - (b.scheduledAt || 0));
   }, [tasks, selectedKey]);
@@ -392,7 +420,7 @@ export const LogCalendar: React.FC = () => {
         dateKey: selectedKey,
         now,
         todayKey,
-        tasks,
+        tasks: ensureArray(tasks),
         selectedActivity,
         selectedActivityGroups,
         selectedScheduledTasks,
@@ -400,7 +428,12 @@ export const LogCalendar: React.FC = () => {
     [selectedKey, now, todayKey, tasks, selectedActivity, selectedActivityGroups, selectedScheduledTasks]
   );
 
-  const panelItems = useMemo(() => normalized[sidePanelTab], [normalized, sidePanelTab]);
+  const panelItems = useMemo(() => filterPanelItems(normalized, sidePanelTab, now), [normalized, sidePanelTab, now]);
+
+  const rangeLabel = useMemo(
+    () => RANGE_OPTIONS.find((option) => option.value === rangeMode)?.label ?? rangeMode,
+    [rangeMode]
+  );
 
   const selectDate = (dateKey: string, monthDate?: Date) => {
     setSelectedKey(dateKey);
@@ -418,6 +451,26 @@ export const LogCalendar: React.FC = () => {
       selectDate(toDateKey(today), today);
     }
   };
+
+  const handlePrev = useCallback(() => {
+    if (rangeMode === 'week') {
+      const base = fromDateKey(selectedKey);
+      base.setDate(base.getDate() - 7);
+      selectDate(toDateKey(base), base);
+      return;
+    }
+    setViewMonth((prev) => new Date(prev.getFullYear(), prev.getMonth() - 1, 1));
+  }, [rangeMode, selectedKey]);
+
+  const handleNext = useCallback(() => {
+    if (rangeMode === 'week') {
+      const base = fromDateKey(selectedKey);
+      base.setDate(base.getDate() + 7);
+      selectDate(toDateKey(base), base);
+      return;
+    }
+    setViewMonth((prev) => new Date(prev.getFullYear(), prev.getMonth() + 1, 1));
+  }, [rangeMode, selectedKey]);
 
   const jumpToGroup = useCallback((item: NormalizedLogItem) => {
     const targetGroup = item.groupKey || (item.taskId ? `task:${item.taskId}` : undefined);
@@ -448,9 +501,17 @@ export const LogCalendar: React.FC = () => {
     if (!overlayOpen) toggleBtn.click();
   }, []);
 
+  const handlePanelItemClick = useCallback(
+    (item: NormalizedLogItem) => {
+      jumpToGroup(item);
+      setExpandedPanelItemId((prev) => (prev === item.id ? null : item.id));
+    },
+    [jumpToGroup]
+  );
+
   const sidePanel = (
-    <div className="flex h-full flex-col rounded-2xl border border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-[var(--app-panel-2)] shadow-[0_14px_34px_rgba(0,0,0,0.42)] overflow-hidden">
-      <div className="px-4 py-4 border-b border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-[var(--app-panel)]">
+    <div className="flex h-full flex-col rounded-2xl border border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-[var(--app-panel-2)] shadow-[0_14px_34px_rgba(0,0,0,0.28)] overflow-hidden">
+      <div className="px-3.5 py-3 border-b border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-[var(--app-panel)]">
         <div className="flex items-start justify-between gap-3">
           <div>
             <div className="text-[10px] uppercase tracking-[0.26em] text-[var(--app-muted)]">Selected Date</div>
@@ -465,35 +526,31 @@ export const LogCalendar: React.FC = () => {
           </button>
         </div>
 
-        <div className="mt-3 grid grid-cols-2 gap-2 text-[10px] uppercase tracking-[0.16em]">
-          <div className="rounded-md border border-[color-mix(in_srgb,var(--app-text)_8%,transparent)] bg-[var(--app-panel-2)] px-2 py-1.5 text-[var(--app-muted)]">
-            Tracked
-            <div className="mt-1 text-[var(--app-text)]">{selectedDaySummary.minutesTracked}m</div>
+        <div className="mt-3 grid grid-cols-4 gap-1.5 text-[10px] uppercase tracking-[0.14em]">
+          <div className="rounded-full border border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-[var(--app-panel-2)] px-2 py-1 text-[var(--app-muted)] text-center">
+            T {selectedDaySummary.minutesTracked}m
           </div>
-          <div className="rounded-md border border-[color-mix(in_srgb,var(--app-text)_8%,transparent)] bg-[var(--app-panel-2)] px-2 py-1.5 text-[var(--app-muted)]">
-            Total Items
-            <div className="mt-1 text-[var(--app-text)]">{selectedDaySummary.activityCount}</div>
+          <div className="rounded-full border border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-[var(--app-panel-2)] px-2 py-1 text-[var(--app-muted)] text-center">
+            I {selectedDaySummary.activityCount}
           </div>
-          <div className="rounded-md border border-[color-mix(in_srgb,var(--app-text)_8%,transparent)] bg-[var(--app-panel-2)] px-2 py-1.5 text-[var(--app-muted)]">
-            Completed
-            <div className="mt-1 text-[var(--app-text)]">{selectedDaySummary.completedCount}</div>
+          <div className="rounded-full border border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-[var(--app-panel-2)] px-2 py-1 text-[var(--app-muted)] text-center">
+            C {selectedDaySummary.completedCount}
           </div>
-          <div className="rounded-md border border-[color-mix(in_srgb,var(--app-text)_8%,transparent)] bg-[var(--app-panel-2)] px-2 py-1.5 text-[var(--app-muted)]">
-            Scheduled
-            <div className="mt-1 text-[var(--app-text)]">{selectedDaySummary.scheduledCount}</div>
+          <div className="rounded-full border border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-[var(--app-panel-2)] px-2 py-1 text-[var(--app-muted)] text-center">
+            S {selectedDaySummary.scheduledCount}
           </div>
         </div>
       </div>
 
-      <div className="px-3 py-2 border-b border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-[var(--app-panel)] flex gap-2 overflow-x-auto no-scrollbar">
+      <div className="px-2.5 py-2 border-b border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-[var(--app-panel)] flex gap-1.5 overflow-x-auto no-scrollbar">
         {SIDE_PANEL_TABS.map((tab) => (
           <button
             key={tab.value}
             type="button"
             onClick={() => setSidePanelTab(tab.value)}
-            className={`px-3 py-1.5 rounded-md border text-[10px] uppercase tracking-[0.18em] transition-colors whitespace-nowrap ${
+            className={`px-2.5 py-1 rounded-md border text-[10px] uppercase tracking-[0.16em] transition-colors whitespace-nowrap ${
               sidePanelTab === tab.value
-                ? 'border-[color-mix(in_srgb,var(--app-accent)_60%,transparent)] bg-[color-mix(in_srgb,var(--app-accent)_16%,var(--app-panel))] text-[var(--app-accent)]'
+                ? 'border-[color-mix(in_srgb,var(--app-accent)_55%,transparent)] bg-[color-mix(in_srgb,var(--app-accent)_14%,var(--app-panel))] text-[var(--app-accent)]'
                 : 'border-[color-mix(in_srgb,var(--app-text)_14%,transparent)] bg-[var(--app-panel-2)] text-[var(--app-muted)] hover:text-[var(--app-text)]'
             }`}
           >
@@ -502,40 +559,63 @@ export const LogCalendar: React.FC = () => {
         ))}
       </div>
 
-      <div className="flex-1 overflow-y-auto p-3 space-y-2">
+      <div className="flex-1 overflow-y-auto p-2.5 space-y-1.5">
         {panelItems.length === 0 ? (
           <div className="rounded-lg border border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-[var(--app-panel)] p-3 text-[11px] uppercase tracking-[0.16em] text-[var(--app-muted)]">
             No items for this tab.
           </div>
         ) : (
-          panelItems.map((item) => (
-            <button
-              key={item.id}
-              type="button"
-              onClick={() => jumpToGroup(item)}
-              className="w-full text-left rounded-lg border border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-[var(--app-panel)] px-3 py-2 hover:border-[color-mix(in_srgb,var(--app-accent)_55%,transparent)] transition-colors"
-            >
-              <div className="flex items-center justify-between gap-2">
-                <div className="min-w-0">
-                  <div className="text-xs uppercase tracking-[0.14em] text-[var(--app-text)] truncate">{item.title}</div>
-                  <div className="text-[10px] uppercase tracking-[0.16em] text-[var(--app-muted)] mt-1 truncate">{toPanelSubtitle(item)}</div>
-                </div>
-                <span className="text-[10px] uppercase tracking-[0.16em] text-[var(--app-muted)]">
-                  {item.scheduledAt ? formatTime(item.scheduledAt) : item.startAt ? formatTime(item.startAt) : '--:--'}
-                </span>
+          panelItems.map((item) => {
+            const expanded = expandedPanelItemId === item.id;
+            return (
+              <div
+                key={item.id}
+                className="rounded-lg border border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-[var(--app-panel)] overflow-hidden"
+              >
+                <button
+                  type="button"
+                  onClick={() => handlePanelItemClick(item)}
+                  className="w-full text-left px-2.5 py-2 hover:border-[color-mix(in_srgb,var(--app-accent)_55%,transparent)] transition-colors"
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="min-w-0 text-xs uppercase tracking-[0.14em] text-[var(--app-text)] truncate">{item.title}</div>
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      <span className="text-[10px] uppercase tracking-[0.14em] text-[var(--app-muted)]">
+                        {item.startAt ? formatTime(item.startAt) : '--:--'}
+                      </span>
+                      <span className="inline-flex rounded px-1.5 py-0.5 text-[9px] uppercase tracking-[0.14em] bg-[color-mix(in_srgb,var(--app-accent)_18%,var(--app-panel))] text-[var(--app-accent)]">
+                        {toPanelBadge(item.status)}
+                      </span>
+                    </div>
+                  </div>
+                </button>
+                {expanded ? (
+                  <div className="px-2.5 pb-2 text-[10px] uppercase tracking-[0.14em] text-[var(--app-muted)] border-t border-[color-mix(in_srgb,var(--app-text)_8%,transparent)] bg-[color-mix(in_srgb,var(--app-panel)_75%,var(--app-panel-2))]">
+                    <div className="pt-1.5">{toPanelSubtitle(item)}</div>
+                  </div>
+                ) : null}
               </div>
-              <div className="mt-2 inline-flex rounded px-1.5 py-0.5 text-[10px] uppercase tracking-[0.14em] bg-[color-mix(in_srgb,var(--app-accent)_18%,var(--app-panel))] text-[var(--app-accent)]">
-                {toPanelBadge(item.status)}
-              </div>
-            </button>
-          ))
+            );
+          })
         )}
       </div>
     </div>
   );
 
   return (
-    <div className="relative xl:pr-[416px] text-[var(--app-text)]">
+    <div className="relative xl:pr-[344px] text-[var(--app-text)]">
+      {import.meta.env.DEV ? (
+        <div className="mb-3 rounded-md border border-[color-mix(in_srgb,var(--app-accent)_45%,transparent)] bg-[color-mix(in_srgb,var(--app-accent)_12%,var(--app-panel))] px-3 py-2 text-[10px] uppercase tracking-[0.14em] text-[var(--app-muted)]">
+          <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
+            <span className="text-[var(--app-text)]">selectedDate: {selectedKey}</span>
+            <span>activeRange: {rangeLabel}</span>
+            <span>tracked: {selectedDaySummary.minutesTracked}m</span>
+            <span>completed: {selectedDaySummary.completedCount}</span>
+            <span>scheduled: {selectedDaySummary.scheduledCount}</span>
+            <span>total: {selectedDaySummary.activityCount}</span>
+          </div>
+        </div>
+      ) : null}
       <div className="space-y-4">
         <div className="rounded-2xl border border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-gradient-to-b from-[color-mix(in_srgb,var(--app-panel-2)_90%,var(--app-panel))] to-[var(--app-panel)] shadow-[0_12px_28px_rgba(0,0,0,0.45)] p-4">
           <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between mb-4">
@@ -560,14 +640,14 @@ export const LogCalendar: React.FC = () => {
               ))}
               <button
                 type="button"
-                onClick={() => setViewMonth((prev) => new Date(prev.getFullYear(), prev.getMonth() - 1, 1))}
+                onClick={handlePrev}
                 className="px-3 py-2 rounded-md border border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] text-[10px] tracking-[0.2em] uppercase text-[var(--app-text)] bg-[var(--app-panel-2)] hover:border-[color-mix(in_srgb,var(--app-text)_30%,transparent)] transition-colors"
               >
                 Prev
               </button>
               <button
                 type="button"
-                onClick={() => setViewMonth((prev) => new Date(prev.getFullYear(), prev.getMonth() + 1, 1))}
+                onClick={handleNext}
                 className="px-3 py-2 rounded-md border border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] text-[10px] tracking-[0.2em] uppercase text-[var(--app-text)] bg-[var(--app-panel-2)] hover:border-[color-mix(in_srgb,var(--app-text)_30%,transparent)] transition-colors"
               >
                 Next
@@ -587,30 +667,48 @@ export const LogCalendar: React.FC = () => {
           ) : null}
 
           {rangeMode === 'week' ? (
-            <div className="grid grid-cols-2 md:grid-cols-7 gap-2">
-              {weekDays.map((day) => {
-                const daySummary = selectors.getDaySummary(day.key, now);
-                const isSelected = day.key === selectedKey;
-                const isToday = day.key === todayKey;
-                return (
-                  <button
-                    key={day.key}
-                    type="button"
-                    onClick={() => selectDate(day.key, day.date)}
-                    className={`rounded-lg border p-3 text-left transition-colors ${
-                      isSelected
-                        ? 'border-[color-mix(in_srgb,var(--app-accent)_60%,transparent)] bg-[color-mix(in_srgb,var(--app-accent)_16%,var(--app-panel))]'
-                        : 'border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-[var(--app-panel-2)]'
-                    }`}
+            <div className="space-y-2">
+              <div className="grid grid-cols-7 gap-2">
+                {DAY_NAMES.map((name) => (
+                  <div
+                    key={`week-${name}`}
+                    className="text-[10px] text-[var(--app-muted)] text-center py-1 font-normal uppercase tracking-[0.2em]"
                   >
-                    <div className={`text-[11px] uppercase tracking-[0.16em] ${isToday ? 'text-[var(--app-accent)]' : 'text-[var(--app-muted)]'}`}>
-                      {formatWeekdayLabel(day.key)}
-                    </div>
-                    <div className="mt-2 text-xs uppercase tracking-[0.16em] text-[var(--app-text)]">{daySummary.minutesTracked}m</div>
-                    <div className="text-[10px] uppercase tracking-[0.14em] text-[var(--app-muted)] mt-1">{daySummary.activityCount} items</div>
-                  </button>
-                );
-              })}
+                    {name}
+                  </div>
+                ))}
+              </div>
+              <div className="overflow-x-auto no-scrollbar">
+                <div className="grid min-w-[740px] grid-cols-7 gap-2">
+                  {weekDays.map((day) => {
+                    const daySummary = selectors.getDaySummary(day.key, now) || EMPTY_DAY_SUMMARY;
+                    const isSelected = day.key === selectedKey;
+                    const isToday = day.key === todayKey;
+                    return (
+                      <button
+                        key={day.key}
+                        type="button"
+                        onClick={() => selectDate(day.key, day.date)}
+                        className={`min-h-[104px] rounded-lg border p-3 text-left transition-colors ${
+                          isSelected
+                            ? 'border-[color-mix(in_srgb,var(--app-accent)_60%,transparent)] bg-[color-mix(in_srgb,var(--app-accent)_16%,var(--app-panel))]'
+                            : 'border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-[var(--app-panel-2)]'
+                        }`}
+                      >
+                        <div className={`text-[11px] uppercase tracking-[0.16em] ${isToday ? 'text-[var(--app-accent)]' : 'text-[var(--app-muted)]'}`}>
+                          {formatWeekdayLabel(day.key)}
+                        </div>
+                        <div className="mt-2 text-xs uppercase tracking-[0.16em] text-[var(--app-text)]">
+                          {daySummary.minutesTracked}m
+                        </div>
+                        <div className="text-[10px] uppercase tracking-[0.14em] text-[var(--app-muted)] mt-1">
+                          {daySummary.activityCount} items
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
             </div>
           ) : null}
 
@@ -679,7 +777,7 @@ export const LogCalendar: React.FC = () => {
             <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3">
               {yearMonths.map((monthDate) => {
                 const monthKey = toDateKey(monthDate);
-                const monthSummary = selectors.getDaySummary(monthKey, now);
+                const monthSummary = selectors.getDaySummary(monthKey, now) || EMPTY_DAY_SUMMARY;
                 const isSelectedMonth =
                   viewMonth.getFullYear() === monthDate.getFullYear() &&
                   viewMonth.getMonth() === monthDate.getMonth();
@@ -885,7 +983,7 @@ export const LogCalendar: React.FC = () => {
         </div>
       </div>
 
-      <aside className="hidden xl:flex fixed right-4 top-[76px] h-[calc(100dvh-88px)] w-[390px] z-30">{sidePanel}</aside>
+      <aside className="hidden xl:flex fixed right-4 top-[76px] h-[calc(100dvh-88px)] w-[320px] z-30">{sidePanel}</aside>
 
       <button
         type="button"
@@ -919,7 +1017,7 @@ export const LogCalendar: React.FC = () => {
             <div className="text-sm uppercase tracking-[0.18em] text-[var(--app-text)]">{detailItem.title}</div>
             <div className="mt-2 text-xs uppercase tracking-[0.16em] text-[var(--app-muted)]">{toPanelSubtitle(detailItem)}</div>
             <div className="mt-3 text-[11px] uppercase tracking-[0.16em] text-[var(--app-muted)]">
-              {detailItem.scheduledAt ? formatTime(detailItem.scheduledAt) : detailItem.startAt ? formatTime(detailItem.startAt) : '--:--'}
+              {detailItem.startAt ? formatTime(detailItem.startAt) : '--:--'}
             </div>
             <button
               type="button"
