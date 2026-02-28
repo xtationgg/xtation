@@ -1199,16 +1199,13 @@ export const LogCalendar: React.FC = () => {
           <div className="min-w-0">
             <div className="text-[10px] uppercase tracking-[0.26em] text-[var(--app-muted)]">Day Console</div>
           </div>
-          <div className="flex items-start gap-2 shrink-0">
-            <DayTimeOrb showLiveLabel={selectedKey !== todayKey} className="mt-0.5" />
-            <button
-              type="button"
-              onClick={openQuestAddFlow}
-              className="px-2.5 py-1.5 rounded-md border border-[color-mix(in_srgb,var(--app-accent)_45%,transparent)] bg-[color-mix(in_srgb,var(--app-accent)_16%,var(--app-panel))] text-[10px] uppercase tracking-[0.16em] text-[var(--app-accent)] hover:border-[var(--app-accent)] shrink-0"
-            >
-              Add
-            </button>
-          </div>
+          <button
+            type="button"
+            onClick={openQuestAddFlow}
+            className="px-2.5 py-1.5 rounded-md border border-[color-mix(in_srgb,var(--app-accent)_45%,transparent)] bg-[color-mix(in_srgb,var(--app-accent)_16%,var(--app-panel))] text-[10px] uppercase tracking-[0.16em] text-[var(--app-accent)] hover:border-[var(--app-accent)] shrink-0"
+          >
+            Add
+          </button>
         </div>
       </div>
 
@@ -1362,6 +1359,10 @@ export const LogCalendar: React.FC = () => {
         </div>
       ) : null}
       <div className="space-y-4">
+        <div className="flex justify-center lg:justify-end">
+          <DayTimeOrb size={184} showLiveLabel={selectedKey !== todayKey} />
+        </div>
+
         <div className="rounded-2xl bg-[var(--app-panel-2)] p-4">
           <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between mb-4">
             <div>

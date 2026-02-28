@@ -3,13 +3,14 @@ import React, { useEffect, useId, useMemo, useState } from 'react';
 type DayTimeOrbProps = {
   showLiveLabel?: boolean;
   className?: string;
+  size?: number;
 };
 
 const clamp = (value: number, min: number, max: number) => Math.max(min, Math.min(max, value));
 
 const pad2 = (value: number) => String(value).padStart(2, '0');
 
-export const DayTimeOrb: React.FC<DayTimeOrbProps> = ({ showLiveLabel = false, className = '' }) => {
+export const DayTimeOrb: React.FC<DayTimeOrbProps> = ({ showLiveLabel = false, className = '', size = 92 }) => {
   const [now, setNow] = useState(() => Date.now());
   const gradientId = useId().replace(/:/g, '');
 
@@ -53,11 +54,17 @@ export const DayTimeOrb: React.FC<DayTimeOrbProps> = ({ showLiveLabel = false, c
   const arcLength = 2 * Math.PI * arcRadius;
   const arcDashOffset = arcLength * (1 - metrics.progress);
 
+  const clampedSize = clamp(size, 72, 240);
+  const wrapperWidth = Math.round(clampedSize * 1.35);
+  const textSize = Math.max(9, Math.round(clampedSize * 0.1));
+  const liveSize = Math.max(8, Math.round(clampedSize * 0.085));
+
   return (
-    <div className={`flex w-[118px] flex-col items-center ${className}`}>
+    <div className={`flex flex-col items-center ${className}`} style={{ width: wrapperWidth }}>
       <svg
         viewBox="0 0 144 144"
-        className="h-[92px] w-[92px] shrink-0"
+        className="shrink-0"
+        style={{ width: clampedSize, height: clampedSize }}
         role="img"
         aria-label="Today time orb"
       >
@@ -112,11 +119,13 @@ export const DayTimeOrb: React.FC<DayTimeOrbProps> = ({ showLiveLabel = false, c
         <circle cx="72" cy="72" r="17" fill="none" stroke="color-mix(in srgb, #e8edf7 40%, transparent)" strokeWidth="2.5" className="day-time-orb-glow" />
       </svg>
 
-      <div className="mt-1 text-center text-[9px] uppercase tracking-[0.1em] text-[var(--app-text)]">
+      <div className="mt-1 text-center uppercase tracking-[0.1em] text-[var(--app-text)]" style={{ fontSize: `${textSize}px` }}>
         {pad2(metrics.remainingHours)}:{pad2(metrics.remainingMinutes)} left for the day
       </div>
       {showLiveLabel ? (
-        <div className="mt-0.5 text-[8px] uppercase tracking-[0.18em] text-[var(--app-accent)]">Live Today</div>
+        <div className="mt-0.5 uppercase tracking-[0.18em] text-[var(--app-accent)]" style={{ fontSize: `${liveSize}px` }}>
+          Live Today
+        </div>
       ) : null}
     </div>
   );
