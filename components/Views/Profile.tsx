@@ -41,7 +41,15 @@ interface BioStats {
 }
 
 export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
-  const [activeTab, setActiveTab] = useState<'PROFILE' | 'HEALTH' | 'ACHIEVEMENTS' | 'ACTIVITY' | 'LOG'>('PROFILE');
+  const [activeTab, setActiveTab] = useState<'PROFILE' | 'HEALTH' | 'ACHIEVEMENTS' | 'ACTIVITY' | 'LOG'>(() => {
+    try {
+      const stored = window.sessionStorage.getItem('profileActiveTab');
+      if (stored === 'PROFILE' || stored === 'HEALTH' || stored === 'ACHIEVEMENTS' || stored === 'ACTIVITY' || stored === 'LOG') {
+        return stored;
+      }
+    } catch {}
+    return 'PROFILE';
+  });
   const [summonerName, setSummonerName] = useState(() => localStorage.getItem('profileName') || 'Summoner Name');
   const [profileImage, setProfileImage] = useState(() => localStorage.getItem('profileImage') || ASSETS.PROFILE_ICON);
   const [coverImage, setCoverImage] = useState(() => localStorage.getItem('profileCover') || ASSETS.BACKGROUND_HOME);
@@ -184,6 +192,11 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
   const objectUrlRef = useRef<string | null>(null);
   const { stats: xpStats, legacyXP, tasks, selectors, dateKey } = useXP();
 
+  useEffect(() => {
+    try {
+      window.sessionStorage.setItem('profileActiveTab', activeTab);
+    } catch {}
+  }, [activeTab]);
   useEffect(() => localStorage.setItem('profileName', summonerName), [summonerName]);
   useEffect(() => localStorage.setItem('profileRole', roleText), [roleText]);
   useEffect(() => { try { localStorage.setItem('profileCoverType', coverType); } catch {} }, [coverType]);

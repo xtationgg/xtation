@@ -1,44 +1,64 @@
 import React from 'react';
 
+type AppErrorBoundaryState = {
+  hasError: boolean;
+  message: string;
+  stack?: string;
+};
+
 export class AppErrorBoundary extends React.Component<
   { children: React.ReactNode },
-  { hasError: boolean; message?: string }
+  AppErrorBoundaryState
 > {
-  constructor(props: { children: React.ReactNode }) {
-    super(props);
-    this.state = { hasError: false, message: undefined };
+  state: AppErrorBoundaryState = {
+    hasError: false,
+    message: '',
+    stack: undefined,
+  };
+
+  static getDerivedStateFromError(error: Error): AppErrorBoundaryState {
+    return {
+      hasError: true,
+      message: error.message || 'Unknown runtime error',
+      stack: error.stack,
+    };
   }
 
-  static getDerivedStateFromError(error: any) {
-    return { hasError: true, message: error?.message || 'Unknown error' };
-  }
-
-  componentDidCatch(error: any, info: any) {
-    console.error('App crashed', error, info);
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+    console.error('[app-error-boundary] Runtime error:', error);
+    if (errorInfo.componentStack) {
+      console.error('[app-error-boundary] Component stack:', errorInfo.componentStack);
+    }
   }
 
   render() {
-    if (this.state.hasError) {
-      return (
-        <div className="w-screen h-screen flex items-center justify-center p-8 bg-[var(--ui-panel)] text-[#e6e8ee]">
-          <div className="max-w-xl w-full border border-[var(--ui-border)] bg-[var(--ui-panel)] p-6 rounded">
-            <div className="text-xs uppercase tracking-[0.25em] text-[var(--ui-accent)]">Recovered from crash</div>
-            <div className="mt-2 text-lg font-semibold">This section crashed instead of showing a blank page.</div>
-            <div className="mt-2 text-sm text-[var(--ui-muted)]">{this.state.message || ''}</div>
-            <div className="mt-6 flex gap-3">
-              <button
-                className="border border-[var(--ui-border)] bg-[var(--ui-panel)] px-4 py-2 text-xs uppercase tracking-[0.2em] hover:border-[#e6e8ee]"
-                onClick={() => window.location.reload()}
-              >
-                Reload
-              </button>
-            </div>
-            <div className="mt-4 text-[11px] text-[var(--ui-muted)]">Check DevTools console for the full error.</div>
-          </div>
-        </div>
-      );
+    if (!this.state.hasError) {
+      return this.props.children;
     }
 
-    return this.props.children;
+    return (
+      <div className="min-h-screen bg-[var(--app-bg)] text-[var(--app-text)] font-mono p-6">
+        <div className="max-w-3xl mx-auto rounded-xl border border-[var(--app-border)] bg-[var(--app-panel)] p-5">
+          <div className="text-[11px] uppercase tracking-[0.24em] text-[var(--app-muted)]">
+            Runtime Error
+          </div>
+          <div className="mt-2 text-sm text-[var(--app-text)]">
+            {this.state.message || 'Unknown runtime error'}
+          </div>
+          {this.state.stack ? (
+            <pre className="mt-4 max-h-[55vh] overflow-auto rounded-lg border border-[var(--app-border)] bg-[var(--app-panel-2)] p-3 text-[10px] leading-5 text-[var(--app-muted)] whitespace-pre-wrap">
+              {this.state.stack}
+            </pre>
+          ) : null}
+          <button
+            type="button"
+            onClick={() => window.location.reload()}
+            className="mt-4 rounded-md border border-[var(--app-border)] px-3 py-2 text-[10px] uppercase tracking-[0.18em] text-[var(--app-text)] bg-[var(--app-panel-2)]"
+          >
+            Reload
+          </button>
+        </div>
+      </div>
+    );
   }
 }

@@ -879,7 +879,13 @@ export const XPProvider: React.FC<{ children: React.ReactNode }> = ({ children }
         const cloudRecord = await getOrCreateLedger();
         if (syncLoadRequestIdRef.current !== requestId || syncUserIdRef.current !== normalizedUserId) return;
 
-        const nextSnapshot = snapshotFromCloudRecord(cloudRecord.ledger);
+        let nextSnapshot: XPStateSnapshot;
+        try {
+          nextSnapshot = snapshotFromCloudRecord(cloudRecord.ledger);
+        } catch (snapshotError) {
+          console.warn('[xp-sync] Invalid cloud ledger snapshot. Falling back to empty state.', snapshotError);
+          nextSnapshot = xpRepository.createEmpty();
+        }
         cloudLedgerRef.current = cloudRecord.ledger;
         replaceLedgerState(nextSnapshot, true);
         syncSkipNextSaveRef.current = true;
@@ -890,7 +896,9 @@ export const XPProvider: React.FC<{ children: React.ReactNode }> = ({ children }
         setAuthStatus('cloudReady');
       } catch (error) {
         if (syncLoadRequestIdRef.current !== requestId || syncUserIdRef.current !== normalizedUserId) return;
-        console.warn('[xp-sync] Failed to load cloud ledger:', error);
+        const status = typeof error === 'object' && error && 'status' in error ? (error as { status?: number }).status : undefined;
+        const code = typeof error === 'object' && error && 'code' in error ? (error as { code?: string }).code : undefined;
+        console.warn('[xp-sync] Failed to load cloud ledger (table=user_ledgers):', { status, code, error });
         replaceLedgerState(xpRepository.createEmpty(), true);
         setSyncStatus('error');
         setAuthStatus('cloudReady');
