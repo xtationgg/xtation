@@ -803,7 +803,7 @@ export const LogCalendar: React.FC = () => {
               className={`rounded-lg border overflow-hidden transition-colors duration-200 ${
                 highlightedPanelKey === row.key
                   ? 'border-[color-mix(in_srgb,var(--app-accent)_60%,transparent)] bg-[color-mix(in_srgb,var(--app-accent)_12%,var(--app-panel))]'
-                  : 'border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-[var(--app-panel)]'
+                  : 'border-[color-mix(in_srgb,var(--app-text)_6%,transparent)] bg-[var(--app-panel)]'
               }`}
             >
               <button
@@ -862,7 +862,7 @@ export const LogCalendar: React.FC = () => {
                           key={`${row.key}-${entry.id}`}
                           type="button"
                           onClick={() => handlePanelItemClick(entry)}
-                          className="w-full rounded border border-[color-mix(in_srgb,var(--app-text)_8%,transparent)] bg-[var(--app-panel)] px-2 py-1 text-left text-[10px] uppercase tracking-[0.13em] text-[var(--app-muted)] hover:border-[color-mix(in_srgb,var(--app-accent)_40%,transparent)]"
+                          className="w-full rounded border border-[color-mix(in_srgb,var(--app-text)_6%,transparent)] bg-[var(--app-panel)] px-2 py-1 text-left text-[10px] uppercase tracking-[0.13em] text-[var(--app-muted)] hover:border-[color-mix(in_srgb,var(--app-accent)_40%,transparent)]"
                         >
                           <div className="flex items-center justify-between gap-2">
                             <span className="truncate">{toPanelSubtitle(entry)}</span>
@@ -997,7 +997,7 @@ export const LogCalendar: React.FC = () => {
 
   const dayConsole = (
     <div className="rounded-2xl bg-[var(--app-panel-2)] overflow-hidden">
-      <div className="px-4 py-3 border-b border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-[var(--app-panel)]">
+      <div className="px-4 py-3 border-b border-[color-mix(in_srgb,var(--app-text)_8%,transparent)] bg-[var(--app-panel)]">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
             <div className="text-[10px] uppercase tracking-[0.26em] text-[var(--app-muted)]">Day Console</div>
@@ -1019,7 +1019,7 @@ export const LogCalendar: React.FC = () => {
         </div>
       </div>
 
-      <div className="px-3 py-2 border-b border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-[var(--app-panel)] flex gap-1 overflow-x-auto no-scrollbar">
+      <div className="px-3 py-2 border-b border-[color-mix(in_srgb,var(--app-text)_8%,transparent)] bg-[var(--app-panel)] flex gap-1 overflow-x-auto no-scrollbar">
         {SIDE_PANEL_TABS.map((tab) => (
           <button
             key={tab.value}
@@ -1134,7 +1134,7 @@ export const LogCalendar: React.FC = () => {
         </div>
       ) : null}
       <div className="space-y-4">
-        <div className="rounded-2xl border border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-gradient-to-b from-[color-mix(in_srgb,var(--app-panel-2)_90%,var(--app-panel))] to-[var(--app-panel)] shadow-[0_12px_28px_rgba(0,0,0,0.45)] p-4">
+        <div className="rounded-2xl bg-[var(--app-panel-2)] p-4">
           <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between mb-4">
             <div>
               <div className="text-[10px] text-[var(--app-muted)] tracking-[0.3em] uppercase">Log Calendar</div>
@@ -1332,7 +1332,7 @@ export const LogCalendar: React.FC = () => {
 
         {dayConsole}
 
-        <div className="rounded-2xl border border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-[var(--app-panel-2)] p-4">
+        <div className="rounded-2xl bg-[var(--app-panel-2)] p-4">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
               <div className="text-sm font-medium text-[var(--app-text)] uppercase tracking-[0.16em]">Full Day History</div>
@@ -1348,7 +1348,7 @@ export const LogCalendar: React.FC = () => {
           </div>
         </div>
 
-        <div className="rounded-2xl border border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-[var(--app-panel-2)] p-4">
+        <div className="rounded-2xl bg-[var(--app-panel-2)] p-4">
           <button
             type="button"
             onClick={() => setScheduledOpen((prev) => !prev)}
@@ -1368,7 +1368,7 @@ export const LogCalendar: React.FC = () => {
             ) : (
               <div className="space-y-2 mt-3">
                 {selectedScheduledTasks.map((task) => (
-                  <div key={task.id} className="rounded-lg border border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-[var(--app-panel)] px-3 py-2">
+                  <div key={task.id} className="rounded-lg border border-[color-mix(in_srgb,var(--app-text)_6%,transparent)] bg-[var(--app-panel)] px-3 py-2">
                     <div className="flex items-center justify-between gap-3">
                       <div>
                         <div className="text-sm font-normal text-[var(--app-text)]">{task.title}</div>
@@ -1424,7 +1424,7 @@ export const LogCalendar: React.FC = () => {
                       className={`rounded-lg border px-3 py-2 transition-colors ${
                         isHighlighted
                           ? 'border-[color-mix(in_srgb,var(--app-accent)_65%,transparent)] bg-[color-mix(in_srgb,var(--app-accent)_12%,var(--app-panel-2))]'
-                          : 'border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-[var(--app-panel)]'
+                          : 'border-[color-mix(in_srgb,var(--app-text)_6%,transparent)] bg-[var(--app-panel)]'
                       }`}
                     >
                       <div className="flex items-center justify-between gap-3">
@@ -1471,14 +1471,14 @@ export const LogCalendar: React.FC = () => {
                         </div>
                       </div>
                       {isExpanded ? (
-                        <div className="mt-2 pt-2 border-t border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] space-y-2">
+                        <div className="mt-2 pt-2 border-t border-[color-mix(in_srgb,var(--app-text)_8%,transparent)] space-y-2">
                           {row.items.map((entry) => {
                             return (
                               <button
                                 type="button"
                                 key={`${row.key}-${entry.id}`}
                                 onClick={() => handlePanelItemClick(entry)}
-                                className="w-full rounded border border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-[var(--app-panel-2)] px-2 py-1.5 text-left hover:border-[color-mix(in_srgb,var(--app-accent)_40%,transparent)]"
+                                className="w-full rounded border border-[color-mix(in_srgb,var(--app-text)_6%,transparent)] bg-[var(--app-panel-2)] px-2 py-1.5 text-left hover:border-[color-mix(in_srgb,var(--app-accent)_40%,transparent)]"
                               >
                                 <div className="text-[11px] text-[var(--app-muted)] uppercase tracking-[0.14em] truncate">
                                   {toPanelSubtitle(entry)} · {entry.startAt ? formatTime(entry.startAt) : '--:--'}
