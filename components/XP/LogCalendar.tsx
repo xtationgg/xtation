@@ -1071,7 +1071,7 @@ export const LogCalendar: React.FC = () => {
 
       <div className="p-3">
         <div className="hidden lg:grid lg:grid-cols-[minmax(0,14fr)_minmax(0,6fr)] gap-3 items-start">
-          <div className="rounded-xl bg-[var(--app-panel)] px-3 py-3">
+          <div className="px-1 py-1">
             <div className="mb-2 flex items-center justify-between gap-2">
               <div className="text-[10px] uppercase tracking-[0.16em] text-[var(--app-muted)]">{activeTabLabel} • 24h timeline</div>
               <button
@@ -1118,16 +1118,16 @@ export const LogCalendar: React.FC = () => {
               </button>
             </div>
             <div className="mt-1 text-[9px] uppercase tracking-[0.12em] text-[var(--app-muted)]">
-              Status derived from task state and latest event. Hollow dots indicate planned/uncompleted.
+              Status derived from task state and latest event. Hollow dots indicate planned/uncompleted. Failed = dropped quest.
             </div>
           </div>
-          <div className="rounded-xl bg-[var(--app-panel)] p-2.5">
+          <div className="p-0.5">
             {renderCompactItemList()}
           </div>
         </div>
 
         <div className="lg:hidden space-y-2">
-          <div className="rounded-xl bg-[var(--app-panel)] p-3">
+          <div className="p-1.5">
             <div className="mb-2 flex items-center justify-between gap-2">
               <div className="text-[10px] uppercase tracking-[0.16em] text-[var(--app-muted)]">{activeTabLabel} • 24h timeline</div>
               <button
@@ -1174,7 +1174,7 @@ export const LogCalendar: React.FC = () => {
               </button>
             </div>
             <div className="mt-1 text-[9px] uppercase tracking-[0.12em] text-[var(--app-muted)]">
-              Status derived from task state and latest event. Hollow dots indicate planned/uncompleted.
+              Status derived from task state and latest event. Hollow dots indicate planned/uncompleted. Failed = dropped quest.
             </div>
           </div>
           <button
@@ -1686,6 +1686,9 @@ export const LogCalendar: React.FC = () => {
               >
                 Clear
               </button>
+            </div>
+            <div className="mt-1 text-[9px] uppercase tracking-[0.12em] text-[var(--app-muted)]">
+              Hollow dots indicate planned/uncompleted. Failed = dropped quest.
             </div>
           </div>
         </div>
