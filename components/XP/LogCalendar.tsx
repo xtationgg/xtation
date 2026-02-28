@@ -188,6 +188,9 @@ const QUEST_STATE_META: Record<QuestRowState, QuestStateMeta> = {
   },
 };
 
+const DAY_ROW_STATUS_CHIP_WIDTH = 96;
+const DAY_ROW_TIME_WIDTH = 74;
+
 const mapActivityStatus = (entry: XPDayActivityItem): NormalizedLogItemStatus => {
   if (entry.kind === 'completion') return 'done';
   if (entry.kind === 'manual') return 'retro';
@@ -454,6 +457,8 @@ const toPanelSubtitle = (item: NormalizedLogItem) => {
   }
   return toPanelBadge(item.status);
 };
+
+const clampTimelineX = (xPct: number) => Math.max(7, Math.min(93, xPct));
 
 export const LogCalendar: React.FC = () => {
   const {
@@ -780,7 +785,7 @@ export const LogCalendar: React.FC = () => {
   }, []);
 
   const renderCompactItemList = (mobile = false) => (
-    <div className={`${mobile ? 'max-h-[58dvh]' : 'max-h-[55vh]'} overflow-y-auto pr-1 space-y-1.5`}>
+    <div className={`${mobile ? 'max-h-[58dvh]' : 'max-h-[52vh]'} overflow-y-auto pr-1 space-y-2`}>
       {dayConsoleRows.length === 0 ? (
         <div className="rounded-lg border border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-[var(--app-panel)] p-3 text-[11px] uppercase tracking-[0.14em] text-[var(--app-muted)]">
           No items for this tab.
@@ -819,15 +824,16 @@ export const LogCalendar: React.FC = () => {
                 data-day-console-row-button="true"
                 data-row-key={row.key}
                 aria-expanded={expanded}
-                className="w-full text-left px-3 py-2 transition-colors duration-150 hover:bg-[color-mix(in_srgb,var(--app-accent)_10%,var(--app-panel))] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color-mix(in_srgb,var(--app-accent)_55%,transparent)]"
+                className="w-full text-left px-3 py-2.5 transition-colors duration-150 hover:bg-[color-mix(in_srgb,var(--app-accent)_10%,var(--app-panel))] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color-mix(in_srgb,var(--app-accent)_55%,transparent)]"
               >
                 <div className="flex items-center gap-2">
                   <div className="min-w-0 flex-1 text-xs uppercase tracking-[0.12em] text-[var(--app-text)] truncate">
                     {row.title}
                   </div>
                   <span
-                    className="inline-flex w-[92px] justify-center rounded px-1.5 py-0.5 text-[9px] uppercase tracking-[0.14em] shrink-0 border"
+                    className="inline-flex justify-center rounded px-1.5 py-0.5 text-[9px] uppercase tracking-[0.14em] shrink-0 border"
                     style={{
+                      width: DAY_ROW_STATUS_CHIP_WIDTH,
                       backgroundColor: stateMeta.chipBg,
                       borderColor: stateMeta.chipBorder,
                       color: stateMeta.chipText,
@@ -835,7 +841,7 @@ export const LogCalendar: React.FC = () => {
                   >
                     {toQuestStateBadge(row.state)}
                   </span>
-                  <span className="w-[72px] text-right text-[10px] uppercase tracking-[0.12em] text-[var(--app-muted)] shrink-0 tabular-nums font-mono">
+                  <span className="text-right text-[10px] uppercase tracking-[0.12em] text-[var(--app-muted)] shrink-0 tabular-nums font-mono" style={{ width: DAY_ROW_TIME_WIDTH }}>
                     {row.primaryTime ? formatTime(row.primaryTime) : '--:--'}
                   </span>
                 </div>
@@ -918,7 +924,7 @@ export const LogCalendar: React.FC = () => {
   );
 
   const renderTimelineChart = (mobile = false) => {
-    const chartHeight = mobile ? 180 : 248;
+    const chartHeight = mobile ? 190 : 272;
     const chartInnerTop = 24;
     const chartInnerBottom = 30;
     return (
@@ -946,7 +952,7 @@ export const LogCalendar: React.FC = () => {
               key={`timeline-dot-${mobile ? 'mobile-' : ''}${dot.id}`}
               type="button"
               onClick={() => handleTimelineDotClick(dot.rowKey)}
-              className="absolute h-2.5 w-2.5 rounded-full border transition-transform hover:scale-110"
+              className={`absolute h-2.5 w-2.5 rounded-full border transition-transform duration-150 hover:scale-110 ${hoveredDotId === dot.id ? 'scale-125' : ''}`}
               style={{
                 left: `${dot.xPct}%`,
                 top: `${dot.laneDotTop}px`,
@@ -971,7 +977,7 @@ export const LogCalendar: React.FC = () => {
             <div
               className="pointer-events-none absolute z-10 rounded-md border border-[color-mix(in_srgb,var(--app-text)_20%,transparent)] bg-[var(--app-panel)] px-2 py-1 text-[10px] uppercase tracking-[0.12em] text-[var(--app-text)]"
               style={{
-                left: `${hoveredDot.xPct}%`,
+                left: `${clampTimelineX(hoveredDot.xPct)}%`,
                 top: `${Math.max(4, hoveredDot.laneDotTop - 24)}px`,
                 transform: 'translateX(-50%)',
               }}
@@ -980,7 +986,7 @@ export const LogCalendar: React.FC = () => {
             </div>
           ) : null}
         </div>
-        <div className="absolute inset-x-5 bottom-2 flex items-center justify-between text-[9px] uppercase tracking-[0.12em] text-[var(--app-muted)]">
+        <div className="absolute inset-x-5 bottom-2 flex items-center justify-between text-[9px] uppercase tracking-[0.12em] text-[var(--app-muted)] tabular-nums font-mono">
           {TIMELINE_HOUR_MARKERS.map((hour) => (
             <span key={`timeline-hour-${hour}`}>{`${String(hour).padStart(2, '0')}:00`}</span>
           ))}
@@ -1061,6 +1067,9 @@ export const LogCalendar: React.FC = () => {
                 </span>
               ))}
             </div>
+            <div className="mt-1 text-[9px] uppercase tracking-[0.12em] text-[var(--app-muted)]">
+              Status derived from task state and latest event.
+            </div>
           </div>
           <div className="rounded-xl bg-[var(--app-panel)] p-2.5">
             {renderCompactItemList()}
@@ -1093,6 +1102,9 @@ export const LogCalendar: React.FC = () => {
                   {entry.label}
                 </span>
               ))}
+            </div>
+            <div className="mt-1 text-[9px] uppercase tracking-[0.12em] text-[var(--app-muted)]">
+              Status derived from task state and latest event.
             </div>
           </div>
           <button
@@ -1419,8 +1431,9 @@ export const LogCalendar: React.FC = () => {
                         <div className="min-w-0 flex-1 flex items-center gap-2">
                           <div className="text-sm font-normal text-[var(--app-text)] truncate">{row.title}</div>
                           <span
-                            className="inline-flex w-[92px] justify-center rounded px-1.5 py-0.5 text-[9px] uppercase tracking-[0.14em] shrink-0 border"
+                            className="inline-flex justify-center rounded px-1.5 py-0.5 text-[9px] uppercase tracking-[0.14em] shrink-0 border"
                             style={{
+                              width: DAY_ROW_STATUS_CHIP_WIDTH,
                               backgroundColor: stateMeta.chipBg,
                               borderColor: stateMeta.chipBorder,
                               color: stateMeta.chipText,
@@ -1428,7 +1441,7 @@ export const LogCalendar: React.FC = () => {
                           >
                             {toQuestStateBadge(row.state)}
                           </span>
-                          <span className="w-[72px] text-right text-[10px] uppercase tracking-[0.12em] text-[var(--app-muted)] shrink-0 tabular-nums font-mono">
+                          <span className="text-right text-[10px] uppercase tracking-[0.12em] text-[var(--app-muted)] shrink-0 tabular-nums font-mono" style={{ width: DAY_ROW_TIME_WIDTH }}>
                             {row.primaryTime ? formatTime(row.primaryTime) : '--:--'}
                           </span>
                         </div>
