@@ -136,6 +136,58 @@ type DayConsoleRow = {
   items: NormalizedLogItem[];
 };
 
+type QuestStateMeta = {
+  label: string;
+  dotFill: string;
+  dotBorder: string;
+  chipBg: string;
+  chipBorder: string;
+  chipText: string;
+};
+
+const QUEST_STATE_META: Record<QuestRowState, QuestStateMeta> = {
+  active: {
+    label: 'Active',
+    dotFill: '#e3b34a',
+    dotBorder: '#e3b34a',
+    chipBg: 'color-mix(in_srgb,#e3b34a 22%, var(--app-panel-2))',
+    chipBorder: 'color-mix(in_srgb,#e3b34a 38%, transparent)',
+    chipText: '#e3b34a',
+  },
+  done: {
+    label: 'Completed',
+    dotFill: '#43d39e',
+    dotBorder: '#43d39e',
+    chipBg: 'color-mix(in_srgb,#43d39e 20%, var(--app-panel-2))',
+    chipBorder: 'color-mix(in_srgb,#43d39e 36%, transparent)',
+    chipText: '#43d39e',
+  },
+  todo: {
+    label: 'Uncompleted',
+    dotFill: '#8f88ab',
+    dotBorder: '#8f88ab',
+    chipBg: 'color-mix(in_srgb,#8f88ab 18%, var(--app-panel-2))',
+    chipBorder: 'color-mix(in_srgb,#8f88ab 34%, transparent)',
+    chipText: '#cdc7e8',
+  },
+  scheduled: {
+    label: 'Scheduled',
+    dotFill: '#5f9dff',
+    dotBorder: '#5f9dff',
+    chipBg: 'color-mix(in_srgb,#5f9dff 18%, var(--app-panel-2))',
+    chipBorder: 'color-mix(in_srgb,#5f9dff 34%, transparent)',
+    chipText: '#8db8ff',
+  },
+  failed: {
+    label: 'Failed',
+    dotFill: '#ff5a6a',
+    dotBorder: '#ff5a6a',
+    chipBg: 'color-mix(in_srgb,#ff5a6a 18%, var(--app-panel-2))',
+    chipBorder: 'color-mix(in_srgb,#ff5a6a 34%, transparent)',
+    chipText: '#ff7d88',
+  },
+};
+
 const mapActivityStatus = (entry: XPDayActivityItem): NormalizedLogItemStatus => {
   if (entry.kind === 'completion') return 'done';
   if (entry.kind === 'manual') return 'retro';
@@ -355,23 +407,9 @@ const normalizeDayItemsToTaskCards = (
     .sort((a, b) => (b.primaryTime || 0) - (a.primaryTime || 0));
 };
 
-const dotColorByQuestState = (state: QuestRowState) => {
-  if (state === 'active') return 'var(--app-accent)';
-  if (state === 'done') return '#43d39e';
-  if (state === 'failed') return '#ff5a6a';
-  if (state === 'scheduled') return '#5f9dff';
-  if (state === 'todo') return '#8a84a4';
-  return 'var(--app-accent)';
-};
+const dotColorByQuestState = (state: QuestRowState) => QUEST_STATE_META[state].dotFill;
 
-const dotBorderByQuestState = (state: QuestRowState) => {
-  if (state === 'active') return 'var(--app-accent)';
-  if (state === 'done') return '#43d39e';
-  if (state === 'failed') return '#ff5a6a';
-  if (state === 'scheduled') return '#5f9dff';
-  if (state === 'todo') return '#8a84a4';
-  return 'var(--app-text)';
-};
+const dotBorderByQuestState = (state: QuestRowState) => QUEST_STATE_META[state].dotBorder;
 
 const toPanelBadge = (status: NormalizedLogItemStatus) => {
   switch (status) {
@@ -395,21 +433,7 @@ const toPanelBadge = (status: NormalizedLogItemStatus) => {
   }
 };
 
-const toQuestStateBadge = (state: QuestRowState) => {
-  switch (state) {
-    case 'done':
-      return 'Done';
-    case 'active':
-      return 'Active';
-    case 'scheduled':
-      return 'Scheduled';
-    case 'failed':
-      return 'Failed';
-    case 'todo':
-    default:
-      return 'Uncompleted';
-  }
-};
+const toQuestStateBadge = (state: QuestRowState) => QUEST_STATE_META[state].label;
 
 const toPanelSubtitle = (item: NormalizedLogItem) => {
   if (item.subtitle) return item.subtitle;
@@ -579,11 +603,19 @@ export const LogCalendar: React.FC = () => {
   const timelineDots = useMemo(() => {
     const dayStart = fromDateKey(selectedKey).getTime();
     const dayEnd = dayStart + 86400000;
+    const stackByLaneHour = new Map<string, number>();
     return timelineRows.map((row, index) => {
       const safeTime = row.primaryTime
         ? Math.min(Math.max(row.primaryTime, dayStart), dayEnd - 1)
         : dayStart + index * 60000;
       const minute = Math.max(0, Math.floor((safeTime - dayStart) / 60000));
+      const hour = Math.max(0, Math.min(23, Math.floor(minute / 60)));
+      const lane: 'planned' | 'actual' = row.state === 'scheduled' ? 'planned' : 'actual';
+      const stackKey = `${lane}:${hour}`;
+      const stackIndex = stackByLaneHour.get(stackKey) || 0;
+      stackByLaneHour.set(stackKey, stackIndex + 1);
+      const laneBase = lane === 'planned' ? 40 : 104;
+      const laneDotTop = Math.max(10, laneBase - stackIndex * 11);
       return {
         id: row.key,
         title: row.title,
@@ -592,7 +624,9 @@ export const LogCalendar: React.FC = () => {
         rowTaskId: row.taskId,
         time: safeTime,
         xPct: (minute / 1439) * 100,
-        yPx: 22 + (index % 10) * 14,
+        lane,
+        laneDotTop,
+        stackIndex,
       };
     });
   }, [timelineRows, selectedKey]);
@@ -735,6 +769,16 @@ export const LogCalendar: React.FC = () => {
     [timelineRows, historyModalOpen, jumpToGroup]
   );
 
+  const focusAdjacentPanelRow = useCallback((currentKey: string, step: -1 | 1) => {
+    const rowButtons = Array.from(
+      document.querySelectorAll<HTMLButtonElement>('[data-day-console-row-button="true"]')
+    );
+    const currentIndex = rowButtons.findIndex((button) => button.dataset.rowKey === currentKey);
+    if (currentIndex === -1) return;
+    const nextIndex = Math.max(0, Math.min(rowButtons.length - 1, currentIndex + step));
+    rowButtons[nextIndex]?.focus();
+  }, []);
+
   const renderCompactItemList = (mobile = false) => (
     <div className={`${mobile ? 'max-h-[58dvh]' : 'max-h-[55vh]'} overflow-y-auto pr-1 space-y-1.5`}>
       {dayConsoleRows.length === 0 ? (
@@ -746,11 +790,12 @@ export const LogCalendar: React.FC = () => {
           const expanded = expandedPanelItemId === row.key;
           const headItem = row.items[0];
           const isStartable = !!row.taskId && (row.state === 'scheduled' || row.state === 'failed' || row.state === 'todo');
+          const stateMeta = QUEST_STATE_META[row.state];
           return (
             <div
               key={row.key}
               id={`day-console-row-${row.key}`}
-              className={`rounded-lg border overflow-hidden transition-colors ${
+              className={`rounded-lg border overflow-hidden transition-colors duration-200 ${
                 highlightedPanelKey === row.key
                   ? 'border-[color-mix(in_srgb,var(--app-accent)_60%,transparent)] bg-[color-mix(in_srgb,var(--app-accent)_12%,var(--app-panel))]'
                   : 'border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-[var(--app-panel)]'
@@ -762,79 +807,109 @@ export const LogCalendar: React.FC = () => {
                   if (headItem) handlePanelItemClick(headItem);
                   setExpandedPanelItemId((prev) => (prev === row.key ? null : row.key));
                 }}
-                className="w-full text-left px-3 py-2 transition-colors hover:bg-[color-mix(in_srgb,var(--app-accent)_10%,var(--app-panel))]"
+                onKeyDown={(event) => {
+                  if (event.key === 'ArrowDown') {
+                    event.preventDefault();
+                    focusAdjacentPanelRow(row.key, 1);
+                  } else if (event.key === 'ArrowUp') {
+                    event.preventDefault();
+                    focusAdjacentPanelRow(row.key, -1);
+                  }
+                }}
+                data-day-console-row-button="true"
+                data-row-key={row.key}
+                aria-expanded={expanded}
+                className="w-full text-left px-3 py-2 transition-colors duration-150 hover:bg-[color-mix(in_srgb,var(--app-accent)_10%,var(--app-panel))] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color-mix(in_srgb,var(--app-accent)_55%,transparent)]"
               >
                 <div className="flex items-center gap-2">
-                  <div className="min-w-0 flex-1 text-xs uppercase tracking-[0.14em] text-[var(--app-text)] truncate">
+                  <div className="min-w-0 flex-1 text-xs uppercase tracking-[0.12em] text-[var(--app-text)] truncate">
                     {row.title}
                   </div>
-                  <span className="inline-flex rounded px-1.5 py-0.5 text-[9px] uppercase tracking-[0.14em] bg-[color-mix(in_srgb,var(--app-accent)_16%,var(--app-panel-2))] text-[var(--app-accent)] shrink-0">
+                  <span
+                    className="inline-flex w-[92px] justify-center rounded px-1.5 py-0.5 text-[9px] uppercase tracking-[0.14em] shrink-0 border"
+                    style={{
+                      backgroundColor: stateMeta.chipBg,
+                      borderColor: stateMeta.chipBorder,
+                      color: stateMeta.chipText,
+                    }}
+                  >
                     {toQuestStateBadge(row.state)}
                   </span>
-                  <span className="text-[10px] uppercase tracking-[0.12em] text-[var(--app-muted)] shrink-0">
+                  <span className="w-[72px] text-right text-[10px] uppercase tracking-[0.12em] text-[var(--app-muted)] shrink-0 tabular-nums font-mono">
                     {row.primaryTime ? formatTime(row.primaryTime) : '--:--'}
                   </span>
                 </div>
               </button>
-              {expanded ? (
-                <div className="border-t border-[color-mix(in_srgb,var(--app-text)_8%,transparent)] bg-[color-mix(in_srgb,var(--app-panel-2)_65%,var(--app-panel))] px-3 py-2 space-y-2">
-                  <div className="space-y-1.5">
-                    {row.items.slice(0, 5).map((entry) => (
-                      <button
-                        key={`${row.key}-${entry.id}`}
-                        type="button"
-                        onClick={() => handlePanelItemClick(entry)}
-                        className="w-full rounded border border-[color-mix(in_srgb,var(--app-text)_8%,transparent)] bg-[var(--app-panel)] px-2 py-1 text-left text-[10px] uppercase tracking-[0.13em] text-[var(--app-muted)] hover:border-[color-mix(in_srgb,var(--app-accent)_40%,transparent)]"
-                      >
-                        <div className="flex items-center justify-between gap-2">
-                          <span className="truncate">{toPanelSubtitle(entry)}</span>
-                          <span className="shrink-0">{entry.startAt ? formatTime(entry.startAt) : '--:--'}</span>
+              <div
+                className={`border-t border-[color-mix(in_srgb,var(--app-text)_8%,transparent)] bg-[color-mix(in_srgb,var(--app-panel-2)_65%,var(--app-panel))] px-3 overflow-hidden transition-[max-height,opacity,padding] duration-200 ${
+                  expanded ? 'max-h-[420px] py-2 opacity-100' : 'max-h-0 py-0 opacity-0'
+                }`}
+              >
+                {expanded ? (
+                  <div className="space-y-2">
+                    <div className="text-[9px] uppercase tracking-[0.16em] text-[var(--app-muted)]">
+                      Derived from task state + latest events
+                    </div>
+                    <div className="space-y-1.5">
+                      {row.items.slice(0, 5).map((entry) => (
+                        <button
+                          key={`${row.key}-${entry.id}`}
+                          type="button"
+                          onClick={() => handlePanelItemClick(entry)}
+                          className="w-full rounded border border-[color-mix(in_srgb,var(--app-text)_8%,transparent)] bg-[var(--app-panel)] px-2 py-1 text-left text-[10px] uppercase tracking-[0.13em] text-[var(--app-muted)] hover:border-[color-mix(in_srgb,var(--app-accent)_40%,transparent)]"
+                        >
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="truncate">{toPanelSubtitle(entry)}</span>
+                            <span className="shrink-0 tabular-nums font-mono">
+                              {entry.startAt ? formatTime(entry.startAt) : '--:--'}
+                            </span>
+                          </div>
+                        </button>
+                      ))}
+                      {row.items.length > 5 ? (
+                        <div className="text-[10px] uppercase tracking-[0.14em] text-[var(--app-muted)] px-1">
+                          +{row.items.length - 5} more entries
                         </div>
-                      </button>
-                    ))}
-                    {row.items.length > 5 ? (
-                      <div className="text-[10px] uppercase tracking-[0.14em] text-[var(--app-muted)] px-1">
-                        +{row.items.length - 5} more entries
-                      </div>
-                    ) : null}
-                  </div>
-                  <div className="flex flex-wrap items-center gap-1.5">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        if (headItem) handlePanelItemClick(headItem);
-                        if (mobile) setMobileConsoleOpen(false);
-                      }}
-                      className="px-2 py-1 rounded border border-[color-mix(in_srgb,var(--app-text)_20%,transparent)] text-[10px] uppercase tracking-[0.14em] text-[var(--app-muted)] hover:text-[var(--app-text)]"
-                    >
-                      Details
-                    </button>
-                    {isStartable ? (
-                      <button
-                        type="button"
-                        onClick={() => startFromDayConsole(row)}
-                        className="px-2 py-1 rounded border border-[color-mix(in_srgb,var(--app-accent)_45%,transparent)] text-[10px] uppercase tracking-[0.14em] text-[var(--app-accent)] hover:border-[var(--app-accent)]"
-                      >
-                        Start
-                      </button>
-                    ) : null}
-                    {row.taskId ? (
+                      ) : null}
+                    </div>
+                    <div className="flex flex-wrap items-center gap-1.5">
                       <button
                         type="button"
                         onClick={() => {
-                          const ok = window.confirm('Delete this quest and all linked activity?');
-                          if (!ok) return;
-                          deleteTaskCompletely(row.taskId);
+                          if (headItem) handlePanelItemClick(headItem);
                           if (mobile) setMobileConsoleOpen(false);
                         }}
-                        className="px-2 py-1 rounded border border-[color-mix(in_srgb,var(--app-accent)_45%,transparent)] text-[10px] uppercase tracking-[0.14em] text-[var(--app-accent)] hover:border-[var(--app-accent)]"
+                        className="px-2 py-1 rounded border border-[color-mix(in_srgb,var(--app-text)_20%,transparent)] text-[10px] uppercase tracking-[0.14em] text-[var(--app-muted)] hover:text-[var(--app-text)]"
                       >
-                        Delete
+                        Details
                       </button>
-                    ) : null}
+                      {isStartable ? (
+                        <button
+                          type="button"
+                          onClick={() => startFromDayConsole(row)}
+                          className="px-2 py-1 rounded border border-[color-mix(in_srgb,var(--app-accent)_45%,transparent)] text-[10px] uppercase tracking-[0.14em] text-[var(--app-accent)] hover:border-[var(--app-accent)]"
+                        >
+                          Start
+                        </button>
+                      ) : null}
+                      {row.taskId ? (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const ok = window.confirm('Delete this quest and all linked activity?');
+                            if (!ok) return;
+                            deleteTaskCompletely(row.taskId);
+                            if (mobile) setMobileConsoleOpen(false);
+                          }}
+                          className="px-2 py-1 rounded border border-[color-mix(in_srgb,var(--app-accent)_45%,transparent)] text-[10px] uppercase tracking-[0.14em] text-[var(--app-accent)] hover:border-[var(--app-accent)]"
+                        >
+                          Delete
+                        </button>
+                      ) : null}
+                    </div>
                   </div>
-                </div>
-              ) : null}
+                ) : null}
+              </div>
             </div>
           );
         })
@@ -843,11 +918,14 @@ export const LogCalendar: React.FC = () => {
   );
 
   const renderTimelineChart = (mobile = false) => {
-    const stackCap = mobile ? 92 : 122;
+    const chartHeight = mobile ? 180 : 248;
+    const chartInnerTop = 24;
+    const chartInnerBottom = 30;
     return (
-      <div className={`${mobile ? 'h-[156px]' : 'h-[204px]'} rounded-xl bg-[color-mix(in_srgb,var(--app-panel-2)_55%,var(--app-panel))] px-2 py-2 relative overflow-hidden`}>
-        <div className="absolute inset-x-5 top-3 bottom-9">
-          <div className="absolute inset-x-0 bottom-0 h-px bg-[color-mix(in_srgb,var(--app-text)_20%,transparent)]" />
+      <div className={`rounded-xl bg-[color-mix(in_srgb,var(--app-panel-2)_55%,var(--app-panel))] px-2 py-2 relative overflow-hidden`} style={{ height: chartHeight }}>
+        <div className="absolute inset-x-5" style={{ top: chartInnerTop, bottom: chartInnerBottom }}>
+          <div className="absolute inset-x-0 top-[32px] h-px bg-[color-mix(in_srgb,var(--app-text)_14%,transparent)]" />
+          <div className="absolute inset-x-0 top-[96px] h-px bg-[color-mix(in_srgb,var(--app-text)_22%,transparent)]" />
           {TIMELINE_HOUR_MARKERS.map((hour) => (
             <div
               key={`timeline-grid-${hour}`}
@@ -855,6 +933,14 @@ export const LogCalendar: React.FC = () => {
               style={{ left: `${(hour / 24) * 100}%` }}
             />
           ))}
+          <div className="absolute left-0 top-[10px] text-[9px] uppercase tracking-[0.14em] text-[var(--app-muted)]">Planned</div>
+          <div className="absolute left-0 top-[74px] text-[9px] uppercase tracking-[0.14em] text-[var(--app-muted)]">Actual</div>
+          {hoveredDot ? (
+            <div
+              className="pointer-events-none absolute top-0 bottom-0 border-l border-[color-mix(in_srgb,var(--app-text)_25%,transparent)]"
+              style={{ left: `${hoveredDot.xPct}%` }}
+            />
+          ) : null}
           {timelineDots.map((dot) => (
             <button
               key={`timeline-dot-${mobile ? 'mobile-' : ''}${dot.id}`}
@@ -863,7 +949,7 @@ export const LogCalendar: React.FC = () => {
               className="absolute h-2.5 w-2.5 rounded-full border transition-transform hover:scale-110"
               style={{
                 left: `${dot.xPct}%`,
-                bottom: `${Math.min(dot.yPx, stackCap)}px`,
+                top: `${dot.laneDotTop}px`,
                 transform: 'translateX(-50%)',
                 backgroundColor: dotColorByQuestState(dot.status),
                 borderColor: dotBorderByQuestState(dot.status),
@@ -886,7 +972,7 @@ export const LogCalendar: React.FC = () => {
               className="pointer-events-none absolute z-10 rounded-md border border-[color-mix(in_srgb,var(--app-text)_20%,transparent)] bg-[var(--app-panel)] px-2 py-1 text-[10px] uppercase tracking-[0.12em] text-[var(--app-text)]"
               style={{
                 left: `${hoveredDot.xPct}%`,
-                bottom: `${Math.min(Math.min(hoveredDot.yPx, stackCap) + 20, stackCap + 24)}px`,
+                top: `${Math.max(4, hoveredDot.laneDotTop - 24)}px`,
                 transform: 'translateX(-50%)',
               }}
             >
@@ -1318,6 +1404,7 @@ export const LogCalendar: React.FC = () => {
                   const isExpanded = expandedGroupKey === row.key;
                   const isHighlighted = highlightedGroupKey === row.key;
                   const headItem = row.items[0];
+                  const stateMeta = QUEST_STATE_META[row.state];
                   return (
                     <div
                       id={`day-history-group-${row.key}`}
@@ -1331,10 +1418,17 @@ export const LogCalendar: React.FC = () => {
                       <div className="flex items-center justify-between gap-3">
                         <div className="min-w-0 flex-1 flex items-center gap-2">
                           <div className="text-sm font-normal text-[var(--app-text)] truncate">{row.title}</div>
-                          <span className="inline-flex rounded px-1.5 py-0.5 text-[9px] uppercase tracking-[0.14em] bg-[color-mix(in_srgb,var(--app-accent)_16%,var(--app-panel-2))] text-[var(--app-accent)] shrink-0">
+                          <span
+                            className="inline-flex w-[92px] justify-center rounded px-1.5 py-0.5 text-[9px] uppercase tracking-[0.14em] shrink-0 border"
+                            style={{
+                              backgroundColor: stateMeta.chipBg,
+                              borderColor: stateMeta.chipBorder,
+                              color: stateMeta.chipText,
+                            }}
+                          >
                             {toQuestStateBadge(row.state)}
                           </span>
-                          <span className="text-[10px] uppercase tracking-[0.12em] text-[var(--app-muted)] shrink-0">
+                          <span className="w-[72px] text-right text-[10px] uppercase tracking-[0.12em] text-[var(--app-muted)] shrink-0 tabular-nums font-mono">
                             {row.primaryTime ? formatTime(row.primaryTime) : '--:--'}
                           </span>
                         </div>
@@ -1438,7 +1532,8 @@ export const LogCalendar: React.FC = () => {
             </div>
             <div className="h-[280px] rounded-lg bg-[var(--app-panel)] px-4 py-4 relative overflow-hidden">
               <div className="absolute inset-x-5 top-4 bottom-12">
-                <div className="absolute inset-x-0 bottom-0 h-px bg-[color-mix(in_srgb,var(--app-text)_16%,transparent)]" />
+                <div className="absolute inset-x-0 top-[34px] h-px bg-[color-mix(in_srgb,var(--app-text)_14%,transparent)]" />
+                <div className="absolute inset-x-0 top-[108px] h-px bg-[color-mix(in_srgb,var(--app-text)_22%,transparent)]" />
                 {TIMELINE_HOUR_MARKERS.map((hour) => (
                   <div
                     key={`timeline-expanded-grid-${hour}`}
@@ -1446,6 +1541,8 @@ export const LogCalendar: React.FC = () => {
                     style={{ left: `${(hour / 24) * 100}%` }}
                   />
                 ))}
+                <div className="absolute left-0 top-[10px] text-[9px] uppercase tracking-[0.14em] text-[var(--app-muted)]">Planned</div>
+                <div className="absolute left-0 top-[86px] text-[9px] uppercase tracking-[0.14em] text-[var(--app-muted)]">Actual</div>
                 {timelineDots.map((dot, index) => (
                   <button
                     key={`timeline-expanded-${dot.id}-${index}`}
@@ -1454,7 +1551,7 @@ export const LogCalendar: React.FC = () => {
                     className="absolute h-3 w-3 rounded-full border border-[color-mix(in_srgb,var(--app-text)_24%,transparent)]"
                     style={{
                       left: `${dot.xPct}%`,
-                      bottom: `${Math.min(26 + (index % 10) * 20, 188)}px`,
+                      top: `${Math.max(10, dot.lane === 'planned' ? 34 - dot.stackIndex * 11 : 98 - dot.stackIndex * 11)}px`,
                       transform: 'translateX(-50%)',
                       backgroundColor: dotColorByQuestState(dot.status),
                       borderColor: dotBorderByQuestState(dot.status),
