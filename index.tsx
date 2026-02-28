@@ -4,6 +4,7 @@ import App from './App';
 import { XPProvider } from './components/XP/xpStore';
 import { AuthProvider } from './src/auth/AuthProvider';
 import { ThemeProvider, initializeThemeFromStorage } from './src/theme/ThemeProvider';
+import { AppErrorBoundary } from './components/UI/AppErrorBoundary';
 
 initializeThemeFromStorage();
 
@@ -19,7 +20,9 @@ root.render(
     <ThemeProvider>
       <AuthProvider>
         <XPProvider>
-          <App />
+          <AppErrorBoundary>
+            <App />
+          </AppErrorBoundary>
         </XPProvider>
       </AuthProvider>
     </ThemeProvider>

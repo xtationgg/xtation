@@ -25,6 +25,10 @@ const toDateKey = (date: Date) => {
 
 const fromDateKey = (dateKey: string) => {
   const [y, m, d] = dateKey.split('-').map(Number);
+  if (!Number.isFinite(y) || !Number.isFinite(m) || !Number.isFinite(d) || y <= 0 || m <= 0 || d <= 0) {
+    const now = new Date();
+    return new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
+  }
   return new Date(y, (m || 1) - 1, d || 1, 0, 0, 0, 0);
 };
 
@@ -34,8 +38,24 @@ const formatMonthTitle = (date: Date) =>
 const formatWeekdayLabel = (dateKey: string) =>
   fromDateKey(dateKey).toLocaleDateString(undefined, { weekday: 'short', day: 'numeric' });
 
-const formatTime = (value: number) =>
-  new Date(value).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+const toSafeTimestamp = (value: unknown): number | undefined => {
+  if (typeof value === 'number' && Number.isFinite(value)) return Math.floor(value);
+  if (typeof value === 'string' && value.trim()) {
+    const numeric = Number(value);
+    if (Number.isFinite(numeric)) return Math.floor(numeric);
+    const parsed = Date.parse(value);
+    if (Number.isFinite(parsed)) return parsed;
+  }
+  return undefined;
+};
+
+const formatTime = (value: number | undefined) => {
+  const safeValue = toSafeTimestamp(value);
+  if (!Number.isFinite(safeValue)) return '--:--';
+  const date = new Date(safeValue as number);
+  if (Number.isNaN(date.getTime())) return '--:--';
+  return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+};
 
 const monthGridStart = (monthDate: Date) => {
   const first = new Date(monthDate.getFullYear(), monthDate.getMonth(), 1, 0, 0, 0, 0);
@@ -126,13 +146,14 @@ const normalizeDayItems = (params: {
 
   const timeline = selectedActivity
     .map<NormalizedLogItem>((entry) => {
+      const safeCreatedAt = toSafeTimestamp(entry.createdAt) ?? now;
       const status = mapActivityStatus(entry);
       return {
         id: `${entry.kind}:${entry.id}`,
         type: 'timeline',
         title: entry.title,
         status,
-        startAt: entry.createdAt,
+        startAt: safeCreatedAt,
         durationMin: Math.max(0, entry.minutes),
         sourceKey: `${entry.kind}:${entry.id}`,
         taskId: entry.taskId,
@@ -165,8 +186,8 @@ const normalizeDayItems = (params: {
       type: 'scheduled',
       title: task.title,
       status: 'scheduled',
-      scheduledAt: task.scheduledAt,
-      startAt: task.scheduledAt || task.updatedAt || task.createdAt,
+      scheduledAt: toSafeTimestamp(task.scheduledAt),
+      startAt: toSafeTimestamp(task.scheduledAt) || toSafeTimestamp(task.updatedAt) || toSafeTimestamp(task.createdAt),
       sourceKey: `task:${task.id}`,
       taskId: task.id,
       groupKey: `task:${task.id}`,
@@ -191,8 +212,8 @@ const normalizeDayItems = (params: {
       type: 'unfinished',
       title: task.title,
       status: task.status === 'dropped' ? 'failed' : 'unfinished',
-      startAt: task.scheduledAt || task.updatedAt || task.createdAt,
-      scheduledAt: task.scheduledAt,
+      startAt: toSafeTimestamp(task.scheduledAt) || toSafeTimestamp(task.updatedAt) || toSafeTimestamp(task.createdAt),
+      scheduledAt: toSafeTimestamp(task.scheduledAt),
       sourceKey: `task:${task.id}`,
       taskId: task.id,
       groupKey: `task:${task.id}`,
