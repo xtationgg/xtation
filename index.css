@@ -287,7 +287,7 @@
 [data-theme='dusk_soft'] .xt-nav-tab {
   border-right: none !important;
   border: 1px solid transparent !important;
-  border-radius: 10px;
+  border-radius: 5.5px;
   background: transparent !important;
   min-height: 38px;
   height: auto !important;
@@ -320,10 +320,26 @@
 
 [data-theme='dusk'] .xt-nav-tab[data-active='true'],
 [data-theme='dusk_soft'] .xt-nav-tab[data-active='true'] {
+  position: relative;
+  overflow: hidden;
   color: #f4ecff !important;
   background: #7f5cae !important;
   border-color: #8c69bb !important;
-  clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 0 100%);
+  border-radius: 5.5px !important;
+}
+
+[data-theme='dusk'] .xt-nav-tab[data-active='true']::after,
+[data-theme='dusk_soft'] .xt-nav-tab[data-active='true']::after {
+  content: '';
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+  transform: rotate(45deg);
+  background: color-mix(in srgb, var(--app-panel) 82%, transparent);
+  pointer-events: none;
 }
 
 [data-theme='dark_minimal_rounded_solid'] {
