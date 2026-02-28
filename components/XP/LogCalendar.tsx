@@ -364,6 +364,7 @@ export const LogCalendar: React.FC = () => {
   const {
     tasks,
     deleteTaskCompletely,
+    startSession,
     selectors,
     activeLogDateKey,
     setActiveLogDateKey,
@@ -378,6 +379,9 @@ export const LogCalendar: React.FC = () => {
   const [highlightedGroupKey, setHighlightedGroupKey] = useState<string | null>(null);
   const [detailItem, setDetailItem] = useState<NormalizedLogItem | null>(null);
   const [expandedPanelItemId, setExpandedPanelItemId] = useState<string | null>(null);
+  const [timelineExpanded, setTimelineExpanded] = useState(false);
+  const [mobileConsoleOpen, setMobileConsoleOpen] = useState(false);
+  const [scheduledOpen, setScheduledOpen] = useState(false);
 
   const todayKey = toDateKey(new Date(now));
   const selectedDate = fromDateKey(selectedKey);
@@ -504,7 +508,7 @@ export const LogCalendar: React.FC = () => {
         status: item.status,
         time: safeTime,
         xPct: (minute / 1439) * 100,
-        yPx: 32 + (index % 6) * 24,
+        yPx: 18 + (index % 4) * 14,
       };
     });
   }, [normalized, selectedKey]);
@@ -512,6 +516,10 @@ export const LogCalendar: React.FC = () => {
   const rangeLabel = useMemo(
     () => RANGE_OPTIONS.find((option) => option.value === rangeMode)?.label ?? rangeMode,
     [rangeMode]
+  );
+  const activeTabLabel = useMemo(
+    () => SIDE_PANEL_TABS.find((tab) => tab.value === sidePanelTab)?.label ?? 'Timeline',
+    [sidePanelTab]
   );
 
   const selectDate = (dateKey: string, monthDate?: Date) => {
@@ -580,6 +588,20 @@ export const LogCalendar: React.FC = () => {
     if (!overlayOpen) toggleBtn.click();
   }, []);
 
+  const startFromDayConsole = useCallback(
+    (row: DayConsoleRow) => {
+      if (!row.taskId) return;
+      startSession({
+        title: row.title,
+        tag: 'calendar',
+        source: 'timer',
+        linkedTaskIds: [row.taskId],
+      });
+      setMobileConsoleOpen(false);
+    },
+    [startSession]
+  );
+
   const handlePanelItemClick = useCallback(
     (item: NormalizedLogItem) => {
       jumpToGroup(item);
@@ -587,45 +609,143 @@ export const LogCalendar: React.FC = () => {
     [jumpToGroup]
   );
 
+  const renderCompactItemList = (mobile = false) => (
+    <div className={`${mobile ? 'max-h-[58dvh]' : 'max-h-[45vh]'} overflow-y-auto pr-1 space-y-1.5`}>
+      {dayConsoleRows.length === 0 ? (
+        <div className="rounded-lg border border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-[var(--app-panel)] p-3 text-[11px] uppercase tracking-[0.14em] text-[var(--app-muted)]">
+          No items for this tab.
+        </div>
+      ) : (
+        dayConsoleRows.map((row) => {
+          const expanded = expandedPanelItemId === row.key;
+          const headItem = row.items[0];
+          const isStartable =
+            !!row.taskId && (row.status === 'todo' || row.status === 'scheduled' || row.status === 'failed');
+          return (
+            <div
+              key={row.key}
+              className="rounded-lg border border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-[var(--app-panel)] overflow-hidden"
+            >
+              <button
+                type="button"
+                onClick={() => {
+                  if (headItem) handlePanelItemClick(headItem);
+                  setExpandedPanelItemId((prev) => (prev === row.key ? null : row.key));
+                }}
+                className="w-full text-left px-3 py-2 transition-colors hover:bg-[color-mix(in_srgb,var(--app-accent)_10%,var(--app-panel))]"
+              >
+                <div className="flex items-center gap-2">
+                  <div className="min-w-0 flex-1 text-xs uppercase tracking-[0.14em] text-[var(--app-text)] truncate">
+                    {row.title}
+                  </div>
+                  <span className="inline-flex rounded px-1.5 py-0.5 text-[9px] uppercase tracking-[0.14em] bg-[color-mix(in_srgb,var(--app-accent)_16%,var(--app-panel-2))] text-[var(--app-accent)] shrink-0">
+                    {toPanelBadge(row.status)}
+                  </span>
+                  <span className="text-[10px] uppercase tracking-[0.12em] text-[var(--app-muted)] shrink-0">
+                    {row.startAt ? formatTime(row.startAt) : '--:--'}
+                  </span>
+                </div>
+              </button>
+              {expanded ? (
+                <div className="border-t border-[color-mix(in_srgb,var(--app-text)_8%,transparent)] bg-[color-mix(in_srgb,var(--app-panel-2)_65%,var(--app-panel))] px-3 py-2 space-y-2">
+                  <div className="space-y-1.5">
+                    {row.items.slice(0, 5).map((entry) => (
+                      <button
+                        key={`${row.key}-${entry.id}`}
+                        type="button"
+                        onClick={() => handlePanelItemClick(entry)}
+                        className="w-full rounded border border-[color-mix(in_srgb,var(--app-text)_8%,transparent)] bg-[var(--app-panel)] px-2 py-1 text-left text-[10px] uppercase tracking-[0.13em] text-[var(--app-muted)] hover:border-[color-mix(in_srgb,var(--app-accent)_40%,transparent)]"
+                      >
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="truncate">{toPanelSubtitle(entry)}</span>
+                          <span className="shrink-0">{entry.startAt ? formatTime(entry.startAt) : '--:--'}</span>
+                        </div>
+                      </button>
+                    ))}
+                    {row.items.length > 5 ? (
+                      <div className="text-[10px] uppercase tracking-[0.14em] text-[var(--app-muted)] px-1">
+                        +{row.items.length - 5} more entries
+                      </div>
+                    ) : null}
+                  </div>
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (headItem) handlePanelItemClick(headItem);
+                        if (mobile) setMobileConsoleOpen(false);
+                      }}
+                      className="px-2 py-1 rounded border border-[color-mix(in_srgb,var(--app-text)_20%,transparent)] text-[10px] uppercase tracking-[0.14em] text-[var(--app-muted)] hover:text-[var(--app-text)]"
+                    >
+                      Details
+                    </button>
+                    {isStartable ? (
+                      <button
+                        type="button"
+                        onClick={() => startFromDayConsole(row)}
+                        className="px-2 py-1 rounded border border-[color-mix(in_srgb,var(--app-accent)_45%,transparent)] text-[10px] uppercase tracking-[0.14em] text-[var(--app-accent)] hover:border-[var(--app-accent)]"
+                      >
+                        Start
+                      </button>
+                    ) : null}
+                    {row.taskId ? (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const ok = window.confirm('Delete this quest and all linked activity?');
+                          if (!ok) return;
+                          deleteTaskCompletely(row.taskId);
+                          if (mobile) setMobileConsoleOpen(false);
+                        }}
+                        className="px-2 py-1 rounded border border-[color-mix(in_srgb,var(--app-accent)_45%,transparent)] text-[10px] uppercase tracking-[0.14em] text-[var(--app-accent)] hover:border-[var(--app-accent)]"
+                      >
+                        Delete
+                      </button>
+                    ) : null}
+                  </div>
+                </div>
+              ) : null}
+            </div>
+          );
+        })
+      )}
+    </div>
+  );
+
   const dayConsole = (
-    <div className="rounded-2xl border border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-[var(--app-panel-2)] shadow-[0_10px_24px_rgba(0,0,0,0.28)] overflow-hidden">
-      <div className="px-3.5 py-3 border-b border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-[var(--app-panel)]">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div>
+    <div className="rounded-2xl border border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-[var(--app-panel-2)] overflow-hidden">
+      <div className="px-4 py-3 border-b border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-[var(--app-panel)]">
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
             <div className="text-[10px] uppercase tracking-[0.26em] text-[var(--app-muted)]">Day Console</div>
-            <div className="text-sm uppercase tracking-[0.14em] text-[var(--app-text)] mt-1">{selectedDateLabel}</div>
-          </div>
-          <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-[0.14em]">
-            <span className="rounded-full border border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-[var(--app-panel-2)] px-2 py-1 text-[var(--app-muted)]">
-              T {selectedDaySummary.minutesTracked}m
-            </span>
-            <span className="rounded-full border border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-[var(--app-panel-2)] px-2 py-1 text-[var(--app-muted)]">
-              I {selectedDaySummary.activityCount}
-            </span>
-            <span className="rounded-full border border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-[var(--app-panel-2)] px-2 py-1 text-[var(--app-muted)]">
-              C {selectedDaySummary.completedCount}
-            </span>
-            <span className="rounded-full border border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-[var(--app-panel-2)] px-2 py-1 text-[var(--app-muted)]">
-              S {selectedDaySummary.scheduledCount}
-            </span>
+            <div className="text-sm uppercase tracking-[0.12em] text-[var(--app-text)] mt-1 truncate">
+              Selected Date: {selectedDateLabel}
+            </div>
+            <div className="text-[11px] text-[var(--app-muted)] mt-1 uppercase tracking-[0.12em]">
+              Tracked {selectedDaySummary.minutesTracked}m • Items {selectedDaySummary.activityCount} • Completed{' '}
+              {selectedDaySummary.completedCount} • Scheduled {selectedDaySummary.scheduledCount}
+            </div>
           </div>
           <button
             type="button"
             onClick={openQuestAddFlow}
-            className="px-2.5 py-1.5 rounded-md border border-[color-mix(in_srgb,var(--app-accent)_45%,transparent)] bg-[color-mix(in_srgb,var(--app-accent)_18%,var(--app-panel))] text-[10px] uppercase tracking-[0.18em] text-[var(--app-accent)] hover:border-[var(--app-accent)]"
+            className="px-2.5 py-1.5 rounded-md border border-[color-mix(in_srgb,var(--app-accent)_45%,transparent)] bg-[color-mix(in_srgb,var(--app-accent)_16%,var(--app-panel))] text-[10px] uppercase tracking-[0.16em] text-[var(--app-accent)] hover:border-[var(--app-accent)] shrink-0"
           >
             Add
           </button>
         </div>
       </div>
 
-      <div className="px-2.5 py-2 border-b border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-[var(--app-panel)] flex gap-1.5 overflow-x-auto no-scrollbar">
+      <div className="px-3 py-2 border-b border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-[var(--app-panel)] flex gap-1 overflow-x-auto no-scrollbar">
         {SIDE_PANEL_TABS.map((tab) => (
           <button
             key={tab.value}
             type="button"
-            onClick={() => setSidePanelTab(tab.value)}
-            className={`px-2.5 py-1 rounded-md border text-[10px] uppercase tracking-[0.16em] transition-colors whitespace-nowrap ${
+            onClick={() => {
+              setSidePanelTab(tab.value);
+              setExpandedPanelItemId(null);
+            }}
+            className={`px-2.5 py-1 rounded-md border text-[10px] uppercase tracking-[0.14em] transition-colors whitespace-nowrap ${
               sidePanelTab === tab.value
                 ? 'border-[color-mix(in_srgb,var(--app-accent)_55%,transparent)] bg-[color-mix(in_srgb,var(--app-accent)_14%,var(--app-panel))] text-[var(--app-accent)]'
                 : 'border-[color-mix(in_srgb,var(--app-text)_14%,transparent)] bg-[var(--app-panel-2)] text-[var(--app-muted)] hover:text-[var(--app-text)]'
@@ -636,92 +756,112 @@ export const LogCalendar: React.FC = () => {
         ))}
       </div>
 
-      <div className="grid gap-3 p-3 lg:grid-cols-[minmax(0,13fr)_minmax(0,7fr)]">
-        <div className="rounded-xl border border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-[var(--app-panel)] p-3 min-h-[280px]">
-          <div className="text-[10px] uppercase tracking-[0.18em] text-[var(--app-muted)] mb-3">Timeline</div>
-          <div className="h-[220px] rounded-lg border border-[color-mix(in_srgb,var(--app-text)_8%,transparent)] bg-[color-mix(in_srgb,var(--app-panel-2)_65%,var(--app-panel))] px-3 py-4 relative overflow-hidden">
-            <div className="absolute inset-x-3 bottom-8 h-px bg-[color-mix(in_srgb,var(--app-text)_16%,transparent)]" />
-            <div className="absolute inset-x-3 top-4 h-[1px] bg-[linear-gradient(to_right,color-mix(in_srgb,var(--app-text)_7%,transparent)_1px,transparent_1px)] bg-[size:36px_100%] opacity-80" />
-            {timelineDots.map((dot) => (
-              <button
-                key={`timeline-dot-${dot.id}`}
-                type="button"
-                onClick={() => {
-                  const match = normalized.find((item) => item.id === dot.id);
-                  if (match) handlePanelItemClick(match);
-                }}
-                className="absolute h-2.5 w-2.5 rounded-full border border-[color-mix(in_srgb,var(--app-text)_24%,transparent)]"
-                style={{
-                  left: `calc(${dot.xPct}% + 8px)`,
-                  bottom: `${dot.yPx}px`,
-                  backgroundColor: dotColorByStatus(dot.status),
-                }}
-                title={`${dot.title} · ${toPanelBadge(dot.status)} · ${formatTime(dot.time)}`}
-                aria-label={`${dot.title} ${toPanelBadge(dot.status)} ${formatTime(dot.time)}`}
-              />
-            ))}
+      <div className="p-3">
+        <div className="hidden lg:grid gap-3 lg:grid-cols-[minmax(0,13fr)_minmax(0,7fr)]">
+          <div className="rounded-xl border border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-[var(--app-panel)] p-3">
+            {sidePanelTab === 'timeline' ? (
+              <>
+                <div className="mb-2 flex items-center justify-between gap-2">
+                  <div className="text-[10px] uppercase tracking-[0.16em] text-[var(--app-muted)]">24h Heatline</div>
+                  <button
+                    type="button"
+                    onClick={() => setTimelineExpanded(true)}
+                    className="px-2 py-1 rounded border border-[color-mix(in_srgb,var(--app-text)_20%,transparent)] text-[10px] uppercase tracking-[0.14em] text-[var(--app-muted)] hover:text-[var(--app-text)]"
+                  >
+                    Expand
+                  </button>
+                </div>
+                <div className="h-[88px] rounded-lg border border-[color-mix(in_srgb,var(--app-text)_8%,transparent)] bg-[color-mix(in_srgb,var(--app-panel-2)_65%,var(--app-panel))] px-2 py-2 relative overflow-hidden">
+                  <div className="absolute inset-x-2 bottom-5 h-px bg-[color-mix(in_srgb,var(--app-text)_16%,transparent)]" />
+                  <div className="absolute inset-x-2 top-2 h-[1px] bg-[linear-gradient(to_right,color-mix(in_srgb,var(--app-text)_7%,transparent)_1px,transparent_1px)] bg-[size:32px_100%] opacity-70" />
+                  {timelineDots.map((dot) => (
+                    <button
+                      key={`timeline-dot-${dot.id}`}
+                      type="button"
+                      onClick={() => {
+                        const match = normalized.find((item) => item.id === dot.id);
+                        if (match) handlePanelItemClick(match);
+                      }}
+                      className="absolute h-2.5 w-2.5 rounded-full border border-[color-mix(in_srgb,var(--app-text)_24%,transparent)]"
+                      style={{
+                        left: `calc(${dot.xPct}% + 8px)`,
+                        bottom: `${dot.yPx}px`,
+                        backgroundColor: dotColorByStatus(dot.status),
+                      }}
+                      title={`${dot.title} · ${toPanelBadge(dot.status)} · ${formatTime(dot.time)}`}
+                      aria-label={`${dot.title} ${toPanelBadge(dot.status)} ${formatTime(dot.time)}`}
+                    />
+                  ))}
+                </div>
+              </>
+            ) : (
+              <div className="h-[88px] rounded-lg border border-[color-mix(in_srgb,var(--app-text)_8%,transparent)] bg-[color-mix(in_srgb,var(--app-panel-2)_65%,var(--app-panel))] px-3 py-2 flex items-center justify-between">
+                <div>
+                  <div className="text-[10px] uppercase tracking-[0.16em] text-[var(--app-muted)]">{activeTabLabel}</div>
+                  <div className="text-xs uppercase tracking-[0.14em] text-[var(--app-text)] mt-1">
+                    {dayConsoleRows.length} grouped items
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setMobileConsoleOpen(true)}
+                  className="px-2 py-1 rounded border border-[color-mix(in_srgb,var(--app-text)_20%,transparent)] text-[10px] uppercase tracking-[0.14em] text-[var(--app-muted)] hover:text-[var(--app-text)]"
+                >
+                  Quick Open
+                </button>
+              </div>
+            )}
+          </div>
+          <div className="rounded-xl border border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-[var(--app-panel)] p-2.5">
+            {renderCompactItemList()}
           </div>
         </div>
 
-        <div className="rounded-xl border border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-[var(--app-panel)] p-2.5 min-h-[280px]">
-          <div className="max-h-[380px] overflow-y-auto pr-1 space-y-1.5">
-            {dayConsoleRows.length === 0 ? (
-              <div className="rounded-lg border border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-[var(--app-panel-2)] p-3 text-[11px] uppercase tracking-[0.16em] text-[var(--app-muted)]">
-                No items for this tab.
+        <div className="lg:hidden space-y-2">
+          {sidePanelTab === 'timeline' ? (
+            <div className="rounded-xl border border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-[var(--app-panel)] p-3">
+              <div className="mb-2 flex items-center justify-between gap-2">
+                <div className="text-[10px] uppercase tracking-[0.16em] text-[var(--app-muted)]">24h Heatline</div>
+                <button
+                  type="button"
+                  onClick={() => setTimelineExpanded(true)}
+                  className="px-2 py-1 rounded border border-[color-mix(in_srgb,var(--app-text)_20%,transparent)] text-[10px] uppercase tracking-[0.14em] text-[var(--app-muted)]"
+                >
+                  Expand
+                </button>
               </div>
-            ) : (
-              dayConsoleRows.map((row) => {
-                const expanded = expandedPanelItemId === row.key;
-                const headItem = row.items[0];
-                return (
-                  <div
-                    key={row.key}
-                    className="rounded-lg border border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-[var(--app-panel-2)] overflow-hidden"
-                  >
-                    <button
-                      type="button"
-                      onClick={() => {
-                        if (headItem) {
-                          handlePanelItemClick(headItem);
-                        }
-                        setExpandedPanelItemId((prev) => (prev === row.key ? null : row.key));
-                      }}
-                      className="w-full text-left px-2.5 py-2 hover:border-[color-mix(in_srgb,var(--app-accent)_55%,transparent)] transition-colors"
-                    >
-                      <div className="flex items-center justify-between gap-2">
-                        <div className="min-w-0 text-xs uppercase tracking-[0.14em] text-[var(--app-text)] truncate">{row.title}</div>
-                        <div className="flex items-center gap-1.5 shrink-0">
-                          <span className="text-[10px] uppercase tracking-[0.14em] text-[var(--app-muted)]">
-                            {row.startAt ? formatTime(row.startAt) : '--:--'}
-                          </span>
-                          <span className="inline-flex rounded px-1.5 py-0.5 text-[9px] uppercase tracking-[0.14em] bg-[color-mix(in_srgb,var(--app-accent)_18%,var(--app-panel))] text-[var(--app-accent)]">
-                            {toPanelBadge(row.status)}
-                          </span>
-                        </div>
-                      </div>
-                    </button>
-                    {expanded ? (
-                      <div className="px-2.5 pb-2 text-[10px] uppercase tracking-[0.14em] text-[var(--app-muted)] border-t border-[color-mix(in_srgb,var(--app-text)_8%,transparent)] bg-[color-mix(in_srgb,var(--app-panel)_75%,var(--app-panel-2))] space-y-1.5">
-                        {row.items.map((entry) => (
-                          <button
-                            key={`${row.key}-${entry.id}`}
-                            type="button"
-                            onClick={() => handlePanelItemClick(entry)}
-                            className="w-full rounded border border-[color-mix(in_srgb,var(--app-text)_8%,transparent)] bg-[var(--app-panel)] px-2 py-1 text-left hover:border-[color-mix(in_srgb,var(--app-accent)_40%,transparent)]"
-                          >
-                            <div className="flex items-center justify-between gap-2">
-                              <span className="truncate">{toPanelSubtitle(entry)}</span>
-                              <span className="shrink-0">{entry.startAt ? formatTime(entry.startAt) : '--:--'}</span>
-                            </div>
-                          </button>
-                        ))}
-                      </div>
-                    ) : null}
-                  </div>
-                );
-              })
-            )}
-          </div>
+              <div className="h-[88px] rounded-lg border border-[color-mix(in_srgb,var(--app-text)_8%,transparent)] bg-[color-mix(in_srgb,var(--app-panel-2)_65%,var(--app-panel))] px-2 py-2 relative overflow-hidden">
+                <div className="absolute inset-x-2 bottom-5 h-px bg-[color-mix(in_srgb,var(--app-text)_16%,transparent)]" />
+                {timelineDots.map((dot) => (
+                  <button
+                    key={`timeline-mobile-dot-${dot.id}`}
+                    type="button"
+                    onClick={() => {
+                      const match = normalized.find((item) => item.id === dot.id);
+                      if (match) handlePanelItemClick(match);
+                    }}
+                    className="absolute h-2.5 w-2.5 rounded-full border border-[color-mix(in_srgb,var(--app-text)_24%,transparent)]"
+                    style={{
+                      left: `calc(${dot.xPct}% + 8px)`,
+                      bottom: `${dot.yPx}px`,
+                      backgroundColor: dotColorByStatus(dot.status),
+                    }}
+                  />
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="rounded-xl border border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-[var(--app-panel)] px-3 py-2 text-[10px] uppercase tracking-[0.16em] text-[var(--app-muted)]">
+              {activeTabLabel} list ({dayConsoleRows.length})
+            </div>
+          )}
+          <button
+            type="button"
+            onClick={() => setMobileConsoleOpen(true)}
+            className="w-full px-3 py-2 rounded-lg border border-[color-mix(in_srgb,var(--app-accent)_45%,transparent)] bg-[color-mix(in_srgb,var(--app-accent)_12%,var(--app-panel))] text-[10px] uppercase tracking-[0.16em] text-[var(--app-accent)]"
+          >
+            Open {activeTabLabel}
+          </button>
         </div>
       </div>
     </div>
@@ -1079,36 +1219,115 @@ export const LogCalendar: React.FC = () => {
           )}
         </div>
 
-        <div className="rounded-2xl border border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-[var(--app-panel-2)] shadow-[0_10px_24px_rgba(0,0,0,0.35)] p-4">
-          <div className="flex items-center justify-between mb-3">
+        <div className="rounded-2xl border border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-[var(--app-panel-2)] p-4">
+          <button
+            type="button"
+            onClick={() => setScheduledOpen((prev) => !prev)}
+            className="w-full flex items-center justify-between gap-3"
+          >
             <div className="text-sm font-medium text-[var(--app-text)] uppercase tracking-[0.16em]">
               Scheduled Tasks ({selectedScheduledTasks.length})
             </div>
-          </div>
+            <span className="text-[10px] uppercase tracking-[0.16em] text-[var(--app-muted)]">
+              {scheduledOpen ? 'Hide' : 'Show'}
+            </span>
+          </button>
 
-          {selectedScheduledTasks.length === 0 ? (
-            <div className="text-sm text-[var(--app-muted)]">No scheduled tasks for this date.</div>
-          ) : (
-            <div className="space-y-2">
-              {selectedScheduledTasks.map((task) => (
-                <div key={task.id} className="rounded-lg border border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-[var(--app-panel-2)] px-3 py-2">
-                  <div className="flex items-center justify-between gap-3">
-                    <div>
-                      <div className="text-sm font-normal text-[var(--app-text)]">{task.title}</div>
-                      <div className="text-xs text-[var(--app-muted)] mt-1">
-                        {task.scheduledAt ? formatTime(task.scheduledAt) : 'No time'} • {task.priority}
+          {scheduledOpen ? (
+            selectedScheduledTasks.length === 0 ? (
+              <div className="text-sm text-[var(--app-muted)] mt-3">No scheduled tasks for this date.</div>
+            ) : (
+              <div className="space-y-2 mt-3">
+                {selectedScheduledTasks.map((task) => (
+                  <div key={task.id} className="rounded-lg border border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-[var(--app-panel)] px-3 py-2">
+                    <div className="flex items-center justify-between gap-3">
+                      <div>
+                        <div className="text-sm font-normal text-[var(--app-text)]">{task.title}</div>
+                        <div className="text-xs text-[var(--app-muted)] mt-1">
+                          {task.scheduledAt ? formatTime(task.scheduledAt) : 'No time'} • {task.priority}
+                        </div>
+                      </div>
+                      <div className="text-[10px] uppercase tracking-[0.18em] text-[var(--app-muted)]">
+                        {task.status.toUpperCase()}
                       </div>
                     </div>
-                    <div className="text-[10px] uppercase tracking-[0.18em] text-[var(--app-muted)]">
-                      {task.status.toUpperCase()}
-                    </div>
                   </div>
-                </div>
-              ))}
-            </div>
-          )}
+                ))}
+              </div>
+            )
+          ) : null}
         </div>
       </div>
+
+      {timelineExpanded ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <button
+            type="button"
+            onClick={() => setTimelineExpanded(false)}
+            className="absolute inset-0 bg-black/55"
+            aria-label="Close timeline"
+          />
+          <div className="relative w-full max-w-4xl rounded-xl border border-[color-mix(in_srgb,var(--app-text)_12%,transparent)] bg-[var(--app-panel-2)] p-4">
+            <div className="flex items-center justify-between gap-2 mb-3">
+              <div className="text-sm uppercase tracking-[0.16em] text-[var(--app-text)]">Timeline • Expanded</div>
+              <button
+                type="button"
+                onClick={() => setTimelineExpanded(false)}
+                className="px-2 py-1 rounded border border-[color-mix(in_srgb,var(--app-text)_20%,transparent)] text-[10px] uppercase tracking-[0.14em] text-[var(--app-muted)]"
+              >
+                Close
+              </button>
+            </div>
+            <div className="h-[280px] rounded-lg border border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-[var(--app-panel)] px-4 py-4 relative overflow-hidden">
+              <div className="absolute inset-x-4 bottom-10 h-px bg-[color-mix(in_srgb,var(--app-text)_16%,transparent)]" />
+              <div className="absolute inset-x-4 top-4 h-[1px] bg-[linear-gradient(to_right,color-mix(in_srgb,var(--app-text)_7%,transparent)_1px,transparent_1px)] bg-[size:40px_100%] opacity-75" />
+              {timelineDots.map((dot, index) => (
+                <button
+                  key={`timeline-expanded-${dot.id}-${index}`}
+                  type="button"
+                  onClick={() => {
+                    const match = normalized.find((item) => item.id === dot.id);
+                    if (match) handlePanelItemClick(match);
+                  }}
+                  className="absolute h-3 w-3 rounded-full border border-[color-mix(in_srgb,var(--app-text)_24%,transparent)]"
+                  style={{
+                    left: `calc(${dot.xPct}% + 12px)`,
+                    bottom: `${32 + (index % 8) * 22}px`,
+                    backgroundColor: dotColorByStatus(dot.status),
+                  }}
+                  title={`${dot.title} · ${toPanelBadge(dot.status)} · ${formatTime(dot.time)}`}
+                />
+              ))}
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      {mobileConsoleOpen ? (
+        <div className="fixed inset-0 z-50 lg:hidden">
+          <button
+            type="button"
+            onClick={() => setMobileConsoleOpen(false)}
+            className="absolute inset-0 bg-black/55"
+            aria-label="Close day console list"
+          />
+          <div className="absolute inset-x-0 bottom-0 rounded-t-2xl border border-[color-mix(in_srgb,var(--app-text)_12%,transparent)] bg-[var(--app-panel-2)] p-3">
+            <div className="flex items-center justify-between gap-2 mb-2">
+              <div className="text-xs uppercase tracking-[0.16em] text-[var(--app-text)]">
+                {activeTabLabel} • {selectedDateLabel}
+              </div>
+              <button
+                type="button"
+                onClick={() => setMobileConsoleOpen(false)}
+                className="px-2 py-1 rounded border border-[color-mix(in_srgb,var(--app-text)_20%,transparent)] text-[10px] uppercase tracking-[0.14em] text-[var(--app-muted)]"
+              >
+                Close
+              </button>
+            </div>
+            {renderCompactItemList(true)}
+          </div>
+        </div>
+      ) : null}
 
       {detailItem ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
