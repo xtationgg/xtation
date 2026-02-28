@@ -204,6 +204,51 @@
   --app-clip-pill: none;
 }
 
+[data-theme='dusk_soft'] {
+  --app-bg: #0e1014;
+  --app-panel: #1f162d;
+  --app-panel-2: #3f2f59;
+  --app-border: transparent;
+  --app-text: #f1ebff;
+  --app-muted: #b6abc7;
+  --app-accent: #573778;
+  --app-accent-weak: color-mix(in srgb, var(--app-accent) 16%, transparent);
+  --app-focus-ring: transparent;
+  --app-danger: #e55d65;
+  --app-radius-sm: 10px;
+  --app-radius-md: 14px;
+  --app-radius-lg: 18px;
+  --app-cut-sm: 0px;
+  --app-cut-md: 0px;
+  --app-cut-lg: 0px;
+  --app-stroke: 1px;
+  --app-shadow-soft: none;
+  --app-shadow-strong: none;
+  --app-glow-accent: none;
+  --app-glow-strength: 0;
+  --app-hover-glow-base: 0%;
+  --app-noise-opacity: 0.01;
+  --app-glass-opacity: 0;
+  --app-blur: 0px;
+  --app-panel-rgb: 31 22 45;
+  --app-panel-2-rgb: 63 47 89;
+  --app-bg-overlay:
+    radial-gradient(120% 100% at 12% 0%, rgba(87, 55, 120, 0.08), transparent 58%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.008), transparent 46%);
+  --app-motion-fast: 120ms;
+  --app-motion-med: 180ms;
+  --app-motion-slow: 240ms;
+  --app-ease: cubic-bezier(0.24, 0.9, 0.26, 1);
+  --app-hover-lift-y: -1px;
+  --app-hover-scale: 1;
+  --app-body-letter-spacing: 0.01em;
+  --app-clip-all: none;
+  --app-clip-right: none;
+  --app-clip-left: none;
+  --app-clip-card: none;
+  --app-clip-pill: none;
+}
+
 /* Dusk cleanup: keep surfaces solid and shadow-free */
 [data-theme='dusk'] .ui-panel-surface,
 [data-theme='dusk'] .ui-glow,
@@ -215,6 +260,19 @@
 }
 
 [data-theme='dusk'] *:focus-visible {
+  outline: none !important;
+}
+
+[data-theme='dusk_soft'] .ui-panel-surface,
+[data-theme='dusk_soft'] .ui-glow,
+[data-theme='dusk_soft'] .ui-pressable:hover,
+[data-theme='dusk_soft'] .orb-button__icon,
+[data-theme='dusk_soft'] .orb-button:hover .orb-button__icon {
+  box-shadow: none !important;
+  filter: none !important;
+}
+
+[data-theme='dusk_soft'] *:focus-visible {
   outline: none !important;
 }
 
@@ -511,6 +569,27 @@
   --app-accent: #8fb85a;
   --app-accent-weak: color-mix(in srgb, var(--app-accent) 20%, transparent);
   --app-focus-ring: color-mix(in srgb, var(--app-accent) 40%, transparent);
+}
+
+[data-accent='outline'] {
+  --app-accent: #8f6cc7;
+  --app-accent-weak: transparent;
+  --app-focus-ring: color-mix(in srgb, var(--app-accent) 34%, transparent);
+}
+
+[data-accent='outline'] .ui-pressable {
+  box-shadow: none;
+}
+
+[data-accent='outline'] .ui-pressable:hover {
+  background-color: color-mix(in srgb, var(--app-accent) 10%, transparent) !important;
+  border-color: color-mix(in srgb, var(--app-accent) 65%, var(--app-border)) !important;
+}
+
+[data-accent='outline'] .ui-pressable[aria-pressed='true'],
+[data-accent='outline'] .ui-pressable.ui-glow {
+  background-color: color-mix(in srgb, var(--app-accent) 22%, transparent) !important;
+  border-color: var(--app-accent) !important;
 }
 
 [data-theme='dark_minimal_rounded_solid'] .rounded-sm,

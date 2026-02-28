@@ -6,6 +6,7 @@ const LEGACY_THEME_STORAGE_KEY = 'xtation_theme';
 
 export type XtationTheme =
   | 'dusk'
+  | 'dusk_soft'
   | 'dark_minimal_solid'
   | 'dark_minimal_rounded_solid'
   | 'dark_minimal_rounded_glass'
@@ -17,7 +18,7 @@ export interface XtationThemeOption {
   label: string;
 }
 
-export type XtationAccent = 'purple' | 'neutral' | 'amber' | 'teal' | 'crimson' | 'lime';
+export type XtationAccent = 'purple' | 'neutral' | 'amber' | 'teal' | 'crimson' | 'lime' | 'outline';
 
 export interface XtationAccentOption {
   value: XtationAccent;
@@ -26,6 +27,7 @@ export interface XtationAccentOption {
 
 export const XTATION_THEME_OPTIONS: XtationThemeOption[] = [
   { value: 'dusk', label: 'Dusk' },
+  { value: 'dusk_soft', label: 'Dusk • No Outline' },
   { value: 'dark_minimal_solid', label: 'Dark Minimal + Solid' },
   { value: 'dark_minimal_rounded_solid', label: 'DARK MINIMAL • ROUNDED • SOLID' },
   { value: 'dark_minimal_rounded_glass', label: 'DARK MINIMAL • ROUNDED • GLASS' },
@@ -36,6 +38,7 @@ export const XTATION_THEME_OPTIONS: XtationThemeOption[] = [
 export const XTATION_ACCENT_OPTIONS: XtationAccentOption[] = [
   { value: 'neutral', label: 'Neutral' },
   { value: 'purple', label: 'Purple' },
+  { value: 'outline', label: 'Outline' },
   { value: 'amber', label: 'Amber' },
   { value: 'teal', label: 'Teal' },
   { value: 'crimson', label: 'Crimson' },
