@@ -314,7 +314,6 @@ export const LogCalendar: React.FC = () => {
   const [now, setNow] = useState(() => Date.now());
   const [expandedGroupKey, setExpandedGroupKey] = useState<string | null>(null);
   const [highlightedGroupKey, setHighlightedGroupKey] = useState<string | null>(null);
-  const [mobilePanelOpen, setMobilePanelOpen] = useState(false);
   const [detailItem, setDetailItem] = useState<NormalizedLogItem | null>(null);
   const [expandedPanelItemId, setExpandedPanelItemId] = useState<string | null>(null);
 
@@ -509,13 +508,27 @@ export const LogCalendar: React.FC = () => {
     [jumpToGroup]
   );
 
-  const sidePanel = (
-    <div className="flex h-full flex-col rounded-2xl border border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-[var(--app-panel-2)] shadow-[0_14px_34px_rgba(0,0,0,0.28)] overflow-hidden">
+  const dayConsole = (
+    <div className="rounded-2xl border border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-[var(--app-panel-2)] shadow-[0_10px_24px_rgba(0,0,0,0.28)] overflow-hidden">
       <div className="px-3.5 py-3 border-b border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-[var(--app-panel)]">
-        <div className="flex items-start justify-between gap-3">
+        <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <div className="text-[10px] uppercase tracking-[0.26em] text-[var(--app-muted)]">Selected Date</div>
+            <div className="text-[10px] uppercase tracking-[0.26em] text-[var(--app-muted)]">Day Console</div>
             <div className="text-sm uppercase tracking-[0.14em] text-[var(--app-text)] mt-1">{selectedDateLabel}</div>
+          </div>
+          <div className="flex items-center gap-1.5 text-[10px] uppercase tracking-[0.14em]">
+            <span className="rounded-full border border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-[var(--app-panel-2)] px-2 py-1 text-[var(--app-muted)]">
+              T {selectedDaySummary.minutesTracked}m
+            </span>
+            <span className="rounded-full border border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-[var(--app-panel-2)] px-2 py-1 text-[var(--app-muted)]">
+              I {selectedDaySummary.activityCount}
+            </span>
+            <span className="rounded-full border border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-[var(--app-panel-2)] px-2 py-1 text-[var(--app-muted)]">
+              C {selectedDaySummary.completedCount}
+            </span>
+            <span className="rounded-full border border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-[var(--app-panel-2)] px-2 py-1 text-[var(--app-muted)]">
+              S {selectedDaySummary.scheduledCount}
+            </span>
           </div>
           <button
             type="button"
@@ -524,21 +537,6 @@ export const LogCalendar: React.FC = () => {
           >
             Add
           </button>
-        </div>
-
-        <div className="mt-3 grid grid-cols-4 gap-1.5 text-[10px] uppercase tracking-[0.14em]">
-          <div className="rounded-full border border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-[var(--app-panel-2)] px-2 py-1 text-[var(--app-muted)] text-center">
-            T {selectedDaySummary.minutesTracked}m
-          </div>
-          <div className="rounded-full border border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-[var(--app-panel-2)] px-2 py-1 text-[var(--app-muted)] text-center">
-            I {selectedDaySummary.activityCount}
-          </div>
-          <div className="rounded-full border border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-[var(--app-panel-2)] px-2 py-1 text-[var(--app-muted)] text-center">
-            C {selectedDaySummary.completedCount}
-          </div>
-          <div className="rounded-full border border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-[var(--app-panel-2)] px-2 py-1 text-[var(--app-muted)] text-center">
-            S {selectedDaySummary.scheduledCount}
-          </div>
         </div>
       </div>
 
@@ -559,51 +557,67 @@ export const LogCalendar: React.FC = () => {
         ))}
       </div>
 
-      <div className="flex-1 overflow-y-auto p-2.5 space-y-1.5">
-        {panelItems.length === 0 ? (
-          <div className="rounded-lg border border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-[var(--app-panel)] p-3 text-[11px] uppercase tracking-[0.16em] text-[var(--app-muted)]">
-            No items for this tab.
-          </div>
-        ) : (
-          panelItems.map((item) => {
-            const expanded = expandedPanelItemId === item.id;
-            return (
-              <div
-                key={item.id}
-                className="rounded-lg border border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-[var(--app-panel)] overflow-hidden"
-              >
-                <button
-                  type="button"
-                  onClick={() => handlePanelItemClick(item)}
-                  className="w-full text-left px-2.5 py-2 hover:border-[color-mix(in_srgb,var(--app-accent)_55%,transparent)] transition-colors"
-                >
-                  <div className="flex items-center justify-between gap-2">
-                    <div className="min-w-0 text-xs uppercase tracking-[0.14em] text-[var(--app-text)] truncate">{item.title}</div>
-                    <div className="flex items-center gap-1.5 shrink-0">
-                      <span className="text-[10px] uppercase tracking-[0.14em] text-[var(--app-muted)]">
-                        {item.startAt ? formatTime(item.startAt) : '--:--'}
-                      </span>
-                      <span className="inline-flex rounded px-1.5 py-0.5 text-[9px] uppercase tracking-[0.14em] bg-[color-mix(in_srgb,var(--app-accent)_18%,var(--app-panel))] text-[var(--app-accent)]">
-                        {toPanelBadge(item.status)}
-                      </span>
-                    </div>
-                  </div>
-                </button>
-                {expanded ? (
-                  <div className="px-2.5 pb-2 text-[10px] uppercase tracking-[0.14em] text-[var(--app-muted)] border-t border-[color-mix(in_srgb,var(--app-text)_8%,transparent)] bg-[color-mix(in_srgb,var(--app-panel)_75%,var(--app-panel-2))]">
-                    <div className="pt-1.5">{toPanelSubtitle(item)}</div>
-                  </div>
-                ) : null}
+      <div className="grid gap-3 p-3 lg:grid-cols-[minmax(0,13fr)_minmax(0,7fr)]">
+        <div className="rounded-xl border border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-[var(--app-panel)] p-3 min-h-[280px]">
+          <div className="text-[10px] uppercase tracking-[0.18em] text-[var(--app-muted)] mb-3">Timeline</div>
+          <div className="h-[220px] rounded-lg border border-[color-mix(in_srgb,var(--app-text)_8%,transparent)] bg-[color-mix(in_srgb,var(--app-panel-2)_65%,var(--app-panel))] px-3 py-4">
+            <div className="h-full w-full bg-[linear-gradient(to_right,color-mix(in_srgb,var(--app-text)_8%,transparent)_1px,transparent_1px)] bg-[size:36px_100%] opacity-70 relative">
+              <div className="absolute inset-x-0 bottom-8 h-px bg-[color-mix(in_srgb,var(--app-text)_16%,transparent)]" />
+              <div className="absolute left-3 bottom-10 text-[10px] uppercase tracking-[0.16em] text-[var(--app-muted)]">
+                Timeline visual placeholder
               </div>
-            );
-          })
-        )}
+            </div>
+          </div>
+        </div>
+
+        <div className="rounded-xl border border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-[var(--app-panel)] p-2.5 min-h-[280px]">
+          <div className="space-y-1.5">
+            {panelItems.length === 0 ? (
+              <div className="rounded-lg border border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-[var(--app-panel-2)] p-3 text-[11px] uppercase tracking-[0.16em] text-[var(--app-muted)]">
+                No items for this tab.
+              </div>
+            ) : (
+              panelItems.map((item) => {
+                const expanded = expandedPanelItemId === item.id;
+                return (
+                  <div
+                    key={item.id}
+                    className="rounded-lg border border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-[var(--app-panel-2)] overflow-hidden"
+                  >
+                    <button
+                      type="button"
+                      onClick={() => handlePanelItemClick(item)}
+                      className="w-full text-left px-2.5 py-2 hover:border-[color-mix(in_srgb,var(--app-accent)_55%,transparent)] transition-colors"
+                    >
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="min-w-0 text-xs uppercase tracking-[0.14em] text-[var(--app-text)] truncate">{item.title}</div>
+                        <div className="flex items-center gap-1.5 shrink-0">
+                          <span className="text-[10px] uppercase tracking-[0.14em] text-[var(--app-muted)]">
+                            {item.startAt ? formatTime(item.startAt) : '--:--'}
+                          </span>
+                          <span className="inline-flex rounded px-1.5 py-0.5 text-[9px] uppercase tracking-[0.14em] bg-[color-mix(in_srgb,var(--app-accent)_18%,var(--app-panel))] text-[var(--app-accent)]">
+                            {toPanelBadge(item.status)}
+                          </span>
+                        </div>
+                      </div>
+                    </button>
+                    {expanded ? (
+                      <div className="px-2.5 pb-2 text-[10px] uppercase tracking-[0.14em] text-[var(--app-muted)] border-t border-[color-mix(in_srgb,var(--app-text)_8%,transparent)] bg-[color-mix(in_srgb,var(--app-panel)_75%,var(--app-panel-2))]">
+                        <div className="pt-1.5">{toPanelSubtitle(item)}</div>
+                      </div>
+                    ) : null}
+                  </div>
+                );
+              })
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );
 
   return (
-    <div className="relative xl:pr-[344px] text-[var(--app-text)]">
+    <div className="relative text-[var(--app-text)]">
       {import.meta.env.DEV ? (
         <div className="mb-3 rounded-md border border-[color-mix(in_srgb,var(--app-accent)_45%,transparent)] bg-[color-mix(in_srgb,var(--app-accent)_12%,var(--app-panel))] px-3 py-2 text-[10px] uppercase tracking-[0.14em] text-[var(--app-muted)]">
           <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
@@ -813,6 +827,8 @@ export const LogCalendar: React.FC = () => {
           ) : null}
         </div>
 
+        {dayConsole}
+
         <div className="rounded-2xl border border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-[var(--app-panel-2)] shadow-[0_10px_24px_rgba(0,0,0,0.35)] p-4">
           <div className="flex items-center justify-between mb-3">
             <div>
@@ -982,28 +998,6 @@ export const LogCalendar: React.FC = () => {
           )}
         </div>
       </div>
-
-      <aside className="hidden xl:flex fixed right-4 top-[76px] h-[calc(100dvh-88px)] w-[320px] z-30">{sidePanel}</aside>
-
-      <button
-        type="button"
-        onClick={() => setMobilePanelOpen(true)}
-        className="xl:hidden fixed right-4 top-[76px] z-30 px-3 py-2 rounded-md border border-[color-mix(in_srgb,var(--app-accent)_45%,transparent)] bg-[color-mix(in_srgb,var(--app-accent)_18%,var(--app-panel))] text-[10px] uppercase tracking-[0.18em] text-[var(--app-accent)]"
-      >
-        Timeline
-      </button>
-
-      {mobilePanelOpen ? (
-        <div className="xl:hidden fixed inset-0 z-40">
-          <button
-            type="button"
-            onClick={() => setMobilePanelOpen(false)}
-            className="absolute inset-0 bg-black/55"
-            aria-label="Close timeline panel"
-          />
-          <div className="absolute right-0 top-[60px] h-[calc(100dvh-60px)] w-[min(420px,100vw)] p-3">{sidePanel}</div>
-        </div>
-      ) : null}
 
       {detailItem ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
