@@ -351,7 +351,7 @@ const filterTaskCardItems = (items: NormalizedLogItem[], tab: TaskCardTab, now: 
   const orderedDesc = [...items].sort((a, b) => (b.startAt || 0) - (a.startAt || 0));
 
   if (tab === 'timeline') {
-    return orderedDesc.filter((item) => item.type === 'timeline');
+    return orderedDesc.filter((item) => item.type === 'timeline' || item.status === 'scheduled');
   }
   if (tab === 'unfinished') {
     return orderedDesc.filter((item) => item.status === 'todo' || item.status === 'running' || item.status === 'failed');
@@ -481,7 +481,7 @@ const toPanelSubtitle = (item: NormalizedLogItem) => {
     return item.durationMin && item.durationMin > 0 ? `${item.durationMin}m tracked` : 'No time logged';
   }
   if (item.status === 'scheduled') {
-    return item.startAt ? `Starts ${formatTime(item.startAt)}` : 'Scheduled';
+    return 'Scheduled';
   }
   if (item.status === 'retro') {
     return `Retro +${Math.max(0, item.durationMin || 0)}m`;
@@ -930,9 +930,15 @@ export const LogCalendar: React.FC = () => {
         </div>
       ) : (
         dayConsoleRows.map((row) => {
-          const expanded = expandedId === row.key;
+          const isSelected = expandedId === row.key;
           const isStartable = !!row.taskId && (row.state === 'scheduled' || row.state === 'failed' || row.state === 'todo');
           const stateMeta = getQuestStateMeta(row.state);
+          const headItem = row.items[0];
+          const compactDetail = headItem
+            ? headItem.status === 'scheduled'
+              ? 'Scheduled task'
+              : toPanelBadge(headItem.status)
+            : '';
           return (
             <div
               key={row.key}
@@ -941,141 +947,112 @@ export const LogCalendar: React.FC = () => {
                 rowRefs.current[row.key] = node;
               }}
               className={`rounded-lg border overflow-hidden transition-all duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] ${
-                highlightedPanelKey === row.key
+                highlightedPanelKey === row.key || isSelected
                   ? 'border-[color-mix(in_srgb,var(--app-accent)_60%,transparent)] bg-[color-mix(in_srgb,var(--app-accent)_12%,var(--app-panel))]'
                   : 'border-[color-mix(in_srgb,var(--app-text)_6%,transparent)] bg-[var(--app-panel)]'
               }`}
             >
-              <button
-                type="button"
-                onClick={() => {
-                  handlePanelRowToggle(row);
-                }}
-                onMouseEnter={() => {
-                  setHighlightedPanelKey(row.key);
-                  const dotId = firstDotByRowKey.get(row.key);
-                  if (dotId) setHoveredDotId(dotId);
-                }}
-                onMouseLeave={() => {
-                  setHoveredDotId((prev) => {
-                    if (!prev) return prev;
+              <div className="flex items-center gap-2 px-3 py-2.5">
+                <button
+                  type="button"
+                  onClick={() => {
+                    handlePanelRowToggle(row);
+                  }}
+                  onMouseEnter={() => {
+                    setHighlightedPanelKey(row.key);
                     const dotId = firstDotByRowKey.get(row.key);
-                    return prev === dotId ? null : prev;
-                  });
-                  setHighlightedPanelKey((prev) =>
-                    prev === row.key && expandedId !== row.key ? null : prev
-                  );
-                }}
-                onFocus={() => {
-                  setHighlightedPanelKey(row.key);
-                  const dotId = firstDotByRowKey.get(row.key);
-                  if (dotId) setHoveredDotId(dotId);
-                }}
-                onBlur={() => {
-                  setHoveredDotId((prev) => {
-                    if (!prev) return prev;
+                    if (dotId) setHoveredDotId(dotId);
+                  }}
+                  onMouseLeave={() => {
+                    setHoveredDotId((prev) => {
+                      if (!prev) return prev;
+                      const dotId = firstDotByRowKey.get(row.key);
+                      return prev === dotId ? null : prev;
+                    });
+                    setHighlightedPanelKey((prev) => (prev === row.key ? null : prev));
+                  }}
+                  onFocus={() => {
+                    setHighlightedPanelKey(row.key);
                     const dotId = firstDotByRowKey.get(row.key);
-                    return prev === dotId ? null : prev;
-                  });
-                  setHighlightedPanelKey((prev) =>
-                    prev === row.key && expandedId !== row.key ? null : prev
-                  );
-                }}
-                onKeyDown={(event) => {
-                  if (event.key === 'ArrowDown') {
-                    event.preventDefault();
-                    focusAdjacentPanelRow(row.key, 1);
-                  } else if (event.key === 'ArrowUp') {
-                    event.preventDefault();
-                    focusAdjacentPanelRow(row.key, -1);
-                  }
-                }}
-                data-day-console-row-button="true"
-                data-row-key={row.key}
-                aria-expanded={expanded}
-                className="w-full pointer-events-auto cursor-pointer text-left px-3 py-2.5 transition-all duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] hover:bg-[color-mix(in_srgb,var(--app-accent)_10%,var(--app-panel))] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color-mix(in_srgb,var(--app-accent)_55%,transparent)]"
-              >
-                <div className="flex items-center gap-2">
-                  <div className="min-w-0 flex-1 text-xs uppercase tracking-[0.12em] text-[var(--app-text)] truncate">
-                    {row.title}
-                  </div>
-                  <span
-                    className="inline-flex justify-center rounded px-1.5 py-0.5 text-[9px] uppercase tracking-[0.14em] shrink-0"
-                    style={{
-                      width: DAY_ROW_STATUS_CHIP_WIDTH,
-                      backgroundColor: stateMeta.chipBg,
-                      color: stateMeta.chipText,
-                    }}
-                  >
-                    {toQuestStateBadge(row.state)}
-                  </span>
-                  <span className="text-right text-[10px] uppercase tracking-[0.12em] text-[var(--app-muted)] shrink-0 tabular-nums font-mono" style={{ width: DAY_ROW_TIME_WIDTH }}>
-                    {row.primaryTime ? `${row.inferredTime ? '~' : ''}${formatTime(row.primaryTime)}` : '--:--'}
-                  </span>
-                </div>
-              </button>
-              <div
-                className={`border-t border-[color-mix(in_srgb,var(--app-text)_8%,transparent)] bg-[color-mix(in_srgb,var(--app-panel-2)_65%,var(--app-panel))] px-3 overflow-hidden transition-[max-height,opacity,padding] duration-200 ${
-                  expanded ? 'max-h-[420px] py-2 opacity-100' : 'max-h-0 py-0 opacity-0'
-                }`}
-              >
-                {expanded ? (
-                  <div className="space-y-2">
-                    <div className="space-y-1.5">
-                      {row.items.slice(0, 5).map((entry) => (
-                        <button
-                          key={`${row.key}-${entry.id}`}
-                          type="button"
-                          onClick={() => handlePanelItemClick(entry)}
-                          className="w-full rounded border border-[color-mix(in_srgb,var(--app-text)_6%,transparent)] bg-[var(--app-panel)] px-2 py-1 text-left text-[10px] uppercase tracking-[0.13em] text-[var(--app-muted)] hover:border-[color-mix(in_srgb,var(--app-accent)_40%,transparent)]"
-                        >
-                          <div className="flex items-center justify-between gap-2">
-                            <span className="truncate">{toPanelSubtitle(entry)}</span>
-                            <span className="shrink-0 tabular-nums font-mono">
-                              {entry.startAt ? formatTime(entry.startAt) : '--:--'}
-                            </span>
-                          </div>
-                        </button>
-                      ))}
-                      {row.items.length > 5 ? (
-                        <div className="text-[10px] uppercase tracking-[0.14em] text-[var(--app-muted)] px-1">
-                          +{row.items.length - 5} more entries
+                    if (dotId) setHoveredDotId(dotId);
+                  }}
+                  onBlur={() => {
+                    setHoveredDotId((prev) => {
+                      if (!prev) return prev;
+                      const dotId = firstDotByRowKey.get(row.key);
+                      return prev === dotId ? null : prev;
+                    });
+                    setHighlightedPanelKey((prev) => (prev === row.key ? null : prev));
+                  }}
+                  onKeyDown={(event) => {
+                    if (event.key === 'ArrowDown') {
+                      event.preventDefault();
+                      focusAdjacentPanelRow(row.key, 1);
+                    } else if (event.key === 'ArrowUp') {
+                      event.preventDefault();
+                      focusAdjacentPanelRow(row.key, -1);
+                    }
+                  }}
+                  data-day-console-row-button="true"
+                  data-row-key={row.key}
+                  aria-pressed={isSelected}
+                  className="min-w-0 flex-1 pointer-events-auto cursor-pointer text-left transition-all duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] hover:text-[var(--app-text)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color-mix(in_srgb,var(--app-accent)_55%,transparent)] rounded"
+                >
+                  <div className="flex items-center gap-2">
+                    <div className="min-w-0 flex-1">
+                      <div className="text-xs uppercase tracking-[0.12em] text-[var(--app-text)] truncate">{row.title}</div>
+                      {compactDetail ? (
+                        <div className="mt-0.5 text-[9px] uppercase tracking-[0.14em] text-[var(--app-muted)] truncate">
+                          {compactDetail}
                         </div>
                       ) : null}
                     </div>
-                    <div className="flex flex-wrap items-center gap-1.5 justify-end">
-                      {isStartable ? (
-                        <button
-                          type="button"
-                          onClick={() => startFromDayConsole(row)}
-                          className="inline-flex h-7 w-7 items-center justify-center rounded border border-[color-mix(in_srgb,var(--app-accent)_45%,transparent)] text-[var(--app-accent)] hover:border-[var(--app-accent)]"
-                          title="Start"
-                          aria-label="Start"
-                        >
-                          <Play className="h-3.5 w-3.5" />
-                        </button>
-                      ) : null}
-                      {row.taskId ? (
-                        <button
-                          type="button"
-                          onClick={() => {
-                            openDeleteConfirm({
-                              taskId: row.taskId,
-                              title: row.title,
-                              collapsePanelRowKey: row.key,
-                            });
-                            if (mobile) setMobileConsoleOpen(false);
-                          }}
-                          className="inline-flex h-7 w-7 items-center justify-center rounded border border-[color-mix(in_srgb,var(--app-accent)_45%,transparent)] text-[var(--app-accent)] hover:border-[var(--app-accent)]"
-                          title="Delete"
-                          aria-label="Delete"
-                        >
-                          <Trash2 className="h-3.5 w-3.5" />
-                        </button>
-                      ) : null}
-                    </div>
+                    <span
+                      className="inline-flex justify-center rounded px-1.5 py-0.5 text-[9px] uppercase tracking-[0.14em] shrink-0"
+                      style={{
+                        width: DAY_ROW_STATUS_CHIP_WIDTH,
+                        backgroundColor: stateMeta.chipBg,
+                        color: stateMeta.chipText,
+                      }}
+                    >
+                      {toQuestStateBadge(row.state)}
+                    </span>
+                    <span className="text-right text-[10px] uppercase tracking-[0.12em] text-[var(--app-muted)] shrink-0 tabular-nums font-mono" style={{ width: DAY_ROW_TIME_WIDTH }}>
+                      {row.primaryTime ? `${row.inferredTime ? '~' : ''}${formatTime(row.primaryTime)}` : '--:--'}
+                    </span>
                   </div>
-                ) : null}
+                </button>
+                <div className="flex shrink-0 items-center gap-1">
+                  {isStartable ? (
+                    <button
+                      type="button"
+                      onClick={() => startFromDayConsole(row)}
+                      className="inline-flex h-7 w-7 items-center justify-center rounded border border-[color-mix(in_srgb,var(--app-accent)_45%,transparent)] text-[var(--app-accent)] hover:border-[var(--app-accent)]"
+                      title="Start"
+                      aria-label="Start"
+                    >
+                      <Play className="h-3.5 w-3.5" />
+                    </button>
+                  ) : null}
+                  {row.taskId ? (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        openDeleteConfirm({
+                          taskId: row.taskId,
+                          title: row.title,
+                          collapsePanelRowKey: row.key,
+                        });
+                        if (mobile) setMobileConsoleOpen(false);
+                      }}
+                      className="inline-flex h-7 w-7 items-center justify-center rounded border border-[color-mix(in_srgb,var(--app-accent)_45%,transparent)] text-[var(--app-accent)] hover:border-[var(--app-accent)]"
+                      title="Delete"
+                      aria-label="Delete"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </button>
+                  ) : null}
+                </div>
               </div>
             </div>
           );
@@ -1085,14 +1062,14 @@ export const LogCalendar: React.FC = () => {
   );
 
   const renderTimelineChart = (mobile = false) => {
-    const chartHeight = mobile ? 320 : 440;
-    const chartInnerTop = 28;
-    const chartInnerBottom = 54;
-    const plannedLineTop = 74;
-    const actualLineTop = 216;
+    const chartHeight = mobile ? 380 : 500;
+    const chartInnerTop = 24;
+    const chartInnerBottom = 78;
+    const plannedLineTop = 92;
+    const actualLineTop = 262;
     return (
       <div className={`rounded-xl bg-[color-mix(in_srgb,var(--app-panel-2)_55%,var(--app-panel))] px-2 py-2 relative overflow-hidden`} style={{ height: chartHeight }}>
-        <div className="absolute inset-x-5" style={{ top: chartInnerTop, bottom: chartInnerBottom }}>
+        <div className="absolute inset-x-4" style={{ top: chartInnerTop, bottom: chartInnerBottom }}>
           <div
             className="absolute inset-x-0 h-px bg-[color-mix(in_srgb,var(--app-text)_14%,transparent)]"
             style={{ top: plannedLineTop }}
@@ -1187,7 +1164,7 @@ export const LogCalendar: React.FC = () => {
               className="pointer-events-none absolute z-10 rounded-md border border-[color-mix(in_srgb,var(--app-text)_20%,transparent)] bg-[var(--app-panel)] px-2 py-1 text-[10px] uppercase tracking-[0.12em] text-[var(--app-text)]"
               style={{
                 left: `${clampTimelineX(hoveredDot.xPct)}%`,
-                top: `${Math.max(4, hoveredDot.laneDotTop - 24)}px`,
+                top: `${Math.max(6, hoveredDot.laneDotTop - 30)}px`,
                 transform: 'translateX(-50%)',
               }}
             >
@@ -1196,7 +1173,7 @@ export const LogCalendar: React.FC = () => {
             </div>
           ) : null}
         </div>
-        <div className="absolute inset-x-5 bottom-2 text-[9px] uppercase tracking-[0.08em] text-[var(--app-muted)] tabular-nums font-mono">
+        <div className="absolute inset-x-4 bottom-6 text-[10px] uppercase tracking-[0.08em] text-[var(--app-muted)] tabular-nums font-mono">
           {TIMELINE_HOUR_MARKERS.map((hour) => (
             <span
               key={`timeline-hour-${hour}`}
@@ -1220,10 +1197,6 @@ export const LogCalendar: React.FC = () => {
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
             <div className="text-[10px] uppercase tracking-[0.26em] text-[var(--app-muted)]">Day Console</div>
-            <div className="text-[11px] text-[var(--app-muted)] mt-1 uppercase tracking-[0.12em]">
-              Tracked {selectedDaySummary.minutesTracked}m • Items {selectedDaySummary.activityCount} • Completed{' '}
-              {selectedDaySummary.completedCount} • Scheduled {selectedDaySummary.scheduledCount}
-            </div>
           </div>
           <button
             type="button"
@@ -1784,10 +1757,10 @@ export const LogCalendar: React.FC = () => {
                 Close
               </button>
             </div>
-            <div className="h-[420px] rounded-lg bg-[var(--app-panel)] px-4 py-4 relative overflow-hidden">
-              <div className="absolute inset-x-5 top-4 bottom-14">
-                <div className="absolute inset-x-0 top-[74px] h-px bg-[color-mix(in_srgb,var(--app-text)_14%,transparent)]" />
-                <div className="absolute inset-x-0 top-[216px] h-px bg-[color-mix(in_srgb,var(--app-text)_22%,transparent)]" />
+            <div className="h-[520px] rounded-lg bg-[var(--app-panel)] px-4 py-4 relative overflow-hidden">
+              <div className="absolute inset-x-4 top-4 bottom-[4.5rem]">
+                <div className="absolute inset-x-0 top-[92px] h-px bg-[color-mix(in_srgb,var(--app-text)_14%,transparent)]" />
+                <div className="absolute inset-x-0 top-[262px] h-px bg-[color-mix(in_srgb,var(--app-text)_22%,transparent)]" />
                 {TIMELINE_HOUR_MARKERS.map((hour) => (
                   <div
                     key={`timeline-expanded-grid-${hour}`}
@@ -1795,8 +1768,8 @@ export const LogCalendar: React.FC = () => {
                     style={{ left: `${(hour / 24) * 100}%` }}
                   />
                 ))}
-                <div className="absolute left-0 top-[56px] text-[9px] uppercase tracking-[0.14em] text-[var(--app-muted)]">Planned</div>
-                <div className="absolute left-0 top-[198px] text-[9px] uppercase tracking-[0.14em] text-[var(--app-muted)]">Actual</div>
+                <div className="absolute left-0 top-[74px] text-[9px] uppercase tracking-[0.14em] text-[var(--app-muted)]">Planned</div>
+                <div className="absolute left-0 top-[244px] text-[9px] uppercase tracking-[0.14em] text-[var(--app-muted)]">Actual</div>
                 {nowMarkerX !== null ? (
                   <div
                     className="pointer-events-none absolute top-0 bottom-0 border-l border-dashed border-[color-mix(in_srgb,var(--app-accent)_55%,transparent)]"
@@ -1842,7 +1815,7 @@ export const LogCalendar: React.FC = () => {
                   />
                 ))}
               </div>
-              <div className="absolute inset-x-5 bottom-4 text-[9px] uppercase tracking-[0.08em] text-[var(--app-muted)] tabular-nums font-mono">
+              <div className="absolute inset-x-4 bottom-6 text-[10px] uppercase tracking-[0.08em] text-[var(--app-muted)] tabular-nums font-mono">
                 {TIMELINE_HOUR_MARKERS.map((hour) => (
                   <span
                     key={`timeline-expanded-hour-${hour}`}
