@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useXP } from './xpStore';
 import type { XPDayActivityItem, XPDayActivityGroup, Task } from './xpTypes';
 import { ConfirmModal } from '../UI/ConfirmModal';
+import { DayTimeOrb } from './DayTimeOrb';
 import { Play, Trash2 } from 'lucide-react';
 
 const DAY_NAMES = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
@@ -1198,13 +1199,16 @@ export const LogCalendar: React.FC = () => {
           <div className="min-w-0">
             <div className="text-[10px] uppercase tracking-[0.26em] text-[var(--app-muted)]">Day Console</div>
           </div>
-          <button
-            type="button"
-            onClick={openQuestAddFlow}
-            className="px-2.5 py-1.5 rounded-md border border-[color-mix(in_srgb,var(--app-accent)_45%,transparent)] bg-[color-mix(in_srgb,var(--app-accent)_16%,var(--app-panel))] text-[10px] uppercase tracking-[0.16em] text-[var(--app-accent)] hover:border-[var(--app-accent)] shrink-0"
-          >
-            Add
-          </button>
+          <div className="flex items-start gap-2 shrink-0">
+            <DayTimeOrb showLiveLabel={selectedKey !== todayKey} className="mt-0.5" />
+            <button
+              type="button"
+              onClick={openQuestAddFlow}
+              className="px-2.5 py-1.5 rounded-md border border-[color-mix(in_srgb,var(--app-accent)_45%,transparent)] bg-[color-mix(in_srgb,var(--app-accent)_16%,var(--app-panel))] text-[10px] uppercase tracking-[0.16em] text-[var(--app-accent)] hover:border-[var(--app-accent)] shrink-0"
+            >
+              Add
+            </button>
+          </div>
         </div>
       </div>
 

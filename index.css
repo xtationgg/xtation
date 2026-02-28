@@ -1751,3 +1751,37 @@ a {
 .xt-scroll::-webkit-scrollbar-thumb:hover {
   background: color-mix(in srgb, var(--app-accent) 52%, var(--app-border)) !important;
 }
+
+@keyframes dayTimeOrbCorePulse {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.95;
+  }
+  50% {
+    transform: scale(1.08);
+    opacity: 1;
+  }
+}
+
+@keyframes dayTimeOrbGlowPulse {
+  0%,
+  100% {
+    transform: scale(0.94);
+    opacity: 0.25;
+  }
+  50% {
+    transform: scale(1.06);
+    opacity: 0.62;
+  }
+}
+
+.day-time-orb-core {
+  transform-origin: center;
+  animation: dayTimeOrbCorePulse 1.8s ease-in-out infinite;
+}
+
+.day-time-orb-glow {
+  transform-origin: center;
+  animation: dayTimeOrbGlowPulse 2.2s ease-in-out infinite;
+}
