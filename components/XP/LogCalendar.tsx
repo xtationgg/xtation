@@ -451,6 +451,26 @@ export const LogCalendar: React.FC = () => {
     }
   };
 
+  const handlePrev = useCallback(() => {
+    if (rangeMode === 'week') {
+      const base = fromDateKey(selectedKey);
+      base.setDate(base.getDate() - 7);
+      selectDate(toDateKey(base), base);
+      return;
+    }
+    setViewMonth((prev) => new Date(prev.getFullYear(), prev.getMonth() - 1, 1));
+  }, [rangeMode, selectedKey]);
+
+  const handleNext = useCallback(() => {
+    if (rangeMode === 'week') {
+      const base = fromDateKey(selectedKey);
+      base.setDate(base.getDate() + 7);
+      selectDate(toDateKey(base), base);
+      return;
+    }
+    setViewMonth((prev) => new Date(prev.getFullYear(), prev.getMonth() + 1, 1));
+  }, [rangeMode, selectedKey]);
+
   const jumpToGroup = useCallback((item: NormalizedLogItem) => {
     const targetGroup = item.groupKey || (item.taskId ? `task:${item.taskId}` : undefined);
     if (!targetGroup) {
@@ -604,14 +624,14 @@ export const LogCalendar: React.FC = () => {
               ))}
               <button
                 type="button"
-                onClick={() => setViewMonth((prev) => new Date(prev.getFullYear(), prev.getMonth() - 1, 1))}
+                onClick={handlePrev}
                 className="px-3 py-2 rounded-md border border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] text-[10px] tracking-[0.2em] uppercase text-[var(--app-text)] bg-[var(--app-panel-2)] hover:border-[color-mix(in_srgb,var(--app-text)_30%,transparent)] transition-colors"
               >
                 Prev
               </button>
               <button
                 type="button"
-                onClick={() => setViewMonth((prev) => new Date(prev.getFullYear(), prev.getMonth() + 1, 1))}
+                onClick={handleNext}
                 className="px-3 py-2 rounded-md border border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] text-[10px] tracking-[0.2em] uppercase text-[var(--app-text)] bg-[var(--app-panel-2)] hover:border-[color-mix(in_srgb,var(--app-text)_30%,transparent)] transition-colors"
               >
                 Next
@@ -631,30 +651,48 @@ export const LogCalendar: React.FC = () => {
           ) : null}
 
           {rangeMode === 'week' ? (
-            <div className="grid grid-cols-2 md:grid-cols-7 gap-2">
-              {weekDays.map((day) => {
-                const daySummary = selectors.getDaySummary(day.key, now) || EMPTY_DAY_SUMMARY;
-                const isSelected = day.key === selectedKey;
-                const isToday = day.key === todayKey;
-                return (
-                  <button
-                    key={day.key}
-                    type="button"
-                    onClick={() => selectDate(day.key, day.date)}
-                    className={`rounded-lg border p-3 text-left transition-colors ${
-                      isSelected
-                        ? 'border-[color-mix(in_srgb,var(--app-accent)_60%,transparent)] bg-[color-mix(in_srgb,var(--app-accent)_16%,var(--app-panel))]'
-                        : 'border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-[var(--app-panel-2)]'
-                    }`}
+            <div className="space-y-2">
+              <div className="grid grid-cols-7 gap-2">
+                {DAY_NAMES.map((name) => (
+                  <div
+                    key={`week-${name}`}
+                    className="text-[10px] text-[var(--app-muted)] text-center py-1 font-normal uppercase tracking-[0.2em]"
                   >
-                    <div className={`text-[11px] uppercase tracking-[0.16em] ${isToday ? 'text-[var(--app-accent)]' : 'text-[var(--app-muted)]'}`}>
-                      {formatWeekdayLabel(day.key)}
-                    </div>
-                    <div className="mt-2 text-xs uppercase tracking-[0.16em] text-[var(--app-text)]">{daySummary.minutesTracked}m</div>
-                    <div className="text-[10px] uppercase tracking-[0.14em] text-[var(--app-muted)] mt-1">{daySummary.activityCount} items</div>
-                  </button>
-                );
-              })}
+                    {name}
+                  </div>
+                ))}
+              </div>
+              <div className="overflow-x-auto no-scrollbar">
+                <div className="grid min-w-[740px] grid-cols-7 gap-2">
+                  {weekDays.map((day) => {
+                    const daySummary = selectors.getDaySummary(day.key, now) || EMPTY_DAY_SUMMARY;
+                    const isSelected = day.key === selectedKey;
+                    const isToday = day.key === todayKey;
+                    return (
+                      <button
+                        key={day.key}
+                        type="button"
+                        onClick={() => selectDate(day.key, day.date)}
+                        className={`min-h-[104px] rounded-lg border p-3 text-left transition-colors ${
+                          isSelected
+                            ? 'border-[color-mix(in_srgb,var(--app-accent)_60%,transparent)] bg-[color-mix(in_srgb,var(--app-accent)_16%,var(--app-panel))]'
+                            : 'border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-[var(--app-panel-2)]'
+                        }`}
+                      >
+                        <div className={`text-[11px] uppercase tracking-[0.16em] ${isToday ? 'text-[var(--app-accent)]' : 'text-[var(--app-muted)]'}`}>
+                          {formatWeekdayLabel(day.key)}
+                        </div>
+                        <div className="mt-2 text-xs uppercase tracking-[0.16em] text-[var(--app-text)]">
+                          {daySummary.minutesTracked}m
+                        </div>
+                        <div className="text-[10px] uppercase tracking-[0.14em] text-[var(--app-muted)] mt-1">
+                          {daySummary.activityCount} items
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
             </div>
           ) : null}
 
