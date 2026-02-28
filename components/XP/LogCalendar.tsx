@@ -1,6 +1,7 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useXP } from './xpStore';
 import type { XPDayActivityItem, XPDayActivityGroup, Task } from './xpTypes';
+import { ConfirmModal } from '../UI/ConfirmModal';
 
 const DAY_NAMES = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 const RANGE_OPTIONS = [
@@ -15,7 +16,7 @@ const SIDE_PANEL_TABS = [
   { value: 'completed', label: 'Completed' },
   { value: 'scheduled', label: 'Scheduled' },
 ] as const;
-const TIMELINE_HOUR_MARKERS = [0, 4, 8, 12, 16, 20, 24] as const;
+const TIMELINE_HOUR_MARKERS = Array.from({ length: 25 }, (_, index) => index);
 
 const toDateKey = (date: Date) => {
   const y = date.getFullYear();
@@ -135,6 +136,13 @@ type DayConsoleRow = {
   groupKey?: string;
   taskId?: string;
   items: NormalizedLogItem[];
+};
+
+type DeleteConfirmState = {
+  taskId: string;
+  title: string;
+  collapsePanelRowKey?: string;
+  collapseHistoryRowKey?: string;
 };
 
 type QuestStateMeta = {
@@ -506,14 +514,17 @@ export const LogCalendar: React.FC = () => {
   const [expandedGroupKey, setExpandedGroupKey] = useState<string | null>(null);
   const [highlightedGroupKey, setHighlightedGroupKey] = useState<string | null>(null);
   const [detailItem, setDetailItem] = useState<NormalizedLogItem | null>(null);
-  const [expandedPanelItemId, setExpandedPanelItemId] = useState<string | null>(null);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
   const [highlightedPanelKey, setHighlightedPanelKey] = useState<string | null>(null);
   const [timelineExpanded, setTimelineExpanded] = useState(false);
   const [mobileConsoleOpen, setMobileConsoleOpen] = useState(false);
   const [scheduledOpen, setScheduledOpen] = useState(false);
   const [historyModalOpen, setHistoryModalOpen] = useState(false);
+  const [deleteConfirmState, setDeleteConfirmState] = useState<DeleteConfirmState | null>(null);
   const [hoveredDotId, setHoveredDotId] = useState<string | null>(null);
   const [legendFilterStates, setLegendFilterStates] = useState<QuestRowState[]>([]);
+  const dayConsoleListRef = useRef<HTMLDivElement | null>(null);
+  const rowRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
   const todayKey = toDateKey(new Date(now));
   const selectedDate = fromDateKey(selectedKey);
@@ -670,8 +681,8 @@ export const LogCalendar: React.FC = () => {
       const stackKey = `${lane}:${hour}`;
       const stackIndex = stackByLaneHour.get(stackKey) || 0;
       stackByLaneHour.set(stackKey, stackIndex + 1);
-      const laneBase = lane === 'planned' ? 40 : 104;
-      const laneDotTop = Math.max(10, laneBase - stackIndex * 11);
+      const laneBase = lane === 'planned' ? 54 : 164;
+      const laneDotTop = Math.max(16, laneBase - stackIndex * 16);
       return {
         id: row.key,
         title: row.title,
@@ -810,47 +821,92 @@ export const LogCalendar: React.FC = () => {
     [startSession]
   );
 
+  const scrollPanelRowIntoView = useCallback((rowKey: string) => {
+    const panelRow = rowRefs.current[rowKey] || document.getElementById(`day-console-row-${rowKey}`);
+    if (!panelRow) return;
+    const container = dayConsoleListRef.current;
+    if (!container || !container.contains(panelRow)) {
+      panelRow.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      return;
+    }
+
+    const containerRect = container.getBoundingClientRect();
+    const rowRect = panelRow.getBoundingClientRect();
+    const isAbove = rowRect.top < containerRect.top + 8;
+    const isBelow = rowRect.bottom > containerRect.bottom - 8;
+    if (!isAbove && !isBelow) return;
+
+    const nextTop = panelRow.offsetTop - container.offsetTop - 8;
+    container.scrollTo({ top: Math.max(0, nextTop), behavior: 'smooth' });
+  }, []);
+
   const handlePanelItemClick = useCallback(
     (item: NormalizedLogItem) => {
       const panelKey = getQuestRowKey(item, selectedKey);
-      setExpandedPanelItemId(panelKey);
+      setExpandedId(panelKey);
       setHighlightedPanelKey(panelKey);
       window.setTimeout(() => {
         setHighlightedPanelKey((prev) => (prev === panelKey ? null : prev));
       }, 1400);
-
-      const panelRow = document.getElementById(`day-console-row-${panelKey}`);
-      if (panelRow) {
-        panelRow.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-      }
+      scrollPanelRowIntoView(panelKey);
 
       if (historyModalOpen) jumpToGroup(item);
     },
-    [jumpToGroup, historyModalOpen, selectedKey]
+    [jumpToGroup, historyModalOpen, selectedKey, scrollPanelRowIntoView]
   );
 
-  const handleTimelineDotClick = useCallback(
-    (rowKey: string) => {
-      const row = timelineRows.find((candidate) => candidate.key === rowKey);
-      if (!row) return;
-      setExpandedPanelItemId(row.key);
+  const handlePanelRowToggle = useCallback(
+    (row: DayConsoleRow) => {
+      const nextExpanded = expandedId === row.key ? null : row.key;
+      setExpandedId(nextExpanded);
       setHighlightedPanelKey(row.key);
       window.setTimeout(() => {
         setHighlightedPanelKey((prev) => (prev === row.key ? null : prev));
       }, 1400);
-
-      const panelRow = document.getElementById(`day-console-row-${row.key}`);
-      if (panelRow) {
-        panelRow.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-      }
+      scrollPanelRowIntoView(row.key);
 
       const headItem = row.items[0];
       if (headItem && historyModalOpen) {
         jumpToGroup(headItem);
       }
     },
-    [timelineRows, historyModalOpen, jumpToGroup]
+    [expandedId, historyModalOpen, jumpToGroup, scrollPanelRowIntoView]
   );
+
+  const handleTimelineDotClick = useCallback(
+    (rowKey: string) => {
+      const row = timelineRows.find((candidate) => candidate.key === rowKey);
+      if (!row) return;
+      setExpandedId(row.key);
+      setHighlightedPanelKey(row.key);
+      window.setTimeout(() => {
+        setHighlightedPanelKey((prev) => (prev === row.key ? null : prev));
+      }, 1400);
+      scrollPanelRowIntoView(row.key);
+
+      const headItem = row.items[0];
+      if (headItem && historyModalOpen) {
+        jumpToGroup(headItem);
+      }
+    },
+    [timelineRows, historyModalOpen, jumpToGroup, scrollPanelRowIntoView]
+  );
+
+  const openDeleteConfirm = useCallback((next: DeleteConfirmState) => {
+    setDeleteConfirmState(next);
+  }, []);
+
+  const confirmDeleteTask = useCallback(() => {
+    if (!deleteConfirmState) return;
+    deleteTaskCompletely(deleteConfirmState.taskId);
+    if (deleteConfirmState.collapsePanelRowKey) {
+      setExpandedId((prev) => (prev === deleteConfirmState.collapsePanelRowKey ? null : prev));
+    }
+    if (deleteConfirmState.collapseHistoryRowKey) {
+      setExpandedGroupKey((prev) => (prev === deleteConfirmState.collapseHistoryRowKey ? null : prev));
+    }
+    setDeleteConfirmState(null);
+  }, [deleteConfirmState, deleteTaskCompletely]);
 
   const focusAdjacentPanelRow = useCallback((currentKey: string, step: -1 | 1) => {
     const rowButtons = Array.from(
@@ -863,14 +919,17 @@ export const LogCalendar: React.FC = () => {
   }, []);
 
   const renderCompactItemList = (mobile = false) => (
-    <div className={`${mobile ? 'max-h-[58dvh]' : 'max-h-[40vh] xl:max-h-[52vh]'} overflow-y-auto overscroll-contain pr-1 space-y-2`}>
+    <div
+      ref={dayConsoleListRef}
+      className={`xt-scroll ${mobile ? 'max-h-[58dvh]' : 'max-h-[45vh] min-h-[240px]'} overflow-y-auto overscroll-contain pr-1 space-y-2`}
+    >
       {dayConsoleRows.length === 0 ? (
         <div className="rounded-lg border border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-[var(--app-panel)] p-3 text-[11px] uppercase tracking-[0.14em] text-[var(--app-muted)]">
           No items for this tab.
         </div>
       ) : (
         dayConsoleRows.map((row) => {
-          const expanded = expandedPanelItemId === row.key;
+          const expanded = expandedId === row.key;
           const headItem = row.items[0];
           const isStartable = !!row.taskId && (row.state === 'scheduled' || row.state === 'failed' || row.state === 'todo');
           const stateMeta = getQuestStateMeta(row.state);
@@ -878,6 +937,9 @@ export const LogCalendar: React.FC = () => {
             <div
               key={row.key}
               id={`day-console-row-${row.key}`}
+              ref={(node) => {
+                rowRefs.current[row.key] = node;
+              }}
               className={`rounded-lg border overflow-hidden transition-all duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] ${
                 highlightedPanelKey === row.key
                   ? 'border-[color-mix(in_srgb,var(--app-accent)_60%,transparent)] bg-[color-mix(in_srgb,var(--app-accent)_12%,var(--app-panel))]'
@@ -887,8 +949,7 @@ export const LogCalendar: React.FC = () => {
               <button
                 type="button"
                 onClick={() => {
-                  if (headItem) handlePanelItemClick(headItem);
-                  setExpandedPanelItemId((prev) => (prev === row.key ? null : row.key));
+                  handlePanelRowToggle(row);
                 }}
                 onMouseEnter={() => {
                   setHighlightedPanelKey(row.key);
@@ -902,7 +963,7 @@ export const LogCalendar: React.FC = () => {
                     return prev === dotId ? null : prev;
                   });
                   setHighlightedPanelKey((prev) =>
-                    prev === row.key && expandedPanelItemId !== row.key ? null : prev
+                    prev === row.key && expandedId !== row.key ? null : prev
                   );
                 }}
                 onFocus={() => {
@@ -917,7 +978,7 @@ export const LogCalendar: React.FC = () => {
                     return prev === dotId ? null : prev;
                   });
                   setHighlightedPanelKey((prev) =>
-                    prev === row.key && expandedPanelItemId !== row.key ? null : prev
+                    prev === row.key && expandedId !== row.key ? null : prev
                   );
                 }}
                 onKeyDown={(event) => {
@@ -932,7 +993,7 @@ export const LogCalendar: React.FC = () => {
                 data-day-console-row-button="true"
                 data-row-key={row.key}
                 aria-expanded={expanded}
-                className="w-full text-left px-3 py-2.5 transition-all duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] hover:bg-[color-mix(in_srgb,var(--app-accent)_10%,var(--app-panel))] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color-mix(in_srgb,var(--app-accent)_55%,transparent)]"
+                className="w-full pointer-events-auto cursor-pointer text-left px-3 py-2.5 transition-all duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] hover:bg-[color-mix(in_srgb,var(--app-accent)_10%,var(--app-panel))] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color-mix(in_srgb,var(--app-accent)_55%,transparent)]"
               >
                 <div className="flex items-center gap-2">
                   <div className="min-w-0 flex-1 text-xs uppercase tracking-[0.12em] text-[var(--app-text)] truncate">
@@ -961,9 +1022,6 @@ export const LogCalendar: React.FC = () => {
               >
                 {expanded ? (
                   <div className="space-y-2">
-                    <div className="text-[9px] uppercase tracking-[0.16em] text-[var(--app-muted)]">
-                      Derived from task state + latest events
-                    </div>
                     <div className="space-y-1.5">
                       {row.items.slice(0, 5).map((entry) => (
                         <button
@@ -1010,9 +1068,11 @@ export const LogCalendar: React.FC = () => {
                         <button
                           type="button"
                           onClick={() => {
-                            const ok = window.confirm('Delete this quest and all linked activity?');
-                            if (!ok) return;
-                            deleteTaskCompletely(row.taskId);
+                            openDeleteConfirm({
+                              taskId: row.taskId,
+                              title: row.title,
+                              collapsePanelRowKey: row.key,
+                            });
                             if (mobile) setMobileConsoleOpen(false);
                           }}
                           className="px-2 py-1 rounded border border-[color-mix(in_srgb,var(--app-accent)_45%,transparent)] text-[10px] uppercase tracking-[0.14em] text-[var(--app-accent)] hover:border-[var(--app-accent)]"
@@ -1032,14 +1092,14 @@ export const LogCalendar: React.FC = () => {
   );
 
   const renderTimelineChart = (mobile = false) => {
-    const chartHeight = mobile ? 220 : 340;
-    const chartInnerTop = 24;
-    const chartInnerBottom = 30;
+    const chartHeight = mobile ? 250 : 360;
+    const chartInnerTop = 30;
+    const chartInnerBottom = 36;
     return (
       <div className={`rounded-xl bg-[color-mix(in_srgb,var(--app-panel-2)_55%,var(--app-panel))] px-2 py-2 relative overflow-hidden`} style={{ height: chartHeight }}>
         <div className="absolute inset-x-5" style={{ top: chartInnerTop, bottom: chartInnerBottom }}>
-          <div className="absolute inset-x-0 top-[32px] h-px bg-[color-mix(in_srgb,var(--app-text)_14%,transparent)]" />
-          <div className="absolute inset-x-0 top-[96px] h-px bg-[color-mix(in_srgb,var(--app-text)_22%,transparent)]" />
+          <div className="absolute inset-x-0 top-[54px] h-px bg-[color-mix(in_srgb,var(--app-text)_14%,transparent)]" />
+          <div className="absolute inset-x-0 top-[164px] h-px bg-[color-mix(in_srgb,var(--app-text)_22%,transparent)]" />
           {TIMELINE_HOUR_MARKERS.map((hour) => (
             <div
               key={`timeline-grid-${hour}`}
@@ -1047,8 +1107,8 @@ export const LogCalendar: React.FC = () => {
               style={{ left: `${(hour / 24) * 100}%` }}
             />
           ))}
-          <div className="absolute left-0 top-[10px] text-[9px] uppercase tracking-[0.14em] text-[var(--app-muted)]">Planned</div>
-          <div className="absolute left-0 top-[74px] text-[9px] uppercase tracking-[0.14em] text-[var(--app-muted)]">Actual</div>
+          <div className="absolute left-0 top-[20px] text-[9px] uppercase tracking-[0.14em] text-[var(--app-muted)]">Planned</div>
+          <div className="absolute left-0 top-[130px] text-[9px] uppercase tracking-[0.14em] text-[var(--app-muted)]">Actual</div>
           {hoveredDot ? (
             <div
               className="pointer-events-none absolute top-0 bottom-0 border-l border-[color-mix(in_srgb,var(--app-text)_25%,transparent)]"
@@ -1070,8 +1130,8 @@ export const LogCalendar: React.FC = () => {
               key={`timeline-dot-${mobile ? 'mobile-' : ''}${dot.id}`}
               type="button"
               onClick={() => handleTimelineDotClick(dot.rowKey)}
-              className={`absolute h-2.5 w-2.5 rounded-full border transition-all duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] hover:scale-110 hover:shadow-[0_0_0_4px_color-mix(in_srgb,var(--app-accent)_12%,transparent)] ${
-                hoveredDotId === dot.id ? 'scale-125' : expandedPanelItemId === dot.rowKey ? 'scale-110' : ''
+              className={`absolute h-3.5 w-3.5 rounded-full border transition-all duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] hover:scale-110 hover:shadow-[0_0_0_4px_color-mix(in_srgb,var(--app-accent)_12%,transparent)] ${
+                hoveredDotId === dot.id ? 'scale-125' : expandedId === dot.rowKey ? 'scale-110' : ''
               }`}
               style={{
                 left: `${dot.xPct}%`,
@@ -1084,7 +1144,7 @@ export const LogCalendar: React.FC = () => {
                 borderColor: dotBorderByQuestState(dot.status),
                 borderStyle: dot.inferred ? 'dashed' : 'solid',
                 boxShadow:
-                  expandedPanelItemId === dot.rowKey
+                  expandedId === dot.rowKey
                     ? '0 0 0 3px color-mix(in_srgb,var(--app-accent)_18%,transparent)'
                     : undefined,
               }}
@@ -1095,7 +1155,7 @@ export const LogCalendar: React.FC = () => {
               onMouseLeave={() => {
                 setHoveredDotId((prev) => (prev === dot.id ? null : prev));
                 setHighlightedPanelKey((prev) =>
-                  prev === dot.rowKey && expandedPanelItemId !== dot.rowKey ? null : prev
+                  prev === dot.rowKey && expandedId !== dot.rowKey ? null : prev
                 );
               }}
               onFocus={() => {
@@ -1105,7 +1165,7 @@ export const LogCalendar: React.FC = () => {
               onBlur={() => {
                 setHoveredDotId((prev) => (prev === dot.id ? null : prev));
                 setHighlightedPanelKey((prev) =>
-                  prev === dot.rowKey && expandedPanelItemId !== dot.rowKey ? null : prev
+                  prev === dot.rowKey && expandedId !== dot.rowKey ? null : prev
                 );
               }}
               title={`${dot.title} · ${toQuestStateBadge(dot.status)} · ${formatTime(dot.time)}${dot.inferred ? ' · inferred' : ''}`}
@@ -1131,9 +1191,18 @@ export const LogCalendar: React.FC = () => {
             </div>
           ) : null}
         </div>
-        <div className="absolute inset-x-5 bottom-2 flex items-center justify-between text-[9px] uppercase tracking-[0.12em] text-[var(--app-muted)] tabular-nums font-mono">
+        <div className="absolute inset-x-5 bottom-2 text-[8px] uppercase tracking-[0.08em] text-[var(--app-muted)] tabular-nums font-mono">
           {TIMELINE_HOUR_MARKERS.map((hour) => (
-            <span key={`timeline-hour-${hour}`}>{`${String(hour).padStart(2, '0')}:00`}</span>
+            <span
+              key={`timeline-hour-${hour}`}
+              className="absolute"
+              style={{
+                left: `${(hour / 24) * 100}%`,
+                transform: hour === 0 ? 'translateX(0)' : hour === 24 ? 'translateX(-100%)' : 'translateX(-50%)',
+              }}
+            >
+              {`${String(hour).padStart(2, '0')}:00`}
+            </span>
           ))}
         </div>
       </div>
@@ -1171,7 +1240,7 @@ export const LogCalendar: React.FC = () => {
             type="button"
             onClick={() => {
               setSidePanelTab(tab.value);
-              setExpandedPanelItemId(null);
+              setExpandedId(null);
               setLegendFilterStates([]);
             }}
             className={`px-2.5 py-1 rounded-md border text-[10px] uppercase tracking-[0.14em] transition-all duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] whitespace-nowrap ${
@@ -1186,7 +1255,7 @@ export const LogCalendar: React.FC = () => {
       </div>
 
       <div className="p-3">
-        <div className="hidden lg:grid lg:grid-cols-1 xl:grid-cols-[minmax(0,14fr)_minmax(0,6fr)] gap-3 items-start">
+        <div className="hidden lg:block space-y-3">
           <div className="px-1 py-1">
             <div className="mb-2 flex items-center justify-between gap-2">
               <div className="text-[10px] uppercase tracking-[0.16em] text-[var(--app-muted)]">{activeTabLabel} • 24h timeline</div>
@@ -1233,11 +1302,8 @@ export const LogCalendar: React.FC = () => {
                 Clear
               </button>
             </div>
-            <div className="mt-1 text-[9px] uppercase tracking-[0.12em] text-[var(--app-muted)]">
-              Status derived from task state and latest event. Hollow dots indicate planned/uncompleted. Failed = dropped quest.
-            </div>
           </div>
-          <div className="p-0.5">
+          <div className="relative z-10 p-0.5">
             {renderCompactItemList()}
           </div>
         </div>
@@ -1288,9 +1354,6 @@ export const LogCalendar: React.FC = () => {
               >
                 Clear
               </button>
-            </div>
-            <div className="mt-1 text-[9px] uppercase tracking-[0.12em] text-[var(--app-muted)]">
-              Status derived from task state and latest event. Hollow dots indicate planned/uncompleted. Failed = dropped quest.
             </div>
           </div>
           <button
@@ -1597,7 +1660,7 @@ export const LogCalendar: React.FC = () => {
             {fullHistoryRows.length === 0 ? (
               <div className="text-sm text-[var(--app-muted)]">No activity found on this date.</div>
             ) : (
-              <div className="space-y-2 max-h-[70dvh] overflow-y-auto pr-1">
+              <div className="xt-scroll space-y-2 max-h-[70dvh] overflow-y-auto pr-1">
                 {fullHistoryRows.map((row) => {
                   const isExpanded = expandedGroupKey === row.key;
                   const isHighlighted = highlightedGroupKey === row.key;
@@ -1607,15 +1670,19 @@ export const LogCalendar: React.FC = () => {
                     <div
                       id={`day-history-group-${row.key}`}
                       key={row.key}
-                      className={`rounded-lg border px-3 py-2 transition-colors ${
+                      className={`rounded-lg border transition-colors overflow-hidden ${
                         isHighlighted
                           ? 'border-[color-mix(in_srgb,var(--app-accent)_65%,transparent)] bg-[color-mix(in_srgb,var(--app-accent)_12%,var(--app-panel-2))]'
                           : 'border-[color-mix(in_srgb,var(--app-text)_6%,transparent)] bg-[var(--app-panel)]'
                       }`}
                     >
-                      <div className="flex items-center justify-between gap-3">
-                        <div className="min-w-0 flex-1 flex items-center gap-2">
-                          <div className="text-sm font-normal text-[var(--app-text)] truncate">{row.title}</div>
+                      <button
+                        type="button"
+                        onClick={() => setExpandedGroupKey((prev) => (prev === row.key ? null : row.key))}
+                        className="w-full text-left px-3 py-2.5 hover:bg-[color-mix(in_srgb,var(--app-accent)_9%,var(--app-panel))]"
+                      >
+                        <div className="flex items-center justify-between gap-2">
+                          <div className="min-w-0 flex-1 text-sm font-normal text-[var(--app-text)] truncate">{row.title}</div>
                           <span
                             className="inline-flex justify-center rounded px-1.5 py-0.5 text-[9px] uppercase tracking-[0.14em] shrink-0 border"
                             style={{
@@ -1631,34 +1698,11 @@ export const LogCalendar: React.FC = () => {
                             {row.primaryTime ? `${row.inferredTime ? '~' : ''}${formatTime(row.primaryTime)}` : '--:--'}
                           </span>
                         </div>
-                        <div className="flex items-center gap-2 shrink-0">
-                          <button
-                            type="button"
-                            onClick={() => setExpandedGroupKey((prev) => (prev === row.key ? null : row.key))}
-                            className="px-2 py-1 rounded border border-[color-mix(in_srgb,var(--app-text)_20%,transparent)] text-[11px] text-[var(--app-muted)] hover:border-[color-mix(in_srgb,var(--app-text)_40%,transparent)]"
-                          >
-                            {isExpanded ? 'Hide' : 'Details'}
-                          </button>
-                          {row.taskId ? (
-                            <button
-                              type="button"
-                              onClick={() => {
-                                const ok = window.confirm('Delete this quest and all linked activity?');
-                                if (!ok) return;
-                                deleteTaskCompletely(row.taskId);
-                                setExpandedGroupKey((prev) => (prev === row.key ? null : prev));
-                              }}
-                              className="px-2 py-1 rounded border border-[color-mix(in_srgb,var(--app-accent)_45%,transparent)] text-[11px] uppercase tracking-[0.12em] text-[var(--app-accent)] hover:border-[var(--app-accent)]"
-                              title="Delete quest and all linked activity"
-                            >
-                              Delete Quest
-                            </button>
-                          ) : null}
-                        </div>
-                      </div>
+                      </button>
                       {isExpanded ? (
-                        <div className="mt-2 pt-2 border-t border-[color-mix(in_srgb,var(--app-text)_8%,transparent)] space-y-2">
-                          {row.items.map((entry) => {
+                        <div className="px-3 pb-2 pt-2 border-t border-[color-mix(in_srgb,var(--app-text)_8%,transparent)] space-y-2">
+                          <div className="space-y-2 max-h-[220px] overflow-y-auto pr-1">
+                            {row.items.map((entry) => {
                             return (
                               <button
                                 type="button"
@@ -1671,7 +1715,8 @@ export const LogCalendar: React.FC = () => {
                                 </div>
                               </button>
                             );
-                          })}
+                            })}
+                          </div>
                           <div className="flex flex-wrap items-center gap-1.5">
                             <button
                               type="button"
@@ -1696,6 +1741,22 @@ export const LogCalendar: React.FC = () => {
                                 className="px-2 py-1 rounded border border-[color-mix(in_srgb,var(--app-accent)_45%,transparent)] text-[10px] uppercase tracking-[0.14em] text-[var(--app-accent)] hover:border-[var(--app-accent)]"
                               >
                                 Start
+                              </button>
+                            ) : null}
+                            {row.taskId ? (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  openDeleteConfirm({
+                                    taskId: row.taskId,
+                                    title: row.title,
+                                    collapseHistoryRowKey: row.key,
+                                  });
+                                }}
+                                className="px-2 py-1 rounded border border-[color-mix(in_srgb,var(--app-accent)_45%,transparent)] text-[10px] uppercase tracking-[0.14em] text-[var(--app-accent)] hover:border-[var(--app-accent)]"
+                                title="Delete quest and all linked activity"
+                              >
+                                Delete Quest
                               </button>
                             ) : null}
                           </div>
@@ -1729,10 +1790,10 @@ export const LogCalendar: React.FC = () => {
                 Close
               </button>
             </div>
-            <div className="h-[280px] rounded-lg bg-[var(--app-panel)] px-4 py-4 relative overflow-hidden">
+            <div className="h-[320px] rounded-lg bg-[var(--app-panel)] px-4 py-4 relative overflow-hidden">
               <div className="absolute inset-x-5 top-4 bottom-12">
-                <div className="absolute inset-x-0 top-[34px] h-px bg-[color-mix(in_srgb,var(--app-text)_14%,transparent)]" />
-                <div className="absolute inset-x-0 top-[108px] h-px bg-[color-mix(in_srgb,var(--app-text)_22%,transparent)]" />
+                <div className="absolute inset-x-0 top-[54px] h-px bg-[color-mix(in_srgb,var(--app-text)_14%,transparent)]" />
+                <div className="absolute inset-x-0 top-[164px] h-px bg-[color-mix(in_srgb,var(--app-text)_22%,transparent)]" />
                 {TIMELINE_HOUR_MARKERS.map((hour) => (
                   <div
                     key={`timeline-expanded-grid-${hour}`}
@@ -1740,8 +1801,8 @@ export const LogCalendar: React.FC = () => {
                     style={{ left: `${(hour / 24) * 100}%` }}
                   />
                 ))}
-                <div className="absolute left-0 top-[10px] text-[9px] uppercase tracking-[0.14em] text-[var(--app-muted)]">Planned</div>
-                <div className="absolute left-0 top-[86px] text-[9px] uppercase tracking-[0.14em] text-[var(--app-muted)]">Actual</div>
+                <div className="absolute left-0 top-[20px] text-[9px] uppercase tracking-[0.14em] text-[var(--app-muted)]">Planned</div>
+                <div className="absolute left-0 top-[130px] text-[9px] uppercase tracking-[0.14em] text-[var(--app-muted)]">Actual</div>
                 {nowMarkerX !== null ? (
                   <div
                     className="pointer-events-none absolute top-0 bottom-0 border-l border-dashed border-[color-mix(in_srgb,var(--app-accent)_55%,transparent)]"
@@ -1757,10 +1818,10 @@ export const LogCalendar: React.FC = () => {
                     key={`timeline-expanded-${dot.id}-${index}`}
                     type="button"
                     onClick={() => handleTimelineDotClick(dot.rowKey)}
-                    className="absolute h-3 w-3 rounded-full border border-[color-mix(in_srgb,var(--app-text)_24%,transparent)]"
+                    className="absolute h-3.5 w-3.5 rounded-full border border-[color-mix(in_srgb,var(--app-text)_24%,transparent)]"
                     style={{
                       left: `${dot.xPct}%`,
-                      top: `${Math.max(10, dot.lane === 'planned' ? 34 - dot.stackIndex * 11 : 98 - dot.stackIndex * 11)}px`,
+                      top: `${Math.max(16, dot.lane === 'planned' ? 54 - dot.stackIndex * 16 : 164 - dot.stackIndex * 16)}px`,
                       transform: 'translateX(-50%)',
                       backgroundColor:
                         dot.status === 'todo' || dot.status === 'scheduled' || dot.inferred
@@ -1769,7 +1830,7 @@ export const LogCalendar: React.FC = () => {
                       borderColor: dotBorderByQuestState(dot.status),
                       borderStyle: dot.inferred ? 'dashed' : 'solid',
                       boxShadow:
-                        expandedPanelItemId === dot.rowKey
+                        expandedId === dot.rowKey
                           ? '0 0 0 3px color-mix(in_srgb,var(--app-accent)_18%,transparent)'
                           : undefined,
                     }}
@@ -1780,16 +1841,25 @@ export const LogCalendar: React.FC = () => {
                     onMouseLeave={() => {
                       setHoveredDotId((prev) => (prev === dot.id ? null : prev));
                       setHighlightedPanelKey((prev) =>
-                        prev === dot.rowKey && expandedPanelItemId !== dot.rowKey ? null : prev
+                        prev === dot.rowKey && expandedId !== dot.rowKey ? null : prev
                       );
                     }}
                     title={`${dot.title} · ${toQuestStateBadge(dot.status)} · ${formatTime(dot.time)}${dot.inferred ? ' · inferred' : ''}`}
                   />
                 ))}
               </div>
-              <div className="absolute inset-x-5 bottom-4 flex items-center justify-between text-[9px] uppercase tracking-[0.12em] text-[var(--app-muted)]">
+              <div className="absolute inset-x-5 bottom-4 text-[8px] uppercase tracking-[0.08em] text-[var(--app-muted)] tabular-nums font-mono">
                 {TIMELINE_HOUR_MARKERS.map((hour) => (
-                  <span key={`timeline-expanded-hour-${hour}`}>{`${String(hour).padStart(2, '0')}:00`}</span>
+                  <span
+                    key={`timeline-expanded-hour-${hour}`}
+                    className="absolute"
+                    style={{
+                      left: `${(hour / 24) * 100}%`,
+                      transform: hour === 0 ? 'translateX(0)' : hour === 24 ? 'translateX(-100%)' : 'translateX(-50%)',
+                    }}
+                  >
+                    {`${String(hour).padStart(2, '0')}:00`}
+                  </span>
                 ))}
               </div>
             </div>
@@ -1826,9 +1896,6 @@ export const LogCalendar: React.FC = () => {
               >
                 Clear
               </button>
-            </div>
-            <div className="mt-1 text-[9px] uppercase tracking-[0.12em] text-[var(--app-muted)]">
-              Hollow dots indicate planned/uncompleted. Failed = dropped quest.
             </div>
           </div>
         </div>
@@ -1884,6 +1951,20 @@ export const LogCalendar: React.FC = () => {
           </div>
         </div>
       ) : null}
+
+      <ConfirmModal
+        open={!!deleteConfirmState}
+        title="Delete Quest"
+        message={
+          deleteConfirmState
+            ? `Delete "${deleteConfirmState.title}" and all linked activity for this day?`
+            : ''
+        }
+        confirmLabel="Delete"
+        cancelLabel="Cancel"
+        onCancel={() => setDeleteConfirmState(null)}
+        onConfirm={confirmDeleteTask}
+      />
     </div>
   );
 };
