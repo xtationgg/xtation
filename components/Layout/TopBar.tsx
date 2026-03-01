@@ -1,5 +1,5 @@
 
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Settings, Bell, Trophy, Bot, X } from 'lucide-react';
 import { ClientView } from '../../types';
 import { NavTab } from '../UI/HextechUI';
@@ -16,15 +16,17 @@ interface TopBarProps {
   onToggleAssistant: () => void;
   isAssistantOpen: boolean;
   activeTasksCount: number;
+  onOpenPalette?: () => void;
 }
 
-export const TopBar: React.FC<TopBarProps> = ({ 
-  currentView, 
-  onChangeView, 
+export const TopBar: React.FC<TopBarProps> = ({
+  currentView,
+  onChangeView,
   onPlayClick,
   onToggleAssistant,
   isAssistantOpen,
-  activeTasksCount
+  activeTasksCount,
+  onOpenPalette,
 }) => {
   const { selectors, dateKey, authStatus } = useXP();
   const { user, loading, error, signInWithGoogle, signUpWithPassword, signInWithPassword, requestPasswordReset, signOut } = useAuth();
@@ -39,6 +41,17 @@ export const TopBar: React.FC<TopBarProps> = ({
   const [authNotice, setAuthNotice] = useState<string | null>(null);
   const [isAuthSubmitting, setIsAuthSubmitting] = useState(false);
   const loginTriggerRef = useRef<HTMLButtonElement | null>(null);
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+        e.preventDefault();
+        onOpenPalette?.();
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [onOpenPalette]);
+
   const drawerDate = new Date();
   const drawerDayLabel = drawerDate.toLocaleDateString(undefined, { weekday: 'long' });
   const drawerDateLabel = `${drawerDate.getFullYear()}/${drawerDate
@@ -232,6 +245,18 @@ export const TopBar: React.FC<TopBarProps> = ({
               </span>
             )}
         </div>
+
+        {onOpenPalette ? (
+          <button
+            type="button"
+            onClick={onOpenPalette}
+            onMouseEnter={playHoverSound}
+            title="Command palette (⌘K)"
+            className="hidden md:inline-flex items-center gap-1 rounded border border-[color-mix(in_srgb,var(--app-border)_70%,transparent)] px-2 py-1 text-[9px] uppercase tracking-[0.18em] text-[var(--app-muted)] font-mono hover:border-[var(--app-accent)] hover:text-[var(--app-accent)] transition-colors"
+          >
+            ⌘K
+          </button>
+        ) : null}
 
         <div className="hidden sm:block w-[1px] h-6 bg-[var(--app-border)]"></div>
 

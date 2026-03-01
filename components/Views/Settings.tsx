@@ -2,11 +2,11 @@
 import React, { useState, useEffect } from 'react';
 import { RewardConfig } from '../../types';
 import { HexPanel } from '../UI/HextechUI';
-import { Settings as SettingsIcon, Activity, Upload, CheckCircle, ChevronDown } from 'lucide-react';
+import { Settings as SettingsIcon, Activity, Upload, CheckCircle, ChevronDown, Monitor, Shield } from 'lucide-react';
 import { playClickSound, playPanelOpenSound, playHoverSound } from '../../utils/SoundEffects';
 import { readFileAsDataUrl } from '../../utils/fileUtils';
 import { useAuth } from '../../src/auth/AuthProvider';
-import { writeUserScopedString } from '../../src/lib/userScopedStorage';
+import { readUserScopedString, writeUserScopedString } from '../../src/lib/userScopedStorage';
 import { useTheme } from '../../src/theme/ThemeProvider';
 import { ThemeSwitcher } from '../UI/ThemeSwitcher';
 
@@ -24,6 +24,66 @@ export const Settings: React.FC<SettingsProps> = ({ rewardConfigs, onUpdateConfi
   const activeAccentLabel = accentOptions.find((option) => option.value === accent)?.label ?? accent;
     
   const [isProtocolExpanded, setIsProtocolExpanded] = useState(false);
+  const [isDisplayExpanded, setIsDisplayExpanded] = useState(false);
+  const [isPrivacyExpanded, setIsPrivacyExpanded] = useState(false);
+
+  type DensityOption = 'compact' | 'comfortable' | 'spacious';
+  type VisibilityOption = 'private' | 'circles' | 'community';
+  type PresenceOption = 'active' | 'hidden';
+
+  const [density, setDensityState] = useState<DensityOption>('comfortable');
+  const [reduceMotion, setReduceMotionState] = useState(false);
+  const [defaultVisibility, setDefaultVisibilityState] = useState<VisibilityOption>('private');
+  const [mpPresence, setMpPresenceState] = useState<PresenceOption>('active');
+
+  // Init display settings from plain localStorage (device-level preferences)
+  useEffect(() => {
+    const storedDensity = localStorage.getItem('xtation_density');
+    if (storedDensity === 'compact' || storedDensity === 'spacious') {
+      setDensityState(storedDensity);
+      document.documentElement.dataset.density = storedDensity;
+    }
+    const storedMotion = localStorage.getItem('xtation_motion');
+    if (storedMotion === 'reduced') {
+      setReduceMotionState(true);
+      document.documentElement.dataset.motion = 'reduced';
+    }
+  }, []);
+
+  // Init privacy settings from user-scoped storage
+  useEffect(() => {
+    if (!activeUserId) return;
+    const visRaw = readUserScopedString('defaultTaskVisibility', 'private', activeUserId);
+    if (visRaw === 'circles' || visRaw === 'community') setDefaultVisibilityState(visRaw);
+    const presenceRaw = readUserScopedString('mpPresenceMode', 'active', activeUserId);
+    if (presenceRaw === 'hidden') setMpPresenceState('hidden');
+  }, [activeUserId]);
+
+  const applyDensity = (next: DensityOption) => {
+    setDensityState(next);
+    localStorage.setItem('xtation_density', next);
+    document.documentElement.dataset.density = next;
+  };
+
+  const applyMotion = (reduced: boolean) => {
+    setReduceMotionState(reduced);
+    localStorage.setItem('xtation_motion', reduced ? 'reduced' : 'normal');
+    if (reduced) {
+      document.documentElement.dataset.motion = 'reduced';
+    } else {
+      delete document.documentElement.dataset.motion;
+    }
+  };
+
+  const applyDefaultVisibility = (next: VisibilityOption) => {
+    setDefaultVisibilityState(next);
+    if (activeUserId) writeUserScopedString('defaultTaskVisibility', next, activeUserId);
+  };
+
+  const applyMpPresence = (next: PresenceOption) => {
+    setMpPresenceState(next);
+    if (activeUserId) writeUserScopedString('mpPresenceMode', next, activeUserId);
+  };
 
     const [resolvedVisuals, setResolvedVisuals] = useState<Record<number, string>>({});
 
@@ -339,6 +399,177 @@ export const Settings: React.FC<SettingsProps> = ({ rewardConfigs, onUpdateConfi
                         </div>
                     )}
                 </HexPanel>
+
+                {/* Display Settings */}
+                <HexPanel className="transition-all duration-300">
+                    <div
+                        onClick={() => {
+                            if (!isDisplayExpanded) playPanelOpenSound(); else playClickSound();
+                            setIsDisplayExpanded(!isDisplayExpanded);
+                        }}
+                        onMouseEnter={playHoverSound}
+                        className="flex items-center justify-between p-6 cursor-pointer hover:bg-[color-mix(in_srgb,var(--app-text)_5%,transparent)] transition-colors group"
+                    >
+                        <h2 className="text-xl font-bold text-[var(--app-text)] uppercase tracking-widest flex items-center gap-2 group-hover:text-[var(--app-accent)] transition-colors">
+                            <Monitor className="text-[var(--app-accent)]" />
+                            Display
+                        </h2>
+                        <div className={`transition-transform duration-300 ${isDisplayExpanded ? 'rotate-180' : ''}`}>
+                            <ChevronDown className="text-[var(--app-muted)] group-hover:text-[var(--app-text)]" />
+                        </div>
+                    </div>
+
+                    {isDisplayExpanded && (
+                        <div className="px-6 pb-6 space-y-6 animate-fade-in border-t border-[var(--app-border)] pt-5">
+                            {/* Density */}
+                            <div className="space-y-2">
+                                <div className="flex items-center justify-between gap-3">
+                                    <span className="text-[10px] uppercase tracking-[0.2em] text-[var(--app-muted)]">UI Density</span>
+                                    <span className="text-[10px] uppercase tracking-[0.2em] text-[var(--app-muted)]">{density}</span>
+                                </div>
+                                <div className="flex flex-wrap gap-2">
+                                    {(['compact', 'comfortable', 'spacious'] as const).map((option) => {
+                                        const selected = density === option;
+                                        return (
+                                            <button
+                                                key={option}
+                                                type="button"
+                                                onClick={() => applyDensity(option)}
+                                                className={`ui-pressable rounded-[var(--app-radius-sm)] border px-2.5 py-1.5 text-[10px] font-semibold uppercase tracking-[0.18em] ${
+                                                    selected
+                                                        ? 'border-[var(--app-accent)] bg-[var(--app-accent-weak)] text-[var(--app-text)]'
+                                                        : 'border-[var(--app-border)] bg-[var(--app-panel-2)] text-[var(--app-muted)] hover:border-[var(--app-accent)] hover:text-[var(--app-text)]'
+                                                }`}
+                                                aria-pressed={selected}
+                                            >
+                                                {option}
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                                <p className="text-[10px] text-[var(--app-muted)] uppercase tracking-[0.14em]">
+                                    Compact tightens spacing throughout the interface.
+                                </p>
+                            </div>
+
+                            {/* Reduce Motion */}
+                            <div className="space-y-2">
+                                <div className="flex items-center justify-between gap-3">
+                                    <div>
+                                        <div className="text-[10px] uppercase tracking-[0.2em] text-[var(--app-muted)]">Reduce Motion</div>
+                                        <div className="text-[10px] uppercase tracking-[0.14em] text-[var(--app-muted)] mt-0.5">
+                                            Disables transitions and animations system-wide.
+                                        </div>
+                                    </div>
+                                    <button
+                                        type="button"
+                                        onClick={() => applyMotion(!reduceMotion)}
+                                        className={`ui-pressable shrink-0 rounded-[var(--app-radius-sm)] border px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.2em] transition-colors ${
+                                            reduceMotion
+                                                ? 'border-[var(--app-accent)] bg-[var(--app-accent-weak)] text-[var(--app-text)]'
+                                                : 'border-[var(--app-border)] bg-[var(--app-panel-2)] text-[var(--app-muted)] hover:border-[var(--app-accent)] hover:text-[var(--app-text)]'
+                                        }`}
+                                        aria-pressed={reduceMotion}
+                                    >
+                                        {reduceMotion ? 'On' : 'Off'}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                </HexPanel>
+
+                {/* Privacy Settings */}
+                <HexPanel className="transition-all duration-300">
+                    <div
+                        onClick={() => {
+                            if (!isPrivacyExpanded) playPanelOpenSound(); else playClickSound();
+                            setIsPrivacyExpanded(!isPrivacyExpanded);
+                        }}
+                        onMouseEnter={playHoverSound}
+                        className="flex items-center justify-between p-6 cursor-pointer hover:bg-[color-mix(in_srgb,var(--app-text)_5%,transparent)] transition-colors group"
+                    >
+                        <h2 className="text-xl font-bold text-[var(--app-text)] uppercase tracking-widest flex items-center gap-2 group-hover:text-[var(--app-accent)] transition-colors">
+                            <Shield className="text-[var(--app-accent)]" />
+                            Privacy
+                        </h2>
+                        <div className={`transition-transform duration-300 ${isPrivacyExpanded ? 'rotate-180' : ''}`}>
+                            <ChevronDown className="text-[var(--app-muted)] group-hover:text-[var(--app-text)]" />
+                        </div>
+                    </div>
+
+                    {isPrivacyExpanded && (
+                        <div className="px-6 pb-6 space-y-6 animate-fade-in border-t border-[var(--app-border)] pt-5">
+                            {/* Default task visibility */}
+                            <div className="space-y-2">
+                                <div className="flex items-center justify-between gap-3">
+                                    <span className="text-[10px] uppercase tracking-[0.2em] text-[var(--app-muted)]">Default Task Visibility</span>
+                                    <span className="text-[10px] uppercase tracking-[0.2em] text-[var(--app-muted)]">{defaultVisibility}</span>
+                                </div>
+                                <div className="flex flex-wrap gap-2">
+                                    {(['private', 'circles', 'community'] as const).map((option) => {
+                                        const selected = defaultVisibility === option;
+                                        return (
+                                            <button
+                                                key={option}
+                                                type="button"
+                                                onClick={() => applyDefaultVisibility(option)}
+                                                disabled={!activeUserId}
+                                                className={`ui-pressable rounded-[var(--app-radius-sm)] border px-2.5 py-1.5 text-[10px] font-semibold uppercase tracking-[0.18em] disabled:opacity-50 disabled:cursor-not-allowed ${
+                                                    selected
+                                                        ? 'border-[var(--app-accent)] bg-[var(--app-accent-weak)] text-[var(--app-text)]'
+                                                        : 'border-[var(--app-border)] bg-[var(--app-panel-2)] text-[var(--app-muted)] hover:border-[var(--app-accent)] hover:text-[var(--app-text)]'
+                                                }`}
+                                                aria-pressed={selected}
+                                            >
+                                                {option}
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                                <p className="text-[10px] text-[var(--app-muted)] uppercase tracking-[0.14em]">
+                                    {!activeUserId
+                                        ? 'Sign in to save privacy preferences.'
+                                        : 'New tasks will default to this visibility level.'}
+                                </p>
+                            </div>
+
+                            {/* Multiplayer presence */}
+                            <div className="space-y-2">
+                                <div className="flex items-center justify-between gap-3">
+                                    <div>
+                                        <div className="text-[10px] uppercase tracking-[0.2em] text-[var(--app-muted)]">Multiplayer Presence</div>
+                                        <div className="text-[10px] uppercase tracking-[0.14em] text-[var(--app-muted)] mt-0.5">
+                                            Whether others can see you as online in the squad view.
+                                        </div>
+                                    </div>
+                                    <div className="flex gap-2 shrink-0">
+                                        {(['active', 'hidden'] as const).map((option) => {
+                                            const selected = mpPresence === option;
+                                            return (
+                                                <button
+                                                    key={option}
+                                                    type="button"
+                                                    onClick={() => applyMpPresence(option)}
+                                                    disabled={!activeUserId}
+                                                    className={`ui-pressable rounded-[var(--app-radius-sm)] border px-2.5 py-1.5 text-[10px] font-semibold uppercase tracking-[0.18em] disabled:opacity-50 disabled:cursor-not-allowed ${
+                                                        selected
+                                                            ? 'border-[var(--app-accent)] bg-[var(--app-accent-weak)] text-[var(--app-text)]'
+                                                            : 'border-[var(--app-border)] bg-[var(--app-panel-2)] text-[var(--app-muted)] hover:border-[var(--app-accent)] hover:text-[var(--app-text)]'
+                                                    }`}
+                                                    aria-pressed={selected}
+                                                >
+                                                    {option}
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+                </HexPanel>
+
             </div>
         </div>
     );

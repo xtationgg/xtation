@@ -55,7 +55,7 @@ class MultiplayerErrorBoundary extends React.Component<{ children: React.ReactNo
   render() {
     if (this.state.hasError) {
       return (
-        <div className="p-6 text-sm text-[#ff2a3a] border border-[#ff2a3a] bg-[#fff5f6] rounded">
+        <div className="p-6 text-sm text-[var(--app-accent)] border border-[var(--app-accent)] bg-[color-mix(in_srgb,var(--app-accent)_6%,var(--app-panel))] rounded">
           Multiplayer failed to load. {this.state.message || ''} Check console for details.
         </div>
       );
@@ -90,6 +90,12 @@ export const Multiplayer: React.FC = () => {
   const [viewAsId, setViewAsId] = useState(() => mpStorage.loadViewAs(defaultPlayers[0]?.id || 'me'));
   const [toast, setToast] = useState<string>('');
   const [focusPlayerId, setFocusPlayerId] = useState<string | null>(null);
+  const [myPresenceMode, setMyPresenceMode] = useState<'active' | 'hidden'>('active');
+
+  useEffect(() => {
+    const stored = readUserScopedString('mp_presence_mode', null);
+    setMyPresenceMode(stored === 'hidden' ? 'hidden' : 'active');
+  }, []);
 
   // Earth view extras
   const [savedLocations, setSavedLocations] = useState<SavedLocation[]>([]);
@@ -404,31 +410,37 @@ export const Multiplayer: React.FC = () => {
   };
 
   const feed = useMemo(() => {
-    const xpEvents = xpLogs.slice(0, 10).map(log => ({
-      ts: log.timestamp,
-      summary: `${log.amount >= 0 ? '+' : ''}${log.amount} XP • ${players.find(p => p.id === log.playerId)?.name || 'Unknown'}`,
-    }));
+    const xpEvents = xpLogs
+      .filter(log => myPresenceMode === 'active' || log.playerId !== viewAsId)
+      .slice(0, 10)
+      .map(log => ({
+        ts: log.timestamp,
+        summary: `${log.amount >= 0 ? '+' : ''}${log.amount} XP • ${players.find(p => p.id === log.playerId)?.name || 'Unknown'}`,
+      }));
     const collabEvents = collabs.flatMap(c =>
-      c.activity.slice(0, 5).map(a => ({
-        ts: a.ts,
-        summary: a.summary,
-      }))
+      c.activity
+        .filter(a => myPresenceMode === 'active' || a.actorId !== viewAsId)
+        .slice(0, 5)
+        .map(a => ({
+          ts: a.ts,
+          summary: a.summary,
+        }))
     );
     const combined = [...xpEvents, ...collabEvents].sort((a, b) => b.ts - a.ts).slice(0, 5);
     return combined;
-  }, [xpLogs, collabs, players]);
+  }, [xpLogs, collabs, players, myPresenceMode, viewAsId]);
 
   return (
     <MultiplayerErrorBoundary>
-    <div className="p-8 min-h-[70vh] overflow-y-auto bg-[var(--ui-bg)] text-[var(--ui-text)]">
+    <div className="p-6 min-h-[70vh] overflow-y-auto text-[var(--app-text)]">
       {toast && (
-        <div className="fixed top-4 right-4 z-50 bg-black text-white px-4 py-2 rounded shadow transition-opacity animate-fade-in">
+        <div className="fixed top-16 right-4 z-50 rounded-lg border border-[color-mix(in_srgb,var(--app-accent)_50%,transparent)] bg-[var(--app-panel)] px-4 py-2 text-[10px] uppercase tracking-[0.14em] text-[var(--app-text)] shadow-lg animate-fade-in">
           {toast}
         </div>
       )}
-      <div className="flex items-start gap-4 flex-wrap border-b border-[#e2e4ea] pb-3 mb-6">
+      <div className="flex items-start gap-4 flex-wrap border-b border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] pb-3 mb-6">
         <div className="flex flex-col gap-2 flex-1 min-w-[260px]">
-          <div className="text-xs uppercase tracking-[0.3em] text-[#555]">Multiplayer</div>
+          <div className="text-xs uppercase tracking-[0.3em] text-[var(--app-muted)]">Multiplayer</div>
           <div className="flex items-center gap-2 flex-wrap">
         {(['PLAYERS', 'EARTH', 'COLLAB', 'RANK'] as TabKey[]).map(k => {
           const pending = k === 'COLLAB' && viewAsId === 'me'
@@ -440,43 +452,45 @@ export const Multiplayer: React.FC = () => {
             onClick={() => setTab(k)}
             className={`px-3 py-1 border rounded-sm text-xs tracking-[0.2em] uppercase transition-colors flex items-center gap-2 ${
               tab === k
-                ? 'border-[var(--ui-accent)] bg-[var(--ui-accent)] text-white shadow-sm'
-                : 'border-[var(--ui-border)] bg-[var(--ui-panel)] text-[var(--ui-muted)] hover:border-[var(--ui-accent)]'
+                ? 'border-[color-mix(in_srgb,var(--app-accent)_60%,transparent)] bg-[color-mix(in_srgb,var(--app-accent)_18%,var(--app-panel))] text-[var(--app-accent)] shadow-sm'
+                : 'border-[color-mix(in_srgb,var(--app-text)_12%,transparent)] bg-[var(--app-panel)] text-[var(--app-muted)] hover:border-[color-mix(in_srgb,var(--app-accent)_50%,transparent)]'
             }`}
           >
             {k.toLowerCase()}
             {pending > 0 && (
-              <span className="ml-1 text-[10px] px-1 rounded bg-[#ff2a3a] text-white transition-transform duration-200">
+              <span className="ml-1 text-[10px] px-1 rounded bg-[var(--app-accent)] text-white transition-transform duration-200">
                 {pending}
               </span>
             )}
           </button>
         )})}
-        <div className="text-[11px] uppercase tracking-[0.2em] text-[var(--ui-muted)] ml-auto">Viewing as:</div>
+        <div className="text-[11px] uppercase tracking-[0.2em] text-[var(--app-muted)] ml-auto">Viewing as:</div>
         <select
           value={viewAsId}
           onChange={e => setViewAsId(e.target.value)}
-          className="border border-[var(--ui-border)] rounded px-2 py-1 text-[11px] bg-[var(--ui-panel)] text-[var(--ui-text)]"
+          className="border border-[color-mix(in_srgb,var(--app-text)_12%,transparent)] rounded px-2 py-1 text-[11px] bg-[var(--app-panel)] text-[var(--app-text)]"
         >
           {players.map(p => (
             <option key={p.id} value={p.id}>{p.name}</option>
           ))}
         </select>
-        <div className="text-[11px] uppercase tracking-[0.2em] text-[var(--ui-muted)] border border-dashed border-[var(--ui-border)] rounded px-2 py-1">
-          Debug: {JSON.stringify(getEffectivePermissions(players.find(p => p.id === viewAsId)))}
-        </div>
+        {myPresenceMode === 'hidden' && (
+          <div className="text-[9px] uppercase tracking-[0.2em] text-[var(--app-muted)] border border-dashed border-[color-mix(in_srgb,var(--app-text)_18%,transparent)] rounded px-2 py-1">
+            Presence: Hidden
+          </div>
+        )}
           </div>
         </div>
-        <div className="w-64 max-h-56 overflow-hidden flex-shrink-0 bg-[var(--ui-panel)] border border-[var(--ui-border)] rounded shadow-sm p-3 text-xs uppercase tracking-[0.15em] text-[var(--ui-muted)] self-start">
-          <div className="font-semibold text-[var(--ui-text)] mb-2">Multiplayer Activity</div>
+        <div className="w-64 max-h-56 overflow-hidden flex-shrink-0 bg-[var(--app-panel)] border border-[color-mix(in_srgb,var(--app-text)_12%,transparent)] rounded shadow-sm p-3 text-xs uppercase tracking-[0.15em] text-[var(--app-muted)] self-start">
+          <div className="font-semibold text-[var(--app-text)] mb-2">Multiplayer Activity</div>
           <div className="max-h-40 overflow-y-auto pr-1 space-y-1">
             {feed.map(item => (
-              <div key={item.ts} className="text-[11px] text-[var(--ui-text)]">
+              <div key={item.ts} className="text-[11px] text-[var(--app-text)]">
                 <div className="font-semibold">{item.summary}</div>
-                <div className="text-[10px] text-[var(--ui-muted)]">{new Date(item.ts).toLocaleTimeString()}</div>
+                <div className="text-[10px] text-[var(--app-muted)]">{new Date(item.ts).toLocaleTimeString()}</div>
               </div>
             ))}
-            {!feed.length && <div className="text-[11px] text-[var(--ui-muted)]">No recent activity</div>}
+            {!feed.length && <div className="text-[11px] text-[var(--app-muted)]">No recent activity</div>}
           </div>
         </div>
       </div>

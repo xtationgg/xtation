@@ -432,11 +432,14 @@ const normalizeDayItemsToTaskCards = (
     .map(([key, groupItems]) => {
       const sorted = [...groupItems].sort((a, b) => (b.startAt || 0) - (a.startAt || 0));
       const head = sorted[0];
-      const taskStatus = head?.taskId ? taskById.get(head.taskId)?.status : undefined;
+      const headTask = head?.taskId ? taskById.get(head.taskId) : undefined;
+      const taskStatus = headTask?.status;
       const primaryTime = getPrimaryTime(sorted, now);
+      const taskTitle = headTask?.title?.trim() ?? '';
+      const itemTitle = (head?.title ?? '').trim();
       return {
         key,
-        title: head?.title || 'Untitled',
+        title: taskTitle || itemTitle || 'Untitled',
         state: toQuestState(sorted, now, taskStatus),
         primaryTime: primaryTime.value,
         inferredTime: primaryTime.inferred,
@@ -951,6 +954,9 @@ export const LogCalendar: React.FC = () => {
           const isStartable = !!row.taskId && (row.state === 'scheduled' || row.state === 'failed' || row.state === 'todo');
           const isThisRowRunning = row.state === 'active';
           const stateMeta = getQuestStateMeta(row.state);
+          const displayTitle = isThisRowRunning
+            ? (row.title?.trim() || activeSession?.title?.trim() || 'Active session')
+            : (row.title || 'Untitled');
           return (
             <div
               key={row.key}
@@ -1012,7 +1018,7 @@ export const LogCalendar: React.FC = () => {
                 >
                   <div className="flex items-center gap-2">
                     <div className="min-w-0 flex-1">
-                      <div className="text-xs uppercase tracking-[0.12em] text-[var(--app-text)] truncate">{row.title}</div>
+                      <div className="text-xs uppercase tracking-[0.12em] text-[var(--app-text)] truncate">{displayTitle}</div>
                     </div>
                     <span
                       className="inline-flex justify-center rounded px-1.5 py-0.5 text-[9px] uppercase tracking-[0.14em] shrink-0"
@@ -1071,6 +1077,19 @@ export const LogCalendar: React.FC = () => {
                   ) : null}
                 </div>
               </div>
+              {isSelected && row.items.length > 0 ? (
+                <div className="border-t border-[color-mix(in_srgb,var(--app-text)_8%,transparent)] px-3 pb-2 pt-1.5 space-y-0.5">
+                  {row.items.map((entry) => (
+                    <div
+                      key={`${row.key}-signal-${entry.id}`}
+                      className="flex items-center justify-between gap-2 rounded px-1 py-1"
+                    >
+                      <span className="min-w-0 truncate text-[10px] uppercase tracking-[0.12em] text-[var(--app-muted)]">{toPanelSubtitle(entry)}</span>
+                      <span className="shrink-0 font-mono tabular-nums text-[10px] uppercase tracking-[0.12em] text-[var(--app-muted)]">{entry.startAt ? formatTime(entry.startAt) : '--:--'}</span>
+                    </div>
+                  ))}
+                </div>
+              ) : null}
             </div>
           );
         })
@@ -1665,6 +1684,9 @@ export const LogCalendar: React.FC = () => {
                   const isHighlighted = highlightedGroupKey === row.key;
                   const stateMeta = getQuestStateMeta(row.state);
                   const isThisHistRowRunning = row.state === 'active';
+                  const histDisplayTitle = isThisHistRowRunning
+                    ? (row.title?.trim() || activeSession?.title?.trim() || 'Active session')
+                    : (row.title || 'Untitled');
                   return (
                     <div
                       id={`day-history-group-${row.key}`}
@@ -1681,7 +1703,7 @@ export const LogCalendar: React.FC = () => {
                         className="w-full text-left px-3 py-2.5 hover:bg-[color-mix(in_srgb,var(--app-accent)_9%,var(--app-panel))]"
                       >
                         <div className="flex items-center justify-between gap-2">
-                          <div className="min-w-0 flex-1 text-sm font-normal text-[var(--app-text)] truncate">{row.title}</div>
+                          <div className="min-w-0 flex-1 text-sm font-normal text-[var(--app-text)] truncate">{histDisplayTitle}</div>
                           <span
                             className="inline-flex justify-center rounded px-1.5 py-0.5 text-[9px] uppercase tracking-[0.14em] shrink-0"
                             style={{
