@@ -1974,3 +1974,27 @@ a {
 [data-motion="reduced"] .stage-bg-breathe {
   animation-duration: 0.01ms !important;
 }
+
+/* Active session floor pulse */
+@keyframes stage-active-pulse {
+  0%, 100% { opacity: 0.5; }
+  50%       { opacity: 1; }
+}
+.stage-active-pulse {
+  animation: stage-active-pulse 2.2s ease-in-out infinite;
+}
+[data-motion="reduced"] .stage-active-pulse {
+  animation-duration: 0.01ms !important;
+}
+
+/* Active session dot blink */
+@keyframes stage-active-dot {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.25; }
+}
+.stage-active-dot {
+  animation: stage-active-dot 1.4s ease-in-out infinite;
+}
+[data-motion="reduced"] .stage-active-dot {
+  animation-duration: 0.01ms !important;
+}
