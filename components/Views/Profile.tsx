@@ -1438,273 +1438,359 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
         }[stageState];
 
         return (
-          <div className="h-full relative overflow-hidden">
-            {/* ── Floating dock ── */}
+          <div className="h-full w-full flex items-center justify-center overflow-auto">
+            {/* dotPulse keyframe */}
+            <style>{`
+              @keyframes dotPulse {
+                0%, 100% { transform: scale(1); box-shadow: 0 0 16px rgba(255,255,255,.35); }
+                50% { transform: scale(1.08); box-shadow: 0 0 26px rgba(255,255,255,.5); }
+              }
+            `}</style>
+
+            {/* ── Card shell ── */}
             <div
-              className="absolute left-2 top-1/2 -translate-y-1/2 z-40 w-[54px] flex flex-col items-center py-[10px] px-[5px] gap-[6px] rounded-2xl"
-              style={{ background: 'color-mix(in_srgb,var(--app-accent)_50%,black)', boxShadow: '0 8px 32px rgba(0,0,0,0.55)' }}
+              className="relative flex shrink-0"
+              style={{
+                width: 'min(400px, 100%)',
+                height: 'min(760px, 100%)',
+                background: 'var(--app-accent)',
+                borderRadius: 16,
+                padding: 4,
+                boxShadow: '0 30px 80px -20px rgba(0,0,0,.7), 0 0 60px -15px color-mix(in_srgb,var(--app-accent)_25%,transparent)',
+              }}
             >
-              {/* Avatar / home button */}
-              <button
-                type="button"
-                onClick={() => setLobbyOpenPanel(null)}
-                title="Home"
-                className="w-[38px] h-[38px] rounded-[10px] flex items-center justify-center mb-1.5 cursor-pointer transition-all duration-300 overflow-hidden shrink-0"
-                style={{
-                  background: lobbyOpenPanel === null
-                    ? 'var(--app-accent)'
-                    : 'color-mix(in_srgb,var(--app-accent)_35%,black)',
-                  boxShadow: lobbyOpenPanel === null
-                    ? '0 0 20px color-mix(in_srgb,var(--app-accent)_45%,transparent)'
-                    : 'none',
-                }}
+              {/* ── Card inner ── */}
+              <div
+                className="flex-1 flex overflow-hidden relative"
+                style={{ background: 'var(--app-bg)', borderRadius: 12 }}
               >
-                <img src={profileImage} alt="Profile" className="w-full h-full object-cover" style={{ display: profileImage && profileImage !== ASSETS.PROFILE_ICON ? 'block' : 'none' }} />
-                {(!profileImage || profileImage === ASSETS.PROFILE_ICON) && (
-                  <User size={18} style={{ color: lobbyOpenPanel === null ? '#fff' : 'var(--app-accent)' }} />
-                )}
-              </button>
-
-              {/* 8 dock buttons */}
-              {allBtns.map(btn => <DockBtn key={btn.key} btn={btn} />)}
-
-              {/* Spacer */}
-              <div className="flex-1" />
-
-              {/* Hex logo */}
-              <div
-                className="w-[38px] h-[38px] flex items-center justify-center cursor-pointer transition-transform duration-500 hover:scale-110 hover:rotate-[15deg]"
-              >
-                <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="var(--app-accent)" strokeWidth="1.2" strokeLinejoin="round">
-                  <path d="M12 2l8.5 5v10L12 22l-8.5-5V7L12 2z"/>
-                  <path d="M12 2v7.5M12 22v-7.5M3.5 7l8.5 5M20.5 7l-8.5 5M3.5 17l8.5-5M20.5 17l-8.5-5" opacity=".6"/>
-                </svg>
-              </div>
-            </div>
-
-            {/* ── Stage (full area) ── */}
-            <div className="absolute inset-0 overflow-hidden">
-              {/* Layer 1: base bg */}
-              <div className="absolute inset-0 bg-[var(--app-bg)]" />
-
-              {/* Layer 2: reactive accent glow */}
-              <div
-                className="absolute inset-0 pointer-events-none stage-bg-breathe"
-                style={{
-                  background: `radial-gradient(ellipse 100% 55% at 50% 110%, color-mix(in_srgb,var(--app-accent)_${bgCfg.glowStrength},transparent) 0%, transparent 65%)`,
-                  opacity: bgCfg.glowOpacity,
-                  animationDuration: bgCfg.animDuration,
-                }}
-              />
-
-              {/* Layer 3: scan-line texture */}
-              <div
-                className="absolute inset-0 pointer-events-none"
-                style={{ backgroundImage: 'repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(0,0,0,0.022) 3px, rgba(0,0,0,0.022) 4px)' }}
-              />
-
-              {/* Layer 4: edge vignette */}
-              <div
-                className="absolute inset-0 pointer-events-none"
-                style={{ background: 'radial-gradient(ellipse 110% 110% at 50% 50%, transparent 30%, rgba(0,0,0,0.6) 100%)' }}
-              />
-
-              {/* Layer 5: state-reactive overlays */}
-              {stageState === 'active' && (
+                {/* Corner cut accent */}
                 <div
-                  className="absolute inset-x-0 bottom-0 pointer-events-none stage-active-pulse"
-                  style={{ height: '35%', background: 'radial-gradient(ellipse 90% 100% at 50% 100%, color-mix(in_srgb,var(--app-accent)_14%,transparent) 0%, transparent 70%)' }}
-                />
-              )}
-              {stageState === 'idle' && (
-                <div
-                  className="absolute inset-0 pointer-events-none transition-opacity duration-1000"
-                  style={{ background: 'rgba(4,6,20,0.22)' }}
-                />
-              )}
-
-              {/* === Character === */}
-              <div
-                className="absolute inset-0"
-                style={stageGlbUrl ? undefined : { perspective: '1100px' }}
-                onMouseMove={stageGlbUrl ? undefined : e => {
-                  const rect = e.currentTarget.getBoundingClientRect();
-                  const x = ((e.clientX - rect.left) / rect.width - 0.5) * 2;
-                  const y = ((e.clientY - rect.top) / rect.height - 0.5) * 2;
-                  if (stageInnerRef.current) {
-                    stageInnerRef.current.style.transform = `rotateY(${x * 6}deg) rotateX(${-y * 4}deg)`;
-                  }
-                }}
-                onMouseLeave={stageGlbUrl ? undefined : () => {
-                  if (stageInnerRef.current) {
-                    stageInnerRef.current.style.transform = 'rotateY(0deg) rotateX(0deg)';
-                  }
-                }}
-              >
-                <div
-                  ref={stageInnerRef}
-                  className={`w-full h-full flex items-center justify-center transition-transform duration-150 ease-out${stageGlbUrl ? '' : ` stage-pose-${stageState}`}`}
-                >
-                  <div
-                    className="absolute inset-x-0 top-0 h-1/2 pointer-events-none"
-                    style={{ background: 'radial-gradient(ellipse 60% 55% at 50% 0%, color-mix(in_srgb,var(--app-accent)_14%,transparent) 0%, transparent 70%)' }}
-                  />
-                  {stageGlbUrl ? (
-                    <model-viewer
-                      src={stageGlbUrl}
-                      autoplay
-                      camera-controls
-                      disable-zoom
-                      interaction-prompt="none"
-                      shadow-intensity="0"
-                      exposure="1"
-                      environment-image="neutral"
-                      camera-orbit="0deg 85deg auto"
-                      style={{ width: '100%', height: '100%', display: 'block', background: 'transparent' } as React.CSSProperties}
-                    />
-                  ) : (
-                    <img
-                      src={stageSrc}
-                      alt="Character"
-                      className="max-h-full max-w-full object-contain block"
-                      draggable={false}
-                    />
-                  )}
-                  <div className="absolute bottom-0 inset-x-0 flex justify-center pointer-events-none">
-                    <div
-                      className="rounded-full blur-3xl"
-                      style={{ width: '60%', height: '48px', background: 'color-mix(in_srgb,var(--app-accent)_40%,transparent)' }}
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* === Glass name plate — bottom left === */}
-              <div className="glass-panel-in absolute bottom-5 left-5 z-20 rounded-2xl backdrop-blur-md border border-white/10 bg-black/35 px-4 py-3 max-w-[200px]">
-                <div className="text-[9px] uppercase tracking-[0.18em] text-white/40 mb-0.5">
-                  {currentLevelConfig ? `Lv ${currentLevelConfig.level}` : 'Unranked'} · {roleText}
-                </div>
-                <div className="text-base font-bold text-white leading-tight truncate">{summonerName}</div>
-                {stageState === 'active' ? (
-                  <div className="mt-1.5 flex items-center gap-1.5">
-                    <span className="inline-block w-1.5 h-1.5 rounded-full bg-[var(--app-accent)] stage-active-dot" />
-                    <span className="text-[9px] uppercase tracking-[0.12em] text-[var(--app-accent)] truncate">Session Running</span>
-                  </div>
-                ) : stageState === 'productive' ? (
-                  <div className="mt-1.5 text-[9px] uppercase tracking-[0.12em] text-emerald-400/80 truncate">✓ {completedToday} done today</div>
-                ) : (
-                  <div className="mt-1.5 text-[9px] uppercase tracking-[0.12em] text-white/25 truncate">No activity yet</div>
-                )}
-                <div className="mt-2 flex items-center gap-2">
-                  <div className="flex-1 h-0.5 rounded-full bg-white/10 overflow-hidden">
-                    <div className="h-full bg-[var(--app-accent)] rounded-full transition-[width] duration-500" style={{ width: `${levelProgress}%` }} />
-                  </div>
-                  <span className="text-[8px] text-white/35 shrink-0">{levelProgress}%</span>
-                </div>
-              </div>
-
-              {/* === Stats chips — bottom right === */}
-              <div className="glass-panel-in glass-panel-in-delay-1 absolute bottom-5 right-5 z-20 flex flex-col items-end gap-1.5">
-                <div className="px-3 py-1.5 rounded-xl backdrop-blur-md bg-black/35 border border-white/10 text-[9px] uppercase tracking-[0.12em] text-white/40 whitespace-nowrap">
-                  <span className="text-[var(--app-accent)] font-bold mr-1.5">{totalXP}</span>XP
-                </div>
-                <div className="px-3 py-1.5 rounded-xl backdrop-blur-md bg-black/35 border border-white/10 text-[9px] uppercase tracking-[0.12em] text-white/40 whitespace-nowrap">
-                  <span className="text-white font-bold mr-1.5">{activeMissions}</span>Active
-                </div>
-                <div className="px-3 py-1.5 rounded-xl backdrop-blur-md bg-black/35 border border-white/10 text-[9px] uppercase tracking-[0.12em] text-white/40 whitespace-nowrap">
-                  <span className="text-white font-bold mr-1.5">{completedToday}</span>Done Today
-                </div>
-              </div>
-
-              {/* === EyeOrb — bottom right corner === */}
-              <div className="absolute bottom-4 right-4 z-20">
-                <EyeOrb
-                  ariaLabel="Play"
-                  onMouseEnter={playHoverSound}
-                  onClick={() => {
-                    playClickSound();
-                    if (activeSession) { stopSession(); } else { startSession({ title: 'Quick session', tag: 'stage', source: 'timer', linkedTaskIds: [] }); }
+                  className="absolute bottom-0 right-0 z-20 pointer-events-none"
+                  style={{
+                    width: 26, height: 26,
+                    background: 'var(--app-accent)',
+                    clipPath: 'polygon(100% 0, 100% 100%, 0 100%)',
                   }}
                 />
-              </div>
 
-              {/* === Upload buttons — top right === */}
-              <div className="absolute top-3 right-3 z-20 flex flex-col gap-1.5">
-                <button
-                  type="button"
-                  title="Upload character image (PNG/JPG)"
-                  onClick={() => stageImageInputRef.current?.click()}
-                  className="group h-7 w-7 rounded-lg bg-black/55 backdrop-blur-sm border border-white/10 hover:border-[color-mix(in_srgb,var(--app-accent)_55%,transparent)] flex items-center justify-center transition-all hover:scale-105"
+                {/* ── Dock ── */}
+                <div
+                  className="shrink-0 flex flex-col items-center gap-[6px] relative z-10"
+                  style={{
+                    width: 58,
+                    padding: '10px 5px 12px',
+                    background: 'color-mix(in_srgb,var(--app-accent)_75%,black)',
+                    borderRadius: '10px 0 0 10px',
+                  }}
                 >
-                  <Camera size={12} className="text-white/50 group-hover:text-[var(--app-accent)]" />
-                </button>
-                <button
-                  type="button"
-                  title="Upload 3D model (.glb)"
-                  onClick={() => stageGlbInputRef.current?.click()}
-                  className="group h-7 w-7 rounded-lg bg-black/55 backdrop-blur-sm border border-white/10 hover:border-[color-mix(in_srgb,var(--app-accent)_55%,transparent)] flex items-center justify-center transition-all hover:scale-105"
-                >
-                  <Box size={12} className="text-white/50 group-hover:text-[var(--app-accent)]" />
-                </button>
-              </div>
-
-              {/* === GLB indicator — top left === */}
-              {stageGlbName && (
-                <div className="absolute top-3 left-3 z-20 flex items-center gap-1.5 bg-black/60 backdrop-blur-sm rounded-lg px-2 py-1 border border-[color-mix(in_srgb,var(--app-accent)_30%,transparent)]">
-                  <Box size={10} className="text-[var(--app-accent)] shrink-0" />
-                  <span className="text-[9px] uppercase tracking-[0.1em] text-[var(--app-accent)] truncate max-w-[120px]">{stageGlbName}</span>
+                  {/* Home / avatar button */}
                   <button
                     type="button"
-                    title="Replace 3D model"
-                    onClick={() => stageGlbInputRef.current?.click()}
-                    className="text-white/40 hover:text-white ml-0.5 leading-none"
-                  >↺</button>
-                </div>
-              )}
-
-              {/* Hidden file inputs */}
-              <input ref={stageImageInputRef} type="file" className="hidden" accept="image/png,image/jpeg,image/jpg" onChange={handleStageImageUpload} />
-              <input ref={stageGlbInputRef} type="file" className="hidden" accept=".glb" onChange={handleStageGlbUpload} />
-
-              {/* === Compact side panel — floats next to dock === */}
-              <div className="absolute left-[66px] top-1/2 -translate-y-1/2 z-[35] w-[272px] max-h-[80%]" style={{ pointerEvents: 'none' }}>
-                {(['identity', 'stats', 'loadout', 'skills', 'titles', 'links', 'notes', 'privacy'] as LobbyPanelKey[]).map(key => (
-                  <div
-                    key={key}
-                    className="absolute inset-x-0 top-0 overflow-y-auto xt-scroll rounded-2xl"
+                    onClick={() => setLobbyOpenPanel(null)}
+                    title="Home"
+                    className="w-[38px] h-[38px] rounded-[10px] flex items-center justify-center mb-1.5 cursor-pointer overflow-hidden shrink-0 transition-all duration-300"
                     style={{
-                      maxHeight: '80vh',
-                      background: 'color-mix(in_srgb,var(--app-panel)_92%,transparent)',
-                      backdropFilter: 'blur(14px)',
-                      border: '1px solid color-mix(in_srgb,var(--app-accent)_22%,transparent)',
-                      boxShadow: '0 12px 40px rgba(0,0,0,0.6)',
-                      padding: '16px 14px',
-                      opacity: lobbyOpenPanel === key ? 1 : 0,
-                      visibility: lobbyOpenPanel === key ? 'visible' : 'hidden',
-                      pointerEvents: lobbyOpenPanel === key ? 'auto' : 'none',
-                      transform: lobbyOpenPanel === key ? 'translateX(0)' : 'translateX(-8px)',
-                      transition: lobbyOpenPanel === key
-                        ? 'opacity 0.22s ease, transform 0.22s ease'
-                        : 'opacity 0.18s ease, transform 0.18s ease, visibility 0s 0.2s',
+                      background: lobbyOpenPanel === null ? 'var(--app-accent)' : 'color-mix(in_srgb,var(--app-accent)_35%,black)',
+                      boxShadow: lobbyOpenPanel === null ? '0 0 20px color-mix(in_srgb,var(--app-accent)_45%,transparent)' : 'none',
                     }}
                   >
-                    {/* Panel header */}
-                    <div className="flex items-center justify-between mb-[14px]">
-                      <div className="text-[10px] font-semibold uppercase tracking-[2px] text-[var(--app-accent)]">
-                        {key.charAt(0).toUpperCase() + key.slice(1)}
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => setLobbyOpenPanel(null)}
-                        className="text-[var(--app-muted)] hover:text-[var(--app-text)] transition-colors"
-                        aria-label="Close panel"
-                      >
-                        <X size={13} />
-                      </button>
-                    </div>
-                    {renderLobbyPanelContent(key)}
+                    <img src={profileImage} alt="Profile" className="w-full h-full object-cover" style={{ display: profileImage && profileImage !== ASSETS.PROFILE_ICON ? 'block' : 'none' }} />
+                    {(!profileImage || profileImage === ASSETS.PROFILE_ICON) && (
+                      <User size={18} style={{ color: lobbyOpenPanel === null ? '#fff' : 'var(--app-accent)' }} />
+                    )}
+                  </button>
+
+                  {/* 8 dock buttons */}
+                  {allBtns.map(btn => <DockBtn key={btn.key} btn={btn} />)}
+
+                  {/* Spacer */}
+                  <div className="flex-1" />
+
+                  {/* Hex logo */}
+                  <div className="w-[38px] h-[38px] flex items-center justify-center cursor-pointer transition-transform duration-500 hover:scale-110 hover:rotate-[15deg]">
+                    <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="color-mix(in_srgb,var(--app-accent)_90%,white)" strokeWidth="1.2" strokeLinejoin="round">
+                      <path d="M12 2l8.5 5v10L12 22l-8.5-5V7L12 2z"/>
+                      <path d="M12 2v7.5M12 22v-7.5M3.5 7l8.5 5M20.5 7l-8.5 5M3.5 17l8.5-5M20.5 17l-8.5-5" opacity=".6"/>
+                    </svg>
                   </div>
-                ))}
+                </div>
+
+
+                {/* ── Main area ── */}
+                <div className="flex-1 flex flex-col relative overflow-hidden min-w-0">
+
+                  {/* Home view */}
+                  <div
+                    className="flex-1 flex flex-col overflow-y-auto xt-scroll"
+                    style={{
+                      padding: '16px 18px 16px',
+                      opacity: lobbyOpenPanel !== null ? 0 : 1,
+                      pointerEvents: lobbyOpenPanel !== null ? 'none' : 'auto',
+                      transition: 'opacity 0.25s ease',
+                    }}
+                  >
+                    {/* Avatar / character box */}
+                    <div
+                      className="relative rounded-[10px] mb-3 shrink-0 overflow-hidden"
+                      style={{
+                        width: '100%',
+                        aspectRatio: '1/0.72',
+                        background: 'color-mix(in_srgb,var(--app-accent)_10%,var(--app-bg))',
+                      }}
+                    >
+                      <div
+                        className="absolute inset-0 pointer-events-none"
+                        style={{ background: 'radial-gradient(circle at 50% 50%, color-mix(in_srgb,var(--app-accent)_6%,transparent), transparent 70%)' }}
+                      />
+                      {stageGlbUrl ? (
+                        <model-viewer
+                          src={stageGlbUrl}
+                          autoplay
+                          camera-controls
+                          disable-zoom
+                          interaction-prompt="none"
+                          shadow-intensity="0"
+                          exposure="1"
+                          environment-image="neutral"
+                          camera-orbit="0deg 85deg auto"
+                          style={{ width: '100%', height: '100%', display: 'block', background: 'transparent' } as React.CSSProperties}
+                        />
+                      ) : stageImage ? (
+                        <img src={stageImage} alt="Character" className="w-full h-full object-contain block" draggable={false} />
+                      ) : (
+                        <div className="absolute inset-0 flex items-center justify-center" style={{ opacity: 0.25 }}>
+                          <div className="relative w-9 h-9">
+                            <div className="absolute left-1/2 top-0 bottom-0 w-[4px] rounded-sm -translate-x-1/2" style={{ background: 'var(--app-accent)' }} />
+                            <div className="absolute top-1/2 left-0 right-0 h-[4px] rounded-sm -translate-y-1/2" style={{ background: 'var(--app-accent)' }} />
+                          </div>
+                        </div>
+                      )}
+                      {/* Upload buttons */}
+                      <div className="absolute top-2 right-2 flex flex-col gap-1">
+                        <button
+                          type="button"
+                          title="Upload character image"
+                          onClick={() => stageImageInputRef.current?.click()}
+                          className="h-6 w-6 rounded-md flex items-center justify-center transition-all hover:scale-105"
+                          style={{ background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(4px)', border: '1px solid rgba(255,255,255,0.1)' }}
+                        >
+                          <Camera size={10} className="text-white/60" />
+                        </button>
+                        <button
+                          type="button"
+                          title="Upload 3D model (.glb)"
+                          onClick={() => stageGlbInputRef.current?.click()}
+                          className="h-6 w-6 rounded-md flex items-center justify-center transition-all hover:scale-105"
+                          style={{ background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(4px)', border: '1px solid rgba(255,255,255,0.1)' }}
+                        >
+                          <Box size={10} className="text-white/60" />
+                        </button>
+                      </div>
+                      {/* GLB name badge */}
+                      {stageGlbName && (
+                        <div className="absolute bottom-2 left-2 flex items-center gap-1 rounded-md px-1.5 py-0.5" style={{ background: 'rgba(0,0,0,0.6)', border: '1px solid color-mix(in_srgb,var(--app-accent)_30%,transparent)' }}>
+                          <Box size={8} className="text-[var(--app-accent)] shrink-0" />
+                          <span className="text-[8px] uppercase tracking-[0.1em] text-[var(--app-accent)] truncate max-w-[80px]">{stageGlbName}</span>
+                        </div>
+                      )}
+                      {/* Hidden file inputs */}
+                      <input ref={stageImageInputRef} type="file" className="hidden" accept="image/png,image/jpeg,image/jpg" onChange={handleStageImageUpload} />
+                      <input ref={stageGlbInputRef} type="file" className="hidden" accept=".glb" onChange={handleStageGlbUpload} />
+                    </div>
+
+                    {/* Profile fields */}
+                    <div className="flex flex-col gap-2 mb-3 shrink-0">
+                      {([
+                        { label: 'name',  value: summonerName },
+                        { label: 'role',  value: roleText },
+                        { label: 'id',    value: profileId.split('//')[0].trim() },
+                        { label: 'email', value: bioStats.email || '—' },
+                      ] as { label: string; value: string }[]).map(({ label, value }) => (
+                        <div key={label} className="flex items-baseline gap-2.5">
+                          <span className="text-[9px] min-w-[46px] tracking-[0.3px]" style={{ color: 'rgba(255,255,255,0.3)' }}>{label}</span>
+                          <span className="text-[12px] truncate" style={{ color: 'rgba(255,255,255,0.72)', fontWeight: 400 }}>{value}</span>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Circular timer ring */}
+                    {(() => {
+                      const now = new Date();
+                      const currentHour = now.getHours();
+                      const minutesLeft = 24 * 60 - (now.getHours() * 60 + now.getMinutes());
+                      const h = Math.floor(minutesLeft / 60);
+                      const m = minutesLeft % 60;
+                      const ARC_CIRC = 408;
+                      const arcOffset = ARC_CIRC - (levelProgress / 100) * ARC_CIRC;
+                      const cx = 99, cy = 99, r = 85;
+                      const totalSegs = 24;
+                      const segAngle = 360 / totalSegs;
+                      const gap = 1.5;
+                      const segPaths = Array.from({ length: totalSegs }, (_, i) => {
+                        const a1 = ((i * segAngle - 90 + gap / 2) * Math.PI) / 180;
+                        const a2 = ((i * segAngle - 90 + segAngle - gap / 2) * Math.PI) / 180;
+                        const x1 = cx + r * Math.cos(a1);
+                        const y1 = cy + r * Math.sin(a1);
+                        const x2 = cx + r * Math.cos(a2);
+                        const y2 = cy + r * Math.sin(a2);
+                        const bright = i === currentHour;
+                        const color = i < currentHour
+                          ? 'color-mix(in_srgb,var(--app-accent)_55%,var(--app-bg))'
+                          : bright
+                          ? 'var(--app-accent)'
+                          : 'rgba(255,255,255,0.07)';
+                        return { x1, y1, x2, y2, color, bright };
+                      });
+                      return (
+                        <div className="flex flex-col items-center shrink-0 py-2" style={{ margin: 'auto 0' }}>
+                          <div className="relative" style={{ width: 130, height: 130 }}>
+                            {/* Outer segment ring */}
+                            <div className="absolute" style={{ inset: -11, width: 'calc(100% + 22px)', height: 'calc(100% + 22px)' }}>
+                              <svg viewBox="0 0 198 198" style={{ width: '100%', height: '100%', transform: 'rotate(-90deg)' }}>
+                                {segPaths.map(({ x1, y1, x2, y2, color, bright }, idx) => (
+                                  <path
+                                    key={idx}
+                                    d={`M ${x1.toFixed(2)} ${y1.toFixed(2)} A ${r} ${r} 0 0 1 ${x2.toFixed(2)} ${y2.toFixed(2)}`}
+                                    fill="none"
+                                    stroke={color}
+                                    strokeWidth="7"
+                                    strokeLinecap="butt"
+                                    style={bright ? { filter: 'drop-shadow(0 0 5px var(--app-accent))' } : undefined}
+                                  />
+                                ))}
+                              </svg>
+                            </div>
+                            {/* Inner progress arc */}
+                            <div className="absolute inset-0">
+                              <svg viewBox="0 0 160 160" style={{ width: '100%', height: '100%', transform: 'rotate(-90deg)' }}>
+                                <circle fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="10" cx="80" cy="80" r="65" />
+                                <circle
+                                  fill="none"
+                                  stroke="rgba(255,255,255,0.88)"
+                                  strokeWidth="10"
+                                  strokeLinecap="round"
+                                  cx="80" cy="80" r="65"
+                                  strokeDasharray={ARC_CIRC}
+                                  strokeDashoffset={arcOffset}
+                                  style={{ filter: 'drop-shadow(0 0 8px rgba(255,255,255,.25))', transition: 'stroke-dashoffset 2.2s ease' }}
+                                />
+                              </svg>
+                            </div>
+                            {/* Pulsing center dot */}
+                            <div className="absolute inset-0 flex items-center justify-center">
+                              <div
+                                style={{
+                                  width: 18, height: 18,
+                                  borderRadius: '50%',
+                                  background: '#fff',
+                                  boxShadow: '0 0 16px rgba(255,255,255,.35)',
+                                  animation: 'dotPulse 3.5s ease-in-out infinite',
+                                }}
+                              />
+                            </div>
+                          </div>
+                          <div className="mt-2.5 font-mono text-[11px] tracking-[0.5px]" style={{ color: 'var(--app-accent)' }}>
+                            {h}:{String(m).padStart(2, '0')} left for the day
+                          </div>
+                        </div>
+                      );
+                    })()}
+
+                    {/* Stats row */}
+                    <div
+                      className="flex shrink-0 my-2"
+                      style={{
+                        borderTop: '1px solid color-mix(in_srgb,var(--app-accent)_18%,transparent)',
+                        borderBottom: '1px solid color-mix(in_srgb,var(--app-accent)_18%,transparent)',
+                      }}
+                    >
+                      <div className="flex-1 text-center py-2.5">
+                        <div className="text-[8px] uppercase tracking-[1px] mb-1" style={{ color: 'rgba(255,255,255,0.3)' }}>XP</div>
+                        <div className="text-[17px] font-semibold font-mono" style={{ color: 'var(--app-text)' }}>{totalXP}</div>
+                      </div>
+                      <div className="flex-1 text-center py-2.5" style={{ borderLeft: '1px solid color-mix(in_srgb,var(--app-accent)_20%,transparent)' }}>
+                        <div className="text-[8px] uppercase tracking-[1px] mb-1" style={{ color: 'rgba(255,255,255,0.3)' }}>Done Today</div>
+                        <div className="text-[17px] font-semibold font-mono" style={{ color: 'var(--app-text)' }}>{completedToday}</div>
+                      </div>
+                    </div>
+
+                    {/* Session bar */}
+                    <div className="pt-2 shrink-0 mt-auto">
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="text-[11px]" style={{ color: 'rgba(255,255,255,0.6)', letterSpacing: '0.2px' }}>
+                          {activeSession ? 'Session running' : 'No active session'}
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            playClickSound();
+                            if (activeSession) { stopSession(); } else { startSession({ title: 'Quick session', tag: 'stage', source: 'timer', linkedTaskIds: [] }); }
+                          }}
+                          className="h-6 w-6 rounded-full flex items-center justify-center transition-all hover:scale-110"
+                          style={{
+                            background: activeSession ? 'var(--app-accent)' : 'color-mix(in_srgb,var(--app-accent)_18%,var(--app-bg))',
+                            border: '1px solid color-mix(in_srgb,var(--app-accent)_40%,transparent)',
+                            boxShadow: activeSession ? '0 0 12px color-mix(in_srgb,var(--app-accent)_40%,transparent)' : 'none',
+                          }}
+                        >
+                          <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke={activeSession ? '#fff' : 'var(--app-accent)'} strokeWidth="2.2">
+                            {activeSession
+                              ? <rect x="6" y="6" width="12" height="12" rx="2" />
+                              : <polygon points="5,3 19,12 5,21" />
+                            }
+                          </svg>
+                        </button>
+                      </div>
+                      <div className="rounded-[3px] overflow-hidden" style={{ height: 5, background: 'rgba(255,255,255,0.06)' }}>
+                        <div
+                          className="h-full rounded-[3px] transition-[width] duration-[1800ms]"
+                          style={{ width: `${levelProgress}%`, background: 'color-mix(in_srgb,var(--app-accent)_80%,#573778)' }}
+                        />
+                      </div>
+                      <div className="text-right mt-1 font-mono text-[10px]" style={{ color: 'var(--app-accent)' }}>{levelProgress}%</div>
+                    </div>
+                  </div>
+
+                  {/* ── Panel overlay ── */}
+                  <div className="absolute inset-0 z-[5] pointer-events-none overflow-hidden">
+                    {(['identity', 'stats', 'loadout', 'skills', 'titles', 'links', 'notes', 'privacy'] as LobbyPanelKey[]).map(key => (
+                      <div
+                        key={key}
+                        className="absolute inset-0 overflow-y-auto xt-scroll"
+                        style={{
+                          background: 'var(--app-bg)',
+                          padding: '20px 18px',
+                          opacity: lobbyOpenPanel === key ? 1 : 0,
+                          visibility: lobbyOpenPanel === key ? 'visible' : 'hidden',
+                          pointerEvents: lobbyOpenPanel === key ? 'auto' : 'none',
+                          transition: lobbyOpenPanel === key
+                            ? 'opacity 0.25s ease, visibility 0s 0s'
+                            : 'opacity 0.25s ease, visibility 0s 0.25s',
+                          scrollbarWidth: 'thin' as const,
+                          scrollbarColor: 'color-mix(in_srgb,var(--app-accent)_40%,transparent) transparent',
+                        }}
+                      >
+                        {/* Panel header */}
+                        <div className="flex items-center justify-between mb-[18px]">
+                          <div className="text-[11px] font-semibold uppercase tracking-[2px]" style={{ color: 'var(--app-accent)' }}>
+                            {key.charAt(0).toUpperCase() + key.slice(1)}
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => setLobbyOpenPanel(null)}
+                            className="text-[var(--app-muted)] hover:text-[var(--app-text)] transition-colors"
+                            aria-label="Close panel"
+                          >
+                            <X size={13} />
+                          </button>
+                        </div>
+                        {renderLobbyPanelContent(key)}
+                      </div>
+                    ))}
+                  </div>
+
+                </div>
               </div>
             </div>
           </div>
