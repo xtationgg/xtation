@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Camera, Edit2, Check, X, Upload, Box, User, Activity, Award } from 'lucide-react';
+import { Camera, Edit2, Check, X, Upload, Box, User, Activity, Award, BarChart2, Sword, Zap, Link2, FileText, Shield } from 'lucide-react';
+import { ProfilePanel } from '../UI/ProfilePanel';
 import { RewardVisual } from '../UI/RewardVisual';
 import { RewardConfig, InventoryItem } from '../../types';
 import { ASSETS } from '../../constants';
@@ -190,6 +191,8 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
     return { HEAD: null, UPPER: null, LOWER: null, FEET: null, ACCESSORY_1: null, ACCESSORY_2: null };
   });
   const objectUrlRef = useRef<string | null>(null);
+  const CHARACTER_PLACEHOLDER_SRC = '/characters/placeholder.svg';
+
   const { stats: xpStats, legacyXP, tasks, selectors, dateKey } = useXP();
 
   useEffect(() => {
@@ -259,6 +262,15 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
   const nextConfig = [...rewardConfigs].sort((a, b) => a.threshold - b.threshold).find(c => c.threshold > totalXP);
   const levelProgress = nextConfig ? Math.min(100, Math.floor((totalXP / nextConfig.threshold) * 100)) : 100;
   const currentMission = tasks.find(task => task.status === 'todo' || task.status === 'active');
+
+  // ── Lobby state ────────────────────────────────────────────────────────
+  type LobbyPanelKey = 'identity' | 'stats' | 'loadout' | 'skills' | 'titles' | 'links' | 'notes' | 'privacy';
+  const [lobbyOpenPanel, setLobbyOpenPanel] = useState<LobbyPanelKey | null>(null);
+  const [lobbyNotes, setLobbyNotes] = useState(() => {
+    try { return localStorage.getItem('xtation_profile_notes_v1') || ''; } catch { return ''; }
+  });
+  const [lobbyVisibility, setLobbyVisibility] = useState<'Private' | 'Circles' | 'Community'>('Private');
+  const stageInnerRef = useRef<HTMLDivElement>(null);
 
   const handleImageClick = () => { playClickSound(); fileInputRef.current?.click(); };
   const handleCoverClick = () => { playClickSound(); coverInputRef.current?.click(); };
@@ -990,16 +1002,262 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
     </div>
   );
 
-  const renderTabContent = () => {
-    switch (activeTab) {
-      case 'PROFILE':
+  const renderLobbyPanelContent = (panel: LobbyPanelKey | null) => {
+    const inputCls = 'w-full border border-[color-mix(in_srgb,var(--app-text)_12%,transparent)] rounded px-3 py-2 text-sm text-[var(--app-text)] bg-[var(--app-panel-2)] focus:outline-none focus:border-[var(--app-accent)]';
+    const labelCls = 'flex flex-col gap-1 text-[10px] uppercase tracking-[0.14em] text-[var(--app-muted)]';
+    const sectionTitle = 'text-[10px] uppercase tracking-[0.18em] text-[var(--app-muted)] mb-3';
+    switch (panel) {
+      case 'identity':
         return (
-          <div className="grid lg:grid-cols-[320px,1fr,280px] gap-6 items-start">
-            {dossierCard}
-            {stageCard}
-            {statsCard}
+          <div className="space-y-3">
+            <div className={sectionTitle}>Identity</div>
+            <label className={labelCls}>Display Name
+              <input className={inputCls} value={summonerName} placeholder="Your name" onChange={e => { setSummonerName(e.target.value || 'Summoner Name'); setBioStats(p => ({ ...p, name: e.target.value })); }} />
+            </label>
+            <label className={labelCls}>Role
+              <input className={inputCls} value={roleText} placeholder="e.g. Mid Lane" onChange={e => setRoleText(e.target.value)} />
+            </label>
+            <label className={labelCls}>Region / ID
+              <input className={inputCls} value={profileId} placeholder="#NA1 // US_WEST" onChange={e => setProfileId(e.target.value)} />
+            </label>
+            <label className={labelCls}>Short Bio
+              <textarea className={`${inputCls} resize-none h-24`} placeholder="A few words about yourself..." />
+            </label>
           </div>
         );
+      case 'stats':
+        return (
+          <div className="space-y-3">
+            <div className={sectionTitle}>Stats</div>
+            {[
+              { label: 'Total XP', value: `${totalXP} XP` },
+              { label: 'Current Level', value: currentLevelConfig ? `Level ${currentLevelConfig.level}` : 'Unranked' },
+              { label: 'Progress', value: `${levelProgress}%` },
+              { label: 'Active Missions', value: activeMissions },
+              { label: 'Completed Today', value: completedToday },
+            ].map(({ label, value }) => (
+              <div key={label} className="flex items-center justify-between border border-[color-mix(in_srgb,var(--app-text)_8%,transparent)] rounded px-3 py-2 bg-[var(--app-panel-2)]">
+                <span className="text-[10px] uppercase tracking-[0.14em] text-[var(--app-muted)]">{label}</span>
+                <span className="text-sm font-bold text-[var(--app-text)]">{value}</span>
+              </div>
+            ))}
+            <div className="mt-1">
+              <div className="flex justify-between text-[10px] uppercase tracking-[0.12em] text-[var(--app-muted)] mb-1">
+                <span>XP Progress</span><span>{levelProgress}%</span>
+              </div>
+              <div className="h-2 rounded bg-[var(--app-panel-2)] border border-[color-mix(in_srgb,var(--app-text)_8%,transparent)] overflow-hidden">
+                <div className="h-full bg-[var(--app-accent)] rounded" style={{ width: `${Math.min(100, levelProgress)}%` }} />
+              </div>
+            </div>
+          </div>
+        );
+      case 'loadout':
+        return (
+          <div className="space-y-3">
+            <div className={sectionTitle}>Loadout</div>
+            {['Primary Tool', 'Secondary Tool', 'Companion'].map(slot => (
+              <div key={slot} className="border border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] rounded-lg p-3 bg-[var(--app-panel-2)] flex items-center gap-3">
+                <div className="w-10 h-10 rounded border border-dashed border-[color-mix(in_srgb,var(--app-text)_14%,transparent)] flex items-center justify-center text-[var(--app-muted)]">
+                  <Sword size={14} />
+                </div>
+                <div>
+                  <div className="text-[10px] uppercase tracking-[0.14em] text-[var(--app-muted)]">{slot}</div>
+                  <div className="text-xs text-[var(--app-text)] mt-0.5">— Empty —</div>
+                </div>
+              </div>
+            ))}
+            <div className="text-[9px] text-[var(--app-muted)] text-center mt-2">Inventory equip coming soon.</div>
+          </div>
+        );
+      case 'skills':
+        return (
+          <div className="space-y-4">
+            <div className={sectionTitle}>Skills</div>
+            {[{ label: 'Focus', val: 72 }, { label: 'Social', val: 58 }, { label: 'Fitness', val: 45 }, { label: 'Craft', val: 61 }].map(({ label, val }) => (
+              <div key={label} className="space-y-1">
+                <div className="flex justify-between text-[10px] uppercase tracking-[0.14em] text-[var(--app-muted)]">
+                  <span>{label}</span><span className="text-[var(--app-text)]">{val}</span>
+                </div>
+                <div className="h-2 rounded bg-[var(--app-panel-2)] border border-[color-mix(in_srgb,var(--app-text)_8%,transparent)] overflow-hidden">
+                  <div className="h-full bg-[color-mix(in_srgb,var(--app-accent)_80%,var(--app-text))] rounded" style={{ width: `${val}%` }} />
+                </div>
+              </div>
+            ))}
+          </div>
+        );
+      case 'titles':
+        return (
+          <div>
+            <div className={sectionTitle}>Earned Titles</div>
+            <div className="flex flex-wrap gap-2">
+              {['Early Adopter', 'First Log', 'Day 1', 'Mission Complete'].map(t => (
+                <span key={t} className="px-2.5 py-1 rounded-full border border-[color-mix(in_srgb,var(--app-accent)_40%,transparent)] bg-[color-mix(in_srgb,var(--app-accent)_8%,var(--app-panel-2))] text-[10px] uppercase tracking-[0.14em] text-[var(--app-accent)]">
+                  {t}
+                </span>
+              ))}
+            </div>
+            <div className="text-[9px] text-[var(--app-muted)] mt-4">More titles unlock as you progress.</div>
+          </div>
+        );
+      case 'links':
+        return (
+          <div className="space-y-3">
+            <div className={sectionTitle}>Quick Links</div>
+            <button disabled className="w-full text-left border border-dashed border-[color-mix(in_srgb,var(--app-text)_14%,transparent)] rounded px-3 py-2 text-[10px] uppercase tracking-[0.14em] text-[var(--app-muted)] cursor-not-allowed opacity-60 flex items-center gap-2">
+              <Link2 size={12} /> + Add Link (coming soon)
+            </button>
+            <div className="text-[9px] text-[var(--app-muted)]">No links added yet.</div>
+          </div>
+        );
+      case 'notes':
+        return (
+          <div className="flex flex-col gap-3 h-full">
+            <div className={sectionTitle}>Personal Notes</div>
+            <textarea
+              value={lobbyNotes}
+              onChange={e => setLobbyNotes(e.target.value)}
+              placeholder="Personal notes, ideas, reminders..."
+              className="w-full flex-1 min-h-[180px] border border-[color-mix(in_srgb,var(--app-text)_12%,transparent)] rounded-lg p-3 text-sm text-[var(--app-text)] bg-[var(--app-panel-2)] resize-none focus:outline-none focus:border-[var(--app-accent)]"
+            />
+            <button
+              type="button"
+              onClick={() => { try { localStorage.setItem('xtation_profile_notes_v1', lobbyNotes); } catch {} }}
+              className="text-[10px] uppercase tracking-[0.14em] border border-[color-mix(in_srgb,var(--app-text)_12%,transparent)] rounded px-4 py-2 text-[var(--app-muted)] hover:text-[var(--app-text)] hover:border-[color-mix(in_srgb,var(--app-text)_30%,transparent)] transition-colors"
+            >
+              Save Locally
+            </button>
+          </div>
+        );
+      case 'privacy':
+        return (
+          <div className="space-y-3">
+            <div className={sectionTitle}>Profile Visibility</div>
+            {(['Private', 'Circles', 'Community'] as const).map(opt => (
+              <button
+                key={opt}
+                type="button"
+                onClick={() => setLobbyVisibility(opt)}
+                className={`w-full text-left px-3 py-2.5 rounded border text-[10px] uppercase tracking-[0.14em] transition-colors ${
+                  lobbyVisibility === opt
+                    ? 'border-[color-mix(in_srgb,var(--app-accent)_60%,transparent)] bg-[color-mix(in_srgb,var(--app-accent)_10%,var(--app-panel))] text-[var(--app-accent)]'
+                    : 'border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-[var(--app-panel-2)] text-[var(--app-muted)] hover:border-[color-mix(in_srgb,var(--app-text)_25%,transparent)] hover:text-[var(--app-text)]'
+                }`}
+              >
+                {opt}
+              </button>
+            ))}
+            <div className="text-[9px] text-[var(--app-muted)] mt-1">Backend sync coming soon.</div>
+          </div>
+        );
+      default:
+        return null;
+    }
+  };
+
+  const renderTabContent = () => {
+    switch (activeTab) {
+      case 'PROFILE': {
+        type BtnDef = { key: LobbyPanelKey; label: string; icon: React.ReactNode };
+        const topBtns: BtnDef[] = [
+          { key: 'identity', label: 'Identity', icon: <User size={13} /> },
+          { key: 'stats',    label: 'Stats',    icon: <BarChart2 size={13} /> },
+          { key: 'loadout',  label: 'Loadout',  icon: <Sword size={13} /> },
+          { key: 'skills',   label: 'Skills',   icon: <Zap size={13} /> },
+        ];
+        const botBtns: BtnDef[] = [
+          { key: 'titles',  label: 'Titles',  icon: <Award size={13} /> },
+          { key: 'links',   label: 'Links',   icon: <Link2 size={13} /> },
+          { key: 'notes',   label: 'Notes',   icon: <FileText size={13} /> },
+          { key: 'privacy', label: 'Privacy', icon: <Shield size={13} /> },
+        ];
+        const allBtns = [...topBtns, ...botBtns];
+        const LobbyBtn = ({ btn }: { btn: BtnDef }) => (
+          <button
+            type="button"
+            onClick={() => setLobbyOpenPanel(p => p === btn.key ? null : btn.key)}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-[10px] uppercase tracking-[0.14em] transition-all duration-150 ${
+              lobbyOpenPanel === btn.key
+                ? 'border-[color-mix(in_srgb,var(--app-accent)_60%,transparent)] bg-[color-mix(in_srgb,var(--app-accent)_14%,var(--app-panel))] text-[var(--app-accent)] shadow-[0_0_12px_color-mix(in_srgb,var(--app-accent)_20%,transparent)]'
+                : 'border-[color-mix(in_srgb,var(--app-text)_12%,transparent)] bg-[var(--app-panel-2)] text-[var(--app-muted)] hover:border-[color-mix(in_srgb,var(--app-text)_28%,transparent)] hover:text-[var(--app-text)]'
+            }`}
+          >
+            <span className={lobbyOpenPanel === btn.key ? 'text-[var(--app-accent)]' : 'text-[var(--app-muted)]'}>{btn.icon}</span>
+            {btn.label}
+          </button>
+        );
+        return (
+          <div className="relative flex flex-col items-center gap-5 py-2">
+            {/* Top 4 buttons */}
+            <div className="flex items-center justify-center gap-2 flex-wrap">
+              {topBtns.map(btn => <LobbyBtn key={btn.key} btn={btn} />)}
+            </div>
+
+            {/* Character Stage */}
+            <div
+              className="relative w-full max-w-xs mx-auto rounded-2xl overflow-visible cursor-default select-none"
+              style={{ perspective: '900px' }}
+              onMouseMove={e => {
+                const rect = e.currentTarget.getBoundingClientRect();
+                const x = ((e.clientX - rect.left) / rect.width - 0.5) * 2;
+                const y = ((e.clientY - rect.top) / rect.height - 0.5) * 2;
+                if (stageInnerRef.current) {
+                  stageInnerRef.current.style.transform = `rotateY(${x * 5}deg) rotateX(${-y * 5}deg)`;
+                }
+              }}
+              onMouseLeave={() => {
+                if (stageInnerRef.current) {
+                  stageInnerRef.current.style.transform = 'rotateY(0deg) rotateX(0deg)';
+                }
+              }}
+            >
+              {/* Outer ambient glow */}
+              <div className="absolute -inset-4 rounded-3xl bg-[color-mix(in_srgb,var(--app-accent)_12%,transparent)] blur-2xl pointer-events-none" />
+
+              <div
+                ref={stageInnerRef}
+                className="relative transition-transform duration-150 ease-out rounded-2xl overflow-hidden"
+                style={{ transformStyle: 'preserve-3d' }}
+              >
+                <img
+                  src={CHARACTER_PLACEHOLDER_SRC}
+                  alt="Character"
+                  className="w-full h-auto block rounded-2xl"
+                  draggable={false}
+                />
+                {/* Inner glow overlay */}
+                <div className="absolute inset-0 rounded-2xl shadow-[inset_0_0_48px_color-mix(in_srgb,var(--app-accent)_18%,transparent)] pointer-events-none" />
+                {/* Vignette bottom */}
+                <div className="absolute inset-0 rounded-2xl bg-gradient-to-t from-black/55 via-transparent to-transparent pointer-events-none" />
+              </div>
+            </div>
+
+            {/* Change Model disabled */}
+            <button
+              type="button"
+              disabled
+              title="3D slot coming soon"
+              className="text-[9px] uppercase tracking-[0.16em] text-[var(--app-muted)] border border-dashed border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] rounded px-3 py-1 opacity-50 cursor-not-allowed"
+            >
+              Change Model (later)
+            </button>
+
+            {/* Bottom 4 buttons */}
+            <div className="flex items-center justify-center gap-2 flex-wrap">
+              {botBtns.map(btn => <LobbyBtn key={btn.key} btn={btn} />)}
+            </div>
+
+            {/* Side Panel */}
+            <ProfilePanel
+              open={lobbyOpenPanel !== null}
+              onClose={() => setLobbyOpenPanel(null)}
+              title={allBtns.find(b => b.key === lobbyOpenPanel)?.label ?? ''}
+              icon={allBtns.find(b => b.key === lobbyOpenPanel)?.icon}
+            >
+              {renderLobbyPanelContent(lobbyOpenPanel)}
+            </ProfilePanel>
+          </div>
+        );
+      }
       case 'HEALTH':
         return (
           <div className="space-y-4">

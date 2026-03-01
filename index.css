@@ -1929,3 +1929,15 @@ a {
 [data-density="spacious"] .space-y-4 > * + * {
   margin-top: 1.25rem;
 }
+
+/* ── Profile Lobby: panel slide animations ───────────────────────────── */
+@keyframes lobby-slide-right {
+  from { opacity: 0; transform: translateX(20px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+@keyframes lobby-slide-up {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.lobby-slide-right { animation: lobby-slide-right 0.18s ease-out both; }
+.lobby-slide-up    { animation: lobby-slide-up    0.18s ease-out both; }

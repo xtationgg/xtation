@@ -1,0 +1,93 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="560" viewBox="0 0 400 560">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#1a1030"/>
+      <stop offset="100%" stop-color="#0d0818"/>
+    </linearGradient>
+    <linearGradient id="body" x1="0" y1="0" x2="0.3" y2="1">
+      <stop offset="0%" stop-color="#2e2048"/>
+      <stop offset="100%" stop-color="#160e28"/>
+    </linearGradient>
+    <linearGradient id="glow" x1="0.5" y1="0" x2="0.5" y2="1">
+      <stop offset="0%" stop-color="#7c3aed" stop-opacity="0.18"/>
+      <stop offset="100%" stop-color="#7c3aed" stop-opacity="0"/>
+    </linearGradient>
+    <radialGradient id="groundglow" cx="50%" cy="100%" r="40%">
+      <stop offset="0%" stop-color="#7c3aed" stop-opacity="0.22"/>
+      <stop offset="100%" stop-color="#7c3aed" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="blur4">
+      <feGaussianBlur stdDeviation="4"/>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="400" height="560" fill="url(#bg)"/>
+
+  <!-- Ground glow -->
+  <ellipse cx="200" cy="520" rx="140" ry="30" fill="url(#groundglow)"/>
+
+  <!-- Ground shadow -->
+  <ellipse cx="200" cy="530" rx="75" ry="10" fill="rgba(0,0,0,0.45)" filter="url(#blur4)"/>
+
+  <!-- Legs -->
+  <rect x="165" y="390" width="30" height="130" rx="12" fill="url(#body)"/>
+  <rect x="205" y="390" width="30" height="130" rx="12" fill="url(#body)"/>
+
+  <!-- Feet -->
+  <rect x="155" y="500" width="46" height="18" rx="8" fill="#1a102e"/>
+  <rect x="199" y="500" width="46" height="18" rx="8" fill="#1a102e"/>
+
+  <!-- Torso -->
+  <rect x="148" y="220" width="104" height="185" rx="18" fill="url(#body)"/>
+
+  <!-- Collar detail -->
+  <rect x="185" y="220" width="30" height="12" rx="5" fill="#3d2860"/>
+
+  <!-- Left arm -->
+  <rect x="108" y="228" width="36" height="140" rx="16" fill="url(#body)"/>
+  <!-- Left hand -->
+  <ellipse cx="126" cy="376" rx="14" ry="16" fill="#2e2048"/>
+
+  <!-- Right arm -->
+  <rect x="256" y="228" width="36" height="140" rx="16" fill="url(#body)"/>
+  <!-- Right hand -->
+  <ellipse cx="274" cy="376" rx="14" ry="16" fill="#2e2048"/>
+
+  <!-- Neck -->
+  <rect x="184" y="190" width="32" height="36" rx="10" fill="url(#body)"/>
+
+  <!-- Head -->
+  <ellipse cx="200" cy="160" rx="52" ry="58" fill="url(#body)"/>
+
+  <!-- Face glow / screen -->
+  <ellipse cx="200" cy="155" rx="30" ry="32" fill="#0d0818" opacity="0.7"/>
+  <ellipse cx="200" cy="155" rx="22" ry="24" fill="#7c3aed" opacity="0.08"/>
+
+  <!-- Eyes -->
+  <ellipse cx="187" cy="150" rx="7" ry="5" fill="#7c3aed" opacity="0.9"/>
+  <ellipse cx="213" cy="150" rx="7" ry="5" fill="#7c3aed" opacity="0.9"/>
+  <!-- Eye inner glow -->
+  <ellipse cx="187" cy="150" rx="3.5" ry="2.5" fill="#c4b5fd"/>
+  <ellipse cx="213" cy="150" rx="3.5" ry="2.5" fill="#c4b5fd"/>
+
+  <!-- Chest panel -->
+  <rect x="168" y="248" width="64" height="36" rx="8" fill="#0d0818" opacity="0.6"/>
+  <rect x="176" y="256" width="20" height="4" rx="2" fill="#7c3aed" opacity="0.7"/>
+  <rect x="176" y="264" width="14" height="3" rx="1.5" fill="#a78bfa" opacity="0.5"/>
+  <rect x="204" y="256" width="20" height="4" rx="2" fill="#7c3aed" opacity="0.7"/>
+
+  <!-- Shoulder pads -->
+  <ellipse cx="136" cy="238" rx="20" ry="14" fill="#241840"/>
+  <ellipse cx="264" cy="238" rx="20" ry="14" fill="#241840"/>
+
+  <!-- Global glow overlay (top) -->
+  <rect width="400" height="560" fill="url(#glow)"/>
+
+  <!-- Vignette -->
+  <radialGradient id="vig" cx="50%" cy="50%" r="70%">
+    <stop offset="60%" stop-color="transparent"/>
+    <stop offset="100%" stop-color="rgba(0,0,0,0.55)"/>
+  </radialGradient>
+  <rect width="400" height="560" fill="url(#vig)"/>
+</svg>
