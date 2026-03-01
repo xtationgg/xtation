@@ -59,6 +59,9 @@ export interface Task {
   linkedSessionIds: string[];
   notes?: string;
   icon?: 'sword' | 'shield' | 'star' | 'zap' | 'flag';
+  visibility?: 'private' | 'circles' | 'community';
+  tags?: string[];
+  circleIds?: string[];
   createdAt: number;
   updatedAt: number;
 }
@@ -108,6 +111,9 @@ export interface XPDayActivityItem {
   note?: string;
   source?: string;
 }
+
+/** Display adapter alias for XPDayActivityItem — no DB schema change. */
+export type Signal = XPDayActivityItem;
 
 export interface XPDayActivityGroup {
   key: string;

@@ -1077,6 +1077,19 @@ export const LogCalendar: React.FC = () => {
                   ) : null}
                 </div>
               </div>
+              {isSelected && row.items.length > 0 ? (
+                <div className="border-t border-[color-mix(in_srgb,var(--app-text)_8%,transparent)] px-3 pb-2 pt-1.5 space-y-0.5">
+                  {row.items.map((entry) => (
+                    <div
+                      key={`${row.key}-signal-${entry.id}`}
+                      className="flex items-center justify-between gap-2 rounded px-1 py-1"
+                    >
+                      <span className="min-w-0 truncate text-[10px] uppercase tracking-[0.12em] text-[var(--app-muted)]">{toPanelSubtitle(entry)}</span>
+                      <span className="shrink-0 font-mono tabular-nums text-[10px] uppercase tracking-[0.12em] text-[var(--app-muted)]">{entry.startAt ? formatTime(entry.startAt) : '--:--'}</span>
+                    </div>
+                  ))}
+                </div>
+              ) : null}
             </div>
           );
         })
