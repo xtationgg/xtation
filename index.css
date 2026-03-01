@@ -1947,3 +1947,17 @@ a {
   to   { opacity: 1; transform: translateX(0); }
 }
 .lobby-panel-in { animation: lobby-panel-in 0.18s ease-out both; }
+
+/* ── Stage idle float animation ──────────────────────────────────────── */
+/* Uses standalone `translate` property so it composes with the JS
+   parallax `transform` (rotateY/rotateX) on the same element safely.  */
+@keyframes stage-idle {
+  0%, 100% { translate: 0 0px; }
+  50%       { translate: 0 -5px; }
+}
+.stage-idle {
+  animation: stage-idle 4.5s ease-in-out infinite;
+}
+[data-motion="reduced"] .stage-idle {
+  animation-duration: 0.01ms !important;
+}
