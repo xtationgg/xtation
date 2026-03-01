@@ -1252,10 +1252,11 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
               type="button"
               title={btn.label}
               onClick={() => setLobbyOpenPanel(p => p === btn.key ? null : btn.key)}
-              className={`flex flex-col items-center gap-0.5 w-12 py-1.5 rounded-xl transition-all duration-150 select-none ${
+              style={{ transitionTimingFunction: 'cubic-bezier(0.34, 1.56, 0.64, 1)', transitionDuration: '220ms' }}
+              className={`flex flex-col items-center gap-0.5 w-12 py-1.5 rounded-xl transition-[transform,background-color,color] select-none ${
                 active
-                  ? 'bg-[color-mix(in_srgb,var(--app-accent)_28%,transparent)] text-[var(--app-accent)]'
-                  : 'text-white/45 hover:text-white hover:bg-white/10 active:scale-95'
+                  ? 'bg-[color-mix(in_srgb,var(--app-accent)_28%,transparent)] text-[var(--app-accent)] scale-110'
+                  : 'text-white/45 hover:text-white hover:bg-white/10 hover:scale-110 active:scale-90'
               }`}
             >
               {btn.icon}
@@ -1385,7 +1386,7 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
               </div>
 
               {/* === Glass name plate — bottom left === */}
-              <div className="absolute bottom-24 left-5 z-20 rounded-2xl backdrop-blur-md border border-white/10 bg-black/35 px-4 py-3 max-w-[200px]">
+              <div className="glass-panel-in absolute bottom-24 left-5 z-20 rounded-2xl backdrop-blur-md border border-white/10 bg-black/35 px-4 py-3 max-w-[200px]">
                 <div className="text-[9px] uppercase tracking-[0.18em] text-white/40 mb-0.5">
                   {currentLevelConfig ? `Lv ${currentLevelConfig.level}` : 'Unranked'} · {roleText}
                 </div>
@@ -1418,7 +1419,7 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
               </div>
 
               {/* === Stats chips — bottom right === */}
-              <div className="absolute bottom-24 right-5 z-20 flex flex-col items-end gap-1.5">
+              <div className="glass-panel-in glass-panel-in-delay-1 absolute bottom-24 right-5 z-20 flex flex-col items-end gap-1.5">
                 <div className="px-3 py-1.5 rounded-xl backdrop-blur-md bg-black/35 border border-white/10 text-[9px] uppercase tracking-[0.12em] text-white/40 whitespace-nowrap">
                   <span className="text-[var(--app-accent)] font-bold mr-1.5">{totalXP}</span>XP
                 </div>
@@ -1431,7 +1432,7 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
               </div>
 
               {/* === Dock — bottom center, glass pill === */}
-              <div className="absolute bottom-4 inset-x-0 z-20 flex justify-center px-3">
+              <div className="glass-panel-in glass-panel-in-delay-2 absolute bottom-4 inset-x-0 z-20 flex justify-center px-3">
                 <div className="flex flex-wrap justify-center gap-px px-2 py-1.5 rounded-2xl backdrop-blur-md bg-black/45 border border-white/8 shadow-[0_4px_24px_rgba(0,0,0,0.4)]">
                   {allBtns.map(btn => <DockBtn key={btn.key} btn={btn} />)}
                 </div>

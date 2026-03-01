@@ -34,9 +34,10 @@ export const DrawerOverlay: React.FC<DrawerOverlayProps> = ({ open, onClose, tit
 
       {/* Drawer panel — translateX controls open/close, layout is never pushed */}
       <div
-        className={`fixed top-0 right-0 h-full w-80 z-[149] bg-[var(--app-panel)] border-l border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] shadow-2xl flex flex-col transition-transform duration-200 ease-out ${
+        className={`fixed top-0 right-0 h-full w-80 z-[149] bg-[var(--app-panel)] border-l border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] shadow-2xl flex flex-col transition-transform ${
           open ? 'translate-x-0' : 'translate-x-full'
         }`}
+        style={{ transitionTimingFunction: 'cubic-bezier(0.34, 1.56, 0.64, 1)', transitionDuration: '360ms' }}
       >
         {/* Header */}
         <div className="flex items-center justify-between px-4 py-3 border-b border-[color-mix(in_srgb,var(--app-text)_8%,transparent)] shrink-0">
