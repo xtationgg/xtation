@@ -1327,9 +1327,9 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
                 />
               )}
 
-              {/* === Character — centered, fills stage === */}
+              {/* === Character — fills entire stage, no size limit === */}
               <div
-                className="absolute inset-0 flex items-end justify-center pb-28"
+                className="absolute inset-0"
                 style={{ perspective: '1100px' }}
                 onMouseMove={e => {
                   const rect = e.currentTarget.getBoundingClientRect();
@@ -1347,46 +1347,44 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
               >
                 <div
                   ref={stageInnerRef}
-                  className={`relative stage-pose-${stageState} transition-transform duration-150 ease-out`}
-                  style={{ transformStyle: 'preserve-3d' }}
+                  className={`w-full h-full flex items-center justify-center stage-pose-${stageState} transition-transform duration-150 ease-out`}
                 >
                   {/* Spotlight from above */}
                   <div
-                    className="absolute -inset-x-16 -top-10 h-3/4 pointer-events-none"
-                    style={{ background: 'radial-gradient(ellipse 60% 50% at 50% 0%, color-mix(in_srgb,var(--app-accent)_16%,transparent) 0%, transparent 70%)' }}
+                    className="absolute inset-x-0 top-0 h-1/2 pointer-events-none"
+                    style={{ background: 'radial-gradient(ellipse 60% 55% at 50% 0%, color-mix(in_srgb,var(--app-accent)_14%,transparent) 0%, transparent 70%)' }}
                   />
 
-                  {/* Character */}
+                  {/* Character — GLB fills full container; image fits proportionally */}
                   {stageGlbUrl ? (
                     <model-viewer
                       src={stageGlbUrl}
                       camera-controls
-                      auto-rotate
                       autoplay
-                      style={{ width: '320px', height: '520px', background: 'transparent', display: 'block' } as React.CSSProperties}
+                      interaction-prompt="none"
+                      style={{ width: '100%', height: '100%', display: 'block', background: 'transparent' } as React.CSSProperties}
                     />
                   ) : (
                     <img
                       src={stageSrc}
                       alt="Character"
-                      className="block w-auto"
-                      style={{ maxHeight: 'min(520px, 55dvh)' }}
+                      className="max-h-full max-w-full object-contain block"
                       draggable={false}
                     />
                   )}
 
                   {/* Floor glow */}
-                  <div className="absolute -bottom-3 inset-x-0 flex justify-center pointer-events-none">
+                  <div className="absolute bottom-0 inset-x-0 flex justify-center pointer-events-none">
                     <div
-                      className="rounded-full blur-2xl"
-                      style={{ width: '150%', height: '36px', background: 'color-mix(in_srgb,var(--app-accent)_38%,transparent)' }}
+                      className="rounded-full blur-3xl"
+                      style={{ width: '60%', height: '48px', background: 'color-mix(in_srgb,var(--app-accent)_40%,transparent)' }}
                     />
                   </div>
                 </div>
               </div>
 
               {/* === Glass name plate — bottom left === */}
-              <div className="glass-panel-in absolute bottom-24 left-5 z-20 rounded-2xl backdrop-blur-md border border-white/10 bg-black/35 px-4 py-3 max-w-[200px]">
+              <div className="glass-panel-in absolute bottom-5 left-5 z-20 rounded-2xl backdrop-blur-md border border-white/10 bg-black/35 px-4 py-3 max-w-[200px]">
                 <div className="text-[9px] uppercase tracking-[0.18em] text-white/40 mb-0.5">
                   {currentLevelConfig ? `Lv ${currentLevelConfig.level}` : 'Unranked'} · {roleText}
                 </div>
@@ -1419,7 +1417,7 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
               </div>
 
               {/* === Stats chips — bottom right === */}
-              <div className="glass-panel-in glass-panel-in-delay-1 absolute bottom-24 right-5 z-20 flex flex-col items-end gap-1.5">
+              <div className="glass-panel-in glass-panel-in-delay-1 absolute bottom-5 right-5 z-20 flex flex-col items-end gap-1.5">
                 <div className="px-3 py-1.5 rounded-xl backdrop-blur-md bg-black/35 border border-white/10 text-[9px] uppercase tracking-[0.12em] text-white/40 whitespace-nowrap">
                   <span className="text-[var(--app-accent)] font-bold mr-1.5">{totalXP}</span>XP
                 </div>
@@ -1431,15 +1429,15 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
                 </div>
               </div>
 
-              {/* === Dock — bottom center, glass pill === */}
-              <div className="glass-panel-in glass-panel-in-delay-2 absolute bottom-4 inset-x-0 z-20 flex justify-center px-3">
+              {/* === Dock — top center, glass pill === */}
+              <div className="glass-panel-in glass-panel-in-delay-2 absolute top-3 inset-x-0 z-20 flex justify-center px-3">
                 <div className="flex flex-wrap justify-center gap-px px-2 py-1.5 rounded-2xl backdrop-blur-md bg-black/45 border border-white/8 shadow-[0_4px_24px_rgba(0,0,0,0.4)]">
                   {allBtns.map(btn => <DockBtn key={btn.key} btn={btn} />)}
                 </div>
               </div>
 
-              {/* === Upload buttons — top right === */}
-              <div className="absolute top-3 right-3 z-20 flex gap-1.5">
+              {/* === Upload buttons — right side, below dock === */}
+              <div className="absolute top-14 right-3 z-20 flex flex-col gap-1.5">
                 <button
                   type="button"
                   title="Upload character image (PNG/JPG)"
@@ -1458,9 +1456,9 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
                 </button>
               </div>
 
-              {/* === GLB indicator — top left === */}
+              {/* === GLB indicator — left side, below dock === */}
               {stageGlbName && (
-                <div className="absolute top-3 left-3 z-20 flex items-center gap-1.5 bg-black/60 backdrop-blur-sm rounded-lg px-2 py-1 border border-[color-mix(in_srgb,var(--app-accent)_30%,transparent)]">
+                <div className="absolute top-14 left-3 z-20 flex items-center gap-1.5 bg-black/60 backdrop-blur-sm rounded-lg px-2 py-1 border border-[color-mix(in_srgb,var(--app-accent)_30%,transparent)]">
                   <Box size={10} className="text-[var(--app-accent)] shrink-0" />
                   <span className="text-[9px] uppercase tracking-[0.1em] text-[var(--app-accent)] truncate max-w-[120px]">{stageGlbName}</span>
                   <button
