@@ -249,7 +249,7 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
     }
     const script = document.createElement('script');
     script.type = 'module';
-    script.src = 'https://unpkg.com/@google/model-viewer@latest/dist/model-viewer.min.js';
+    script.src = 'https://unpkg.com/@google/model-viewer@3.5.0/dist/model-viewer.min.js';
     script.onload = loadPersistedModel;
     document.head.appendChild(script);
     return () => { if (objectUrlRef.current) URL.revokeObjectURL(objectUrlRef.current); };
@@ -1328,10 +1328,13 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
               )}
 
               {/* === Character — fills entire stage, no size limit === */}
+              {/* When a GLB is loaded: no CSS pose animation, no JS parallax —
+                  CSS transforms deform the already-rendered WebGL canvas output,
+                  making bones/joints appear displaced. The GLB has its own animations. */}
               <div
                 className="absolute inset-0"
-                style={{ perspective: '1100px' }}
-                onMouseMove={e => {
+                style={stageGlbUrl ? undefined : { perspective: '1100px' }}
+                onMouseMove={stageGlbUrl ? undefined : e => {
                   const rect = e.currentTarget.getBoundingClientRect();
                   const x = ((e.clientX - rect.left) / rect.width - 0.5) * 2;
                   const y = ((e.clientY - rect.top) / rect.height - 0.5) * 2;
@@ -1339,7 +1342,7 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
                     stageInnerRef.current.style.transform = `rotateY(${x * 6}deg) rotateX(${-y * 4}deg)`;
                   }
                 }}
-                onMouseLeave={() => {
+                onMouseLeave={stageGlbUrl ? undefined : () => {
                   if (stageInnerRef.current) {
                     stageInnerRef.current.style.transform = 'rotateY(0deg) rotateX(0deg)';
                   }
@@ -1347,7 +1350,7 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
               >
                 <div
                   ref={stageInnerRef}
-                  className={`w-full h-full flex items-center justify-center stage-pose-${stageState} transition-transform duration-150 ease-out`}
+                  className={`w-full h-full flex items-center justify-center transition-transform duration-150 ease-out${stageGlbUrl ? '' : ` stage-pose-${stageState}`}`}
                 >
                   {/* Spotlight from above */}
                   <div
@@ -1355,13 +1358,18 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
                     style={{ background: 'radial-gradient(ellipse 60% 55% at 50% 0%, color-mix(in_srgb,var(--app-accent)_14%,transparent) 0%, transparent 70%)' }}
                   />
 
-                  {/* Character — GLB fills full container; image fits proportionally */}
+                  {/* GLB — clean model-viewer with no CSS transform interference */}
                   {stageGlbUrl ? (
                     <model-viewer
                       src={stageGlbUrl}
-                      camera-controls
                       autoplay
+                      camera-controls
+                      disable-zoom
                       interaction-prompt="none"
+                      shadow-intensity="0"
+                      exposure="1"
+                      environment-image="neutral"
+                      camera-orbit="0deg 85deg auto"
                       style={{ width: '100%', height: '100%', display: 'block', background: 'transparent' } as React.CSSProperties}
                     />
                   ) : (
