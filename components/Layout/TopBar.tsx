@@ -125,20 +125,7 @@ export const TopBar: React.FC<TopBarProps> = ({
 
   return (
     <>
-      <div className="fixed left-2 top-1 z-[95] pointer-events-none md:left-2">
-        <EyeOrb
-          ariaLabel="Play"
-          className="pointer-events-auto"
-          onMouseEnter={playHoverSound}
-          onClick={() => {
-            playClickSound();
-            onPlayClick();
-          }}
-        />
-      </div>
       <div className="h-[56px] md:h-[60px] bg-[color-mix(in_srgb,var(--app-panel)_82%,transparent)] backdrop-blur-sm border-b border-[var(--app-border)] flex items-center relative z-40 select-none">
-      <div className="h-full w-[84px] sm:w-[96px] md:w-[132px] shrink-0" aria-hidden="true"></div>
-
       {/* Middle: Navigation */}
       <div className="xt-nav-tabs flex-1 flex items-center h-full overflow-x-auto no-scrollbar min-w-0">
         <NavTab label="Home" isActive={currentView === ClientView.HOME} onClick={() => onChangeView(ClientView.HOME)} />

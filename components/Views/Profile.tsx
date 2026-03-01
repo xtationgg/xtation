@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Camera, Edit2, Check, X, Upload, Box, User, Activity, Award, BarChart2, Sword, Zap, Link2, FileText, Shield } from 'lucide-react';
 import { ProfilePanel } from '../UI/ProfilePanel';
+import { EyeOrb } from '../UI/EyeOrb';
 import { DrawerOverlay } from '../Profile/DrawerOverlay';
 import { RewardVisual } from '../UI/RewardVisual';
 import { RewardConfig, InventoryItem } from '../../types';
@@ -194,7 +195,7 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
   const objectUrlRef = useRef<string | null>(null);
   const CHARACTER_PLACEHOLDER_SRC = '/characters/placeholder.svg';
 
-  const { stats: xpStats, legacyXP, tasks, selectors, dateKey } = useXP();
+  const { stats: xpStats, legacyXP, tasks, selectors, dateKey, startSession, stopSession } = useXP();
 
   useEffect(() => {
     try {
@@ -1255,14 +1256,13 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
               title={btn.label}
               onClick={() => setLobbyOpenPanel(p => p === btn.key ? null : btn.key)}
               style={{ transitionTimingFunction: 'cubic-bezier(0.34, 1.56, 0.64, 1)', transitionDuration: '220ms' }}
-              className={`flex flex-col items-center gap-0.5 w-12 py-1.5 rounded-xl transition-[transform,background-color,color] select-none ${
+              className={`px-3 py-1 rounded-full text-[9px] uppercase tracking-[0.14em] font-mono transition-[transform,background-color,color,border-color] select-none border whitespace-nowrap ${
                 active
-                  ? 'bg-[color-mix(in_srgb,var(--app-accent)_28%,transparent)] text-[var(--app-accent)] scale-110'
-                  : 'text-white/45 hover:text-white hover:bg-white/10 hover:scale-110 active:scale-90'
+                  ? 'bg-[color-mix(in_srgb,var(--app-accent)_22%,black)] border-[color-mix(in_srgb,var(--app-accent)_55%,transparent)] text-[var(--app-accent)] scale-105'
+                  : 'bg-black/40 border-white/10 text-white/45 hover:text-white hover:border-white/25 hover:scale-105 active:scale-95'
               }`}
             >
-              {btn.icon}
-              <span className="text-[7px] uppercase tracking-[0.08em] leading-none">{btn.label}</span>
+              {btn.label}
             </button>
           );
         };
@@ -1432,15 +1432,25 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
                 </div>
               </div>
 
-              {/* === Dock — top center, glass pill === */}
-              <div className="glass-panel-in glass-panel-in-delay-2 absolute top-3 inset-x-0 z-20 flex justify-center px-3">
-                <div className="flex flex-wrap justify-center gap-px px-2 py-1.5 rounded-2xl backdrop-blur-md bg-black/45 border border-white/8 shadow-[0_4px_24px_rgba(0,0,0,0.4)]">
-                  {allBtns.map(btn => <DockBtn key={btn.key} btn={btn} />)}
-                </div>
+              {/* === Dock — left side, vertical floating pills === */}
+              <div className="glass-panel-in glass-panel-in-delay-2 absolute left-3 top-1/2 -translate-y-1/2 z-20 flex flex-col gap-1.5">
+                {allBtns.map(btn => <DockBtn key={btn.key} btn={btn} />)}
               </div>
 
-              {/* === Upload buttons — right side, below dock === */}
-              <div className="absolute top-14 right-3 z-20 flex flex-col gap-1.5">
+              {/* === EyeOrb — bottom right corner === */}
+              <div className="absolute bottom-4 right-4 z-20">
+                <EyeOrb
+                  ariaLabel="Play"
+                  onMouseEnter={playHoverSound}
+                  onClick={() => {
+                    playClickSound();
+                    if (activeSession) { stopSession(); } else { startSession({ title: 'Quick session', tag: 'stage', source: 'timer', linkedTaskIds: [] }); }
+                  }}
+                />
+              </div>
+
+              {/* === Upload buttons — right side === */}
+              <div className="absolute top-3 right-3 z-20 flex flex-col gap-1.5">
                 <button
                   type="button"
                   title="Upload character image (PNG/JPG)"
@@ -1461,7 +1471,7 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
 
               {/* === GLB indicator — left side, below dock === */}
               {stageGlbName && (
-                <div className="absolute top-14 left-3 z-20 flex items-center gap-1.5 bg-black/60 backdrop-blur-sm rounded-lg px-2 py-1 border border-[color-mix(in_srgb,var(--app-accent)_30%,transparent)]">
+                <div className="absolute top-3 left-3 z-20 flex items-center gap-1.5 bg-black/60 backdrop-blur-sm rounded-lg px-2 py-1 border border-[color-mix(in_srgb,var(--app-accent)_30%,transparent)]">
                   <Box size={10} className="text-[var(--app-accent)] shrink-0" />
                   <span className="text-[9px] uppercase tracking-[0.1em] text-[var(--app-accent)] truncate max-w-[120px]">{stageGlbName}</span>
                   <button
