@@ -1941,3 +1941,9 @@ a {
 }
 .lobby-slide-right { animation: lobby-slide-right 0.18s ease-out both; }
 .lobby-slide-up    { animation: lobby-slide-up    0.18s ease-out both; }
+
+@keyframes lobby-panel-in {
+  from { opacity: 0; transform: translateX(12px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+.lobby-panel-in { animation: lobby-panel-in 0.18s ease-out both; }

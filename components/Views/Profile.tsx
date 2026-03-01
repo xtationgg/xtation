@@ -1185,77 +1185,103 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
             {btn.label}
           </button>
         );
+        const panelIcon = allBtns.find(b => b.key === lobbyOpenPanel)?.icon;
+        const panelLabel = allBtns.find(b => b.key === lobbyOpenPanel)?.label ?? '';
         return (
-          <div className="relative flex flex-col items-center gap-5 py-2">
-            {/* Top 4 buttons */}
-            <div className="flex items-center justify-center gap-2 flex-wrap">
-              {topBtns.map(btn => <LobbyBtn key={btn.key} btn={btn} />)}
-            </div>
+          <>
+            <div className="flex flex-col md:flex-row gap-5 items-start">
+              {/* Stage column */}
+              <div className="flex flex-col items-center gap-4 flex-1 min-w-0">
+                {/* Top 4 buttons */}
+                <div className="flex items-center justify-center gap-2 flex-wrap">
+                  {topBtns.map(btn => <LobbyBtn key={btn.key} btn={btn} />)}
+                </div>
 
-            {/* Character Stage */}
-            <div
-              className="relative w-full max-w-xs mx-auto rounded-2xl overflow-visible cursor-default select-none"
-              style={{ perspective: '900px' }}
-              onMouseMove={e => {
-                const rect = e.currentTarget.getBoundingClientRect();
-                const x = ((e.clientX - rect.left) / rect.width - 0.5) * 2;
-                const y = ((e.clientY - rect.top) / rect.height - 0.5) * 2;
-                if (stageInnerRef.current) {
-                  stageInnerRef.current.style.transform = `rotateY(${x * 5}deg) rotateX(${-y * 5}deg)`;
-                }
-              }}
-              onMouseLeave={() => {
-                if (stageInnerRef.current) {
-                  stageInnerRef.current.style.transform = 'rotateY(0deg) rotateX(0deg)';
-                }
-              }}
-            >
-              {/* Outer ambient glow */}
-              <div className="absolute -inset-4 rounded-3xl bg-[color-mix(in_srgb,var(--app-accent)_12%,transparent)] blur-2xl pointer-events-none" />
+                {/* Character Stage */}
+                <div
+                  className="relative w-full max-w-xs mx-auto rounded-2xl overflow-visible cursor-default select-none"
+                  style={{ perspective: '900px' }}
+                  onMouseMove={e => {
+                    const rect = e.currentTarget.getBoundingClientRect();
+                    const x = ((e.clientX - rect.left) / rect.width - 0.5) * 2;
+                    const y = ((e.clientY - rect.top) / rect.height - 0.5) * 2;
+                    if (stageInnerRef.current) {
+                      stageInnerRef.current.style.transform = `rotateY(${x * 5}deg) rotateX(${-y * 5}deg)`;
+                    }
+                  }}
+                  onMouseLeave={() => {
+                    if (stageInnerRef.current) {
+                      stageInnerRef.current.style.transform = 'rotateY(0deg) rotateX(0deg)';
+                    }
+                  }}
+                >
+                  <div className="absolute -inset-4 rounded-3xl bg-[color-mix(in_srgb,var(--app-accent)_12%,transparent)] blur-2xl pointer-events-none" />
+                  <div
+                    ref={stageInnerRef}
+                    className="relative transition-transform duration-150 ease-out rounded-2xl overflow-hidden"
+                    style={{ transformStyle: 'preserve-3d' }}
+                  >
+                    <img
+                      src={CHARACTER_PLACEHOLDER_SRC}
+                      alt="Character"
+                      className="w-full h-auto block rounded-2xl"
+                      draggable={false}
+                    />
+                    <div className="absolute inset-0 rounded-2xl shadow-[inset_0_0_48px_color-mix(in_srgb,var(--app-accent)_18%,transparent)] pointer-events-none" />
+                    <div className="absolute inset-0 rounded-2xl bg-gradient-to-t from-black/55 via-transparent to-transparent pointer-events-none" />
+                  </div>
+                </div>
 
-              <div
-                ref={stageInnerRef}
-                className="relative transition-transform duration-150 ease-out rounded-2xl overflow-hidden"
-                style={{ transformStyle: 'preserve-3d' }}
-              >
-                <img
-                  src={CHARACTER_PLACEHOLDER_SRC}
-                  alt="Character"
-                  className="w-full h-auto block rounded-2xl"
-                  draggable={false}
-                />
-                {/* Inner glow overlay */}
-                <div className="absolute inset-0 rounded-2xl shadow-[inset_0_0_48px_color-mix(in_srgb,var(--app-accent)_18%,transparent)] pointer-events-none" />
-                {/* Vignette bottom */}
-                <div className="absolute inset-0 rounded-2xl bg-gradient-to-t from-black/55 via-transparent to-transparent pointer-events-none" />
+                <button
+                  type="button"
+                  disabled
+                  title="3D slot coming soon"
+                  className="text-[9px] uppercase tracking-[0.16em] text-[var(--app-muted)] border border-dashed border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] rounded px-3 py-1 opacity-50 cursor-not-allowed"
+                >
+                  Change Model (later)
+                </button>
+
+                {/* Bottom 4 buttons */}
+                <div className="flex items-center justify-center gap-2 flex-wrap">
+                  {botBtns.map(btn => <LobbyBtn key={btn.key} btn={btn} />)}
+                </div>
               </div>
+
+              {/* Desktop persistent panel (part of page flow) */}
+              {lobbyOpenPanel !== null && (
+                <aside className="hidden md:flex flex-col w-72 shrink-0 bg-[var(--app-panel)] border border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] rounded-2xl overflow-hidden lobby-panel-in">
+                  <div className="flex items-center justify-between px-4 py-3 border-b border-[color-mix(in_srgb,var(--app-text)_8%,transparent)] shrink-0">
+                    <div className="flex items-center gap-2 text-[11px] uppercase tracking-[0.18em] text-[var(--app-text)]">
+                      <span className="text-[var(--app-accent)]">{panelIcon}</span>
+                      {panelLabel}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setLobbyOpenPanel(null)}
+                      className="text-[var(--app-muted)] hover:text-[var(--app-text)] transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--app-accent)] rounded"
+                      aria-label="Close panel"
+                    >
+                      <X size={14} />
+                    </button>
+                  </div>
+                  <div className="flex-1 overflow-y-auto xt-scroll p-4">
+                    {renderLobbyPanelContent(lobbyOpenPanel)}
+                  </div>
+                </aside>
+              )}
             </div>
 
-            {/* Change Model disabled */}
-            <button
-              type="button"
-              disabled
-              title="3D slot coming soon"
-              className="text-[9px] uppercase tracking-[0.16em] text-[var(--app-muted)] border border-dashed border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] rounded px-3 py-1 opacity-50 cursor-not-allowed"
-            >
-              Change Model (later)
-            </button>
-
-            {/* Bottom 4 buttons */}
-            <div className="flex items-center justify-center gap-2 flex-wrap">
-              {botBtns.map(btn => <LobbyBtn key={btn.key} btn={btn} />)}
-            </div>
-
-            {/* Side Panel */}
+            {/* Mobile: ProfilePanel bottom sheet only */}
             <ProfilePanel
+              mobileOnly
               open={lobbyOpenPanel !== null}
               onClose={() => setLobbyOpenPanel(null)}
-              title={allBtns.find(b => b.key === lobbyOpenPanel)?.label ?? ''}
-              icon={allBtns.find(b => b.key === lobbyOpenPanel)?.icon}
+              title={panelLabel}
+              icon={panelIcon}
             >
               {renderLobbyPanelContent(lobbyOpenPanel)}
             </ProfilePanel>
-          </div>
+          </>
         );
       }
       case 'HEALTH':
@@ -1499,185 +1525,80 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
   };
 
   return (
-    <div className="profile-hud-theme p-8 h-full overflow-y-auto bg-[var(--ui-bg)] text-[var(--ui-text)]">
-      {/* HEADER (private profile) */}
-      <div className="relative overflow-hidden rounded-2xl border border-[var(--ui-border)] bg-[var(--ui-panel)]">
-        <div className="h-[340px] relative overflow-hidden">
-          {/* Cover media (image/video) */}
-          {(() => {
-            const src = coverImage?.startsWith('idb:') ? resolvedCoverUrl : coverImage;
-            if (!src) return null;
-
-            if (coverType === 'video' || src.startsWith('data:video') || src.endsWith('.mp4')) {
-              return (
-                <video
-                  src={src}
-                  className={`absolute inset-0 w-full h-full ${coverFit === 'cover' ? 'object-cover' : 'object-contain'}`}
-                  autoPlay
-                  loop
-                  muted
-                  playsInline
-                />
-              );
-            }
-
-            return (
-              <img
-                src={src}
-                alt="cover"
-                className={`absolute inset-0 w-full h-full ${coverFit === 'cover' ? 'object-cover' : 'object-contain'}`}
-              />
-            );
-          })()}
-
-          <div className="absolute inset-0 bg-gradient-to-t from-[rgba(0,0,0,0.78)] via-[rgba(0,0,0,0.18)] to-[rgba(0,0,0,0.10)]" />
+    <div className="p-4 md:p-6 h-full overflow-y-auto xt-scroll bg-[var(--app-bg)] text-[var(--app-text)]">
+      {/* Compact header ≤160px */}
+      <div className="flex items-center gap-4 bg-[var(--app-panel)] border border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] rounded-2xl px-4 py-3 mb-4">
+        {/* Avatar */}
+        <div
+          className="relative shrink-0 w-14 h-14 rounded-xl overflow-hidden border border-[color-mix(in_srgb,var(--app-text)_14%,transparent)] cursor-pointer group"
+          onClick={handleImageClick}
+          onMouseEnter={playHoverSound}
+          title="Change avatar"
+        >
+          <img src={profileImage} alt="Profile" className="w-full h-full object-cover" />
+          <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/40">
+            <Camera size={14} className="text-white" />
+          </div>
+          <input type="file" ref={fileInputRef} className="hidden" accept="image/png,image/jpeg,image/gif,image/jpg" onChange={handleFileChange} />
         </div>
 
-        {/* Cover edit */}
-        <div className="absolute top-4 right-4 z-10 flex items-center gap-2">
-          <button
-            type="button"
-            onClick={() => setCoverFit(v => (v === 'cover' ? 'contain' : 'cover'))}
-            className="h-11 w-11 rounded-full border border-[color-mix(in_srgb,var(--app-text)_25%,transparent)] bg-[color-mix(in_srgb,var(--app-bg)_35%,transparent)] backdrop-blur-sm hover:bg-[color-mix(in_srgb,var(--app-bg)_55%,transparent)] hover:border-[color-mix(in_srgb,var(--app-text)_40%,transparent)] transition-all flex items-center justify-center"
-            title={coverFit === 'cover' ? 'Fit (no crop)' : 'Fill (crop)'}
-          >
-            <span className="text-[var(--app-text)] text-[10px] font-bold">{coverFit === 'cover' ? 'FILL' : 'FIT'}</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={handleCoverClick}
-            onMouseEnter={playHoverSound}
-            className="h-11 w-11 rounded-full border border-[color-mix(in_srgb,var(--app-text)_25%,transparent)] bg-[color-mix(in_srgb,var(--app-bg)_35%,transparent)] backdrop-blur-sm hover:bg-[color-mix(in_srgb,var(--app-bg)_55%,transparent)] hover:border-[color-mix(in_srgb,var(--app-text)_40%,transparent)] transition-all flex items-center justify-center"
-            title="Change cover"
-          >
-            <Upload size={18} className="text-[var(--app-text)]" />
-          </button>
-        </div>
-
-        {/* Header content */}
-        <div className="absolute inset-x-0 bottom-0 z-10 p-6">
-          {/* extra shadow behind text/content for readability on bright covers */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/30 to-transparent pointer-events-none" />
-          <div className="relative flex items-end gap-5 flex-wrap">
-            {/* Avatar */}
-            <div
-              className="relative w-[140px] h-[140px] rounded-2xl border border-[var(--ui-border)] overflow-hidden bg-[color-mix(in_srgb,var(--app-bg)_25%,transparent)]"
-              onMouseEnter={playHoverSound}
-            >
-              <img src={profileImage} alt="Profile" className="w-full h-full object-cover" />
+        {/* Name + XP bar + chips */}
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 mb-1.5">
+            {!isEditingName ? (
               <button
                 type="button"
-                onClick={handleImageClick}
-                className="absolute inset-0 opacity-0 hover:opacity-100 transition-opacity bg-[color-mix(in_srgb,var(--app-bg)_40%,transparent)] flex items-center justify-center"
-                title="Change avatar"
+                onClick={startEditingName}
+                className="text-sm font-bold text-[var(--app-text)] hover:text-[var(--app-accent)] transition-colors truncate max-w-[200px] focus:outline-none focus:ring-2 focus:ring-[var(--app-accent)] rounded"
+                title="Edit name"
               >
-                <Camera size={20} className="text-[var(--app-text)]" />
+                {summonerName}
               </button>
-              <input type="file" ref={fileInputRef} className="hidden" accept="image/png, image/jpeg, image/gif, image/jpg" onChange={handleFileChange} />
+            ) : (
+              <div className="flex items-center gap-1.5">
+                <input
+                  value={tempName}
+                  onChange={e => setTempName(e.target.value)}
+                  className="h-7 px-2 rounded border border-[color-mix(in_srgb,var(--app-text)_20%,transparent)] bg-[var(--app-panel-2)] text-[var(--app-text)] text-sm focus:outline-none focus:border-[var(--app-accent)]"
+                />
+                <button type="button" onClick={saveName} className="h-7 w-7 rounded border border-[color-mix(in_srgb,var(--app-text)_12%,transparent)] flex items-center justify-center text-[var(--app-muted)] hover:text-[var(--app-text)] transition-colors"><Check size={12} /></button>
+                <button type="button" onClick={cancelEdit} className="h-7 w-7 rounded border border-[color-mix(in_srgb,var(--app-text)_12%,transparent)] flex items-center justify-center text-[var(--app-muted)] hover:text-[var(--app-text)] transition-colors"><X size={12} /></button>
+              </div>
+            )}
+          </div>
+
+          {/* XP bar */}
+          <div className="mb-2">
+            <div className="h-1.5 rounded-full bg-[color-mix(in_srgb,var(--app-text)_10%,transparent)] overflow-hidden">
+              <div
+                className="h-full bg-[var(--app-accent)] rounded-full transition-[width] duration-500"
+                style={{ width: `${levelProgress}%` }}
+              />
             </div>
+          </div>
 
-            {/* Name / ID / Role */}
-            <div className="flex-1 min-w-[260px]">
-              <div className="text-[10px] uppercase tracking-[0.35em] text-[color-mix(in_srgb,var(--app-text)_80%,transparent)] drop-shadow-[0_2px_8px_rgba(0,0,0,0.75)]">PROFILE</div>
-
-              <div className="mt-2 flex items-center gap-3 flex-wrap">
-                {!isEditingName ? (
-                  <div className="text-3xl font-black tracking-tight text-[var(--app-text)] drop-shadow-[0_2px_10px_rgba(0,0,0,0.85)]">{summonerName}</div>
-                ) : (
-                  <input
-                    value={tempName}
-                    onChange={(e) => setTempName(e.target.value)}
-                    className="h-11 px-3 rounded border border-[var(--ui-border)] bg-[color-mix(in_srgb,var(--app-bg)_30%,transparent)] text-[var(--app-text)]"
-                  />
-                )}
-
-                {!isEditingName ? (
-                  <button
-                    type="button"
-                    onClick={startEditingName}
-                    className="h-10 w-10 rounded-full border border-[color-mix(in_srgb,var(--app-text)_15%,transparent)] bg-[color-mix(in_srgb,var(--app-bg)_25%,transparent)] text-[color-mix(in_srgb,var(--app-text)_80%,transparent)] hover:text-[var(--app-text)] hover:border-[color-mix(in_srgb,var(--app-text)_30%,transparent)]"
-                    title="Edit name"
-                  >
-                    <Edit2 size={16} className="mx-auto" />
-                  </button>
-                ) : (
-                  <div className="flex items-center gap-2">
-                    <button
-                      type="button"
-                      onClick={saveName}
-                      className="h-10 w-10 rounded-full border border-[color-mix(in_srgb,var(--app-text)_15%,transparent)] bg-[color-mix(in_srgb,var(--app-bg)_25%,transparent)] text-[color-mix(in_srgb,var(--app-text)_80%,transparent)] hover:text-[var(--app-text)] hover:border-[color-mix(in_srgb,var(--app-text)_30%,transparent)]"
-                      title="Save"
-                    >
-                      <Check size={16} className="mx-auto" />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={cancelEdit}
-                      className="h-10 w-10 rounded-full border border-[color-mix(in_srgb,var(--app-text)_15%,transparent)] bg-[color-mix(in_srgb,var(--app-bg)_25%,transparent)] text-[color-mix(in_srgb,var(--app-text)_80%,transparent)] hover:text-[var(--app-text)] hover:border-[color-mix(in_srgb,var(--app-text)_30%,transparent)]"
-                      title="Cancel"
-                    >
-                      <X size={16} className="mx-auto" />
-                    </button>
-                  </div>
-                )}
-              </div>
-
-              <div className="mt-2 flex items-center gap-3 flex-wrap">
-                <div className="text-[11px] uppercase tracking-[0.25em] text-[color-mix(in_srgb,var(--app-text)_70%,transparent)] drop-shadow-[0_2px_8px_rgba(0,0,0,0.75)]">{profileId}</div>
-                <div className="h-1 w-1 rounded-full bg-[color-mix(in_srgb,var(--app-text)_25%,transparent)]" />
-                {!isEditingRole ? (
-                  <button
-                    type="button"
-                    onClick={() => setIsEditingRole(true)}
-                    className="text-[11px] uppercase tracking-[0.25em] text-[var(--ui-accent)] hover:text-[var(--app-text)] drop-shadow-[0_2px_8px_rgba(0,0,0,0.65)]"
-                    title="Edit role"
-                  >
-                    {roleText}
-                  </button>
-                ) : (
-                  <div className="flex items-center gap-2">
-                    <input
-                      value={roleText}
-                      onChange={(e) => setRoleText(e.target.value)}
-                      className="h-9 px-3 rounded border border-[var(--ui-border)] bg-[color-mix(in_srgb,var(--app-bg)_30%,transparent)] text-[var(--app-text)] text-sm"
-                    />
-                    <button
-                      type="button"
-                      onClick={saveRole}
-                      className="h-9 px-3 rounded border border-[var(--ui-border)] bg-[var(--ui-accent)] text-[var(--app-text)] text-xs uppercase tracking-[0.2em]"
-                    >
-                      Save
-                    </button>
-                  </div>
-                )}
-              </div>
-
-              {/* Progress */}
-              <div className="mt-5 max-w-[520px]">
-                <div className="flex items-center justify-between text-[10px] uppercase tracking-[0.25em] text-[color-mix(in_srgb,var(--app-text)_70%,transparent)] drop-shadow-[0_2px_8px_rgba(0,0,0,0.75)]">
-                  <span>XP</span>
-                  <span>{totalXP} • {nextConfig ? `${nextConfig.threshold - totalXP} to L${nextConfig.level}` : 'Max'}</span>
-                </div>
-                <div className="mt-2 h-2 rounded bg-[color-mix(in_srgb,var(--app-bg)_35%,transparent)] border border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] overflow-hidden">
-                  <div className="h-full bg-[var(--ui-accent)]" style={{ width: `${Math.min(100, Math.max(0, levelProgress))}%` }} />
-                </div>
-              </div>
-            </div>
+          {/* 3 chips: Level, Role, XP */}
+          <div className="flex items-center gap-1.5 flex-wrap">
+            {nextConfig && (
+              <span className="px-2 py-0.5 rounded-full border border-[color-mix(in_srgb,var(--app-accent)_45%,transparent)] bg-[color-mix(in_srgb,var(--app-accent)_8%,var(--app-panel-2))] text-[9px] uppercase tracking-[0.14em] text-[var(--app-accent)]">
+                Lv {nextConfig.level - 1}
+              </span>
+            )}
+            <span className="px-2 py-0.5 rounded-full border border-[color-mix(in_srgb,var(--app-text)_12%,transparent)] bg-[var(--app-panel-2)] text-[9px] uppercase tracking-[0.14em] text-[var(--app-muted)] truncate max-w-[110px]">
+              {roleText}
+            </span>
+            <span className="px-2 py-0.5 rounded-full border border-[color-mix(in_srgb,var(--app-text)_12%,transparent)] bg-[var(--app-panel-2)] text-[9px] uppercase tracking-[0.14em] text-[var(--app-muted)]">
+              {totalXP} XP
+            </span>
           </div>
         </div>
 
-        <input
-          ref={coverInputRef}
-          type="file"
-          className="hidden"
-          accept="image/png,image/jpeg,image/jpg,image/gif,image/svg+xml,video/mp4"
-          onChange={handleCoverChange}
-        />
+        {/* Hidden file inputs */}
+        <input ref={coverInputRef} type="file" className="hidden" accept="image/png,image/jpeg,image/jpg,image/gif,image/svg+xml,video/mp4" onChange={handleCoverChange} />
       </div>
 
       {/* Tabs */}
-      <div className="mt-6 flex items-center border-b border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] pb-3 mb-6 gap-2 flex-wrap">
+      <div className="flex items-center border-b border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] pb-3 mb-5 gap-2 flex-wrap">
         <TabButton label="PROFILE" value="PROFILE" icon={<User size={14} />} />
         <TabButton label="HEALTH" value="HEALTH" icon={<Activity size={14} />} />
         <TabButton label="ACHIEVEMENTS" value="ACHIEVEMENTS" icon={<Award size={14} />} />
@@ -1686,7 +1607,7 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
       </div>
 
       {/* Content */}
-      <div className="profile-content-surface">
+      <div>
         {renderTabContent()}
       </div>
     </div>
