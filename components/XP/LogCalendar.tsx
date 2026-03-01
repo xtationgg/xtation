@@ -20,7 +20,7 @@ const SIDE_PANEL_TABS = [
 ] as const;
 const TIMELINE_HOUR_MARKERS = Array.from({ length: 25 }, (_, index) => index);
 const TIMELINE_LABELS_FULL = TIMELINE_HOUR_MARKERS;
-const TIMELINE_LABELS_SPARSE = TIMELINE_HOUR_MARKERS;
+const TIMELINE_LABELS_SPARSE = [0, 6, 12, 18, 24] as const;
 const TIMELINE_BASELINE_Y = 350;
 
 const toDateKey = (date: Date) => {
@@ -536,6 +536,7 @@ export const LogCalendar: React.FC = () => {
   const rowRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const timelineChartRef = useRef<HTMLDivElement>(null);
   const [timelineChartWidth, setTimelineChartWidth] = useState(0);
+  const [timelineChartHeight, setTimelineChartHeight] = useState(0);
 
   const todayKey = toDateKey(new Date(now));
   const selectedDate = fromDateKey(selectedKey);
@@ -568,6 +569,7 @@ export const LogCalendar: React.FC = () => {
     if (!el) return;
     const ro = new ResizeObserver((entries) => {
       setTimelineChartWidth(entries[0].contentRect.width);
+      setTimelineChartHeight(entries[0].contentRect.height);
     });
     ro.observe(el);
     return () => ro.disconnect();
@@ -701,7 +703,7 @@ export const LogCalendar: React.FC = () => {
       const hour = Math.max(0, Math.min(23, Math.floor(minute / 60)));
       const stackIndex = stackByHour.get(hour) || 0;
       stackByHour.set(hour, stackIndex + 1);
-      const laneDotTop = Math.max(24, TIMELINE_BASELINE_Y - stackIndex * 24);
+      const laneDotTop = Math.max(24, computedBaselineY - stackIndex * 24);
       return {
         id: row.key,
         title: row.title,
@@ -715,7 +717,7 @@ export const LogCalendar: React.FC = () => {
         inferred: row.inferredTime,
       };
     });
-  }, [timelineRows, selectedKey]);
+  }, [timelineRows, selectedKey, computedBaselineY]);
   const visibleTimelineDots = useMemo(
     () =>
       legendFilterStates.length === 0
@@ -740,6 +742,37 @@ export const LogCalendar: React.FC = () => {
     const minutes = nowDate.getHours() * 60 + nowDate.getMinutes();
     return (minutes / 1439) * 100;
   }, [selectedKey, todayKey, now]);
+
+  const computedBaselineY =
+    timelineChartHeight > 0 ? Math.round(timelineChartHeight * 0.70) : TIMELINE_BASELINE_Y;
+
+  const MAX_DOTS_PER_HOUR = 6;
+  const { clampedDots, overflowBadges } = useMemo(() => {
+    const hourBuckets = new Map<number, (typeof visibleTimelineDots)[number][]>();
+    for (const dot of visibleTimelineDots) {
+      const hour = Math.min(23, Math.floor((dot.xPct / 100) * 24));
+      const bucket = hourBuckets.get(hour) ?? [];
+      bucket.push(dot);
+      hourBuckets.set(hour, bucket);
+    }
+    const clamped: typeof visibleTimelineDots = [];
+    const badges: Array<{ hour: number; count: number; xPct: number; topY: number }> = [];
+    for (const [hour, dots] of hourBuckets) {
+      if (dots.length <= MAX_DOTS_PER_HOUR) {
+        clamped.push(...dots);
+      } else {
+        clamped.push(...dots.slice(0, MAX_DOTS_PER_HOUR));
+        const topDot = dots[MAX_DOTS_PER_HOUR - 1];
+        badges.push({
+          hour,
+          count: dots.length - MAX_DOTS_PER_HOUR,
+          xPct: topDot.xPct,
+          topY: Math.max(4, topDot.laneDotTop - 18),
+        });
+      }
+    }
+    return { clampedDots: clamped, overflowBadges: badges };
+  }, [visibleTimelineDots]);
 
   const rangeLabel = useMemo(
     () => RANGE_OPTIONS.find((option) => option.value === rangeMode)?.label ?? rangeMode,
@@ -1095,15 +1128,14 @@ export const LogCalendar: React.FC = () => {
   );
 
   const visibleHourLabels =
-    timelineChartWidth > 0 && timelineChartWidth < 320 ? TIMELINE_LABELS_SPARSE : TIMELINE_LABELS_FULL;
+    timelineChartWidth > 0 && timelineChartWidth < 900 ? TIMELINE_LABELS_SPARSE : TIMELINE_LABELS_FULL;
 
   const renderTimelineChart = (mobile = false) => {
-    const chartHeight = mobile ? 380 : 500;
     const chartInnerTop = 24;
     const chartInnerBottom = 78;
-    const baselineTop = TIMELINE_BASELINE_Y;
+    const baselineTop = computedBaselineY;
     return (
-      <div ref={mobile ? undefined : timelineChartRef} className={`rounded-xl bg-[color-mix(in_srgb,var(--app-panel-2)_55%,var(--app-panel))] px-2 py-2 relative overflow-hidden`} style={{ height: chartHeight }}>
+      <div ref={mobile ? undefined : timelineChartRef} className={`rounded-xl bg-[color-mix(in_srgb,var(--app-panel-2)_55%,var(--app-panel))] px-2 py-2 relative overflow-hidden`} style={{ height: mobile ? 380 : 'clamp(320px, 45vh, 520px)' }}>
         <div className="absolute inset-x-4" style={{ top: chartInnerTop, bottom: chartInnerBottom }}>
           <div
             className="absolute inset-x-0 h-[2px] bg-[color-mix(in_srgb,var(--app-text)_18%,transparent)]"
@@ -1182,7 +1214,7 @@ export const LogCalendar: React.FC = () => {
               </span>
             </div>
           ) : null}
-          {visibleTimelineDots.map((dot) => (
+          {clampedDots.map((dot) => (
             <button
               key={`timeline-dot-${mobile ? 'mobile-' : ''}${dot.id}`}
               type="button"
@@ -1229,6 +1261,25 @@ export const LogCalendar: React.FC = () => {
               aria-label={`${dot.title} ${toQuestStateBadge(dot.status)} ${formatTime(dot.time)}${dot.inferred ? ' inferred' : ''}`}
             />
           ))}
+          {overflowBadges.map((badge) => (
+            <div
+              key={`overflow-badge-${mobile ? 'mob-' : ''}${badge.hour}`}
+              className="pointer-events-none absolute flex items-center justify-center rounded-full font-mono text-[var(--app-accent)]"
+              style={{
+                left: `${badge.xPct}%`,
+                top: badge.topY,
+                transform: 'translateX(-50%)',
+                width: 22,
+                height: 16,
+                fontSize: 8,
+                background: 'color-mix(in_srgb,var(--app-accent)_18%,var(--app-panel))',
+                border: '1px solid color-mix(in_srgb,var(--app-accent)_40%,transparent)',
+                boxShadow: '0 0 6px color-mix(in_srgb,var(--app-accent)_30%,transparent)',
+              }}
+            >
+              +{badge.count}
+            </div>
+          ))}
           {visibleTimelineDots.length === 0 ? (
             <div className="absolute inset-0 grid place-items-center text-[10px] uppercase tracking-[0.14em] text-[var(--app-muted)]">
               {legendFilterStates.length ? 'No dots for active legend filter.' : 'No items for this tab.'}
@@ -1249,13 +1300,13 @@ export const LogCalendar: React.FC = () => {
           ) : null}
         </div>
         <div className="absolute inset-x-4 bottom-6 text-[8px] uppercase tracking-[0.02em] text-[var(--app-muted)] tabular-nums font-mono">
-          {(mobile ? TIMELINE_LABELS_SPARSE : visibleHourLabels).map((hour) => (
+          {(mobile ? TIMELINE_LABELS_SPARSE : visibleHourLabels).filter((hour) => hour < 24).map((hour) => (
             <span
               key={`timeline-hour-${hour}`}
               className="absolute whitespace-nowrap"
               style={{
                 left: `${(hour / 24) * 100}%`,
-                transform: hour === 0 ? 'translateX(0)' : hour === 24 ? 'translateX(-100%)' : 'translateX(-50%)',
+                transform: hour === 0 ? 'translateX(0)' : 'translateX(-50%)',
               }}
             >
               {`${String(hour).padStart(2, '0')}:00`}
@@ -1855,14 +1906,14 @@ export const LogCalendar: React.FC = () => {
             </div>
             <div className="h-[520px] rounded-lg bg-[var(--app-panel)] px-4 py-4 relative overflow-hidden">
               <div className="absolute inset-x-4 top-4 bottom-[4.5rem]">
-                <div className="absolute inset-x-0 h-[2px] bg-[color-mix(in_srgb,var(--app-text)_18%,transparent)]" style={{ top: TIMELINE_BASELINE_Y }} />
+                <div className="absolute inset-x-0 h-[2px] bg-[color-mix(in_srgb,var(--app-text)_18%,transparent)]" style={{ top: computedBaselineY }} />
                 {nowMarkerX !== null ? (
                   <div
                     className="pointer-events-none absolute h-[4px] rounded-full"
                     style={{
                       left: 0,
                       width: `${Math.max(0, nowMarkerX)}%`,
-                      top: TIMELINE_BASELINE_Y - 1,
+                      top: computedBaselineY - 1,
                       background:
                         'linear-gradient(90deg, color-mix(in_srgb,var(--app-accent)_28%,transparent) 0%, color-mix(in_srgb,var(--app-accent)_75%,#fff) 100%)',
                       boxShadow: '0 0 10px color-mix(in_srgb,var(--app-accent)_45%,transparent)',
@@ -1903,7 +1954,7 @@ export const LogCalendar: React.FC = () => {
                     <span
                       className="absolute -translate-x-1/2 rounded-full bg-[color-mix(in_srgb,var(--app-accent)_82%,#fff)]"
                       style={{
-                        top: TIMELINE_BASELINE_Y - 5,
+                        top: computedBaselineY - 5,
                         width: 10,
                         height: 10,
                         boxShadow: '0 0 0 4px color-mix(in_srgb,var(--app-accent)_18%,transparent), 0 0 10px color-mix(in_srgb,var(--app-accent)_55%,transparent)',
@@ -1914,7 +1965,7 @@ export const LogCalendar: React.FC = () => {
                     </span>
                   </div>
                 ) : null}
-                {visibleTimelineDots.map((dot, index) => (
+                {clampedDots.map((dot, index) => (
                   <button
                     key={`timeline-expanded-${dot.id}-${index}`}
                     type="button"
@@ -1948,15 +1999,34 @@ export const LogCalendar: React.FC = () => {
                     title={`${dot.title} · ${toQuestStateBadge(dot.status)} · ${formatTime(dot.time)}${dot.inferred ? ' · inferred' : ''}`}
                   />
                 ))}
+                {overflowBadges.map((badge) => (
+                  <div
+                    key={`overflow-badge-expanded-${badge.hour}`}
+                    className="pointer-events-none absolute flex items-center justify-center rounded-full font-mono text-[var(--app-accent)]"
+                    style={{
+                      left: `${badge.xPct}%`,
+                      top: badge.topY,
+                      transform: 'translateX(-50%)',
+                      width: 22,
+                      height: 16,
+                      fontSize: 8,
+                      background: 'color-mix(in_srgb,var(--app-accent)_18%,var(--app-panel))',
+                      border: '1px solid color-mix(in_srgb,var(--app-accent)_40%,transparent)',
+                      boxShadow: '0 0 6px color-mix(in_srgb,var(--app-accent)_30%,transparent)',
+                    }}
+                  >
+                    +{badge.count}
+                  </div>
+                ))}
               </div>
               <div className="absolute inset-x-4 bottom-6 text-[8px] uppercase tracking-[0.02em] text-[var(--app-muted)] tabular-nums font-mono">
-                {TIMELINE_LABELS_FULL.map((hour) => (
+                {TIMELINE_LABELS_FULL.filter((hour) => hour < 24).map((hour) => (
                   <span
                     key={`timeline-expanded-hour-${hour}`}
                     className="absolute whitespace-nowrap"
                     style={{
                       left: `${(hour / 24) * 100}%`,
-                      transform: hour === 0 ? 'translateX(0)' : hour === 24 ? 'translateX(-100%)' : 'translateX(-50%)',
+                      transform: hour === 0 ? 'translateX(0)' : 'translateX(-50%)',
                     }}
                   >
                     {`${String(hour).padStart(2, '0')}:00`}
