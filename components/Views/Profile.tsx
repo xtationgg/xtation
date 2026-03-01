@@ -1438,11 +1438,11 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
         }[stageState];
 
         return (
-          <div className="h-full flex overflow-hidden">
-            {/* ── Left dock sidebar ── */}
+          <div className="h-full relative overflow-hidden">
+            {/* ── Floating dock ── */}
             <div
-              className="w-[58px] shrink-0 flex flex-col items-center py-[10px] px-[5px] gap-[6px] relative z-10"
-              style={{ background: 'color-mix(in_srgb,var(--app-accent)_50%,black)', borderRadius: '0 0 0 0' }}
+              className="absolute left-2 top-1/2 -translate-y-1/2 z-40 w-[54px] flex flex-col items-center py-[10px] px-[5px] gap-[6px] rounded-2xl"
+              style={{ background: 'color-mix(in_srgb,var(--app-accent)_50%,black)', boxShadow: '0 8px 32px rgba(0,0,0,0.55)' }}
             >
               {/* Avatar / home button */}
               <button
@@ -1482,8 +1482,8 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
               </div>
             </div>
 
-            {/* ── Stage + panel overlay ── */}
-            <div className="relative flex-1 overflow-hidden">
+            {/* ── Stage (full area) ── */}
+            <div className="absolute inset-0 overflow-hidden">
               {/* Layer 1: base bg */}
               <div className="absolute inset-0 bg-[var(--app-bg)]" />
 
@@ -1666,26 +1666,31 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
               <input ref={stageImageInputRef} type="file" className="hidden" accept="image/png,image/jpeg,image/jpg" onChange={handleStageImageUpload} />
               <input ref={stageGlbInputRef} type="file" className="hidden" accept=".glb" onChange={handleStageGlbUpload} />
 
-              {/* === Panel overlay — fades in over the stage === */}
-              <div className="absolute inset-0 z-[30]" style={{ pointerEvents: 'none' }}>
+              {/* === Compact side panel — floats next to dock === */}
+              <div className="absolute left-[66px] top-1/2 -translate-y-1/2 z-[35] w-[272px] max-h-[80%]" style={{ pointerEvents: 'none' }}>
                 {(['identity', 'stats', 'loadout', 'skills', 'titles', 'links', 'notes', 'privacy'] as LobbyPanelKey[]).map(key => (
                   <div
                     key={key}
-                    className="absolute inset-0 overflow-y-auto xt-scroll"
+                    className="absolute inset-x-0 top-0 overflow-y-auto xt-scroll rounded-2xl"
                     style={{
-                      background: 'var(--app-panel)',
-                      padding: '20px 18px',
+                      maxHeight: '80vh',
+                      background: 'color-mix(in_srgb,var(--app-panel)_92%,transparent)',
+                      backdropFilter: 'blur(14px)',
+                      border: '1px solid color-mix(in_srgb,var(--app-accent)_22%,transparent)',
+                      boxShadow: '0 12px 40px rgba(0,0,0,0.6)',
+                      padding: '16px 14px',
                       opacity: lobbyOpenPanel === key ? 1 : 0,
                       visibility: lobbyOpenPanel === key ? 'visible' : 'hidden',
                       pointerEvents: lobbyOpenPanel === key ? 'auto' : 'none',
+                      transform: lobbyOpenPanel === key ? 'translateX(0)' : 'translateX(-8px)',
                       transition: lobbyOpenPanel === key
-                        ? 'opacity 0.25s ease'
-                        : 'opacity 0.25s ease, visibility 0s 0.25s',
+                        ? 'opacity 0.22s ease, transform 0.22s ease'
+                        : 'opacity 0.18s ease, transform 0.18s ease, visibility 0s 0.2s',
                     }}
                   >
                     {/* Panel header */}
-                    <div className="flex items-center justify-between mb-[18px]">
-                      <div className="text-[11px] font-semibold uppercase tracking-[2px] text-[var(--app-accent)]">
+                    <div className="flex items-center justify-between mb-[14px]">
+                      <div className="text-[10px] font-semibold uppercase tracking-[2px] text-[var(--app-accent)]">
                         {key.charAt(0).toUpperCase() + key.slice(1)}
                       </div>
                       <button
@@ -1694,7 +1699,7 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
                         className="text-[var(--app-muted)] hover:text-[var(--app-text)] transition-colors"
                         aria-label="Close panel"
                       >
-                        <X size={14} />
+                        <X size={13} />
                       </button>
                     </div>
                     {renderLobbyPanelContent(key)}
