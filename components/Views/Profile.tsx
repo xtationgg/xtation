@@ -218,12 +218,6 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
     localStorage.setItem('profileOutfitEquipped', JSON.stringify(equippedOutfit));
   }, [equippedOutfit]);
   useEffect(() => {
-    try { localStorage.setItem('xtation_profile_skills_v1', JSON.stringify(lobbySkills)); } catch {}
-  }, [lobbySkills]);
-  useEffect(() => {
-    try { localStorage.setItem('xtation_profile_links_v1', JSON.stringify(lobbyLinks)); } catch {}
-  }, [lobbyLinks]);
-  useEffect(() => {
     const stored = localStorage.getItem('inventoryItems');
     if (stored) {
       try {
@@ -297,6 +291,13 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
     return [];
   });
   const stageInnerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    try { localStorage.setItem('xtation_profile_skills_v1', JSON.stringify(lobbySkills)); } catch {}
+  }, [lobbySkills]);
+  useEffect(() => {
+    try { localStorage.setItem('xtation_profile_links_v1', JSON.stringify(lobbyLinks)); } catch {}
+  }, [lobbyLinks]);
 
   // ── Character Upload state ───────────────────────────────────────────
   const [stageImage, setStageImage] = useState<string>(() => {
