@@ -1347,7 +1347,7 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
               >
                 <div
                   ref={stageInnerRef}
-                  className="relative stage-idle transition-transform duration-150 ease-out"
+                  className={`relative stage-pose-${stageState} transition-transform duration-150 ease-out`}
                   style={{ transformStyle: 'preserve-3d' }}
                 >
                   {/* Spotlight from above */}
