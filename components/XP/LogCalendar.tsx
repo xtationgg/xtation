@@ -19,6 +19,8 @@ const SIDE_PANEL_TABS = [
   { value: 'scheduled', label: 'Scheduled' },
 ] as const;
 const TIMELINE_HOUR_MARKERS = Array.from({ length: 25 }, (_, index) => index);
+const TIMELINE_LABELS_FULL = [0, 4, 8, 12, 16, 20, 24];
+const TIMELINE_LABELS_SPARSE = [0, 6, 12, 18, 24];
 
 const toDateKey = (date: Date) => {
   const y = date.getFullYear();
@@ -527,6 +529,8 @@ export const LogCalendar: React.FC = () => {
   const [legendFilterStates, setLegendFilterStates] = useState<QuestRowState[]>([]);
   const dayConsoleListRef = useRef<HTMLDivElement | null>(null);
   const rowRefs = useRef<Record<string, HTMLDivElement | null>>({});
+  const timelineChartRef = useRef<HTMLDivElement>(null);
+  const [timelineChartWidth, setTimelineChartWidth] = useState(0);
 
   const todayKey = toDateKey(new Date(now));
   const selectedDate = fromDateKey(selectedKey);
@@ -552,6 +556,16 @@ export const LogCalendar: React.FC = () => {
       setActiveLogDateKey(key);
     }
   }, [rangeMode, selectedKey, setActiveLogDateKey]);
+
+  useEffect(() => {
+    const el = timelineChartRef.current;
+    if (!el) return;
+    const ro = new ResizeObserver((entries) => {
+      setTimelineChartWidth(entries[0].contentRect.width);
+    });
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
 
   const gridDays = useMemo(() => {
     const start = monthGridStart(viewMonth);
@@ -1062,6 +1076,9 @@ export const LogCalendar: React.FC = () => {
     </div>
   );
 
+  const visibleHourLabels =
+    timelineChartWidth > 0 && timelineChartWidth < 320 ? TIMELINE_LABELS_SPARSE : TIMELINE_LABELS_FULL;
+
   const renderTimelineChart = (mobile = false) => {
     const chartHeight = mobile ? 380 : 500;
     const chartInnerTop = 24;
@@ -1069,7 +1086,7 @@ export const LogCalendar: React.FC = () => {
     const plannedLineTop = 92;
     const actualLineTop = 262;
     return (
-      <div className={`rounded-xl bg-[color-mix(in_srgb,var(--app-panel-2)_55%,var(--app-panel))] px-2 py-2 relative overflow-hidden`} style={{ height: chartHeight }}>
+      <div ref={mobile ? undefined : timelineChartRef} className={`rounded-xl bg-[color-mix(in_srgb,var(--app-panel-2)_55%,var(--app-panel))] px-2 py-2 relative overflow-hidden`} style={{ height: chartHeight }}>
         <div className="absolute inset-x-4" style={{ top: chartInnerTop, bottom: chartInnerBottom }}>
           <div
             className="absolute inset-x-0 h-px bg-[color-mix(in_srgb,var(--app-text)_14%,transparent)]"
@@ -1175,7 +1192,7 @@ export const LogCalendar: React.FC = () => {
           ) : null}
         </div>
         <div className="absolute inset-x-4 bottom-6 text-[10px] uppercase tracking-[0.08em] text-[var(--app-muted)] tabular-nums font-mono">
-          {TIMELINE_HOUR_MARKERS.map((hour) => (
+          {(mobile ? TIMELINE_LABELS_SPARSE : visibleHourLabels).map((hour) => (
             <span
               key={`timeline-hour-${hour}`}
               className="absolute whitespace-nowrap"
@@ -1821,7 +1838,7 @@ export const LogCalendar: React.FC = () => {
                 ))}
               </div>
               <div className="absolute inset-x-4 bottom-6 text-[10px] uppercase tracking-[0.08em] text-[var(--app-muted)] tabular-nums font-mono">
-                {TIMELINE_HOUR_MARKERS.map((hour) => (
+                {TIMELINE_LABELS_FULL.map((hour) => (
                   <span
                     key={`timeline-expanded-hour-${hour}`}
                     className="absolute whitespace-nowrap"
