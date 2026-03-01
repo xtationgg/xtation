@@ -264,6 +264,8 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
   const levelProgress = nextConfig ? Math.min(100, Math.floor((totalXP / nextConfig.threshold) * 100)) : 100;
   const currentMission = tasks.find(task => task.status === 'todo' || task.status === 'active');
   const activeSession = selectors.getActiveSession();
+  const stageState: 'active' | 'productive' | 'idle' =
+    activeSession ? 'active' : completedToday > 0 ? 'productive' : 'idle';
 
   // ── Lobby state ────────────────────────────────────────────────────────
   type LobbyPanelKey = 'identity' | 'stats' | 'loadout' | 'skills' | 'titles' | 'links' | 'notes' | 'privacy';
@@ -1269,10 +1271,6 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
         const panelLabel = allBtns.find(b => b.key === lobbyOpenPanel)?.label ?? '';
         const stageSrc = stageImage || CHARACTER_PLACEHOLDER_SRC;
 
-        // ── Reactive stage state ────────────────────────────────────────
-        const stageState: 'active' | 'productive' | 'idle' =
-          activeSession ? 'active' : completedToday > 0 ? 'productive' : 'idle';
-
         const bgCfg = {
           active:     { glowOpacity: 1,    animDuration: '3.5s', glowStrength: '32%' },
           productive: { glowOpacity: 0.85, animDuration: '6s',   glowStrength: '22%' },
@@ -1281,11 +1279,8 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
 
         return (
           <>
-            {/* ── Full-bleed cinematic stage ───────────────────────────── */}
-            <div
-              className="relative overflow-hidden"
-              style={{ minHeight: 'calc(100dvh - 220px)' }}
-            >
+            {/* ── Full-bleed cinematic stage — fills the fixed content area ── */}
+            <div className="relative h-full overflow-hidden">
               {/* Layer 1: base bg */}
               <div className="absolute inset-0 bg-[var(--app-bg)]" />
 
@@ -1497,6 +1492,7 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
       }
       case 'HEALTH':
         return (
+          <div className="h-full overflow-y-auto xt-scroll p-4">
           <div className="space-y-4">
             {(['BREATHING', 'MEDITATION', 'BODY'] as SectionKey[]).map(key => {
               const meta = healthMeta[key];
@@ -1642,13 +1638,23 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
               );
             })}
           </div>
+          </div>
         );
       case 'LOG':
-        return <LogCalendar />;
+        return (
+          <div className="h-full overflow-hidden">
+            <LogCalendar />
+          </div>
+        );
       case 'ACTIVITY':
-        return <ProfileActivity />;
+        return (
+          <div className="h-full overflow-hidden">
+            <ProfileActivity />
+          </div>
+        );
       case 'ACHIEVEMENTS':
         return (
+          <div className="h-full overflow-y-auto xt-scroll p-4">
           <div className="grid lg:grid-cols-[1.1fr,0.9fr] gap-6">
             <div className="space-y-4">
               <div className="bg-[var(--app-panel)] border border-[var(--app-border)] rounded-lg shadow-sm p-4">
@@ -1731,14 +1737,15 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
               </div>
             </div>
           </div>
+          </div>
         );
     }
   };
 
   return (
-    <div className="p-4 md:p-6 h-full overflow-y-auto xt-scroll bg-[var(--app-bg)] text-[var(--app-text)]">
-      {/* Compact header ≤160px */}
-      <div className="flex items-center gap-4 bg-[var(--app-panel)] border border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] rounded-2xl px-4 py-3 mb-4">
+    <div className="h-full overflow-hidden flex bg-[var(--app-bg)] text-[var(--app-text)]">
+      {/* Left sidebar — identity panel */}
+      <div className="w-36 shrink-0 flex flex-col items-center gap-3 pt-5 pb-4 px-3 border-r border-[color-mix(in_srgb,var(--app-text)_8%,transparent)] bg-[var(--app-panel)]">
         {/* Avatar */}
         <div
           className="relative shrink-0 w-14 h-14 rounded-xl overflow-hidden border border-[color-mix(in_srgb,var(--app-text)_14%,transparent)] cursor-pointer group"
@@ -1753,73 +1760,88 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
           <input type="file" ref={fileInputRef} className="hidden" accept="image/png,image/jpeg,image/gif,image/jpg" onChange={handleFileChange} />
         </div>
 
-        {/* Name + XP bar + chips */}
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2 mb-1.5">
-            {!isEditingName ? (
-              <button
-                type="button"
-                onClick={startEditingName}
-                className="text-sm font-bold text-[var(--app-text)] hover:text-[var(--app-accent)] transition-colors truncate max-w-[200px] focus:outline-none focus:ring-2 focus:ring-[var(--app-accent)] rounded"
-                title="Edit name"
-              >
-                {summonerName}
-              </button>
-            ) : (
-              <div className="flex items-center gap-1.5">
-                <input
-                  value={tempName}
-                  onChange={e => setTempName(e.target.value)}
-                  className="h-7 px-2 rounded border border-[color-mix(in_srgb,var(--app-text)_20%,transparent)] bg-[var(--app-panel-2)] text-[var(--app-text)] text-sm focus:outline-none focus:border-[var(--app-accent)]"
-                />
-                <button type="button" onClick={saveName} className="h-7 w-7 rounded border border-[color-mix(in_srgb,var(--app-text)_12%,transparent)] flex items-center justify-center text-[var(--app-muted)] hover:text-[var(--app-text)] transition-colors"><Check size={12} /></button>
-                <button type="button" onClick={cancelEdit} className="h-7 w-7 rounded border border-[color-mix(in_srgb,var(--app-text)_12%,transparent)] flex items-center justify-center text-[var(--app-muted)] hover:text-[var(--app-text)] transition-colors"><X size={12} /></button>
-              </div>
-            )}
-          </div>
-
-          {/* XP bar */}
-          <div className="mb-2">
-            <div className="h-1.5 rounded-full bg-[color-mix(in_srgb,var(--app-text)_10%,transparent)] overflow-hidden">
-              <div
-                className="h-full bg-[var(--app-accent)] rounded-full transition-[width] duration-500"
-                style={{ width: `${levelProgress}%` }}
+        {/* Summoner name */}
+        <div className="w-full text-center">
+          {!isEditingName ? (
+            <button
+              type="button"
+              onClick={startEditingName}
+              className="text-[11px] font-bold text-[var(--app-text)] hover:text-[var(--app-accent)] transition-colors w-full text-center truncate focus:outline-none"
+              title="Edit name"
+            >
+              {summonerName}
+            </button>
+          ) : (
+            <div className="flex flex-col items-center gap-1">
+              <input
+                value={tempName}
+                onChange={e => setTempName(e.target.value)}
+                className="h-6 px-2 rounded border border-[color-mix(in_srgb,var(--app-text)_20%,transparent)] bg-[var(--app-panel-2)] text-[var(--app-text)] text-[11px] w-full focus:outline-none focus:border-[var(--app-accent)]"
               />
+              <div className="flex gap-1">
+                <button type="button" onClick={saveName} className="h-5 w-5 rounded border border-[color-mix(in_srgb,var(--app-text)_12%,transparent)] flex items-center justify-center text-[var(--app-muted)] hover:text-[var(--app-text)] transition-colors"><Check size={9} /></button>
+                <button type="button" onClick={cancelEdit} className="h-5 w-5 rounded border border-[color-mix(in_srgb,var(--app-text)_12%,transparent)] flex items-center justify-center text-[var(--app-muted)] hover:text-[var(--app-text)] transition-colors"><X size={9} /></button>
+              </div>
             </div>
-          </div>
+          )}
+        </div>
 
-          {/* 3 chips: Level, Role, XP */}
-          <div className="flex items-center gap-1.5 flex-wrap">
-            {nextConfig && (
-              <span className="px-2 py-0.5 rounded-full border border-[color-mix(in_srgb,var(--app-accent)_45%,transparent)] bg-[color-mix(in_srgb,var(--app-accent)_8%,var(--app-panel-2))] text-[9px] uppercase tracking-[0.14em] text-[var(--app-accent)]">
-                Lv {nextConfig.level - 1}
-              </span>
-            )}
-            <span className="px-2 py-0.5 rounded-full border border-[color-mix(in_srgb,var(--app-text)_12%,transparent)] bg-[var(--app-panel-2)] text-[9px] uppercase tracking-[0.14em] text-[var(--app-muted)] truncate max-w-[110px]">
-              {roleText}
-            </span>
-            <span className="px-2 py-0.5 rounded-full border border-[color-mix(in_srgb,var(--app-text)_12%,transparent)] bg-[var(--app-panel-2)] text-[9px] uppercase tracking-[0.14em] text-[var(--app-muted)]">
-              {totalXP} XP
-            </span>
+        {/* XP bar */}
+        <div className="w-full px-1">
+          <div className="h-1.5 rounded-full bg-[color-mix(in_srgb,var(--app-text)_10%,transparent)] overflow-hidden">
+            <div
+              className="h-full bg-[var(--app-accent)] rounded-full transition-[width] duration-500"
+              style={{ width: `${levelProgress}%` }}
+            />
           </div>
         </div>
 
-        {/* Hidden file inputs */}
+        {/* Level · Role · XP chips */}
+        <div className="flex flex-col items-center gap-1 w-full">
+          {nextConfig && (
+            <span className="px-2 py-0.5 rounded-full border border-[color-mix(in_srgb,var(--app-accent)_45%,transparent)] bg-[color-mix(in_srgb,var(--app-accent)_8%,var(--app-panel-2))] text-[9px] uppercase tracking-[0.12em] text-[var(--app-accent)]">
+              Lv {nextConfig.level - 1}
+            </span>
+          )}
+          <span className="px-2 py-0.5 rounded-full border border-[color-mix(in_srgb,var(--app-text)_12%,transparent)] bg-[var(--app-panel-2)] text-[9px] uppercase tracking-[0.12em] text-[var(--app-muted)] truncate max-w-full text-center">
+            {roleText}
+          </span>
+          <span className="px-2 py-0.5 rounded-full border border-[color-mix(in_srgb,var(--app-text)_12%,transparent)] bg-[var(--app-panel-2)] text-[9px] uppercase tracking-[0.12em] text-[var(--app-muted)]">
+            {totalXP} XP
+          </span>
+        </div>
+
+        {/* Active-session indicator */}
+        {stageState === 'active' && (
+          <div className="flex items-center gap-1.5 text-[var(--app-accent)] text-[8px] uppercase tracking-[0.12em] mt-1">
+            <span className="w-1.5 h-1.5 rounded-full bg-[var(--app-accent)] inline-block stage-active-dot" />
+            Running
+          </div>
+        )}
+
+        {/* Hidden cover input */}
         <input ref={coverInputRef} type="file" className="hidden" accept="image/png,image/jpeg,image/jpg,image/gif,image/svg+xml,video/mp4" onChange={handleCoverChange} />
       </div>
 
-      {/* Tabs */}
-      <div className="flex items-center border-b border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] pb-3 mb-5 gap-2 flex-wrap">
-        <TabButton label="PROFILE" value="PROFILE" icon={<User size={14} />} />
-        <TabButton label="HEALTH" value="HEALTH" icon={<Activity size={14} />} />
-        <TabButton label="ACHIEVEMENTS" value="ACHIEVEMENTS" icon={<Award size={14} />} />
-        <TabButton label="ACTIVITY" value="ACTIVITY" icon={<Activity size={14} />} />
-        <TabButton label="LOG" value="LOG" icon={<Box size={14} />} />
-      </div>
+      {/* Main area */}
+      <div className="flex-1 flex flex-col overflow-hidden min-w-0">
+        {/* Game HUD tab bar */}
+        <div className="flex items-center justify-center py-2 shrink-0 border-b border-[color-mix(in_srgb,var(--app-text)_8%,transparent)] px-4 gap-3">
+          <div className="flex-1 h-px bg-gradient-to-r from-transparent to-[color-mix(in_srgb,var(--app-accent)_30%,transparent)]" />
+          <div className="flex items-center gap-1 bg-[var(--app-panel)] border border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] rounded-xl px-1.5 py-1">
+            <TabButton label="PROFILE" value="PROFILE" icon={<User size={12} />} />
+            <TabButton label="HEALTH" value="HEALTH" icon={<Activity size={12} />} />
+            <TabButton label="ACHIEVEMENTS" value="ACHIEVEMENTS" icon={<Award size={12} />} />
+            <TabButton label="ACTIVITY" value="ACTIVITY" icon={<Activity size={12} />} />
+            <TabButton label="LOG" value="LOG" icon={<Box size={12} />} />
+          </div>
+          <div className="flex-1 h-px bg-gradient-to-l from-transparent to-[color-mix(in_srgb,var(--app-accent)_30%,transparent)]" />
+        </div>
 
-      {/* Content */}
-      <div className={activeTab === 'PROFILE' ? '-mx-4 md:-mx-6 -mb-4 md:-mb-6' : ''}>
-        {renderTabContent()}
+        {/* Fixed content area — each tab manages its own scroll */}
+        <div className="flex-1 overflow-hidden relative">
+          {renderTabContent()}
+        </div>
       </div>
     </div>
   );
