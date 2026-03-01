@@ -23,6 +23,7 @@ import { useXP } from './components/XP/xpStore';
 import { ScheduledTaskPrompt } from './components/XP/ScheduledTaskPrompt';
 import { DevHUD } from './src/dev/DevHUD';
 import { useAuth } from './src/auth/AuthProvider';
+import { CommandPalette } from './components/UI/CommandPalette';
 import {
   readUserScopedJSON,
   setActiveUserId,
@@ -61,6 +62,7 @@ const App: React.FC = () => {
   const [currentView, setCurrentView] = useState<ClientView>(ClientView.HOME);
   const [previousView, setPreviousView] = useState<ClientView>(ClientView.HOME);
   const [isAssistantOpen, setIsAssistantOpen] = useState(false);
+  const [isPaletteOpen, setIsPaletteOpen] = useState(false);
   
   // New State for dynamic background (e.g., Champ Select splash art)
   const [customBackground, setCustomBackground] = useState<string | null>(null);
@@ -383,8 +385,8 @@ const App: React.FC = () => {
       <ScheduledTaskPrompt />
       
       {/* Top Navigation */}
-      <TopBar 
-        currentView={currentView} 
+      <TopBar
+        currentView={currentView}
         onChangeView={(view) => {
             setCurrentView(view);
             setCustomBackground(null);
@@ -393,6 +395,7 @@ const App: React.FC = () => {
         onToggleAssistant={() => setIsAssistantOpen(!isAssistantOpen)}
         isAssistantOpen={isAssistantOpen}
         activeTasksCount={activeTasksCount}
+        onOpenPalette={() => setIsPaletteOpen(true)}
       />
 
       {/* Main Content Area */}
@@ -427,6 +430,16 @@ const App: React.FC = () => {
             }}
           />
       )}
+
+      <CommandPalette
+        open={isPaletteOpen}
+        onClose={() => setIsPaletteOpen(false)}
+        onChangeView={(view) => {
+          setCurrentView(view);
+          setCustomBackground(null);
+        }}
+        onToggleAssistant={() => setIsAssistantOpen((prev) => !prev)}
+      />
 
       <DevHUD />
 
