@@ -1360,7 +1360,7 @@ export const LogCalendar: React.FC = () => {
       ) : null}
       <div className="space-y-4">
         <div className="flex justify-center lg:justify-end">
-          <DayTimeOrb size={184} showLiveLabel={selectedKey !== todayKey} />
+          <DayTimeOrb size={552} showLiveLabel={selectedKey !== todayKey} />
         </div>
 
         <div className="rounded-2xl bg-[var(--app-panel-2)] p-4">

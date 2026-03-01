@@ -144,7 +144,7 @@ export const DayTimeOrb: React.FC<DayTimeOrbProps> = ({ showLiveLabel = false, c
 
   const metrics = useMemo(() => getTodayMetrics(now), [now]);
 
-  const clampedSize = clamp(size, 92, 420);
+  const clampedSize = clamp(size, 92, 600);
   const arcRadius = 37.96;
   const arcCircumference = 2 * Math.PI * arcRadius;
   const arcDashOffset = arcCircumference * (1 - metrics.progress);
