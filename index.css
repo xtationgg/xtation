@@ -1961,3 +1961,16 @@ a {
 [data-motion="reduced"] .stage-idle {
   animation-duration: 0.01ms !important;
 }
+
+/* ── Full-bleed stage: atmospheric background breathe ────────────────── */
+@keyframes stage-bg-breathe {
+  0%, 100% { opacity: 0.45; scale: 1; }
+  50%       { opacity: 1;   scale: 1.08; }
+}
+.stage-bg-breathe {
+  transform-origin: 50% 100%;
+  animation: stage-bg-breathe 7s ease-in-out infinite;
+}
+[data-motion="reduced"] .stage-bg-breathe {
+  animation-duration: 0.01ms !important;
+}
