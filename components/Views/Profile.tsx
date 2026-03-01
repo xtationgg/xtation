@@ -1492,7 +1492,7 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
       }
       case 'HEALTH':
         return (
-          <div className="h-full overflow-y-auto xt-scroll p-4">
+          <div className="absolute inset-0 overflow-y-auto xt-scroll p-4">
           <div className="space-y-4">
             {(['BREATHING', 'MEDITATION', 'BODY'] as SectionKey[]).map(key => {
               const meta = healthMeta[key];
@@ -1642,19 +1642,19 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
         );
       case 'LOG':
         return (
-          <div className="h-full overflow-y-auto xt-scroll">
+          <div className="absolute inset-0 overflow-y-auto xt-scroll">
             <LogCalendar />
           </div>
         );
       case 'ACTIVITY':
         return (
-          <div className="h-full overflow-y-auto xt-scroll">
+          <div className="absolute inset-0 overflow-y-auto xt-scroll">
             <ProfileActivity />
           </div>
         );
       case 'ACHIEVEMENTS':
         return (
-          <div className="h-full overflow-y-auto xt-scroll p-4">
+          <div className="absolute inset-0 overflow-y-auto xt-scroll p-4">
           <div className="grid lg:grid-cols-[1.1fr,0.9fr] gap-6">
             <div className="space-y-4">
               <div className="bg-[var(--app-panel)] border border-[var(--app-border)] rounded-lg shadow-sm p-4">
