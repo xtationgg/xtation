@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Camera, Edit2, Check, X, Upload, Box, User, Activity, Award, BarChart2, Sword, Zap, Link2, FileText, Shield } from 'lucide-react';
 import { ProfilePanel } from '../UI/ProfilePanel';
+import { DrawerOverlay } from '../Profile/DrawerOverlay';
 import { RewardVisual } from '../UI/RewardVisual';
 import { RewardConfig, InventoryItem } from '../../types';
 import { ASSETS } from '../../constants';
@@ -272,6 +273,20 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
   const [lobbyVisibility, setLobbyVisibility] = useState<'Private' | 'Circles' | 'Community'>('Private');
   const stageInnerRef = useRef<HTMLDivElement>(null);
 
+  // ── Character Upload state ───────────────────────────────────────────
+  const [stageImage, setStageImage] = useState<string>(() => {
+    try { return localStorage.getItem('xtation_stage_img_v1') || ''; } catch { return ''; }
+  });
+  const [stageGlbKey, setStageGlbKey] = useState<string>(() => {
+    try { return localStorage.getItem('xtation_stage_glb_key_v1') || ''; } catch { return ''; }
+  });
+  const [stageGlbName, setStageGlbName] = useState<string>(() => {
+    try { return localStorage.getItem('xtation_stage_glb_name_v1') || ''; } catch { return ''; }
+  });
+  const [stageGlbUrl, setStageGlbUrl] = useState<string>('');
+  const stageImageInputRef = useRef<HTMLInputElement>(null);
+  const stageGlbInputRef = useRef<HTMLInputElement>(null);
+
   const handleImageClick = () => { playClickSound(); fileInputRef.current?.click(); };
   const handleCoverClick = () => { playClickSound(); coverInputRef.current?.click(); };
 
@@ -372,6 +387,43 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
   const cancelEdit = () => { playClickSound(); setIsEditingName(false); };
   const saveRole = () => { if (roleText.trim()) { setRoleText(roleText.trim()); playSuccessSound(); } setIsEditingRole(false); };
 
+  // Load persisted GLB from IndexedDB on mount
+  useEffect(() => {
+    if (!stageGlbKey) return;
+    loadGlbFromDB(stageGlbKey).then(url => {
+      if (url) setStageGlbUrl(url);
+    }).catch(() => {});
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [stageGlbKey]);
+
+  const handleStageImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    e.target.value = '';
+    try {
+      const url = await readFileAsDataUrl(file);
+      setStageImage(url);
+      try { localStorage.setItem('xtation_stage_img_v1', url); } catch {}
+      playSuccessSound();
+    } catch {}
+  };
+
+  const handleStageGlbUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    e.target.value = '';
+    try {
+      const key = await saveGlbToDB(file);
+      const blobUrl = URL.createObjectURL(file);
+      setStageGlbKey(key);
+      setStageGlbName(file.name);
+      setStageGlbUrl(blobUrl);
+      try { localStorage.setItem('xtation_stage_glb_key_v1', key); } catch {}
+      try { localStorage.setItem('xtation_stage_glb_name_v1', file.name); } catch {}
+      playSuccessSound();
+    } catch {}
+  };
+
   const openModelDB = () => new Promise<IDBDatabase>((resolve, reject) => {
     const req = indexedDB.open('ProfileModelDB', 1);
     req.onupgradeneeded = () => {
@@ -381,6 +433,29 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
     req.onsuccess = () => resolve(req.result);
     req.onerror = () => reject(req.error);
   });
+
+  const saveGlbToDB = async (file: File): Promise<string> => {
+    const db = await openModelDB();
+    const key = `stage-glb-${Date.now()}`;
+    const tx = db.transaction('models', 'readwrite');
+    tx.objectStore('models').put(file, key);
+    await new Promise<void>((resolve, reject) => {
+      tx.oncomplete = () => resolve();
+      tx.onerror = () => reject(tx.error);
+    });
+    return key;
+  };
+
+  const loadGlbFromDB = async (key: string): Promise<string | null> => {
+    const db = await openModelDB();
+    const tx = db.transaction('models', 'readonly');
+    const req = tx.objectStore('models').get(key);
+    const blob: Blob | undefined = await new Promise((resolve, reject) => {
+      req.onsuccess = () => resolve(req.result as Blob | undefined);
+      req.onerror = () => reject(req.error);
+    });
+    return blob ? URL.createObjectURL(blob) : null;
+  };
 
   const openHealthDB = () => new Promise<IDBDatabase>((resolve, reject) => {
     const req = indexedDB.open('ProfileHealthMediaDB', 2);
@@ -1159,47 +1234,58 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
       case 'PROFILE': {
         type BtnDef = { key: LobbyPanelKey; label: string; icon: React.ReactNode };
         const topBtns: BtnDef[] = [
-          { key: 'identity', label: 'Identity', icon: <User size={13} /> },
-          { key: 'stats',    label: 'Stats',    icon: <BarChart2 size={13} /> },
-          { key: 'loadout',  label: 'Loadout',  icon: <Sword size={13} /> },
-          { key: 'skills',   label: 'Skills',   icon: <Zap size={13} /> },
+          { key: 'identity', label: 'Identity', icon: <User size={14} /> },
+          { key: 'stats',    label: 'Stats',    icon: <BarChart2 size={14} /> },
+          { key: 'loadout',  label: 'Loadout',  icon: <Sword size={14} /> },
+          { key: 'skills',   label: 'Skills',   icon: <Zap size={14} /> },
         ];
         const botBtns: BtnDef[] = [
-          { key: 'titles',  label: 'Titles',  icon: <Award size={13} /> },
-          { key: 'links',   label: 'Links',   icon: <Link2 size={13} /> },
-          { key: 'notes',   label: 'Notes',   icon: <FileText size={13} /> },
-          { key: 'privacy', label: 'Privacy', icon: <Shield size={13} /> },
+          { key: 'titles',  label: 'Titles',  icon: <Award size={14} /> },
+          { key: 'links',   label: 'Links',   icon: <Link2 size={14} /> },
+          { key: 'notes',   label: 'Notes',   icon: <FileText size={14} /> },
+          { key: 'privacy', label: 'Privacy', icon: <Shield size={14} /> },
         ];
         const allBtns = [...topBtns, ...botBtns];
-        const LobbyBtn = ({ btn }: { btn: BtnDef }) => (
-          <button
-            type="button"
-            onClick={() => setLobbyOpenPanel(p => p === btn.key ? null : btn.key)}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full border text-[10px] uppercase tracking-[0.14em] transition-all duration-150 ${
-              lobbyOpenPanel === btn.key
-                ? 'border-[color-mix(in_srgb,var(--app-accent)_60%,transparent)] bg-[color-mix(in_srgb,var(--app-accent)_14%,var(--app-panel))] text-[var(--app-accent)] shadow-[0_0_12px_color-mix(in_srgb,var(--app-accent)_20%,transparent)]'
-                : 'border-[color-mix(in_srgb,var(--app-text)_12%,transparent)] bg-[var(--app-panel-2)] text-[var(--app-muted)] hover:border-[color-mix(in_srgb,var(--app-text)_28%,transparent)] hover:text-[var(--app-text)]'
-            }`}
-          >
-            <span className={lobbyOpenPanel === btn.key ? 'text-[var(--app-accent)]' : 'text-[var(--app-muted)]'}>{btn.icon}</span>
-            {btn.label}
-          </button>
-        );
+
+        /** Icon dock button — never moves when drawer opens */
+        const DockBtn = ({ btn }: { btn: BtnDef }) => {
+          const active = lobbyOpenPanel === btn.key;
+          return (
+            <button
+              type="button"
+              title={btn.label}
+              onClick={() => setLobbyOpenPanel(p => p === btn.key ? null : btn.key)}
+              className={`flex flex-col items-center gap-0.5 w-[62px] py-1.5 rounded-lg transition-all duration-150 select-none ${
+                active
+                  ? 'bg-[color-mix(in_srgb,var(--app-accent)_16%,transparent)] text-[var(--app-accent)]'
+                  : 'text-[var(--app-muted)] hover:text-[var(--app-text)] hover:bg-[color-mix(in_srgb,var(--app-text)_6%,transparent)] active:scale-95'
+              }`}
+            >
+              {btn.icon}
+              <span className="text-[7px] uppercase tracking-[0.09em] leading-none">{btn.label}</span>
+            </button>
+          );
+        };
+
         const panelIcon = allBtns.find(b => b.key === lobbyOpenPanel)?.icon;
         const panelLabel = allBtns.find(b => b.key === lobbyOpenPanel)?.label ?? '';
+        const stageSrc = stageImage || CHARACTER_PLACEHOLDER_SRC;
+
         return (
           <>
-            <div className="flex flex-col md:flex-row gap-5 items-start">
-              {/* Stage column */}
-              <div className="flex flex-col items-center gap-4 flex-1 min-w-0">
-                {/* Top 4 buttons */}
-                <div className="flex items-center justify-center gap-2 flex-wrap">
-                  {topBtns.map(btn => <LobbyBtn key={btn.key} btn={btn} />)}
+            {/* ── Unified Stage Card — fixed width, never shifts ───────────── */}
+            <div className="flex justify-center py-2">
+              <div
+                className="w-72 rounded-2xl overflow-hidden border border-[color-mix(in_srgb,var(--app-accent)_18%,transparent)] bg-[var(--app-bg)] shadow-[0_0_60px_color-mix(in_srgb,var(--app-accent)_10%,transparent)]"
+              >
+                {/* Top dock */}
+                <div className="flex items-center justify-center gap-1 px-2 py-2 border-b border-[color-mix(in_srgb,var(--app-accent)_10%,transparent)]">
+                  {topBtns.map(btn => <DockBtn key={btn.key} btn={btn} />)}
                 </div>
 
-                {/* Character Stage */}
+                {/* Character viewport — perspective container */}
                 <div
-                  className="relative w-full max-w-xs mx-auto rounded-2xl overflow-visible cursor-default select-none"
+                  className="relative cursor-default"
                   style={{ perspective: '900px' }}
                   onMouseMove={e => {
                     const rect = e.currentTarget.getBoundingClientRect();
@@ -1215,72 +1301,101 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
                     }
                   }}
                 >
-                  <div className="absolute -inset-4 rounded-3xl bg-[color-mix(in_srgb,var(--app-accent)_12%,transparent)] blur-2xl pointer-events-none" />
+                  {/* Stage inner — parallax target + idle float (separate CSS properties, no conflict) */}
                   <div
                     ref={stageInnerRef}
-                    className="relative transition-transform duration-150 ease-out rounded-2xl overflow-hidden"
+                    className="relative transition-transform duration-150 ease-out stage-idle"
                     style={{ transformStyle: 'preserve-3d' }}
                   >
-                    <img
-                      src={CHARACTER_PLACEHOLDER_SRC}
-                      alt="Character"
-                      className="w-full h-auto block rounded-2xl"
-                      draggable={false}
+                    {/* Spotlight beam */}
+                    <div
+                      className="absolute inset-0 pointer-events-none z-10"
+                      style={{ background: 'radial-gradient(ellipse 70% 55% at 50% -5%, color-mix(in_srgb,var(--app-accent)_22%,transparent) 0%, transparent 65%)' }}
                     />
-                    <div className="absolute inset-0 rounded-2xl shadow-[inset_0_0_48px_color-mix(in_srgb,var(--app-accent)_18%,transparent)] pointer-events-none" />
-                    <div className="absolute inset-0 rounded-2xl bg-gradient-to-t from-black/55 via-transparent to-transparent pointer-events-none" />
-                  </div>
-                </div>
 
-                <button
-                  type="button"
-                  disabled
-                  title="3D slot coming soon"
-                  className="text-[9px] uppercase tracking-[0.16em] text-[var(--app-muted)] border border-dashed border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] rounded px-3 py-1 opacity-50 cursor-not-allowed"
-                >
-                  Change Model (later)
-                </button>
+                    {/* Character — GLB via model-viewer or image */}
+                    {stageGlbUrl ? (
+                      <model-viewer
+                        src={stageGlbUrl}
+                        camera-controls
+                        auto-rotate
+                        autoplay
+                        style={{ width: '100%', height: '420px', background: 'transparent', display: 'block' } as React.CSSProperties}
+                      />
+                    ) : (
+                      <img
+                        src={stageSrc}
+                        alt="Character"
+                        className="w-full h-auto block"
+                        draggable={false}
+                      />
+                    )}
 
-                {/* Bottom 4 buttons */}
-                <div className="flex items-center justify-center gap-2 flex-wrap">
-                  {botBtns.map(btn => <LobbyBtn key={btn.key} btn={btn} />)}
-                </div>
-              </div>
-
-              {/* Desktop persistent panel (part of page flow) */}
-              {lobbyOpenPanel !== null && (
-                <aside className="hidden md:flex flex-col w-72 shrink-0 bg-[var(--app-panel)] border border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] rounded-2xl overflow-hidden lobby-panel-in">
-                  <div className="flex items-center justify-between px-4 py-3 border-b border-[color-mix(in_srgb,var(--app-text)_8%,transparent)] shrink-0">
-                    <div className="flex items-center gap-2 text-[11px] uppercase tracking-[0.18em] text-[var(--app-text)]">
-                      <span className="text-[var(--app-accent)]">{panelIcon}</span>
-                      {panelLabel}
+                    {/* Inner frame glow */}
+                    <div className="absolute inset-0 shadow-[inset_0_0_40px_color-mix(in_srgb,var(--app-accent)_15%,transparent)] pointer-events-none z-10" />
+                    {/* Bottom vignette */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent pointer-events-none z-10" />
+                    {/* Floor shadow glow */}
+                    <div className="absolute bottom-0 inset-x-0 flex justify-center pointer-events-none z-10">
+                      <div className="w-4/5 h-12 rounded-full bg-[color-mix(in_srgb,var(--app-accent)_22%,transparent)] blur-xl" />
                     </div>
+                  </div>
+
+                  {/* Upload corner buttons — outside stageInnerRef so they stay flat */}
+                  <div className="absolute bottom-2 right-2 z-20 flex flex-col gap-1">
                     <button
                       type="button"
-                      onClick={() => setLobbyOpenPanel(null)}
-                      className="text-[var(--app-muted)] hover:text-[var(--app-text)] transition-colors focus:outline-none focus:ring-2 focus:ring-[var(--app-accent)] rounded"
-                      aria-label="Close panel"
+                      title="Upload preview image (PNG/JPG)"
+                      onClick={() => stageImageInputRef.current?.click()}
+                      className="group h-7 w-7 rounded-lg bg-black/55 backdrop-blur-sm border border-white/10 hover:border-[color-mix(in_srgb,var(--app-accent)_55%,transparent)] flex items-center justify-center transition-all hover:scale-105"
                     >
-                      <X size={14} />
+                      <Camera size={12} className="text-white/55 group-hover:text-[var(--app-accent)]" />
+                    </button>
+                    <button
+                      type="button"
+                      title="Upload 3D model (.glb)"
+                      onClick={() => stageGlbInputRef.current?.click()}
+                      className="group h-7 w-7 rounded-lg bg-black/55 backdrop-blur-sm border border-white/10 hover:border-[color-mix(in_srgb,var(--app-accent)_55%,transparent)] flex items-center justify-center transition-all hover:scale-105"
+                    >
+                      <Box size={12} className="text-white/55 group-hover:text-[var(--app-accent)]" />
                     </button>
                   </div>
-                  <div className="flex-1 overflow-y-auto xt-scroll p-4">
-                    {renderLobbyPanelContent(lobbyOpenPanel)}
-                  </div>
-                </aside>
-              )}
+
+                  {/* GLB loaded indicator */}
+                  {stageGlbName && (
+                    <div className="absolute top-2 left-2 z-20 flex items-center gap-1.5 bg-black/60 backdrop-blur-sm rounded-lg px-2 py-1 border border-[color-mix(in_srgb,var(--app-accent)_30%,transparent)]">
+                      <Box size={10} className="text-[var(--app-accent)] shrink-0" />
+                      <span className="text-[9px] uppercase tracking-[0.1em] text-[var(--app-accent)] truncate max-w-[120px]">{stageGlbName}</span>
+                      <button
+                        type="button"
+                        title="Replace 3D model"
+                        onClick={() => stageGlbInputRef.current?.click()}
+                        className="text-[var(--app-muted)] hover:text-white ml-0.5 leading-none"
+                      >↺</button>
+                    </div>
+                  )}
+
+                  {/* Hidden file inputs */}
+                  <input ref={stageImageInputRef} type="file" className="hidden" accept="image/png,image/jpeg,image/jpg" onChange={handleStageImageUpload} />
+                  <input ref={stageGlbInputRef} type="file" className="hidden" accept=".glb" onChange={handleStageGlbUpload} />
+                </div>
+
+                {/* Bottom dock */}
+                <div className="flex items-center justify-center gap-1 px-2 py-2 border-t border-[color-mix(in_srgb,var(--app-accent)_10%,transparent)]">
+                  {botBtns.map(btn => <DockBtn key={btn.key} btn={btn} />)}
+                </div>
+              </div>
             </div>
 
-            {/* Mobile: ProfilePanel bottom sheet only */}
-            <ProfilePanel
-              mobileOnly
+            {/* ── Overlay drawer — position: fixed, layout never shifts ──── */}
+            <DrawerOverlay
               open={lobbyOpenPanel !== null}
               onClose={() => setLobbyOpenPanel(null)}
               title={panelLabel}
               icon={panelIcon}
             >
               {renderLobbyPanelContent(lobbyOpenPanel)}
-            </ProfilePanel>
+            </DrawerOverlay>
           </>
         );
       }
