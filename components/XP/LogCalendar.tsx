@@ -21,7 +21,7 @@ const SIDE_PANEL_TABS = [
 const TIMELINE_HOUR_MARKERS = Array.from({ length: 25 }, (_, index) => index);
 const TIMELINE_LABELS_FULL = TIMELINE_HOUR_MARKERS;
 const TIMELINE_LABELS_SPARSE = TIMELINE_HOUR_MARKERS;
-const TIMELINE_BASELINE_Y = 262;
+const TIMELINE_BASELINE_Y = 350;
 
 const toDateKey = (date: Date) => {
   const y = date.getFullYear();
@@ -1111,16 +1111,35 @@ export const LogCalendar: React.FC = () => {
           />
           {nowMarkerX !== null ? (
             <div
-              className="pointer-events-none absolute h-[3px] rounded-full"
+              className="pointer-events-none absolute h-[4px] rounded-full"
               style={{
                 left: 0,
                 width: `${Math.max(0, nowMarkerX)}%`,
-                top: baselineTop - 0.5,
+                top: baselineTop - 1,
                 background:
                   'linear-gradient(90deg, color-mix(in_srgb,var(--app-accent)_28%,transparent) 0%, color-mix(in_srgb,var(--app-accent)_75%,#fff) 100%)',
                 boxShadow: '0 0 10px color-mix(in_srgb,var(--app-accent)_45%,transparent)',
               }}
-            />
+            >
+              <span
+                className="absolute top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[color-mix(in_srgb,var(--app-accent)_88%,#fff)]"
+                style={{
+                  left: 0,
+                  width: 8,
+                  height: 8,
+                  boxShadow: '0 0 6px color-mix(in_srgb,var(--app-accent)_55%,transparent)',
+                }}
+              />
+              <span
+                className="absolute top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[color-mix(in_srgb,var(--app-accent)_90%,#fff)]"
+                style={{
+                  left: '100%',
+                  width: 9,
+                  height: 9,
+                  boxShadow: '0 0 8px color-mix(in_srgb,var(--app-accent)_60%,transparent)',
+                }}
+              />
+            </div>
           ) : null}
           {TIMELINE_HOUR_MARKERS.map((hour) => (
             <div
@@ -1839,16 +1858,35 @@ export const LogCalendar: React.FC = () => {
                 <div className="absolute inset-x-0 h-[2px] bg-[color-mix(in_srgb,var(--app-text)_18%,transparent)]" style={{ top: TIMELINE_BASELINE_Y }} />
                 {nowMarkerX !== null ? (
                   <div
-                    className="pointer-events-none absolute h-[3px] rounded-full"
+                    className="pointer-events-none absolute h-[4px] rounded-full"
                     style={{
                       left: 0,
                       width: `${Math.max(0, nowMarkerX)}%`,
-                      top: TIMELINE_BASELINE_Y - 0.5,
+                      top: TIMELINE_BASELINE_Y - 1,
                       background:
                         'linear-gradient(90deg, color-mix(in_srgb,var(--app-accent)_28%,transparent) 0%, color-mix(in_srgb,var(--app-accent)_75%,#fff) 100%)',
                       boxShadow: '0 0 10px color-mix(in_srgb,var(--app-accent)_45%,transparent)',
                     }}
-                  />
+                  >
+                    <span
+                      className="absolute top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[color-mix(in_srgb,var(--app-accent)_88%,#fff)]"
+                      style={{
+                        left: 0,
+                        width: 8,
+                        height: 8,
+                        boxShadow: '0 0 6px color-mix(in_srgb,var(--app-accent)_55%,transparent)',
+                      }}
+                    />
+                    <span
+                      className="absolute top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full bg-[color-mix(in_srgb,var(--app-accent)_90%,#fff)]"
+                      style={{
+                        left: '100%',
+                        width: 9,
+                        height: 9,
+                        boxShadow: '0 0 8px color-mix(in_srgb,var(--app-accent)_60%,transparent)',
+                      }}
+                    />
+                  </div>
                 ) : null}
                 {TIMELINE_HOUR_MARKERS.map((hour) => (
                   <div
