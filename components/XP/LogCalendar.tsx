@@ -19,8 +19,8 @@ const SIDE_PANEL_TABS = [
   { value: 'scheduled', label: 'Scheduled' },
 ] as const;
 const TIMELINE_HOUR_MARKERS = Array.from({ length: 25 }, (_, index) => index);
-const TIMELINE_LABELS_FULL = [0, 4, 8, 12, 16, 20, 24];
-const TIMELINE_LABELS_SPARSE = [0, 6, 12, 18, 24];
+const TIMELINE_LABELS_FULL = TIMELINE_HOUR_MARKERS;
+const TIMELINE_LABELS_SPARSE = TIMELINE_HOUR_MARKERS;
 
 const toDateKey = (date: Date) => {
   const y = date.getFullYear();
@@ -1122,6 +1122,19 @@ export const LogCalendar: React.FC = () => {
             className="absolute inset-x-0 h-[2px] bg-[color-mix(in_srgb,var(--app-text)_18%,transparent)]"
             style={{ top: fullDayLineTop }}
           />
+          {nowMarkerX !== null ? (
+            <div
+              className="pointer-events-none absolute h-[3px] rounded-full"
+              style={{
+                left: 0,
+                width: `${Math.max(0, nowMarkerX)}%`,
+                top: fullDayLineTop - 0.5,
+                background:
+                  'linear-gradient(90deg, color-mix(in_srgb,var(--app-accent)_28%,transparent) 0%, color-mix(in_srgb,var(--app-accent)_75%,#fff) 100%)',
+                boxShadow: '0 0 10px color-mix(in_srgb,var(--app-accent)_45%,transparent)',
+              }}
+            />
+          ) : null}
           {TIMELINE_HOUR_MARKERS.map((hour) => (
             <div
               key={`timeline-grid-${hour}`}
@@ -1235,7 +1248,7 @@ export const LogCalendar: React.FC = () => {
             </div>
           ) : null}
         </div>
-        <div className="absolute inset-x-4 bottom-6 text-[10px] uppercase tracking-[0.08em] text-[var(--app-muted)] tabular-nums font-mono">
+        <div className="absolute inset-x-4 bottom-6 text-[8px] uppercase tracking-[0.02em] text-[var(--app-muted)] tabular-nums font-mono">
           {(mobile ? TIMELINE_LABELS_SPARSE : visibleHourLabels).map((hour) => (
             <span
               key={`timeline-hour-${hour}`}
@@ -1844,6 +1857,20 @@ export const LogCalendar: React.FC = () => {
               <div className="absolute inset-x-4 top-4 bottom-[4.5rem]">
                 <div className="absolute inset-x-0 top-[92px] h-px bg-[color-mix(in_srgb,var(--app-text)_14%,transparent)]" />
                 <div className="absolute inset-x-0 top-[262px] h-px bg-[color-mix(in_srgb,var(--app-text)_22%,transparent)]" />
+                <div className="absolute inset-x-0 top-[350px] h-[2px] bg-[color-mix(in_srgb,var(--app-text)_18%,transparent)]" />
+                {nowMarkerX !== null ? (
+                  <div
+                    className="pointer-events-none absolute h-[3px] rounded-full"
+                    style={{
+                      left: 0,
+                      width: `${Math.max(0, nowMarkerX)}%`,
+                      top: 349.5,
+                      background:
+                        'linear-gradient(90deg, color-mix(in_srgb,var(--app-accent)_28%,transparent) 0%, color-mix(in_srgb,var(--app-accent)_75%,#fff) 100%)',
+                      boxShadow: '0 0 10px color-mix(in_srgb,var(--app-accent)_45%,transparent)',
+                    }}
+                  />
+                ) : null}
                 {TIMELINE_HOUR_MARKERS.map((hour) => (
                   <div
                     key={`timeline-expanded-grid-${hour}`}
@@ -1898,7 +1925,7 @@ export const LogCalendar: React.FC = () => {
                   />
                 ))}
               </div>
-              <div className="absolute inset-x-4 bottom-6 text-[10px] uppercase tracking-[0.08em] text-[var(--app-muted)] tabular-nums font-mono">
+              <div className="absolute inset-x-4 bottom-6 text-[8px] uppercase tracking-[0.02em] text-[var(--app-muted)] tabular-nums font-mono">
                 {TIMELINE_LABELS_FULL.map((hour) => (
                   <span
                     key={`timeline-expanded-hour-${hour}`}
