@@ -263,6 +263,7 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
   const nextConfig = [...rewardConfigs].sort((a, b) => a.threshold - b.threshold).find(c => c.threshold > totalXP);
   const levelProgress = nextConfig ? Math.min(100, Math.floor((totalXP / nextConfig.threshold) * 100)) : 100;
   const currentMission = tasks.find(task => task.status === 'todo' || task.status === 'active');
+  const activeSession = selectors.getActiveSession();
 
   // ── Lobby state ────────────────────────────────────────────────────────
   type LobbyPanelKey = 'identity' | 'stats' | 'loadout' | 'skills' | 'titles' | 'links' | 'notes' | 'privacy';
@@ -1267,6 +1268,16 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
         const panelLabel = allBtns.find(b => b.key === lobbyOpenPanel)?.label ?? '';
         const stageSrc = stageImage || CHARACTER_PLACEHOLDER_SRC;
 
+        // ── Reactive stage state ────────────────────────────────────────
+        const stageState: 'active' | 'productive' | 'idle' =
+          activeSession ? 'active' : completedToday > 0 ? 'productive' : 'idle';
+
+        const bgCfg = {
+          active:     { glowOpacity: 1,    animDuration: '3.5s', glowStrength: '32%' },
+          productive: { glowOpacity: 0.85, animDuration: '6s',   glowStrength: '22%' },
+          idle:       { glowOpacity: 0.3,  animDuration: '11s',  glowStrength: '10%' },
+        }[stageState];
+
         return (
           <>
             {/* ── Full-bleed cinematic stage ───────────────────────────── */}
@@ -1277,10 +1288,14 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
               {/* Layer 1: base bg */}
               <div className="absolute inset-0 bg-[var(--app-bg)]" />
 
-              {/* Layer 2: animated accent glow from below — breathes slowly */}
+              {/* Layer 2: reactive accent glow — breathe speed + intensity driven by stageState */}
               <div
                 className="absolute inset-0 pointer-events-none stage-bg-breathe"
-                style={{ background: 'radial-gradient(ellipse 100% 55% at 50% 110%, color-mix(in_srgb,var(--app-accent)_20%,transparent) 0%, transparent 65%)' }}
+                style={{
+                  background: `radial-gradient(ellipse 100% 55% at 50% 110%, color-mix(in_srgb,var(--app-accent)_${bgCfg.glowStrength},transparent) 0%, transparent 65%)`,
+                  opacity: bgCfg.glowOpacity,
+                  animationDuration: bgCfg.animDuration,
+                }}
               />
 
               {/* Layer 3: scan-line texture */}
@@ -1294,6 +1309,22 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
                 className="absolute inset-0 pointer-events-none"
                 style={{ background: 'radial-gradient(ellipse 110% 110% at 50% 50%, transparent 30%, rgba(0,0,0,0.6) 100%)' }}
               />
+
+              {/* Layer 5: state-reactive overlays */}
+              {/* active → extra pulsing floor glow */}
+              {stageState === 'active' && (
+                <div
+                  className="absolute inset-x-0 bottom-0 pointer-events-none stage-active-pulse"
+                  style={{ height: '35%', background: 'radial-gradient(ellipse 90% 100% at 50% 100%, color-mix(in_srgb,var(--app-accent)_14%,transparent) 0%, transparent 70%)' }}
+                />
+              )}
+              {/* idle → subtle cool-tinted dark wash to desaturate */}
+              {stageState === 'idle' && (
+                <div
+                  className="absolute inset-0 pointer-events-none transition-opacity duration-1000"
+                  style={{ background: 'rgba(4,6,20,0.22)' }}
+                />
+              )}
 
               {/* === Character — centered, fills stage === */}
               <div
@@ -1359,9 +1390,20 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
                   {currentLevelConfig ? `Lv ${currentLevelConfig.level}` : 'Unranked'} · {roleText}
                 </div>
                 <div className="text-base font-bold text-white leading-tight truncate">{summonerName}</div>
-                {currentMission && (
-                  <div className="mt-1.5 text-[9px] uppercase tracking-[0.12em] text-[var(--app-accent)] truncate">
-                    ▶ {currentMission.title}
+                {stageState === 'active' ? (
+                  <div className="mt-1.5 flex items-center gap-1.5">
+                    <span className="inline-block w-1.5 h-1.5 rounded-full bg-[var(--app-accent)] stage-active-dot" />
+                    <span className="text-[9px] uppercase tracking-[0.12em] text-[var(--app-accent)] truncate">
+                      Session Running
+                    </span>
+                  </div>
+                ) : stageState === 'productive' ? (
+                  <div className="mt-1.5 text-[9px] uppercase tracking-[0.12em] text-emerald-400/80 truncate">
+                    ✓ {completedToday} done today
+                  </div>
+                ) : (
+                  <div className="mt-1.5 text-[9px] uppercase tracking-[0.12em] text-white/25 truncate">
+                    No activity yet
                   </div>
                 )}
                 <div className="mt-2 flex items-center gap-2">
