@@ -2,7 +2,6 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Camera, Edit2, Check, X, Upload, Box, User, Activity, Award, BarChart2, Sword, Zap, Link2, FileText, Shield } from 'lucide-react';
 import { ProfilePanel } from '../UI/ProfilePanel';
 import { EyeOrb } from '../UI/EyeOrb';
-import { DrawerOverlay } from '../Profile/DrawerOverlay';
 import { RewardVisual } from '../UI/RewardVisual';
 import { RewardConfig, InventoryItem } from '../../types';
 import { ASSETS } from '../../constants';
@@ -219,6 +218,12 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
     localStorage.setItem('profileOutfitEquipped', JSON.stringify(equippedOutfit));
   }, [equippedOutfit]);
   useEffect(() => {
+    try { localStorage.setItem('xtation_profile_skills_v1', JSON.stringify(lobbySkills)); } catch {}
+  }, [lobbySkills]);
+  useEffect(() => {
+    try { localStorage.setItem('xtation_profile_links_v1', JSON.stringify(lobbyLinks)); } catch {}
+  }, [lobbyLinks]);
+  useEffect(() => {
     const stored = localStorage.getItem('inventoryItems');
     if (stored) {
       try {
@@ -274,7 +279,23 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
   const [lobbyNotes, setLobbyNotes] = useState(() => {
     try { return localStorage.getItem('xtation_profile_notes_v1') || ''; } catch { return ''; }
   });
+  const [lobbyNotesSaved, setLobbyNotesSaved] = useState(true);
   const [lobbyVisibility, setLobbyVisibility] = useState<'Private' | 'Circles' | 'Community'>('Private');
+  const [lobbySkills, setLobbySkills] = useState<string[]>(() => {
+    try {
+      const raw = localStorage.getItem('xtation_profile_skills_v1');
+      if (raw) return JSON.parse(raw);
+    } catch {}
+    return ['Deep Work', 'Writing', 'Code', 'Design', 'Planning'];
+  });
+  const [newSkillInput, setNewSkillInput] = useState('');
+  const [lobbyLinks, setLobbyLinks] = useState<{ label: string; url: string }[]>(() => {
+    try {
+      const raw = localStorage.getItem('xtation_profile_links_v1');
+      if (raw) return JSON.parse(raw);
+    } catch {}
+    return [];
+  });
   const stageInnerRef = useRef<HTMLDivElement>(null);
 
   // ── Character Upload state ───────────────────────────────────────────
@@ -290,6 +311,22 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
   const [stageGlbUrl, setStageGlbUrl] = useState<string>('');
   const stageImageInputRef = useRef<HTMLInputElement>(null);
   const stageGlbInputRef = useRef<HTMLInputElement>(null);
+
+  const addSkill = () => {
+    const v = newSkillInput.trim();
+    if (!v || lobbySkills.includes(v)) return;
+    setLobbySkills(prev => [...prev, v]);
+    setNewSkillInput('');
+  };
+  const addLink = () => {
+    setLobbyLinks(prev => [...prev, { label: '', url: '' }]);
+  };
+  const removeLink = (idx: number) => {
+    setLobbyLinks(prev => prev.filter((_, i) => i !== idx));
+  };
+  const updateLink = (idx: number, field: 'label' | 'url', val: string) => {
+    setLobbyLinks(prev => prev.map((l, i) => i === idx ? { ...l, [field]: val } : l));
+  };
 
   const handleImageClick = () => { playClickSound(); fileInputRef.current?.click(); };
   const handleCoverClick = () => { playClickSound(); coverInputRef.current?.click(); };
@@ -1081,155 +1118,269 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
     </div>
   );
 
-  const renderLobbyPanelContent = (panel: LobbyPanelKey | null) => {
-    const inputCls = 'w-full border border-[color-mix(in_srgb,var(--app-text)_12%,transparent)] rounded px-3 py-2 text-sm text-[var(--app-text)] bg-[var(--app-panel-2)] focus:outline-none focus:border-[var(--app-accent)]';
-    const labelCls = 'flex flex-col gap-1 text-[10px] uppercase tracking-[0.14em] text-[var(--app-muted)]';
-    const sectionTitle = 'text-[10px] uppercase tracking-[0.18em] text-[var(--app-muted)] mb-3';
+  const renderLobbyPanelContent = (panel: LobbyPanelKey) => {
+    const inputCls = 'w-full border border-[color-mix(in_srgb,var(--app-text)_12%,transparent)] rounded-lg px-[11px] py-[9px] text-[13px] text-[var(--app-text)] bg-[rgba(255,255,255,0.03)] focus:outline-none focus:border-[var(--app-accent)] focus:shadow-[0_0_0_3px_color-mix(in_srgb,var(--app-accent)_10%,transparent)] transition-[border-color,box-shadow]';
+    const fieldLabel = 'text-[9px] uppercase tracking-[1.5px] text-[var(--app-muted)] mb-[5px]';
+
     switch (panel) {
       case 'identity':
         return (
-          <div className="space-y-3">
-            <div className={sectionTitle}>Identity</div>
-            <label className={labelCls}>Display Name
+          <div className="space-y-[14px]">
+            {/* Avatar upload */}
+            <div>
+              <div className={fieldLabel}>Avatar</div>
+              <div
+                onClick={() => fileInputRef.current?.click()}
+                className="w-[72px] h-[72px] rounded-[14px] border-2 border-dashed border-[rgba(255,255,255,0.1)] flex flex-col items-center justify-center gap-[3px] cursor-pointer text-[var(--app-muted)] text-[9px] transition-all hover:border-[var(--app-accent)] hover:bg-[color-mix(in_srgb,var(--app-accent)_8%,transparent)] hover:text-[var(--app-accent)]"
+                style={{ background: 'color-mix(in_srgb,var(--app-accent)_6%,var(--app-panel))' }}
+              >
+                <Upload size={20} className="opacity-50" />
+                upload
+              </div>
+            </div>
+            <div>
+              <div className={fieldLabel}>Display Name</div>
               <input className={inputCls} value={summonerName} placeholder="Your name" onChange={e => { setSummonerName(e.target.value || 'Summoner Name'); setBioStats(p => ({ ...p, name: e.target.value })); }} />
-            </label>
-            <label className={labelCls}>Role
-              <input className={inputCls} value={roleText} placeholder="e.g. Mid Lane" onChange={e => setRoleText(e.target.value)} />
-            </label>
-            <label className={labelCls}>Region / ID
-              <input className={inputCls} value={profileId} placeholder="#NA1 // US_WEST" onChange={e => setProfileId(e.target.value)} />
-            </label>
-            <label className={labelCls}>Short Bio
-              <textarea className={`${inputCls} resize-none h-24`} placeholder="A few words about yourself..." />
-            </label>
-          </div>
-        );
-      case 'stats':
-        return (
-          <div className="space-y-3">
-            <div className={sectionTitle}>Stats</div>
-            {[
-              { label: 'Total XP', value: `${totalXP} XP` },
-              { label: 'Current Level', value: currentLevelConfig ? `Level ${currentLevelConfig.level}` : 'Unranked' },
-              { label: 'Progress', value: `${levelProgress}%` },
-              { label: 'Active Missions', value: activeMissions },
-              { label: 'Completed Today', value: completedToday },
-            ].map(({ label, value }) => (
-              <div key={label} className="flex items-center justify-between border border-[color-mix(in_srgb,var(--app-text)_8%,transparent)] rounded px-3 py-2 bg-[var(--app-panel-2)]">
-                <span className="text-[10px] uppercase tracking-[0.14em] text-[var(--app-muted)]">{label}</span>
-                <span className="text-sm font-bold text-[var(--app-text)]">{value}</span>
-              </div>
-            ))}
-            <div className="mt-1">
-              <div className="flex justify-between text-[10px] uppercase tracking-[0.12em] text-[var(--app-muted)] mb-1">
-                <span>XP Progress</span><span>{levelProgress}%</span>
-              </div>
-              <div className="h-2 rounded bg-[var(--app-panel-2)] border border-[color-mix(in_srgb,var(--app-text)_8%,transparent)] overflow-hidden">
-                <div className="h-full bg-[var(--app-accent)] rounded" style={{ width: `${Math.min(100, levelProgress)}%` }} />
-              </div>
+            </div>
+            <div>
+              <div className={fieldLabel}>Role / Title</div>
+              <input className={inputCls} value={roleText} placeholder="e.g. Designer" onChange={e => setRoleText(e.target.value)} />
+            </div>
+            <div>
+              <div className={fieldLabel}>Bio</div>
+              <textarea className={`${inputCls} resize-none`} rows={3} placeholder="A few words about yourself..." />
             </div>
           </div>
         );
-      case 'loadout':
+      case 'stats': {
+        const statBars = [
+          { label: 'Focus',       val: Math.min(100, Math.round((completedToday / Math.max(activeMissions + completedToday, 1)) * 100)) || 72, grad: 'linear-gradient(90deg,color-mix(in_srgb,var(--app-accent)_60%,black),var(--app-accent))', delay: '0.08s' },
+          { label: 'Consistency', val: Math.min(100, levelProgress),                                                                          grad: 'linear-gradient(90deg,color-mix(in_srgb,var(--app-accent)_70%,black),#a78bfa)',                   delay: '0.16s' },
+          { label: 'Output',      val: Math.min(100, Math.round((totalXP / Math.max(nextConfig?.threshold ?? totalXP, 1)) * 100)) || 91,      grad: 'linear-gradient(90deg,color-mix(in_srgb,var(--app-accent)_60%,black),#c4b5fd)',                   delay: '0.24s' },
+          { label: 'Endurance',   val: Math.min(100, completedToday * 12 + 10),                                                               grad: 'linear-gradient(90deg,color-mix(in_srgb,var(--app-accent)_40%,black),var(--app-accent))',         delay: '0.32s' },
+          { label: 'Willpower',   val: Math.min(100, activeMissions * 15 + 25),                                                               grad: 'linear-gradient(90deg,color-mix(in_srgb,var(--app-accent)_60%,black),#a78bfa)',                   delay: '0.40s' },
+        ];
         return (
-          <div className="space-y-3">
-            <div className={sectionTitle}>Loadout</div>
-            {['Primary Tool', 'Secondary Tool', 'Companion'].map(slot => (
-              <div key={slot} className="border border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] rounded-lg p-3 bg-[var(--app-panel-2)] flex items-center gap-3">
-                <div className="w-10 h-10 rounded border border-dashed border-[color-mix(in_srgb,var(--app-text)_14%,transparent)] flex items-center justify-center text-[var(--app-muted)]">
-                  <Sword size={14} />
+          <div className="space-y-[16px]">
+            {statBars.map(({ label, val, grad, delay }) => (
+              <div key={label}>
+                <div className="flex justify-between mb-[5px]">
+                  <span className="text-[12px] font-medium text-[var(--app-text)]">{label}</span>
+                  <span className="font-mono text-[11px] text-[var(--app-accent)]">{val}</span>
                 </div>
-                <div>
-                  <div className="text-[10px] uppercase tracking-[0.14em] text-[var(--app-muted)]">{slot}</div>
-                  <div className="text-xs text-[var(--app-text)] mt-0.5">— Empty —</div>
+                <div className="h-[7px] rounded overflow-hidden" style={{ background: 'color-mix(in_srgb,var(--app-accent)_8%,var(--app-panel))' }}>
+                  <div
+                    className="h-full rounded transition-[width] duration-[1400ms]"
+                    style={{ width: `${val}%`, background: grad, transitionDelay: delay, position: 'relative' }}
+                  >
+                    <div className="absolute inset-0 rounded" style={{ background: 'linear-gradient(90deg,transparent 30%,rgba(255,255,255,0.12))' }} />
+                  </div>
                 </div>
               </div>
             ))}
-            <div className="text-[9px] text-[var(--app-muted)] text-center mt-2">Inventory equip coming soon.</div>
+          </div>
+        );
+      }
+      case 'loadout':
+        return (
+          <div>
+            <div className="grid grid-cols-3 gap-2">
+              {[
+                { icon: '⚔', label: 'weapon', equipped: true },
+                { icon: '🛡', label: 'armor',  equipped: true },
+                { icon: '💎', label: 'ring',   equipped: false },
+                { icon: '⚡', label: 'boost',  equipped: true },
+                { icon: '🏆', label: 'relic',  equipped: false },
+                { icon: '🔌', label: 'mod',    equipped: false },
+              ].map(slot => (
+                <div
+                  key={slot.label}
+                  className="aspect-square rounded-[10px] flex flex-col items-center justify-center gap-[5px] cursor-pointer transition-all hover:-translate-y-[3px] hover:shadow-[0_8px_20px_color-mix(in_srgb,var(--app-accent)_20%,transparent)]"
+                  style={{
+                    background: slot.equipped ? 'color-mix(in_srgb,var(--app-accent)_8%,var(--app-panel))' : 'rgba(255,255,255,0.02)',
+                    border: `1px solid ${slot.equipped ? 'color-mix(in_srgb,var(--app-accent)_40%,transparent)' : 'rgba(255,255,255,0.06)'}`,
+                  }}
+                >
+                  <span className="text-[22px]" style={{ opacity: slot.equipped ? 1 : 0.5 }}>{slot.icon}</span>
+                  <span className="text-[8px] uppercase tracking-[1px] text-[var(--app-muted)]">{slot.label}</span>
+                </div>
+              ))}
+            </div>
+            <div className="text-[9px] text-[var(--app-muted)] text-center mt-3">Inventory equip coming soon.</div>
           </div>
         );
       case 'skills':
         return (
-          <div className="space-y-4">
-            <div className={sectionTitle}>Skills</div>
-            {[{ label: 'Focus', val: 72 }, { label: 'Social', val: 58 }, { label: 'Fitness', val: 45 }, { label: 'Craft', val: 61 }].map(({ label, val }) => (
-              <div key={label} className="space-y-1">
-                <div className="flex justify-between text-[10px] uppercase tracking-[0.14em] text-[var(--app-muted)]">
-                  <span>{label}</span><span className="text-[var(--app-text)]">{val}</span>
+          <div className="space-y-[14px]">
+            <div className="flex flex-wrap gap-[7px]">
+              {lobbySkills.map(skill => (
+                <div
+                  key={skill}
+                  className="flex items-center gap-1.5 px-3 py-[5px] rounded-[18px] text-[11px] font-medium transition-all hover:border-[var(--app-accent)]"
+                  style={{
+                    color: 'var(--app-accent)',
+                    background: 'color-mix(in_srgb,var(--app-accent)_15%,transparent)',
+                    border: '1px solid color-mix(in_srgb,var(--app-accent)_30%,transparent)',
+                  }}
+                >
+                  {skill}
+                  <button
+                    type="button"
+                    onClick={() => setLobbySkills(prev => prev.filter(s => s !== skill))}
+                    className="w-[14px] h-[14px] rounded-full flex items-center justify-center text-[10px] leading-none transition-colors hover:bg-red-500 hover:text-white"
+                    style={{ background: 'rgba(255,255,255,0.08)' }}
+                  >
+                    ×
+                  </button>
                 </div>
-                <div className="h-2 rounded bg-[var(--app-panel-2)] border border-[color-mix(in_srgb,var(--app-text)_8%,transparent)] overflow-hidden">
-                  <div className="h-full bg-[color-mix(in_srgb,var(--app-accent)_80%,var(--app-text))] rounded" style={{ width: `${val}%` }} />
-                </div>
-              </div>
-            ))}
+              ))}
+            </div>
+            <div className="flex gap-[7px]">
+              <input
+                type="text"
+                value={newSkillInput}
+                onChange={e => setNewSkillInput(e.target.value)}
+                onKeyDown={e => { if (e.key === 'Enter') addSkill(); }}
+                placeholder="New skill..."
+                className={`${inputCls} flex-1`}
+              />
+              <button
+                type="button"
+                onClick={addSkill}
+                className="px-3 py-[7px] rounded-lg text-white text-[11px] font-semibold cursor-pointer transition-colors"
+                style={{ background: 'color-mix(in_srgb,var(--app-accent)_60%,black)' }}
+              >
+                Add
+              </button>
+            </div>
           </div>
         );
       case 'titles':
         return (
-          <div>
-            <div className={sectionTitle}>Earned Titles</div>
-            <div className="flex flex-wrap gap-2">
-              {['Early Adopter', 'First Log', 'Day 1', 'Mission Complete'].map(t => (
-                <span key={t} className="px-2.5 py-1 rounded-full border border-[color-mix(in_srgb,var(--app-accent)_40%,transparent)] bg-[color-mix(in_srgb,var(--app-accent)_8%,var(--app-panel-2))] text-[10px] uppercase tracking-[0.14em] text-[var(--app-accent)]">
-                  {t}
-                </span>
-              ))}
-            </div>
-            <div className="text-[9px] text-[var(--app-muted)] mt-4">More titles unlock as you progress.</div>
+          <div className="space-y-2">
+            {[
+              { icon: '🌄', name: 'Early Bird',    desc: '10 sessions before 8 AM',     locked: false },
+              { icon: '🔥', name: '100 Sessions',  desc: 'Complete 100 focus sessions',  locked: false },
+              { icon: '⚡', name: 'Streak Master', desc: 'Maintain a 30-day streak',     locked: false },
+              { icon: '👑', name: 'Grandmaster',   desc: 'Reach 10,000 XP total',        locked: totalXP < 10000 },
+              { icon: '🌟', name: 'Night Owl',     desc: '50 sessions after midnight',   locked: true },
+            ].map(t => (
+              <div
+                key={t.name}
+                className="flex items-center gap-[10px] p-[10px] rounded-[9px] transition-all"
+                style={{
+                  background: 'rgba(255,255,255,0.02)',
+                  border: '1px solid rgba(255,255,255,0.06)',
+                  opacity: t.locked ? 0.3 : 1,
+                  filter: t.locked ? 'grayscale(1)' : 'none',
+                }}
+              >
+                <div className="w-8 h-8 rounded-[8px] flex items-center justify-center text-[16px] shrink-0"
+                  style={{ background: 'color-mix(in_srgb,var(--app-accent)_15%,transparent)' }}>
+                  {t.icon}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="text-[12px] font-semibold text-[var(--app-text)] truncate">{t.name}</div>
+                  <div className="text-[10px] text-[var(--app-muted)] truncate">{t.desc}</div>
+                </div>
+                <div className="text-[14px] shrink-0 text-[var(--app-accent)]">{t.locked ? '🔒' : '✓'}</div>
+              </div>
+            ))}
           </div>
         );
       case 'links':
         return (
-          <div className="space-y-3">
-            <div className={sectionTitle}>Quick Links</div>
-            <button disabled className="w-full text-left border border-dashed border-[color-mix(in_srgb,var(--app-text)_14%,transparent)] rounded px-3 py-2 text-[10px] uppercase tracking-[0.14em] text-[var(--app-muted)] cursor-not-allowed opacity-60 flex items-center gap-2">
-              <Link2 size={12} /> + Add Link (coming soon)
+          <div className="space-y-2">
+            {lobbyLinks.map((link, idx) => (
+              <div key={idx} className="flex gap-1.5">
+                <input
+                  value={link.label}
+                  onChange={e => updateLink(idx, 'label', e.target.value)}
+                  placeholder="Label"
+                  className={`${inputCls} flex-[0.35]`}
+                />
+                <input
+                  value={link.url}
+                  onChange={e => updateLink(idx, 'url', e.target.value)}
+                  placeholder="URL"
+                  className={`${inputCls} flex-1`}
+                />
+                <button
+                  type="button"
+                  onClick={() => removeLink(idx)}
+                  className="w-8 h-8 shrink-0 rounded-[8px] flex items-center justify-center text-[13px] text-[var(--app-muted)] transition-all hover:bg-[rgba(239,68,68,0.12)] hover:text-red-400 hover:border-red-400"
+                  style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}
+                >
+                  ×
+                </button>
+              </div>
+            ))}
+            <button
+              type="button"
+              onClick={addLink}
+              className="w-full py-[7px] mt-1 rounded-[8px] text-[var(--app-accent)] text-[11px] cursor-pointer transition-all hover:border-[var(--app-accent)]"
+              style={{ background: 'color-mix(in_srgb,var(--app-accent)_8%,transparent)', border: '1px dashed color-mix(in_srgb,var(--app-accent)_25%,transparent)' }}
+            >
+              + Add Link
             </button>
-            <div className="text-[9px] text-[var(--app-muted)]">No links added yet.</div>
           </div>
         );
       case 'notes':
         return (
-          <div className="flex flex-col gap-3 h-full">
-            <div className={sectionTitle}>Personal Notes</div>
+          <div className="flex flex-col gap-[6px]">
             <textarea
               value={lobbyNotes}
-              onChange={e => setLobbyNotes(e.target.value)}
+              onChange={e => { setLobbyNotes(e.target.value); setLobbyNotesSaved(false); }}
+              onBlur={() => {
+                try { localStorage.setItem('xtation_profile_notes_v1', lobbyNotes); setLobbyNotesSaved(true); } catch {}
+              }}
               placeholder="Personal notes, ideas, reminders..."
-              className="w-full flex-1 min-h-[180px] border border-[color-mix(in_srgb,var(--app-text)_12%,transparent)] rounded-lg p-3 text-sm text-[var(--app-text)] bg-[var(--app-panel-2)] resize-none focus:outline-none focus:border-[var(--app-accent)]"
+              style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '9px', color: 'var(--app-text)', fontFamily: 'inherit', fontSize: '13px', lineHeight: '1.7', outline: 'none', resize: 'none', width: '100%', minHeight: '280px', padding: '12px' }}
+              className="focus:border-[var(--app-accent)] transition-[border-color]"
             />
-            <button
-              type="button"
-              onClick={() => { try { localStorage.setItem('xtation_profile_notes_v1', lobbyNotes); } catch {} }}
-              className="text-[10px] uppercase tracking-[0.14em] border border-[color-mix(in_srgb,var(--app-text)_12%,transparent)] rounded px-4 py-2 text-[var(--app-muted)] hover:text-[var(--app-text)] hover:border-[color-mix(in_srgb,var(--app-text)_30%,transparent)] transition-colors"
-            >
-              Save Locally
-            </button>
+            <div className="flex items-center gap-[5px] text-[10px] transition-colors" style={{ color: lobbyNotesSaved ? 'var(--app-accent)' : 'var(--app-muted)' }}>
+              <span className="w-[5px] h-[5px] rounded-full inline-block" style={{ background: 'currentColor' }} />
+              <span>{lobbyNotesSaved ? 'autosaved' : 'saving...'}</span>
+            </div>
           </div>
         );
       case 'privacy':
         return (
-          <div className="space-y-3">
-            <div className={sectionTitle}>Profile Visibility</div>
-            {(['Private', 'Circles', 'Community'] as const).map(opt => (
-              <button
-                key={opt}
-                type="button"
-                onClick={() => setLobbyVisibility(opt)}
-                className={`w-full text-left px-3 py-2.5 rounded border text-[10px] uppercase tracking-[0.14em] transition-colors ${
-                  lobbyVisibility === opt
-                    ? 'border-[color-mix(in_srgb,var(--app-accent)_60%,transparent)] bg-[color-mix(in_srgb,var(--app-accent)_10%,var(--app-panel))] text-[var(--app-accent)]'
-                    : 'border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-[var(--app-panel-2)] text-[var(--app-muted)] hover:border-[color-mix(in_srgb,var(--app-text)_25%,transparent)] hover:text-[var(--app-text)]'
-                }`}
-              >
-                {opt}
-              </button>
-            ))}
-            <div className="text-[9px] text-[var(--app-muted)] mt-1">Backend sync coming soon.</div>
+          <div className="space-y-2">
+            {([
+              { key: 'Private',   name: 'Private',   desc: 'Only you can see your profile. No data is shared with anyone.' },
+              { key: 'Circles',   name: 'Circles',   desc: 'People in your circles can view your profile and basic stats.' },
+              { key: 'Community', name: 'Community', desc: 'Your profile is visible to everyone. Stats and titles are public.' },
+            ] as const).map(opt => {
+              const sel = lobbyVisibility === opt.key;
+              return (
+                <div
+                  key={opt.key}
+                  onClick={() => setLobbyVisibility(opt.key)}
+                  className="flex items-start gap-[10px] p-3 rounded-[9px] cursor-pointer transition-all hover:border-[color-mix(in_srgb,var(--app-accent)_25%,transparent)]"
+                  style={{
+                    background: sel ? 'color-mix(in_srgb,var(--app-accent)_8%,var(--app-panel))' : 'rgba(255,255,255,0.02)',
+                    border: `1px solid ${sel ? 'var(--app-accent)' : 'rgba(255,255,255,0.06)'}`,
+                  }}
+                >
+                  <div
+                    className="w-[18px] h-[18px] rounded-full shrink-0 mt-0.5 flex items-center justify-center transition-[border-color]"
+                    style={{ border: `2px solid ${sel ? 'var(--app-accent)' : 'rgba(255,255,255,0.15)'}` }}
+                  >
+                    <div
+                      className="w-[9px] h-[9px] rounded-full transition-transform"
+                      style={{ background: 'var(--app-accent)', transform: sel ? 'scale(1)' : 'scale(0)' }}
+                    />
+                  </div>
+                  <div className="flex-1">
+                    <div className="text-[13px] font-semibold text-[var(--app-text)] mb-0.5">{opt.name}</div>
+                    <div className="text-[11px] text-[var(--app-muted)] leading-[1.5]">{opt.desc}</div>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         );
-      default:
-        return null;
     }
   };
 
@@ -1238,14 +1389,14 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
       case 'PROFILE': {
         type BtnDef = { key: LobbyPanelKey; label: string; icon: React.ReactNode };
         const allBtns: BtnDef[] = [
-          { key: 'identity', label: 'Identity', icon: <User size={13} /> },
-          { key: 'stats',    label: 'Stats',    icon: <BarChart2 size={13} /> },
-          { key: 'loadout',  label: 'Loadout',  icon: <Sword size={13} /> },
-          { key: 'skills',   label: 'Skills',   icon: <Zap size={13} /> },
-          { key: 'titles',   label: 'Titles',   icon: <Award size={13} /> },
-          { key: 'links',    label: 'Links',    icon: <Link2 size={13} /> },
-          { key: 'notes',    label: 'Notes',    icon: <FileText size={13} /> },
-          { key: 'privacy',  label: 'Privacy',  icon: <Shield size={13} /> },
+          { key: 'identity', label: 'identity', icon: <User size={16} /> },
+          { key: 'stats',    label: 'stats',    icon: <BarChart2 size={16} /> },
+          { key: 'loadout',  label: 'loadout',  icon: <Sword size={16} /> },
+          { key: 'skills',   label: 'skills',   icon: <Zap size={16} /> },
+          { key: 'titles',   label: 'titles',   icon: <Award size={16} /> },
+          { key: 'links',    label: 'links',    icon: <Link2 size={16} /> },
+          { key: 'notes',    label: 'notes',    icon: <FileText size={16} /> },
+          { key: 'privacy',  label: 'privacy',  icon: <Shield size={16} /> },
         ];
 
         const DockBtn = ({ btn }: { btn: BtnDef }) => {
@@ -1253,22 +1404,30 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
           return (
             <button
               type="button"
-              title={btn.label}
               onClick={() => setLobbyOpenPanel(p => p === btn.key ? null : btn.key)}
-              style={{ transitionTimingFunction: 'cubic-bezier(0.34, 1.56, 0.64, 1)', transitionDuration: '220ms' }}
-              className={`px-3 py-1 rounded-full text-[9px] uppercase tracking-[0.14em] font-mono transition-[transform,background-color,color,border-color] select-none border whitespace-nowrap ${
-                active
-                  ? 'bg-[color-mix(in_srgb,var(--app-accent)_22%,black)] border-[color-mix(in_srgb,var(--app-accent)_55%,transparent)] text-[var(--app-accent)] scale-105'
-                  : 'bg-black/40 border-white/10 text-white/45 hover:text-white hover:border-white/25 hover:scale-105 active:scale-95'
-              }`}
+              className="w-12 h-[46px] rounded-[10px] flex flex-col items-center justify-center gap-[3px] cursor-pointer select-none transition-[transform,box-shadow,background]"
+              style={{
+                background: active
+                  ? 'var(--app-accent)'
+                  : 'color-mix(in_srgb,var(--app-accent)_35%,black)',
+                boxShadow: active
+                  ? '0 0 24px color-mix(in_srgb,var(--app-accent)_45%,transparent),0 0 8px color-mix(in_srgb,var(--app-accent)_30%,transparent)'
+                  : 'none',
+                transform: active ? 'scale(1.08)' : 'scale(1)',
+                transitionTimingFunction: 'cubic-bezier(0.34,1.56,0.64,1)',
+                transitionDuration: '350ms',
+              }}
             >
-              {btn.label}
+              <span style={{ color: active ? '#fff' : 'var(--app-accent)', opacity: active ? 1 : 0.7, transition: 'opacity 0.3s' }}>
+                {btn.icon}
+              </span>
+              <span className="text-[7.5px] font-medium tracking-[0.4px] lowercase" style={{ color: active ? '#fff' : 'var(--app-text)', opacity: active ? 1 : 0.7, transition: 'opacity 0.3s' }}>
+                {btn.label}
+              </span>
             </button>
           );
         };
 
-        const panelIcon = allBtns.find(b => b.key === lobbyOpenPanel)?.icon;
-        const panelLabel = allBtns.find(b => b.key === lobbyOpenPanel)?.label ?? '';
         const stageSrc = stageImage || CHARACTER_PLACEHOLDER_SRC;
 
         const bgCfg = {
@@ -1278,13 +1437,56 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
         }[stageState];
 
         return (
-          <>
-            {/* ── Full-bleed cinematic stage — fills the fixed content area ── */}
-            <div className="relative h-full overflow-hidden">
+          <div className="h-full flex overflow-hidden">
+            {/* ── Left dock sidebar ── */}
+            <div
+              className="w-[58px] shrink-0 flex flex-col items-center py-[10px] px-[5px] gap-[6px] relative z-10"
+              style={{ background: 'color-mix(in_srgb,var(--app-accent)_50%,black)', borderRadius: '0 0 0 0' }}
+            >
+              {/* Avatar / home button */}
+              <button
+                type="button"
+                onClick={() => setLobbyOpenPanel(null)}
+                title="Home"
+                className="w-[38px] h-[38px] rounded-[10px] flex items-center justify-center mb-1.5 cursor-pointer transition-all duration-300 overflow-hidden shrink-0"
+                style={{
+                  background: lobbyOpenPanel === null
+                    ? 'var(--app-accent)'
+                    : 'color-mix(in_srgb,var(--app-accent)_35%,black)',
+                  boxShadow: lobbyOpenPanel === null
+                    ? '0 0 20px color-mix(in_srgb,var(--app-accent)_45%,transparent)'
+                    : 'none',
+                }}
+              >
+                <img src={profileImage} alt="Profile" className="w-full h-full object-cover" style={{ display: profileImage && profileImage !== ASSETS.PROFILE_ICON ? 'block' : 'none' }} />
+                {(!profileImage || profileImage === ASSETS.PROFILE_ICON) && (
+                  <User size={18} style={{ color: lobbyOpenPanel === null ? '#fff' : 'var(--app-accent)' }} />
+                )}
+              </button>
+
+              {/* 8 dock buttons */}
+              {allBtns.map(btn => <DockBtn key={btn.key} btn={btn} />)}
+
+              {/* Spacer */}
+              <div className="flex-1" />
+
+              {/* Hex logo */}
+              <div
+                className="w-[38px] h-[38px] flex items-center justify-center cursor-pointer transition-transform duration-500 hover:scale-110 hover:rotate-[15deg]"
+              >
+                <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="var(--app-accent)" strokeWidth="1.2" strokeLinejoin="round">
+                  <path d="M12 2l8.5 5v10L12 22l-8.5-5V7L12 2z"/>
+                  <path d="M12 2v7.5M12 22v-7.5M3.5 7l8.5 5M20.5 7l-8.5 5M3.5 17l8.5-5M20.5 17l-8.5-5" opacity=".6"/>
+                </svg>
+              </div>
+            </div>
+
+            {/* ── Stage + panel overlay ── */}
+            <div className="relative flex-1 overflow-hidden">
               {/* Layer 1: base bg */}
               <div className="absolute inset-0 bg-[var(--app-bg)]" />
 
-              {/* Layer 2: reactive accent glow — breathe speed + intensity driven by stageState */}
+              {/* Layer 2: reactive accent glow */}
               <div
                 className="absolute inset-0 pointer-events-none stage-bg-breathe"
                 style={{
@@ -1307,14 +1509,12 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
               />
 
               {/* Layer 5: state-reactive overlays */}
-              {/* active → extra pulsing floor glow */}
               {stageState === 'active' && (
                 <div
                   className="absolute inset-x-0 bottom-0 pointer-events-none stage-active-pulse"
                   style={{ height: '35%', background: 'radial-gradient(ellipse 90% 100% at 50% 100%, color-mix(in_srgb,var(--app-accent)_14%,transparent) 0%, transparent 70%)' }}
                 />
               )}
-              {/* idle → subtle cool-tinted dark wash to desaturate */}
               {stageState === 'idle' && (
                 <div
                   className="absolute inset-0 pointer-events-none transition-opacity duration-1000"
@@ -1322,10 +1522,7 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
                 />
               )}
 
-              {/* === Character — fills entire stage, no size limit === */}
-              {/* When a GLB is loaded: no CSS pose animation, no JS parallax —
-                  CSS transforms deform the already-rendered WebGL canvas output,
-                  making bones/joints appear displaced. The GLB has its own animations. */}
+              {/* === Character === */}
               <div
                 className="absolute inset-0"
                 style={stageGlbUrl ? undefined : { perspective: '1100px' }}
@@ -1347,13 +1544,10 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
                   ref={stageInnerRef}
                   className={`w-full h-full flex items-center justify-center transition-transform duration-150 ease-out${stageGlbUrl ? '' : ` stage-pose-${stageState}`}`}
                 >
-                  {/* Spotlight from above */}
                   <div
                     className="absolute inset-x-0 top-0 h-1/2 pointer-events-none"
                     style={{ background: 'radial-gradient(ellipse 60% 55% at 50% 0%, color-mix(in_srgb,var(--app-accent)_14%,transparent) 0%, transparent 70%)' }}
                   />
-
-                  {/* GLB — clean model-viewer with no CSS transform interference */}
                   {stageGlbUrl ? (
                     <model-viewer
                       src={stageGlbUrl}
@@ -1375,8 +1569,6 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
                       draggable={false}
                     />
                   )}
-
-                  {/* Floor glow */}
                   <div className="absolute bottom-0 inset-x-0 flex justify-center pointer-events-none">
                     <div
                       className="rounded-full blur-3xl"
@@ -1395,25 +1587,16 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
                 {stageState === 'active' ? (
                   <div className="mt-1.5 flex items-center gap-1.5">
                     <span className="inline-block w-1.5 h-1.5 rounded-full bg-[var(--app-accent)] stage-active-dot" />
-                    <span className="text-[9px] uppercase tracking-[0.12em] text-[var(--app-accent)] truncate">
-                      Session Running
-                    </span>
+                    <span className="text-[9px] uppercase tracking-[0.12em] text-[var(--app-accent)] truncate">Session Running</span>
                   </div>
                 ) : stageState === 'productive' ? (
-                  <div className="mt-1.5 text-[9px] uppercase tracking-[0.12em] text-emerald-400/80 truncate">
-                    ✓ {completedToday} done today
-                  </div>
+                  <div className="mt-1.5 text-[9px] uppercase tracking-[0.12em] text-emerald-400/80 truncate">✓ {completedToday} done today</div>
                 ) : (
-                  <div className="mt-1.5 text-[9px] uppercase tracking-[0.12em] text-white/25 truncate">
-                    No activity yet
-                  </div>
+                  <div className="mt-1.5 text-[9px] uppercase tracking-[0.12em] text-white/25 truncate">No activity yet</div>
                 )}
                 <div className="mt-2 flex items-center gap-2">
                   <div className="flex-1 h-0.5 rounded-full bg-white/10 overflow-hidden">
-                    <div
-                      className="h-full bg-[var(--app-accent)] rounded-full transition-[width] duration-500"
-                      style={{ width: `${levelProgress}%` }}
-                    />
+                    <div className="h-full bg-[var(--app-accent)] rounded-full transition-[width] duration-500" style={{ width: `${levelProgress}%` }} />
                   </div>
                   <span className="text-[8px] text-white/35 shrink-0">{levelProgress}%</span>
                 </div>
@@ -1432,11 +1615,6 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
                 </div>
               </div>
 
-              {/* === Dock — left side, vertical floating pills === */}
-              <div className="glass-panel-in glass-panel-in-delay-2 absolute left-3 top-1/2 -translate-y-1/2 z-20 flex flex-col gap-1.5">
-                {allBtns.map(btn => <DockBtn key={btn.key} btn={btn} />)}
-              </div>
-
               {/* === EyeOrb — bottom right corner === */}
               <div className="absolute bottom-4 right-4 z-20">
                 <EyeOrb
@@ -1449,7 +1627,7 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
                 />
               </div>
 
-              {/* === Upload buttons — right side === */}
+              {/* === Upload buttons — top right === */}
               <div className="absolute top-3 right-3 z-20 flex flex-col gap-1.5">
                 <button
                   type="button"
@@ -1469,7 +1647,7 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
                 </button>
               </div>
 
-              {/* === GLB indicator — left side, below dock === */}
+              {/* === GLB indicator — top left === */}
               {stageGlbName && (
                 <div className="absolute top-3 left-3 z-20 flex items-center gap-1.5 bg-black/60 backdrop-blur-sm rounded-lg px-2 py-1 border border-[color-mix(in_srgb,var(--app-accent)_30%,transparent)]">
                   <Box size={10} className="text-[var(--app-accent)] shrink-0" />
@@ -1486,18 +1664,44 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
               {/* Hidden file inputs */}
               <input ref={stageImageInputRef} type="file" className="hidden" accept="image/png,image/jpeg,image/jpg" onChange={handleStageImageUpload} />
               <input ref={stageGlbInputRef} type="file" className="hidden" accept=".glb" onChange={handleStageGlbUpload} />
-            </div>
 
-            {/* ── Overlay drawer ── */}
-            <DrawerOverlay
-              open={lobbyOpenPanel !== null}
-              onClose={() => setLobbyOpenPanel(null)}
-              title={panelLabel}
-              icon={panelIcon}
-            >
-              {renderLobbyPanelContent(lobbyOpenPanel)}
-            </DrawerOverlay>
-          </>
+              {/* === Panel overlay — fades in over the stage === */}
+              <div className="absolute inset-0 z-[30]" style={{ pointerEvents: 'none' }}>
+                {(['identity', 'stats', 'loadout', 'skills', 'titles', 'links', 'notes', 'privacy'] as LobbyPanelKey[]).map(key => (
+                  <div
+                    key={key}
+                    className="absolute inset-0 overflow-y-auto xt-scroll"
+                    style={{
+                      background: 'var(--app-panel)',
+                      padding: '20px 18px',
+                      opacity: lobbyOpenPanel === key ? 1 : 0,
+                      visibility: lobbyOpenPanel === key ? 'visible' : 'hidden',
+                      pointerEvents: lobbyOpenPanel === key ? 'auto' : 'none',
+                      transition: lobbyOpenPanel === key
+                        ? 'opacity 0.25s ease'
+                        : 'opacity 0.25s ease, visibility 0s 0.25s',
+                    }}
+                  >
+                    {/* Panel header */}
+                    <div className="flex items-center justify-between mb-[18px]">
+                      <div className="text-[11px] font-semibold uppercase tracking-[2px] text-[var(--app-accent)]">
+                        {key.charAt(0).toUpperCase() + key.slice(1)}
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setLobbyOpenPanel(null)}
+                        className="text-[var(--app-muted)] hover:text-[var(--app-text)] transition-colors"
+                        aria-label="Close panel"
+                      >
+                        <X size={14} />
+                      </button>
+                    </div>
+                    {renderLobbyPanelContent(key)}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
         );
       }
       case 'HEALTH':
