@@ -1383,9 +1383,9 @@ export const LogCalendar: React.FC = () => {
   );
 
   return (
-    <div className="relative text-[var(--app-text)]">
+    <div className="h-full flex flex-col text-[var(--app-text)]">
       {import.meta.env.DEV ? (
-        <div className="mb-3 rounded-md border border-[color-mix(in_srgb,var(--app-accent)_45%,transparent)] bg-[color-mix(in_srgb,var(--app-accent)_12%,var(--app-panel))] px-3 py-2 text-[10px] uppercase tracking-[0.14em] text-[var(--app-muted)]">
+        <div className="shrink-0 mb-3 rounded-md border border-[color-mix(in_srgb,var(--app-accent)_45%,transparent)] bg-[color-mix(in_srgb,var(--app-accent)_12%,var(--app-panel))] px-3 py-2 text-[10px] uppercase tracking-[0.14em] text-[var(--app-muted)]">
           <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
             <span className="text-[var(--app-text)]">selectedDate: {selectedKey}</span>
             <span>activeRange: {rangeLabel}</span>
@@ -1396,6 +1396,7 @@ export const LogCalendar: React.FC = () => {
           </div>
         </div>
       ) : null}
+      <div className="flex-1 overflow-y-auto xt-scroll">
       <div className="space-y-4">
         <div className="flex justify-center lg:justify-end">
           <DayTimeOrb size={552} showLiveLabel={selectedKey !== todayKey} />
@@ -1991,6 +1992,7 @@ export const LogCalendar: React.FC = () => {
         onCancel={() => setDeleteConfirmState(null)}
         onConfirm={confirmDeleteTask}
       />
+      </div>
     </div>
   );
 };
