@@ -951,12 +951,6 @@ export const LogCalendar: React.FC = () => {
           const isStartable = !!row.taskId && (row.state === 'scheduled' || row.state === 'failed' || row.state === 'todo');
           const isThisRowRunning = !!row.taskId && activeSession?.taskId === row.taskId;
           const stateMeta = getQuestStateMeta(row.state);
-          const headItem = row.items[0];
-          const compactDetail = headItem
-            ? headItem.status === 'scheduled'
-              ? 'Scheduled task'
-              : toPanelBadge(headItem.status)
-            : '';
           return (
             <div
               key={row.key}
@@ -1019,11 +1013,6 @@ export const LogCalendar: React.FC = () => {
                   <div className="flex items-center gap-2">
                     <div className="min-w-0 flex-1">
                       <div className="text-xs uppercase tracking-[0.12em] text-[var(--app-text)] truncate">{row.title}</div>
-                      {compactDetail ? (
-                        <div className="mt-0.5 text-[9px] uppercase tracking-[0.14em] text-[var(--app-muted)] truncate">
-                          {compactDetail}
-                        </div>
-                      ) : null}
                     </div>
                     <span
                       className="inline-flex justify-center rounded px-1.5 py-0.5 text-[9px] uppercase tracking-[0.14em] shrink-0"
