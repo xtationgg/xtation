@@ -1106,6 +1106,7 @@ export const LogCalendar: React.FC = () => {
     const chartInnerBottom = 78;
     const plannedLineTop = 92;
     const actualLineTop = 262;
+    const fullDayLineTop = actualLineTop + 88;
     return (
       <div ref={mobile ? undefined : timelineChartRef} className={`rounded-xl bg-[color-mix(in_srgb,var(--app-panel-2)_55%,var(--app-panel))] px-2 py-2 relative overflow-hidden`} style={{ height: chartHeight }}>
         <div className="absolute inset-x-4" style={{ top: chartInnerTop, bottom: chartInnerBottom }}>
@@ -1116,6 +1117,10 @@ export const LogCalendar: React.FC = () => {
           <div
             className="absolute inset-x-0 h-px bg-[color-mix(in_srgb,var(--app-text)_22%,transparent)]"
             style={{ top: actualLineTop }}
+          />
+          <div
+            className="absolute inset-x-0 h-[2px] bg-[color-mix(in_srgb,var(--app-text)_18%,transparent)]"
+            style={{ top: fullDayLineTop }}
           />
           {TIMELINE_HOUR_MARKERS.map((hour) => (
             <div
@@ -1141,6 +1146,24 @@ export const LogCalendar: React.FC = () => {
               className="pointer-events-none absolute top-0 bottom-0 border-l border-dashed border-[color-mix(in_srgb,var(--app-accent)_55%,transparent)]"
               style={{ left: `${nowMarkerX}%` }}
             >
+              <span
+                className="absolute -translate-x-1/2 rounded-full bg-[color-mix(in_srgb,var(--app-accent)_82%,#fff)]"
+                style={{
+                  top: fullDayLineTop - 5,
+                  width: 10,
+                  height: 10,
+                  boxShadow: '0 0 0 4px color-mix(in_srgb,var(--app-accent)_18%,transparent), 0 0 10px color-mix(in_srgb,var(--app-accent)_55%,transparent)',
+                }}
+              />
+              <span
+                className="absolute -translate-x-1/2 rounded-full bg-[color-mix(in_srgb,var(--app-accent)_42%,transparent)]"
+                style={{
+                  top: fullDayLineTop - 3,
+                  width: 28,
+                  height: 6,
+                  filter: 'blur(2px)',
+                }}
+              />
               <span className="absolute -top-4 -translate-x-1/2 rounded px-1 py-0.5 text-[8px] uppercase tracking-[0.12em] text-[var(--app-accent)] bg-[color-mix(in_srgb,var(--app-accent)_14%,var(--app-panel))]">
                 Now
               </span>
