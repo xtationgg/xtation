@@ -1965,17 +1965,44 @@ a {
   animation-duration: 0.01ms !important;
 }
 
-/* ── Stage idle float animation ──────────────────────────────────────── */
-/* Uses standalone `translate` property so it composes with the JS
-   parallax `transform` (rotateY/rotateX) on the same element safely.  */
-@keyframes stage-idle {
-  0%, 100% { translate: 0 0px; }
-  50%       { translate: 0 -5px; }
+/* ── State-aware stage pose animations ───────────────────────────────── */
+/* All use standalone `translate`, `rotate`, `scale` properties so they  */
+/* compose safely with the JS parallax `transform: rotateY/rotateX`.     */
+
+/* ACTIVE — session running. Tight, urgent bob with a forward lean.      */
+@keyframes stage-pose-active {
+  0%   { translate: 0 0px;  rotate:  1deg;   scale: 1;     }
+  35%  { translate: 0 -3px; rotate:  0deg;   scale: 1.012; }
+  65%  { translate: 0 -2px; rotate:  1.5deg; scale: 1.012; }
+  100% { translate: 0 0px;  rotate:  1deg;   scale: 1;     }
 }
-.stage-idle {
-  animation: stage-idle 4.5s ease-in-out infinite;
+.stage-pose-active {
+  animation: stage-pose-active 2.8s ease-in-out infinite;
 }
-[data-motion="reduced"] .stage-idle {
+
+/* PRODUCTIVE — done for now. Confident, tall float with slight chest-out. */
+@keyframes stage-pose-productive {
+  0%, 100% { translate: 0 0px;  rotate: -0.5deg; scale: 1;     }
+  50%       { translate: 0 -7px; rotate:  0.5deg; scale: 1.016; }
+}
+.stage-pose-productive {
+  animation: stage-pose-productive 4.5s ease-in-out infinite;
+}
+
+/* IDLE — nothing today. Slow, deep relaxed sway.                        */
+@keyframes stage-pose-idle {
+  0%   { translate: 0 0px;  rotate:  1deg;   scale: 1;    }
+  30%  { translate: 0 -9px; rotate: -0.5deg; scale: 0.99; }
+  70%  { translate: 0 -6px; rotate:  1.5deg; scale: 0.99; }
+  100% { translate: 0 0px;  rotate:  1deg;   scale: 1;    }
+}
+.stage-pose-idle {
+  animation: stage-pose-idle 6.5s ease-in-out infinite;
+}
+
+[data-motion="reduced"] .stage-pose-active,
+[data-motion="reduced"] .stage-pose-productive,
+[data-motion="reduced"] .stage-pose-idle {
   animation-duration: 0.01ms !important;
 }
 
