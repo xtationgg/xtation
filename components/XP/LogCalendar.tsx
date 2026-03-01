@@ -949,7 +949,7 @@ export const LogCalendar: React.FC = () => {
         dayConsoleRows.map((row) => {
           const isSelected = expandedId === row.key;
           const isStartable = !!row.taskId && (row.state === 'scheduled' || row.state === 'failed' || row.state === 'todo');
-          const isThisRowRunning = !!row.taskId && activeSession?.taskId === row.taskId;
+          const isThisRowRunning = row.state === 'active';
           const stateMeta = getQuestStateMeta(row.state);
           return (
             <div
@@ -1664,7 +1664,7 @@ export const LogCalendar: React.FC = () => {
                   const isExpanded = expandedGroupKey === row.key;
                   const isHighlighted = highlightedGroupKey === row.key;
                   const stateMeta = getQuestStateMeta(row.state);
-                  const isThisHistRowRunning = !!row.taskId && activeSession?.taskId === row.taskId;
+                  const isThisHistRowRunning = row.state === 'active';
                   return (
                     <div
                       id={`day-history-group-${row.key}`}
