@@ -3,7 +3,7 @@ import { useXP } from './xpStore';
 import type { XPDayActivityItem, XPDayActivityGroup, Task } from './xpTypes';
 import { ConfirmModal } from '../UI/ConfirmModal';
 import { DayTimeOrb } from './DayTimeOrb';
-import { Play, Trash2 } from 'lucide-react';
+import { Pause, Play, Trash2 } from 'lucide-react';
 
 const DAY_NAMES = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 const RANGE_OPTIONS = [
@@ -19,6 +19,8 @@ const SIDE_PANEL_TABS = [
   { value: 'scheduled', label: 'Scheduled' },
 ] as const;
 const TIMELINE_HOUR_MARKERS = Array.from({ length: 25 }, (_, index) => index);
+const TIMELINE_LABELS_FULL = [0, 4, 8, 12, 16, 20, 24];
+const TIMELINE_LABELS_SPARSE = [0, 6, 12, 18, 24];
 
 const toDateKey = (date: Date) => {
   const y = date.getFullYear();
@@ -123,7 +125,7 @@ type QuestRowState = 'done' | 'active' | 'scheduled' | 'failed' | 'todo';
 const QUEST_STATE_LEGEND: Array<{ state: QuestRowState; label: string; note?: string }> = [
   { state: 'active', label: 'Active' },
   { state: 'done', label: 'Completed' },
-  { state: 'todo', label: 'Uncompleted' },
+  { state: 'todo', label: 'Unfinished' },
   { state: 'scheduled', label: 'Scheduled' },
   { state: 'failed', label: 'Failed', note: 'Dropped' },
 ];
@@ -174,7 +176,7 @@ const QUEST_STATE_META: Record<QuestRowState, QuestStateMeta> = {
     chipText: '#43d39e',
   },
   todo: {
-    label: 'Uncompleted',
+    label: 'Unfinished',
     dotFill: '#8f88ab',
     dotBorder: '#8f88ab',
     chipBg: 'color-mix(in_srgb,#8f88ab 18%, var(--app-panel-2))',
@@ -467,7 +469,7 @@ const toPanelBadge = (status: NormalizedLogItemStatus) => {
     case 'todo':
       return 'UNFINISHED';
     case 'created':
-      return 'CREATED';
+      return 'TO DO';
     case 'tracked':
     default:
       return 'TRACKED';
@@ -503,6 +505,7 @@ export const LogCalendar: React.FC = () => {
     tasks,
     deleteTaskCompletely,
     startSession,
+    stopSession,
     selectors,
     activeLogDateKey,
     setActiveLogDateKey,
@@ -527,10 +530,13 @@ export const LogCalendar: React.FC = () => {
   const [legendFilterStates, setLegendFilterStates] = useState<QuestRowState[]>([]);
   const dayConsoleListRef = useRef<HTMLDivElement | null>(null);
   const rowRefs = useRef<Record<string, HTMLDivElement | null>>({});
+  const timelineChartRef = useRef<HTMLDivElement>(null);
+  const [timelineChartWidth, setTimelineChartWidth] = useState(0);
 
   const todayKey = toDateKey(new Date(now));
   const selectedDate = fromDateKey(selectedKey);
   const hasRunning = useMemo(() => !!selectors.getActiveSession(), [selectors]);
+  const activeSession = useMemo(() => selectors.getActiveSession(), [selectors]);
 
   useEffect(() => {
     if (activeLogDateKey && activeLogDateKey !== selectedKey) {
@@ -552,6 +558,16 @@ export const LogCalendar: React.FC = () => {
       setActiveLogDateKey(key);
     }
   }, [rangeMode, selectedKey, setActiveLogDateKey]);
+
+  useEffect(() => {
+    const el = timelineChartRef.current;
+    if (!el) return;
+    const ro = new ResizeObserver((entries) => {
+      setTimelineChartWidth(entries[0].contentRect.width);
+    });
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
 
   const gridDays = useMemo(() => {
     const start = monthGridStart(viewMonth);
@@ -933,13 +949,8 @@ export const LogCalendar: React.FC = () => {
         dayConsoleRows.map((row) => {
           const isSelected = expandedId === row.key;
           const isStartable = !!row.taskId && (row.state === 'scheduled' || row.state === 'failed' || row.state === 'todo');
+          const isThisRowRunning = row.state === 'active';
           const stateMeta = getQuestStateMeta(row.state);
-          const headItem = row.items[0];
-          const compactDetail = headItem
-            ? headItem.status === 'scheduled'
-              ? 'Scheduled task'
-              : toPanelBadge(headItem.status)
-            : '';
           return (
             <div
               key={row.key}
@@ -1002,11 +1013,6 @@ export const LogCalendar: React.FC = () => {
                   <div className="flex items-center gap-2">
                     <div className="min-w-0 flex-1">
                       <div className="text-xs uppercase tracking-[0.12em] text-[var(--app-text)] truncate">{row.title}</div>
-                      {compactDetail ? (
-                        <div className="mt-0.5 text-[9px] uppercase tracking-[0.14em] text-[var(--app-muted)] truncate">
-                          {compactDetail}
-                        </div>
-                      ) : null}
                     </div>
                     <span
                       className="inline-flex justify-center rounded px-1.5 py-0.5 text-[9px] uppercase tracking-[0.14em] shrink-0"
@@ -1024,7 +1030,17 @@ export const LogCalendar: React.FC = () => {
                   </div>
                 </button>
                 <div className="flex shrink-0 items-center gap-1">
-                  {isStartable ? (
+                  {isThisRowRunning ? (
+                    <button
+                      type="button"
+                      onClick={stopSession}
+                      className="inline-flex h-7 w-7 items-center justify-center rounded border border-[color-mix(in_srgb,var(--app-accent)_45%,transparent)] text-[var(--app-accent)] hover:border-[var(--app-accent)]"
+                      title="Pause"
+                      aria-label="Pause"
+                    >
+                      <Pause className="h-3.5 w-3.5" />
+                    </button>
+                  ) : isStartable ? (
                     <button
                       type="button"
                       onClick={() => startFromDayConsole(row)}
@@ -1062,6 +1078,9 @@ export const LogCalendar: React.FC = () => {
     </div>
   );
 
+  const visibleHourLabels =
+    timelineChartWidth > 0 && timelineChartWidth < 320 ? TIMELINE_LABELS_SPARSE : TIMELINE_LABELS_FULL;
+
   const renderTimelineChart = (mobile = false) => {
     const chartHeight = mobile ? 380 : 500;
     const chartInnerTop = 24;
@@ -1069,7 +1088,7 @@ export const LogCalendar: React.FC = () => {
     const plannedLineTop = 92;
     const actualLineTop = 262;
     return (
-      <div className={`rounded-xl bg-[color-mix(in_srgb,var(--app-panel-2)_55%,var(--app-panel))] px-2 py-2 relative overflow-hidden`} style={{ height: chartHeight }}>
+      <div ref={mobile ? undefined : timelineChartRef} className={`rounded-xl bg-[color-mix(in_srgb,var(--app-panel-2)_55%,var(--app-panel))] px-2 py-2 relative overflow-hidden`} style={{ height: chartHeight }}>
         <div className="absolute inset-x-4" style={{ top: chartInnerTop, bottom: chartInnerBottom }}>
           <div
             className="absolute inset-x-0 h-px bg-[color-mix(in_srgb,var(--app-text)_14%,transparent)]"
@@ -1175,7 +1194,7 @@ export const LogCalendar: React.FC = () => {
           ) : null}
         </div>
         <div className="absolute inset-x-4 bottom-6 text-[10px] uppercase tracking-[0.08em] text-[var(--app-muted)] tabular-nums font-mono">
-          {TIMELINE_HOUR_MARKERS.map((hour) => (
+          {(mobile ? TIMELINE_LABELS_SPARSE : visibleHourLabels).map((hour) => (
             <span
               key={`timeline-hour-${hour}`}
               className="absolute whitespace-nowrap"
@@ -1645,6 +1664,7 @@ export const LogCalendar: React.FC = () => {
                   const isExpanded = expandedGroupKey === row.key;
                   const isHighlighted = highlightedGroupKey === row.key;
                   const stateMeta = getQuestStateMeta(row.state);
+                  const isThisHistRowRunning = row.state === 'active';
                   return (
                     <div
                       id={`day-history-group-${row.key}`}
@@ -1697,22 +1717,34 @@ export const LogCalendar: React.FC = () => {
                           </div>
                           <div className="flex flex-wrap items-center gap-1.5 justify-end">
                             {row.taskId ? (
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  startSession({
-                                    title: row.title,
-                                    tag: 'calendar',
-                                    source: 'timer',
-                                    linkedTaskIds: [row.taskId],
-                                  })
-                                }
-                                className="inline-flex h-7 w-7 items-center justify-center rounded border border-[color-mix(in_srgb,var(--app-accent)_45%,transparent)] text-[var(--app-accent)] hover:border-[var(--app-accent)]"
-                                title="Start"
-                                aria-label="Start"
-                              >
-                                <Play className="h-3.5 w-3.5" />
-                              </button>
+                              isThisHistRowRunning ? (
+                                <button
+                                  type="button"
+                                  onClick={stopSession}
+                                  className="inline-flex h-7 w-7 items-center justify-center rounded border border-[color-mix(in_srgb,var(--app-accent)_45%,transparent)] text-[var(--app-accent)] hover:border-[var(--app-accent)]"
+                                  title="Pause"
+                                  aria-label="Pause"
+                                >
+                                  <Pause className="h-3.5 w-3.5" />
+                                </button>
+                              ) : (
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    startSession({
+                                      title: row.title,
+                                      tag: 'calendar',
+                                      source: 'timer',
+                                      linkedTaskIds: [row.taskId],
+                                    })
+                                  }
+                                  className="inline-flex h-7 w-7 items-center justify-center rounded border border-[color-mix(in_srgb,var(--app-accent)_45%,transparent)] text-[var(--app-accent)] hover:border-[var(--app-accent)]"
+                                  title="Start"
+                                  aria-label="Start"
+                                >
+                                  <Play className="h-3.5 w-3.5" />
+                                </button>
+                              )
                             ) : null}
                             {row.taskId ? (
                               <button
@@ -1821,7 +1853,7 @@ export const LogCalendar: React.FC = () => {
                 ))}
               </div>
               <div className="absolute inset-x-4 bottom-6 text-[10px] uppercase tracking-[0.08em] text-[var(--app-muted)] tabular-nums font-mono">
-                {TIMELINE_HOUR_MARKERS.map((hour) => (
+                {TIMELINE_LABELS_FULL.map((hour) => (
                   <span
                     key={`timeline-expanded-hour-${hour}`}
                     className="absolute whitespace-nowrap"
