@@ -691,6 +691,10 @@ export const LogCalendar: React.FC = () => {
     });
     return counts;
   }, [timelineRows]);
+
+  const computedBaselineY =
+    timelineChartHeight > 0 ? Math.round(timelineChartHeight * 0.70) : TIMELINE_BASELINE_Y;
+
   const timelineDots = useMemo(() => {
     const dayStart = fromDateKey(selectedKey).getTime();
     const dayEnd = dayStart + 86400000;
@@ -742,9 +746,6 @@ export const LogCalendar: React.FC = () => {
     const minutes = nowDate.getHours() * 60 + nowDate.getMinutes();
     return (minutes / 1439) * 100;
   }, [selectedKey, todayKey, now]);
-
-  const computedBaselineY =
-    timelineChartHeight > 0 ? Math.round(timelineChartHeight * 0.70) : TIMELINE_BASELINE_Y;
 
   const MAX_DOTS_PER_HOUR = 6;
   const { clampedDots, overflowBadges } = useMemo(() => {
