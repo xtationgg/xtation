@@ -21,6 +21,7 @@ const SIDE_PANEL_TABS = [
 const TIMELINE_HOUR_MARKERS = Array.from({ length: 25 }, (_, index) => index);
 const TIMELINE_LABELS_FULL = TIMELINE_HOUR_MARKERS;
 const TIMELINE_LABELS_SPARSE = TIMELINE_HOUR_MARKERS;
+const TIMELINE_BASELINE_Y = 262;
 
 const toDateKey = (date: Date) => {
   const y = date.getFullYear();
@@ -691,19 +692,16 @@ export const LogCalendar: React.FC = () => {
   const timelineDots = useMemo(() => {
     const dayStart = fromDateKey(selectedKey).getTime();
     const dayEnd = dayStart + 86400000;
-    const stackByLaneHour = new Map<string, number>();
+    const stackByHour = new Map<number, number>();
     return timelineRows.map((row, index) => {
       const safeTime = row.primaryTime
         ? Math.min(Math.max(row.primaryTime, dayStart), dayEnd - 1)
         : dayStart + index * 60000;
       const minute = Math.max(0, Math.floor((safeTime - dayStart) / 60000));
       const hour = Math.max(0, Math.min(23, Math.floor(minute / 60)));
-      const lane: 'planned' | 'actual' = row.state === 'scheduled' ? 'planned' : 'actual';
-      const stackKey = `${lane}:${hour}`;
-      const stackIndex = stackByLaneHour.get(stackKey) || 0;
-      stackByLaneHour.set(stackKey, stackIndex + 1);
-      const laneBase = lane === 'planned' ? 82 : 224;
-      const laneDotTop = Math.max(24, laneBase - stackIndex * 26);
+      const stackIndex = stackByHour.get(hour) || 0;
+      stackByHour.set(hour, stackIndex + 1);
+      const laneDotTop = Math.max(24, TIMELINE_BASELINE_Y - stackIndex * 24);
       return {
         id: row.key,
         title: row.title,
@@ -712,7 +710,6 @@ export const LogCalendar: React.FC = () => {
         rowTaskId: row.taskId,
         time: safeTime,
         xPct: (minute / 1439) * 100,
-        lane,
         laneDotTop,
         stackIndex,
         inferred: row.inferredTime,
@@ -1104,23 +1101,13 @@ export const LogCalendar: React.FC = () => {
     const chartHeight = mobile ? 380 : 500;
     const chartInnerTop = 24;
     const chartInnerBottom = 78;
-    const plannedLineTop = 92;
-    const actualLineTop = 262;
-    const fullDayLineTop = actualLineTop + 88;
+    const baselineTop = TIMELINE_BASELINE_Y;
     return (
       <div ref={mobile ? undefined : timelineChartRef} className={`rounded-xl bg-[color-mix(in_srgb,var(--app-panel-2)_55%,var(--app-panel))] px-2 py-2 relative overflow-hidden`} style={{ height: chartHeight }}>
         <div className="absolute inset-x-4" style={{ top: chartInnerTop, bottom: chartInnerBottom }}>
           <div
-            className="absolute inset-x-0 h-px bg-[color-mix(in_srgb,var(--app-text)_14%,transparent)]"
-            style={{ top: plannedLineTop }}
-          />
-          <div
-            className="absolute inset-x-0 h-px bg-[color-mix(in_srgb,var(--app-text)_22%,transparent)]"
-            style={{ top: actualLineTop }}
-          />
-          <div
             className="absolute inset-x-0 h-[2px] bg-[color-mix(in_srgb,var(--app-text)_18%,transparent)]"
-            style={{ top: fullDayLineTop }}
+            style={{ top: baselineTop }}
           />
           {nowMarkerX !== null ? (
             <div
@@ -1128,7 +1115,7 @@ export const LogCalendar: React.FC = () => {
               style={{
                 left: 0,
                 width: `${Math.max(0, nowMarkerX)}%`,
-                top: fullDayLineTop - 0.5,
+                top: baselineTop - 0.5,
                 background:
                   'linear-gradient(90deg, color-mix(in_srgb,var(--app-accent)_28%,transparent) 0%, color-mix(in_srgb,var(--app-accent)_75%,#fff) 100%)',
                 boxShadow: '0 0 10px color-mix(in_srgb,var(--app-accent)_45%,transparent)',
@@ -1142,12 +1129,6 @@ export const LogCalendar: React.FC = () => {
               style={{ left: `${(hour / 24) * 100}%` }}
             />
           ))}
-          <div className="absolute left-0 text-[9px] uppercase tracking-[0.14em] text-[var(--app-muted)]" style={{ top: plannedLineTop - 18 }}>
-            Planned
-          </div>
-          <div className="absolute left-0 text-[9px] uppercase tracking-[0.14em] text-[var(--app-muted)]" style={{ top: actualLineTop - 18 }}>
-            Actual
-          </div>
           {hoveredDot ? (
             <div
               className="pointer-events-none absolute top-0 bottom-0 border-l border-[color-mix(in_srgb,var(--app-text)_25%,transparent)]"
@@ -1162,7 +1143,7 @@ export const LogCalendar: React.FC = () => {
               <span
                 className="absolute -translate-x-1/2 rounded-full bg-[color-mix(in_srgb,var(--app-accent)_82%,#fff)]"
                 style={{
-                  top: fullDayLineTop - 5,
+                  top: baselineTop - 5,
                   width: 10,
                   height: 10,
                   boxShadow: '0 0 0 4px color-mix(in_srgb,var(--app-accent)_18%,transparent), 0 0 10px color-mix(in_srgb,var(--app-accent)_55%,transparent)',
@@ -1171,7 +1152,7 @@ export const LogCalendar: React.FC = () => {
               <span
                 className="absolute -translate-x-1/2 rounded-full bg-[color-mix(in_srgb,var(--app-accent)_42%,transparent)]"
                 style={{
-                  top: fullDayLineTop - 3,
+                  top: baselineTop - 3,
                   width: 28,
                   height: 6,
                   filter: 'blur(2px)',
@@ -1855,16 +1836,14 @@ export const LogCalendar: React.FC = () => {
             </div>
             <div className="h-[520px] rounded-lg bg-[var(--app-panel)] px-4 py-4 relative overflow-hidden">
               <div className="absolute inset-x-4 top-4 bottom-[4.5rem]">
-                <div className="absolute inset-x-0 top-[92px] h-px bg-[color-mix(in_srgb,var(--app-text)_14%,transparent)]" />
-                <div className="absolute inset-x-0 top-[262px] h-px bg-[color-mix(in_srgb,var(--app-text)_22%,transparent)]" />
-                <div className="absolute inset-x-0 top-[350px] h-[2px] bg-[color-mix(in_srgb,var(--app-text)_18%,transparent)]" />
+                <div className="absolute inset-x-0 h-[2px] bg-[color-mix(in_srgb,var(--app-text)_18%,transparent)]" style={{ top: TIMELINE_BASELINE_Y }} />
                 {nowMarkerX !== null ? (
                   <div
                     className="pointer-events-none absolute h-[3px] rounded-full"
                     style={{
                       left: 0,
                       width: `${Math.max(0, nowMarkerX)}%`,
-                      top: 349.5,
+                      top: TIMELINE_BASELINE_Y - 0.5,
                       background:
                         'linear-gradient(90deg, color-mix(in_srgb,var(--app-accent)_28%,transparent) 0%, color-mix(in_srgb,var(--app-accent)_75%,#fff) 100%)',
                       boxShadow: '0 0 10px color-mix(in_srgb,var(--app-accent)_45%,transparent)',
@@ -1878,13 +1857,20 @@ export const LogCalendar: React.FC = () => {
                     style={{ left: `${(hour / 24) * 100}%` }}
                   />
                 ))}
-                <div className="absolute left-0 top-[74px] text-[9px] uppercase tracking-[0.14em] text-[var(--app-muted)]">Planned</div>
-                <div className="absolute left-0 top-[244px] text-[9px] uppercase tracking-[0.14em] text-[var(--app-muted)]">Actual</div>
                 {nowMarkerX !== null ? (
                   <div
                     className="pointer-events-none absolute top-0 bottom-0 border-l border-dashed border-[color-mix(in_srgb,var(--app-accent)_55%,transparent)]"
                     style={{ left: `${nowMarkerX}%` }}
                   >
+                    <span
+                      className="absolute -translate-x-1/2 rounded-full bg-[color-mix(in_srgb,var(--app-accent)_82%,#fff)]"
+                      style={{
+                        top: TIMELINE_BASELINE_Y - 5,
+                        width: 10,
+                        height: 10,
+                        boxShadow: '0 0 0 4px color-mix(in_srgb,var(--app-accent)_18%,transparent), 0 0 10px color-mix(in_srgb,var(--app-accent)_55%,transparent)',
+                      }}
+                    />
                     <span className="absolute -top-4 -translate-x-1/2 rounded px-1 py-0.5 text-[8px] uppercase tracking-[0.12em] text-[var(--app-accent)] bg-[color-mix(in_srgb,var(--app-accent)_14%,var(--app-panel))]">
                       Now
                     </span>
