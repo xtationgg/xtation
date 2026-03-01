@@ -1642,13 +1642,13 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
         );
       case 'LOG':
         return (
-          <div className="h-full overflow-hidden">
+          <div className="h-full overflow-y-auto xt-scroll">
             <LogCalendar />
           </div>
         );
       case 'ACTIVITY':
         return (
-          <div className="h-full overflow-hidden">
+          <div className="h-full overflow-y-auto xt-scroll">
             <ProfileActivity />
           </div>
         );
