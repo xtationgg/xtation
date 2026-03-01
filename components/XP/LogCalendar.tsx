@@ -125,7 +125,7 @@ type QuestRowState = 'done' | 'active' | 'scheduled' | 'failed' | 'todo';
 const QUEST_STATE_LEGEND: Array<{ state: QuestRowState; label: string; note?: string }> = [
   { state: 'active', label: 'Active' },
   { state: 'done', label: 'Completed' },
-  { state: 'todo', label: 'Uncompleted' },
+  { state: 'todo', label: 'Unfinished' },
   { state: 'scheduled', label: 'Scheduled' },
   { state: 'failed', label: 'Failed', note: 'Dropped' },
 ];
@@ -176,7 +176,7 @@ const QUEST_STATE_META: Record<QuestRowState, QuestStateMeta> = {
     chipText: '#43d39e',
   },
   todo: {
-    label: 'Uncompleted',
+    label: 'Unfinished',
     dotFill: '#8f88ab',
     dotBorder: '#8f88ab',
     chipBg: 'color-mix(in_srgb,#8f88ab 18%, var(--app-panel-2))',
