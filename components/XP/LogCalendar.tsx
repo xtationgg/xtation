@@ -3,7 +3,7 @@ import { useXP } from './xpStore';
 import type { XPDayActivityItem, XPDayActivityGroup, Task } from './xpTypes';
 import { ConfirmModal } from '../UI/ConfirmModal';
 import { DayTimeOrb } from './DayTimeOrb';
-import { Play, Trash2 } from 'lucide-react';
+import { Pause, Play, Trash2 } from 'lucide-react';
 
 const DAY_NAMES = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 const RANGE_OPTIONS = [
@@ -469,7 +469,7 @@ const toPanelBadge = (status: NormalizedLogItemStatus) => {
     case 'todo':
       return 'UNFINISHED';
     case 'created':
-      return 'CREATED';
+      return 'TO DO';
     case 'tracked':
     default:
       return 'TRACKED';
@@ -505,6 +505,7 @@ export const LogCalendar: React.FC = () => {
     tasks,
     deleteTaskCompletely,
     startSession,
+    stopSession,
     selectors,
     activeLogDateKey,
     setActiveLogDateKey,
@@ -535,6 +536,7 @@ export const LogCalendar: React.FC = () => {
   const todayKey = toDateKey(new Date(now));
   const selectedDate = fromDateKey(selectedKey);
   const hasRunning = useMemo(() => !!selectors.getActiveSession(), [selectors]);
+  const activeSession = useMemo(() => selectors.getActiveSession(), [selectors]);
 
   useEffect(() => {
     if (activeLogDateKey && activeLogDateKey !== selectedKey) {
@@ -947,6 +949,7 @@ export const LogCalendar: React.FC = () => {
         dayConsoleRows.map((row) => {
           const isSelected = expandedId === row.key;
           const isStartable = !!row.taskId && (row.state === 'scheduled' || row.state === 'failed' || row.state === 'todo');
+          const isThisRowRunning = !!row.taskId && activeSession?.taskId === row.taskId;
           const stateMeta = getQuestStateMeta(row.state);
           const headItem = row.items[0];
           const compactDetail = headItem
@@ -1038,7 +1041,17 @@ export const LogCalendar: React.FC = () => {
                   </div>
                 </button>
                 <div className="flex shrink-0 items-center gap-1">
-                  {isStartable ? (
+                  {isThisRowRunning ? (
+                    <button
+                      type="button"
+                      onClick={stopSession}
+                      className="inline-flex h-7 w-7 items-center justify-center rounded border border-[color-mix(in_srgb,var(--app-accent)_45%,transparent)] text-[var(--app-accent)] hover:border-[var(--app-accent)]"
+                      title="Pause"
+                      aria-label="Pause"
+                    >
+                      <Pause className="h-3.5 w-3.5" />
+                    </button>
+                  ) : isStartable ? (
                     <button
                       type="button"
                       onClick={() => startFromDayConsole(row)}
@@ -1662,6 +1675,7 @@ export const LogCalendar: React.FC = () => {
                   const isExpanded = expandedGroupKey === row.key;
                   const isHighlighted = highlightedGroupKey === row.key;
                   const stateMeta = getQuestStateMeta(row.state);
+                  const isThisHistRowRunning = !!row.taskId && activeSession?.taskId === row.taskId;
                   return (
                     <div
                       id={`day-history-group-${row.key}`}
@@ -1714,22 +1728,34 @@ export const LogCalendar: React.FC = () => {
                           </div>
                           <div className="flex flex-wrap items-center gap-1.5 justify-end">
                             {row.taskId ? (
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  startSession({
-                                    title: row.title,
-                                    tag: 'calendar',
-                                    source: 'timer',
-                                    linkedTaskIds: [row.taskId],
-                                  })
-                                }
-                                className="inline-flex h-7 w-7 items-center justify-center rounded border border-[color-mix(in_srgb,var(--app-accent)_45%,transparent)] text-[var(--app-accent)] hover:border-[var(--app-accent)]"
-                                title="Start"
-                                aria-label="Start"
-                              >
-                                <Play className="h-3.5 w-3.5" />
-                              </button>
+                              isThisHistRowRunning ? (
+                                <button
+                                  type="button"
+                                  onClick={stopSession}
+                                  className="inline-flex h-7 w-7 items-center justify-center rounded border border-[color-mix(in_srgb,var(--app-accent)_45%,transparent)] text-[var(--app-accent)] hover:border-[var(--app-accent)]"
+                                  title="Pause"
+                                  aria-label="Pause"
+                                >
+                                  <Pause className="h-3.5 w-3.5" />
+                                </button>
+                              ) : (
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    startSession({
+                                      title: row.title,
+                                      tag: 'calendar',
+                                      source: 'timer',
+                                      linkedTaskIds: [row.taskId],
+                                    })
+                                  }
+                                  className="inline-flex h-7 w-7 items-center justify-center rounded border border-[color-mix(in_srgb,var(--app-accent)_45%,transparent)] text-[var(--app-accent)] hover:border-[var(--app-accent)]"
+                                  title="Start"
+                                  aria-label="Start"
+                                >
+                                  <Play className="h-3.5 w-3.5" />
+                                </button>
+                              )
                             ) : null}
                             {row.taskId ? (
                               <button
