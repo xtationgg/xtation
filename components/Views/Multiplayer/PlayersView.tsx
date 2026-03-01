@@ -81,16 +81,16 @@ const LocationSearchSection: React.FC<{
   };
 
   return (
-    <div className="border border-[var(--ui-border)] rounded p-4 space-y-3">
+    <div className="border border-[var(--app-border)] rounded p-4 space-y-3">
       <div className="flex items-center justify-between gap-3">
-        <div className="text-[11px] uppercase tracking-[0.2em] text-[var(--ui-muted)]">Location</div>
+        <div className="text-[11px] uppercase tracking-[0.2em] text-[var(--app-muted)]">Location</div>
         <div className="flex items-center gap-2 flex-wrap">
           <button
             type="button"
             onClick={() => {
               window.dispatchEvent(new CustomEvent('dusk:pickPlayerLocation', { detail: { playerId: player.id } }));
             }}
-            className="px-3 py-1 border border-[#0f1115] text-[#e6e8ee] rounded text-[11px] uppercase tracking-[0.15em] hover:bg-[#0f1115] hover:text-white"
+            className="px-3 py-1 border border-[var(--app-border)] text-[var(--app-text)] rounded text-[11px] uppercase tracking-[0.15em] hover:bg-[var(--app-panel-2)] hover:text-[var(--app-text)]"
             title="Pick location on map"
           >
             Pick on map
@@ -100,7 +100,7 @@ const LocationSearchSection: React.FC<{
             <button
               type="button"
               onClick={openInGoogleEarth}
-              className="px-3 py-1 border border-[#0f1115] text-[#e6e8ee] rounded text-[11px] uppercase tracking-[0.15em] hover:bg-[#0f1115] hover:text-white"
+              className="px-3 py-1 border border-[var(--app-border)] text-[var(--app-text)] rounded text-[11px] uppercase tracking-[0.15em] hover:bg-[var(--app-panel-2)] hover:text-[var(--app-text)]"
               title="Open in Google Earth"
             >
               Open Earth
@@ -113,7 +113,7 @@ const LocationSearchSection: React.FC<{
                 onUpdate({ location: undefined, timeZone: undefined, utcOffsetMinutes: undefined });
                 onToast('Location cleared');
               }}
-              className="px-3 py-1 border border-[var(--ui-border)] text-[var(--ui-muted)] rounded text-[11px] uppercase tracking-[0.15em] hover:border-[#0f1115]"
+              className="px-3 py-1 border border-[var(--app-border)] text-[var(--app-muted)] rounded text-[11px] uppercase tracking-[0.15em] hover:border-[var(--app-border)]"
             >
               Clear
             </button>
@@ -126,16 +126,16 @@ const LocationSearchSection: React.FC<{
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Search place (e.g. Dubai Mall, Ubud Bali, Tokyo Station)"
-          className="w-full border border-[var(--ui-border)] rounded px-2 py-2 text-sm"
+          className="w-full border border-[var(--app-border)] rounded px-2 py-2 text-sm"
         />
-        <div className="text-[11px] text-[var(--ui-muted)]">Type a place name, then pick the correct result.</div>
+        <div className="text-[11px] text-[var(--app-muted)]">Type a place name, then pick the correct result.</div>
       </div>
 
-      {loading && <div className="text-[11px] text-[var(--ui-muted)]">Searching…</div>}
-      {error && <div className="text-[11px] text-[var(--ui-accent)]">{error}</div>}
+      {loading && <div className="text-[11px] text-[var(--app-muted)]">Searching…</div>}
+      {error && <div className="text-[11px] text-[var(--app-accent)]">{error}</div>}
 
       {!!results.length && (
-        <div className="border border-[var(--ui-border)] rounded overflow-hidden">
+        <div className="border border-[var(--app-border)] rounded overflow-hidden">
           {results.map((r, idx) => {
             const s = splitPlace(r.displayName);
             return (
@@ -152,11 +152,11 @@ const LocationSearchSection: React.FC<{
                   });
                   onToast('Location set');
                 }}
-                className="w-full text-left px-3 py-2 border-b border-[var(--ui-border)] hover:bg-[#171b22]"
+                className="w-full text-left px-3 py-2 border-b border-[var(--app-border)] hover:bg-[var(--app-panel-2)]"
               >
-                <div className="text-sm font-semibold text-[#e6e8ee]">{s.title}</div>
-                {s.subtitle && <div className="text-xs text-[var(--ui-muted)]">{s.subtitle}</div>}
-                <div className="text-[10px] uppercase tracking-[0.2em] text-[var(--ui-muted)]">
+                <div className="text-sm font-semibold text-[var(--app-text)]">{s.title}</div>
+                {s.subtitle && <div className="text-xs text-[var(--app-muted)]">{s.subtitle}</div>}
+                <div className="text-[10px] uppercase tracking-[0.2em] text-[var(--app-muted)]">
                   {r.lat.toFixed(5)}, {r.lng.toFixed(5)}
                 </div>
               </button>
@@ -166,10 +166,10 @@ const LocationSearchSection: React.FC<{
       )}
 
       {player.location && (
-        <div className="border border-dashed border-[var(--ui-border)] rounded p-3">
-          <div className="text-[11px] uppercase tracking-[0.2em] text-[var(--ui-muted)] mb-1">Current</div>
-          <div className="text-sm text-[#e6e8ee] font-semibold">{player.location.label || 'Saved location'}</div>
-          <div className="text-[11px] text-[var(--ui-muted)]">
+        <div className="border border-dashed border-[var(--app-border)] rounded p-3">
+          <div className="text-[11px] uppercase tracking-[0.2em] text-[var(--app-muted)] mb-1">Current</div>
+          <div className="text-sm text-[var(--app-text)] font-semibold">{player.location.label || 'Saved location'}</div>
+          <div className="text-[11px] text-[var(--app-muted)]">
             {player.location.lat.toFixed(5)}, {player.location.lng.toFixed(5)}
           </div>
         </div>
@@ -405,16 +405,16 @@ export const PlayersView: React.FC<PlayersViewProps> = ({
   return (
     <div className="grid lg:grid-cols-[420px,1fr] gap-6 items-start">
       {/* Roster */}
-      <div className="bg-[var(--ui-panel)] border border-[var(--ui-border)] rounded shadow-sm p-4 space-y-3 max-h-[calc(100vh-220px)] overflow-auto">
+      <div className="bg-[var(--app-panel)] border border-[var(--app-border)] rounded-2xl shadow-sm p-4 space-y-3 max-h-[calc(100vh-220px)] overflow-y-auto xt-scroll">
         <div className="flex items-center justify-between">
           <div>
-            <div className="text-[11px] uppercase tracking-[0.2em] text-[var(--ui-muted)]">Roster</div>
-            <div className="text-sm font-semibold text-[#e6e8ee]">People OS</div>
+            <div className="text-[11px] uppercase tracking-[0.2em] text-[var(--app-muted)]">Roster</div>
+            <div className="text-sm font-semibold text-[var(--app-text)]">People OS</div>
           </div>
           <button
             type="button"
             onClick={() => setShowAdd(!showAdd)}
-            className="px-3 py-1 border border-[#0f1115] text-[#e6e8ee] rounded text-[11px] uppercase tracking-[0.15em] hover:bg-[#0f1115] hover:text-white"
+            className="px-3 py-1 border border-[var(--app-border)] text-[var(--app-text)] rounded text-[11px] uppercase tracking-[0.15em] hover:bg-[var(--app-panel-2)] hover:text-[var(--app-text)]"
           >
             {showAdd ? 'Close' : 'Add'}
           </button>
@@ -425,38 +425,38 @@ export const PlayersView: React.FC<PlayersViewProps> = ({
             value={search}
             onChange={e => setSearch(e.target.value)}
             placeholder="Search name / role / email / tags"
-            className="w-full border border-[var(--ui-border)] rounded px-2 py-2 text-sm"
+            className="w-full border border-[var(--app-border)] rounded px-2 py-2 text-sm"
           />
         </div>
 
         {showAdd && (
-          <div className="border border-dashed border-[var(--ui-border)] rounded p-3 space-y-2 animate-fade-in">
+          <div className="border border-dashed border-[var(--app-border)] rounded p-3 space-y-2 animate-fade-in">
             <div className="grid gap-2 text-sm">
               <input
                 value={newPlayer.name}
                 onChange={e => setNewPlayer(prev => ({ ...prev, name: e.target.value }))}
                 placeholder="Name"
-                className="border border-[var(--ui-border)] rounded px-2 py-2"
+                className="border border-[var(--app-border)] rounded px-2 py-2"
               />
               <input
                 value={newPlayer.role}
                 onChange={e => setNewPlayer(prev => ({ ...prev, role: e.target.value }))}
                 placeholder="Role"
-                className="border border-[var(--ui-border)] rounded px-2 py-2"
+                className="border border-[var(--app-border)] rounded px-2 py-2"
               />
               <input
                 value={newPlayer.email}
                 onChange={e => setNewPlayer(prev => ({ ...prev, email: e.target.value }))}
                 placeholder="Email (optional)"
-                className="border border-[var(--ui-border)] rounded px-2 py-2"
+                className="border border-[var(--app-border)] rounded px-2 py-2"
               />
               <input
                 value={newPlayer.tags}
                 onChange={e => setNewPlayer(prev => ({ ...prev, tags: e.target.value }))}
                 placeholder="Tags (comma-separated) e.g. family, friend"
-                className="border border-[var(--ui-border)] rounded px-2 py-2"
+                className="border border-[var(--app-border)] rounded px-2 py-2"
               />
-              <label className="flex items-center gap-2 text-xs uppercase tracking-[0.2em] text-[var(--ui-muted)]">
+              <label className="flex items-center gap-2 text-xs uppercase tracking-[0.2em] text-[var(--app-muted)]">
                 <input
                   type="checkbox"
                   checked={newPlayer.accepted}
@@ -468,7 +468,7 @@ export const PlayersView: React.FC<PlayersViewProps> = ({
             <button
               type="button"
               onClick={submitNewPlayer}
-              className="px-3 py-2 border border-[#0f1115] bg-[#0f1115] text-white rounded text-[11px] uppercase tracking-[0.15em]"
+              className="px-3 py-2 border border-[var(--app-border)] bg-[var(--app-panel-2)] text-white rounded text-[11px] uppercase tracking-[0.15em]"
             >
               Save
             </button>
@@ -476,17 +476,17 @@ export const PlayersView: React.FC<PlayersViewProps> = ({
         )}
 
         {/* Quick filters */}
-        <div className="border border-[var(--ui-border)] rounded p-3">
-          <div className="text-[11px] uppercase tracking-[0.2em] text-[var(--ui-muted)] mb-2">Filters</div>
+        <div className="border border-[var(--app-border)] rounded p-3">
+          <div className="text-[11px] uppercase tracking-[0.2em] text-[var(--app-muted)] mb-2">Filters</div>
           <div className="flex flex-wrap gap-2">
             {allTags.slice(0, 14).map(t => (
-              <div key={t} className="text-[11px] px-2 py-1 rounded border border-[var(--ui-border)] bg-[var(--ui-panel)] text-[var(--ui-muted)]">
+              <div key={t} className="text-[11px] px-2 py-1 rounded border border-[var(--app-border)] bg-[var(--app-panel)] text-[var(--app-muted)]">
                 {t}
               </div>
             ))}
-            {allTags.length === 0 && <div className="text-[11px] text-[var(--ui-muted)]">No tags yet.</div>}
+            {allTags.length === 0 && <div className="text-[11px] text-[var(--app-muted)]">No tags yet.</div>}
             {allTags.length > 14 && (
-              <div className="text-[11px] text-[var(--ui-muted)]">+{allTags.length - 14} more</div>
+              <div className="text-[11px] text-[var(--app-muted)]">+{allTags.length - 14} more</div>
             )}
           </div>
         </div>
@@ -507,12 +507,12 @@ export const PlayersView: React.FC<PlayersViewProps> = ({
                 className={
                   'w-full text-left border rounded px-3 py-2 transition ' +
                   (selectedId === p.id
-                    ? 'border-[#0f1115] bg-[#f2f4f7]'
-                    : 'border-[var(--ui-border)] bg-[var(--ui-panel)] hover:border-[#0f1115]')
+                    ? 'border-[var(--app-border)] bg-[color-mix(in_srgb,var(--app-accent)_10%,var(--app-panel))]'
+                    : 'border-[var(--app-border)] bg-[var(--app-panel)] hover:border-[var(--app-border)]')
                 }
               >
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 border border-[var(--ui-border)] bg-[#fafbfc] rounded overflow-hidden flex items-center justify-center text-xs text-[var(--ui-muted)]">
+                  <div className="w-10 h-10 border border-[var(--app-border)] bg-[var(--app-panel-2)] rounded overflow-hidden flex items-center justify-center text-xs text-[var(--app-muted)]">
                     {p.avatar ? (
                       <img src={p.avatar} alt={p.name} className="w-full h-full object-cover" />
                     ) : (
@@ -521,12 +521,12 @@ export const PlayersView: React.FC<PlayersViewProps> = ({
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between gap-2">
-                      <div className="font-semibold text-sm text-[#e6e8ee] truncate">{p.name}</div>
+                      <div className="font-semibold text-sm text-[var(--app-text)] truncate">{p.name}</div>
                       <div className="flex items-center gap-2">
                         <button
                           type="button"
                           onClick={(e) => { e.preventDefault(); e.stopPropagation(); openMessageFor(p); }}
-                          className="text-[10px] uppercase tracking-[0.2em] border rounded px-2 py-1 border-[var(--ui-border)] text-[var(--ui-muted)] hover:text-white hover:border-[#0f1115]"
+                          className="text-[10px] uppercase tracking-[0.2em] border rounded px-2 py-1 border-[var(--app-border)] text-[var(--app-muted)] hover:text-[var(--app-text)] hover:border-[var(--app-border)]"
                         >
                           Msg
                         </button>
@@ -535,7 +535,7 @@ export const PlayersView: React.FC<PlayersViewProps> = ({
                           onClick={(e) => { e.preventDefault(); e.stopPropagation(); toggleFavorite(p); }}
                           className={
                             'text-[10px] uppercase tracking-[0.2em] border rounded px-2 py-1 ' +
-                            (p.favorite ? 'border-[var(--ui-accent)] text-[var(--ui-accent)]' : 'border-[var(--ui-border)] text-[var(--ui-muted)]')
+                            (p.favorite ? 'border-[var(--app-accent)] text-[var(--app-accent)]' : 'border-[var(--app-border)] text-[var(--app-muted)]')
                           }
                           title="Favorite"
                         >
@@ -543,18 +543,18 @@ export const PlayersView: React.FC<PlayersViewProps> = ({
                         </button>
                       </div>
                     </div>
-                    <div className="text-[11px] uppercase tracking-[0.2em] text-[var(--ui-muted)] truncate">{p.role}</div>
+                    <div className="text-[11px] uppercase tracking-[0.2em] text-[var(--app-muted)] truncate">{p.role}</div>
                     <div className="flex items-center gap-2 mt-1 flex-wrap">
-                      <div className="text-[10px] uppercase tracking-[0.2em] text-[var(--ui-muted)]">
+                      <div className="text-[10px] uppercase tracking-[0.2em] text-[var(--app-muted)]">
                         {limited ? 'Basic view' : 'Details'}
                       </div>
                       {nowThere && (
-                        <div className="text-[10px] text-[var(--ui-muted)]">
+                        <div className="text-[10px] text-[var(--app-muted)]">
                           {nowThere.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} {offsetLabel}
                         </div>
                       )}
                       {!!(p.tags || []).length && (
-                        <div className="text-[10px] text-[var(--ui-muted)] truncate">{(p.tags || []).slice(0, 3).join(' • ')}</div>
+                        <div className="text-[10px] text-[var(--app-muted)] truncate">{(p.tags || []).slice(0, 3).join(' • ')}</div>
                       )}
                     </div>
                   </div>
@@ -564,32 +564,55 @@ export const PlayersView: React.FC<PlayersViewProps> = ({
           })}
 
           {filteredPlayers.length === 0 && (
-            <div className="text-sm text-[var(--ui-muted)] border border-dashed border-[var(--ui-border)] rounded p-3">
+            <div className="text-sm text-[var(--app-muted)] border border-dashed border-[var(--app-border)] rounded p-3">
               No matching people.
             </div>
           )}
         </div>
 
-        <div className="text-[11px] uppercase tracking-[0.2em] text-[var(--ui-muted)] border border-dashed border-[var(--ui-border)] rounded px-2 py-2">
-          Perms: {effective.profileLevel} • {effective.locationMode} • pins:{effective.pinVisibility} • rank:{effective.rankVisible ? 'on' : 'off'}
-        </div>
       </div>
 
       {/* Dossier */}
       {selected && (
-        <div className="bg-[var(--ui-panel)] border border-[var(--ui-border)] rounded shadow-sm p-4 space-y-4 max-h-[calc(100vh-220px)] overflow-auto">
+        <div className="bg-[var(--app-panel)] border border-[var(--app-border)] rounded-2xl shadow-sm overflow-hidden max-h-[calc(100vh-220px)] flex flex-col">
+          {/* Player banner */}
+          <div className="relative overflow-hidden h-32 shrink-0 bg-gradient-to-br from-[color-mix(in_srgb,var(--app-accent)_18%,var(--app-panel))] to-[var(--app-panel-2)]">
+            {(() => {
+              const src = selected.fullBodyImage || selected.avatar;
+              if (!src) return null;
+              return src.startsWith('blob:') || src.startsWith('data:video') ? (
+                <video src={src} className="absolute inset-0 w-full h-full object-cover" autoPlay loop muted playsInline />
+              ) : (
+                <img src={src} alt="" className="absolute inset-0 w-full h-full object-cover" />
+              );
+            })()}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/65 via-black/10 to-transparent" />
+            <div className="absolute bottom-3 left-4 flex items-end gap-3">
+              <div className="w-11 h-11 rounded-xl border-2 border-white/20 overflow-hidden bg-[var(--app-panel)] shrink-0 flex items-center justify-center">
+                {selected.avatar ? (
+                  <img src={selected.avatar} alt={selected.name} className="w-full h-full object-cover" />
+                ) : (
+                  <span className="text-base font-bold text-[var(--app-muted)]">{selected.name.slice(0, 1).toUpperCase()}</span>
+                )}
+              </div>
+              <div>
+                <div className="text-sm font-bold text-white drop-shadow-sm">{selected.name}</div>
+                {selected.role && <div className="text-[10px] uppercase tracking-[0.18em] text-white/70 drop-shadow-sm">{selected.role}</div>}
+              </div>
+            </div>
+          </div>
+
+          <div className="p-4 space-y-4 overflow-y-auto xt-scroll flex-1">
           <div className="flex items-start justify-between gap-4">
             <div>
-              <div className="text-[11px] uppercase tracking-[0.2em] text-[var(--ui-muted)]">Dossier</div>
-              <div className="text-lg font-semibold text-[#e6e8ee]">{selected.name}</div>
-              <div className="text-[11px] uppercase tracking-[0.2em] text-[var(--ui-muted)]">{selected.role}</div>
+              <div className="text-[11px] uppercase tracking-[0.2em] text-[var(--app-muted)]">Dossier</div>
             </div>
 
             <div className="flex items-center gap-2 flex-wrap justify-end">
               <button
                 type="button"
                 onClick={openMessage}
-                className="px-3 py-2 border border-[#0f1115] bg-[#0f1115] text-white rounded text-[11px] uppercase tracking-[0.15em]"
+                className="px-3 py-2 border border-[var(--app-border)] bg-[var(--app-panel-2)] text-[var(--app-text)] rounded text-[11px] uppercase tracking-[0.15em] hover:border-[var(--app-accent)] transition-colors"
               >
                 Message
               </button>
@@ -600,7 +623,7 @@ export const PlayersView: React.FC<PlayersViewProps> = ({
                     onGoToEarth?.(selected.location ? { playerId: selected.id, loc: selected.location } : null);
                     setToast('Opened map');
                   }}
-                  className="px-3 py-2 border border-[var(--ui-border)] text-[var(--ui-muted)] rounded text-[11px] uppercase tracking-[0.15em] hover:border-[#0f1115]"
+                  className="px-3 py-2 border border-[var(--app-border)] text-[var(--app-muted)] rounded text-[11px] uppercase tracking-[0.15em] hover:border-[var(--app-border)]"
                 >
                   View on map
                 </button>
@@ -609,7 +632,7 @@ export const PlayersView: React.FC<PlayersViewProps> = ({
           </div>
 
           {!canSeeDetails && (
-            <div className="text-sm text-[var(--ui-muted)] border border-dashed border-[var(--ui-border)] rounded p-3">
+            <div className="text-sm text-[var(--app-muted)] border border-dashed border-[var(--app-border)] rounded p-3">
               Basic profile only. Details hidden by permissions.
             </div>
           )}
@@ -617,57 +640,57 @@ export const PlayersView: React.FC<PlayersViewProps> = ({
           {canSeeDetails && (
             <>
               {/* Identity */}
-              <div className="border border-[var(--ui-border)] rounded p-4">
-                <div className="text-[11px] uppercase tracking-[0.2em] text-[var(--ui-muted)] mb-3">Identity</div>
+              <div className="border border-[var(--app-border)] rounded p-4">
+                <div className="text-[11px] uppercase tracking-[0.2em] text-[var(--app-muted)] mb-3">Identity</div>
                 <div className="grid md:grid-cols-2 gap-3 text-sm">
                   <div>
-                    <div className="text-xs uppercase tracking-[0.2em] text-[var(--ui-muted)] mb-1">Email</div>
+                    <div className="text-xs uppercase tracking-[0.2em] text-[var(--app-muted)] mb-1">Email</div>
                     <input
                       value={selected.email || ''}
                       onChange={e => onUpdatePlayer(selected.id, { email: e.target.value })}
-                      className="w-full border border-[var(--ui-border)] rounded px-2 py-2 text-sm"
+                      className="w-full border border-[var(--app-border)] rounded px-2 py-2 text-sm"
                     />
                   </div>
                   <div>
-                    <div className="text-xs uppercase tracking-[0.2em] text-[var(--ui-muted)] mb-1">Phone</div>
+                    <div className="text-xs uppercase tracking-[0.2em] text-[var(--app-muted)] mb-1">Phone</div>
                     <input
                       value={selected.phone || ''}
                       onChange={e => onUpdatePlayer(selected.id, { phone: e.target.value })}
-                      className="w-full border border-[var(--ui-border)] rounded px-2 py-2 text-sm"
+                      className="w-full border border-[var(--app-border)] rounded px-2 py-2 text-sm"
                     />
                   </div>
                 </div>
               </div>
 
               {/* Body + Time */}
-              <div className="border border-[var(--ui-border)] rounded p-4">
-                <div className="text-[11px] uppercase tracking-[0.2em] text-[var(--ui-muted)] mb-3">Body + Timezone</div>
+              <div className="border border-[var(--app-border)] rounded p-4">
+                <div className="text-[11px] uppercase tracking-[0.2em] text-[var(--app-muted)] mb-3">Body + Timezone</div>
                 <div className="grid md:grid-cols-3 gap-3 text-sm">
                   <div>
-                    <div className="text-xs uppercase tracking-[0.2em] text-[var(--ui-muted)] mb-1">Height (cm)</div>
+                    <div className="text-xs uppercase tracking-[0.2em] text-[var(--app-muted)] mb-1">Height (cm)</div>
                     <input
                       type="number"
                       value={selected.heightCm ?? ''}
                       onChange={e => onUpdatePlayer(selected.id, { heightCm: e.target.value === '' ? undefined : Number(e.target.value) })}
-                      className="w-full border border-[var(--ui-border)] rounded px-2 py-2 text-sm"
+                      className="w-full border border-[var(--app-border)] rounded px-2 py-2 text-sm"
                     />
                   </div>
                   <div>
-                    <div className="text-xs uppercase tracking-[0.2em] text-[var(--ui-muted)] mb-1">Weight (kg)</div>
+                    <div className="text-xs uppercase tracking-[0.2em] text-[var(--app-muted)] mb-1">Weight (kg)</div>
                     <input
                       type="number"
                       value={selected.weightKg ?? ''}
                       onChange={e => onUpdatePlayer(selected.id, { weightKg: e.target.value === '' ? undefined : Number(e.target.value) })}
-                      className="w-full border border-[var(--ui-border)] rounded px-2 py-2 text-sm"
+                      className="w-full border border-[var(--app-border)] rounded px-2 py-2 text-sm"
                     />
                   </div>
                   <div>
-                    <div className="text-xs uppercase tracking-[0.2em] text-[var(--ui-muted)] mb-1">Timezone</div>
+                    <div className="text-xs uppercase tracking-[0.2em] text-[var(--app-muted)] mb-1">Timezone</div>
 
                     {selected.timeZone ? (
-                      <div className="border border-[var(--ui-border)] rounded px-2 py-2 bg-[var(--ui-panel)] text-sm">
-                        <div className="font-semibold text-[#e6e8ee]">{selected.timeZone}</div>
-                        <div className="text-[11px] text-[var(--ui-muted)]">
+                      <div className="border border-[var(--app-border)] rounded px-2 py-2 bg-[var(--app-panel)] text-sm">
+                        <div className="font-semibold text-[var(--app-text)]">{selected.timeZone}</div>
+                        <div className="text-[11px] text-[var(--app-muted)]">
                           Now:{' '}
                           {new Date().toLocaleTimeString([], {
                             timeZone: selected.timeZone,
@@ -678,17 +701,17 @@ export const PlayersView: React.FC<PlayersViewProps> = ({
                         </div>
                       </div>
                     ) : (
-                      <div className="text-[11px] text-[var(--ui-muted)] border border-dashed border-[var(--ui-border)] rounded px-2 py-2">
+                      <div className="text-[11px] text-[var(--app-muted)] border border-dashed border-[var(--app-border)] rounded px-2 py-2">
                         No timezone yet. Set a location to auto-detect.
                       </div>
                     )}
 
                     <div className="mt-2">
-                      <div className="text-[10px] uppercase tracking-[0.2em] text-[var(--ui-muted)] mb-1">Manual UTC Offset (override)</div>
+                      <div className="text-[10px] uppercase tracking-[0.2em] text-[var(--app-muted)] mb-1">Manual UTC Offset (override)</div>
                       <select
                         value={typeof selected.utcOffsetMinutes === 'number' ? String(selected.utcOffsetMinutes) : ''}
                         onChange={e => onUpdatePlayer(selected.id, { utcOffsetMinutes: e.target.value === '' ? undefined : Number(e.target.value) })}
-                        className="w-full border border-[var(--ui-border)] rounded px-2 py-2 text-sm bg-[var(--ui-panel)]"
+                        className="w-full border border-[var(--app-border)] rounded px-2 py-2 text-sm bg-[var(--app-panel)]"
                       >
                         <option value="">—</option>
                         {Array.from({ length: 27 }).map((_, i) => {
@@ -703,7 +726,7 @@ export const PlayersView: React.FC<PlayersViewProps> = ({
                         })}
                       </select>
                       {typeof selected.utcOffsetMinutes === 'number' && !selected.timeZone && (
-                        <div className="text-[11px] text-[var(--ui-muted)] mt-1">
+                        <div className="text-[11px] text-[var(--app-muted)] mt-1">
                           Now: {utcNowForOffset(selected.utcOffsetMinutes).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                         </div>
                       )}
@@ -713,15 +736,15 @@ export const PlayersView: React.FC<PlayersViewProps> = ({
               </div>
 
               {/* Tags + Favorite */}
-              <div className="border border-[var(--ui-border)] rounded p-4">
+              <div className="border border-[var(--app-border)] rounded p-4">
                 <div className="flex items-center justify-between gap-3">
-                  <div className="text-[11px] uppercase tracking-[0.2em] text-[var(--ui-muted)]">Tags + Favorites</div>
+                  <div className="text-[11px] uppercase tracking-[0.2em] text-[var(--app-muted)]">Tags + Favorites</div>
                   <button
                     type="button"
                     onClick={() => onUpdatePlayer(selected.id, { favorite: !selected.favorite })}
                     className={
                       'px-3 py-1 border rounded text-[11px] uppercase tracking-[0.15em] ' +
-                      (selected.favorite ? 'border-[var(--ui-accent)] text-[var(--ui-accent)]' : 'border-[var(--ui-border)] text-[var(--ui-muted)]')
+                      (selected.favorite ? 'border-[var(--app-accent)] text-[var(--app-accent)]' : 'border-[var(--app-border)] text-[var(--app-muted)]')
                     }
                   >
                     {selected.favorite ? 'Favorite' : 'Not favorite'}
@@ -733,7 +756,7 @@ export const PlayersView: React.FC<PlayersViewProps> = ({
                     value={tagDraft}
                     onChange={e => setTagDraft(e.target.value)}
                     placeholder="Add tag (e.g. family, friend, work)"
-                    className="flex-1 border border-[var(--ui-border)] rounded px-2 py-2 text-sm"
+                    className="flex-1 border border-[var(--app-border)] rounded px-2 py-2 text-sm"
                     onKeyDown={(e) => {
                       if (e.key === 'Enter') {
                         e.preventDefault();
@@ -744,7 +767,7 @@ export const PlayersView: React.FC<PlayersViewProps> = ({
                   <button
                     type="button"
                     onClick={addTagToSelected}
-                    className="px-3 py-2 border border-[#0f1115] text-[#e6e8ee] rounded text-[11px] uppercase tracking-[0.15em] hover:bg-[#0f1115] hover:text-white"
+                    className="px-3 py-2 border border-[var(--app-border)] text-[var(--app-text)] rounded text-[11px] uppercase tracking-[0.15em] hover:bg-[var(--app-panel-2)] hover:text-[var(--app-text)]"
                   >
                     Add
                   </button>
@@ -756,27 +779,27 @@ export const PlayersView: React.FC<PlayersViewProps> = ({
                       key={t}
                       type="button"
                       onClick={() => removeTagFromSelected(t)}
-                      className="text-[11px] px-2 py-1 rounded border border-[var(--ui-border)] bg-[var(--ui-panel)] text-[var(--ui-muted)] hover:border-[var(--ui-accent)] hover:text-[var(--ui-accent)]"
+                      className="text-[11px] px-2 py-1 rounded border border-[var(--app-border)] bg-[var(--app-panel)] text-[var(--app-muted)] hover:border-[var(--app-accent)] hover:text-[var(--app-accent)]"
                       title="Click to remove"
                     >
                       {t}
                     </button>
                   ))}
-                  {(selected.tags || []).length === 0 && <div className="text-[11px] text-[var(--ui-muted)]">No tags yet.</div>}
+                  {(selected.tags || []).length === 0 && <div className="text-[11px] text-[var(--app-muted)]">No tags yet.</div>}
                 </div>
               </div>
 
               {/* Socials */}
-              <div className="border border-[var(--ui-border)] rounded p-4">
-                <div className="text-[11px] uppercase tracking-[0.2em] text-[var(--ui-muted)] mb-3">Social links</div>
+              <div className="border border-[var(--app-border)] rounded p-4">
+                <div className="text-[11px] uppercase tracking-[0.2em] text-[var(--app-muted)] mb-3">Social links</div>
                 <div className="grid md:grid-cols-2 gap-3 text-sm">
                   {(['instagram', 'linkedin', 'twitter', 'discord'] as const).map(k => (
                     <div key={k}>
-                      <div className="text-xs uppercase tracking-[0.2em] text-[var(--ui-muted)] mb-1">{k}</div>
+                      <div className="text-xs uppercase tracking-[0.2em] text-[var(--app-muted)] mb-1">{k}</div>
                       <input
                         value={selected.socials?.[k] || ''}
                         onChange={e => onUpdatePlayer(selected.id, { socials: { ...(selected.socials || {}), [k]: e.target.value } })}
-                        className="w-full border border-[var(--ui-border)] rounded px-2 py-2 text-sm"
+                        className="w-full border border-[var(--app-border)] rounded px-2 py-2 text-sm"
                       />
                     </div>
                   ))}
@@ -791,14 +814,14 @@ export const PlayersView: React.FC<PlayersViewProps> = ({
               />
 
               {/* Media */}
-              <div className="border border-[var(--ui-border)] rounded p-4 space-y-3">
-                <div className="text-[11px] uppercase tracking-[0.2em] text-[var(--ui-muted)]">Media</div>
+              <div className="border border-[var(--app-border)] rounded p-4 space-y-3">
+                <div className="text-[11px] uppercase tracking-[0.2em] text-[var(--app-muted)]">Media</div>
 
                 <div className="grid md:grid-cols-2 gap-4">
                   <div>
-                    <div className="text-xs uppercase tracking-[0.2em] text-[var(--ui-muted)] mb-2">Avatar</div>
+                    <div className="text-xs uppercase tracking-[0.2em] text-[var(--app-muted)] mb-2">Avatar</div>
                     <div className="flex items-center gap-3">
-                      <div className="w-20 h-20 border border-[var(--ui-border)] bg-white rounded overflow-hidden flex items-center justify-center text-xs text-[var(--ui-muted)]">
+                      <div className="w-20 h-20 border border-[var(--app-border)] bg-[var(--app-panel-2)] rounded overflow-hidden flex items-center justify-center text-xs text-[var(--app-muted)]">
                         {selected.avatar ? (
                           selected.avatar.startsWith('blob:') || selected.avatar.startsWith('data:video') ? (
                             <video src={selected.avatar} className="w-full h-full object-cover" autoPlay loop muted playsInline />
@@ -814,9 +837,9 @@ export const PlayersView: React.FC<PlayersViewProps> = ({
                   </div>
 
                   <div>
-                    <div className="text-xs uppercase tracking-[0.2em] text-[var(--ui-muted)] mb-2">Full-body / Standing</div>
+                    <div className="text-xs uppercase tracking-[0.2em] text-[var(--app-muted)] mb-2">Full-body / Standing</div>
                     <div className="flex items-center gap-3">
-                      <div className="w-20 h-20 border border-[var(--ui-border)] bg-white rounded overflow-hidden flex items-center justify-center text-xs text-[var(--ui-muted)]">
+                      <div className="w-20 h-20 border border-[var(--app-border)] bg-[var(--app-panel-2)] rounded overflow-hidden flex items-center justify-center text-xs text-[var(--app-muted)]">
                         {selected.fullBodyImage ? (
                           selected.fullBodyImage.startsWith('blob:') || selected.fullBodyImage.startsWith('data:video') ? (
                             <video src={selected.fullBodyImage} className="w-full h-full object-cover" autoPlay loop muted playsInline />
@@ -833,7 +856,7 @@ export const PlayersView: React.FC<PlayersViewProps> = ({
                 </div>
 
                 <div>
-                  <div className="text-xs uppercase tracking-[0.2em] text-[var(--ui-muted)] mb-2">Gallery</div>
+                  <div className="text-xs uppercase tracking-[0.2em] text-[var(--app-muted)] mb-2">Gallery</div>
                   <input type="file" accept="image/png,image/jpeg,image/jpg,image/gif,video/mp4" onChange={e => onUpload('gallery', e.target.files?.[0] || null)} />
                   <div className="mt-3 grid grid-cols-4 gap-2">
                     {(selected.gallery || []).slice(0, 12).map((src, idx) => (
@@ -841,7 +864,7 @@ export const PlayersView: React.FC<PlayersViewProps> = ({
                         key={idx}
                         type="button"
                         onClick={() => removeGalleryImage(idx)}
-                        className="border border-[var(--ui-border)] rounded overflow-hidden bg-[var(--ui-panel)] hover:border-[var(--ui-accent)]"
+                        className="border border-[var(--app-border)] rounded overflow-hidden bg-[var(--app-panel)] hover:border-[var(--app-accent)]"
                         title="Click to remove"
                       >
                         {src.startsWith('blob:') || src.startsWith('data:video') ? (
@@ -852,32 +875,32 @@ export const PlayersView: React.FC<PlayersViewProps> = ({
                       </button>
                     ))}
                     {(selected.gallery || []).length === 0 && (
-                      <div className="col-span-4 text-[11px] text-[var(--ui-muted)]">No gallery images yet.</div>
+                      <div className="col-span-4 text-[11px] text-[var(--app-muted)]">No gallery images yet.</div>
                     )}
                   </div>
                 </div>
               </div>
 
               {/* Notes */}
-              <div className="border border-[var(--ui-border)] rounded p-4">
-                <div className="text-[11px] uppercase tracking-[0.2em] text-[var(--ui-muted)] mb-3">Notes</div>
+              <div className="border border-[var(--app-border)] rounded p-4">
+                <div className="text-[11px] uppercase tracking-[0.2em] text-[var(--app-muted)] mb-3">Notes</div>
                 <textarea
                   value={selected.notes || ''}
                   onChange={e => onUpdatePlayer(selected.id, { notes: e.target.value })}
-                  className="w-full border border-[var(--ui-border)] rounded px-2 py-2 text-sm"
+                  className="w-full border border-[var(--app-border)] rounded px-2 py-2 text-sm"
                   rows={4}
                 />
               </div>
 
               {/* XP */}
-              <div className="border border-[var(--ui-border)] rounded p-4 space-y-2">
-                <div className="text-[11px] uppercase tracking-[0.2em] text-[var(--ui-muted)]">XP / Score</div>
+              <div className="border border-[var(--app-border)] rounded p-4 space-y-2">
+                <div className="text-[11px] uppercase tracking-[0.2em] text-[var(--app-muted)]">XP / Score</div>
                 <div className="flex flex-wrap gap-2 text-[11px]">
                   {[10, 50, 100, -10].map(val => (
                     <button
                       key={val}
                       onClick={() => applyXp(val)}
-                      className="px-2 py-1 border border-[var(--ui-border)] rounded hover:border-[#0f1115] hover:text-[#e6e8ee]"
+                      className="px-2 py-1 border border-[var(--app-border)] rounded hover:border-[var(--app-border)] hover:text-[var(--app-text)]"
                     >
                       {val > 0 ? `+${val}` : val} XP
                     </button>
@@ -889,25 +912,25 @@ export const PlayersView: React.FC<PlayersViewProps> = ({
                     value={customAmount}
                     onChange={e => setCustomAmount(parseInt(e.target.value) || 0)}
                     placeholder="Custom amount"
-                    className="border border-[var(--ui-border)] rounded px-2 py-2"
+                    className="border border-[var(--app-border)] rounded px-2 py-2"
                   />
                   <input
                     value={category}
                     onChange={e => setCategory(e.target.value)}
                     placeholder="Category"
-                    className="border border-[var(--ui-border)] rounded px-2 py-2"
+                    className="border border-[var(--app-border)] rounded px-2 py-2"
                   />
                   <input
                     value={note}
                     onChange={e => setNote(e.target.value)}
                     placeholder="Note"
-                    className="border border-[var(--ui-border)] rounded px-2 py-2"
+                    className="border border-[var(--app-border)] rounded px-2 py-2"
                   />
                 </div>
                 <button
                   type="button"
                   onClick={() => customAmount !== 0 && applyXp(customAmount)}
-                  className="px-3 py-2 border border-[#0f1115] text-[#e6e8ee] rounded text-[11px] uppercase tracking-[0.15em] hover:bg-[#0f1115] hover:text-white"
+                  className="px-3 py-2 border border-[var(--app-border)] text-[var(--app-text)] rounded text-[11px] uppercase tracking-[0.15em] hover:bg-[var(--app-panel-2)] hover:text-[var(--app-text)]"
                   disabled={customAmount === 0}
                 >
                   Apply XP
@@ -916,18 +939,19 @@ export const PlayersView: React.FC<PlayersViewProps> = ({
             </>
           )}
 
-          <div className="border-t border-[var(--ui-border)] pt-3 flex items-center gap-2 text-[11px] uppercase tracking-[0.2em] text-[var(--ui-muted)] flex-wrap">
+          <div className="border-t border-[var(--app-border)] pt-3 flex items-center gap-2 text-[11px] uppercase tracking-[0.2em] text-[var(--app-muted)] flex-wrap">
             <span>Viewing as:</span>
             <select
               value={viewAsId}
               onChange={e => onSetViewAs(e.target.value)}
-              className="border border-[var(--ui-border)] rounded px-2 py-1 text-[11px] bg-[var(--ui-panel)]"
+              className="border border-[var(--app-border)] rounded px-2 py-1 text-[11px] bg-[var(--app-panel)]"
             >
               {players.map(p => (
                 <option key={p.id} value={p.id}>{p.name}</option>
               ))}
             </select>
           </div>
+          </div>{/* end p-4 scroll wrapper */}
         </div>
       )}
     </div>

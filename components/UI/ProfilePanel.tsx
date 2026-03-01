@@ -7,9 +7,11 @@ interface ProfilePanelProps {
   title: string;
   icon?: React.ReactNode;
   children: React.ReactNode;
+  /** When true, suppress the desktop sidebar (only the mobile bottom sheet renders) */
+  mobileOnly?: boolean;
 }
 
-export const ProfilePanel: React.FC<ProfilePanelProps> = ({ open, onClose, title, icon, children }) => {
+export const ProfilePanel: React.FC<ProfilePanelProps> = ({ open, onClose, title, icon, children, mobileOnly }) => {
   useEffect(() => {
     if (!open) return;
     const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
@@ -45,7 +47,7 @@ export const ProfilePanel: React.FC<ProfilePanelProps> = ({ open, onClose, title
       />
 
       {/* Desktop: right sidebar */}
-      <div className="absolute right-0 top-0 h-full w-80 bg-[var(--app-panel)] border-l border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] shadow-2xl pointer-events-auto hidden md:flex flex-col lobby-slide-right">
+      <div className={`absolute right-0 top-0 h-full w-80 bg-[var(--app-panel)] border-l border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] shadow-2xl pointer-events-auto flex-col lobby-slide-right ${mobileOnly ? 'hidden' : 'hidden md:flex'}`}>
         {header}
         <div className="flex-1 overflow-y-auto xt-scroll p-4">
           {children}
