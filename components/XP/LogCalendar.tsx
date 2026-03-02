@@ -761,6 +761,16 @@ export const LogCalendar: React.FC = () => {
     return { id: ch.id, eligibleSet, completionsSet, progress, todayEligible, todayDone, complete, selectedStatus, streak };
   }), [challengeList, challengeCompletions, todayKey, selectedKey]);
 
+  const miniTimelineDays = useMemo(() => {
+    const days: string[] = [];
+    const end = fromDateKey(selectedKey);
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date(end.getFullYear(), end.getMonth(), end.getDate() - i);
+      days.push(toDateKey(d));
+    }
+    return days;
+  }, [selectedKey]);
+
   const getChallengeDayState = (dateKey: string): { inRange: boolean; excluded: boolean; done: boolean } => {
     if (!primaryChallenge || !challengeMeta[0]) return { inRange: false, excluded: false, done: false };
     const m = challengeMeta[0];
@@ -1901,6 +1911,40 @@ export const LogCalendar: React.FC = () => {
                         {ch.timePreset}
                       </span>
                     )}
+                  </div>
+                  {/* Mini 7-day timeline */}
+                  <div className="flex items-center gap-[3px] shrink-0">
+                    {miniTimelineDays.map(dayKey => {
+                      const inRange = dayKey >= ch.start && dayKey <= ch.end;
+                      const isEligible = meta.eligibleSet.has(dayKey);
+                      const isDone = meta.completionsSet.has(dayKey);
+                      const isExcl = inRange && !isEligible;
+                      const isActive = dayKey === selectedKey;
+                      const dotStatus = isDone && isEligible ? 'Done'
+                        : isEligible ? 'Not done'
+                        : isExcl ? 'Excluded'
+                        : 'Out of range';
+                      return (
+                        <button
+                          key={dayKey}
+                          type="button"
+                          title={`${formatShortDate(dayKey)} · ${dotStatus}`}
+                          onClick={() => !isActive && selectDate(dayKey)}
+                          style={isDone && isEligible ? { boxShadow: '0 0 4px color-mix(in srgb, var(--app-accent) 60%, transparent)' } : undefined}
+                          className={`p-0 w-[5px] h-[5px] rounded-sm transition-transform duration-100 ${
+                            isActive ? 'cursor-default scale-125' : 'cursor-pointer hover:scale-150'
+                          } ${
+                            isDone && isEligible
+                              ? 'bg-[var(--app-accent)]'
+                              : isEligible
+                              ? 'bg-transparent border border-[var(--app-accent)]'
+                              : isExcl
+                              ? 'bg-[#f59e0b] opacity-30'
+                              : 'bg-[color-mix(in_srgb,var(--app-text)_15%,transparent)]'
+                          }`}
+                        />
+                      );
+                    })}
                   </div>
                   {/* Right: Done/Undo + Edit + Delete */}
                   <div className="flex items-center gap-1 shrink-0">
