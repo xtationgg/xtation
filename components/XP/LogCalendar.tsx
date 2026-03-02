@@ -633,6 +633,9 @@ export const LogCalendar: React.FC = () => {
   const timelineChartRef = useRef<HTMLDivElement>(null);
   const [timelineChartWidth, setTimelineChartWidth] = useState(0);
   const [timelineChartHeight, setTimelineChartHeight] = useState(0);
+  const [quickPopoverKey, setQuickPopoverKey] = useState<string | null>(null);
+  const gridSwipeStartX = useRef<number | null>(null);
+  const gridSwipeMoved = useRef(false);
 
   const todayKey = toDateKey(new Date(now));
   const selectedDate = fromDateKey(selectedKey);
@@ -792,6 +795,53 @@ export const LogCalendar: React.FC = () => {
     });
     return map;
   }, [gridKeys, selectors, now]);
+
+  // Heat intensity per day: 0→no activity, 1→480+ minutes (8h)
+  const xpIntensityByDay = useMemo(() => {
+    const map = new Map<string, number>();
+    gridKeys.forEach(key => {
+      const s = selectors.getDaySummary(key, now) || EMPTY_DAY_SUMMARY;
+      map.set(key, Math.min(1, s.minutesTracked / 480));
+    });
+    return map;
+  }, [gridKeys, selectors, now]);
+
+  // Per-day streak connector flags for the primary challenge
+  const streakConnectorsByDay = useMemo(() => {
+    const map = new Map<string, { left: boolean; right: boolean }>();
+    if (!primaryChallenge || !challengeMeta[0]) return map;
+    const m = challengeMeta[0];
+    gridDays.forEach((day, idx) => {
+      const isDone = m.completionsSet.has(day.key) && m.eligibleSet.has(day.key);
+      if (!isDone) return;
+      const prev = gridDays[idx - 1];
+      const next = gridDays[idx + 1];
+      map.set(day.key, {
+        left: !!prev && m.completionsSet.has(prev.key) && m.eligibleSet.has(prev.key),
+        right: !!next && m.completionsSet.has(next.key) && m.eligibleSet.has(next.key),
+      });
+    });
+    return map;
+  }, [primaryChallenge, challengeMeta, gridDays]);
+
+  // 52-week heat map grid for the year view
+  const yearHeatMapWeeks = useMemo(() => {
+    const year = selectedDate.getFullYear();
+    const jan1 = new Date(year, 0, 1);
+    const mondayOffset = (jan1.getDay() + 6) % 7;
+    const cursor = new Date(year, 0, 1 - mondayOffset);
+    const weeks: Array<Array<{ key: string; date: Date; inYear: boolean }>> = [];
+    while (true) {
+      const week: Array<{ key: string; date: Date; inYear: boolean }> = [];
+      for (let d = 0; d < 7; d++) {
+        week.push({ key: toDateKey(cursor), date: new Date(cursor), inYear: cursor.getFullYear() === year });
+        cursor.setDate(cursor.getDate() + 1);
+      }
+      weeks.push(week);
+      if (cursor.getFullYear() > year) break;
+    }
+    return weeks;
+  }, [selectedDate]);
 
   const selectedDateLabel = useMemo(
     () =>
@@ -1003,6 +1053,24 @@ export const LogCalendar: React.FC = () => {
     }
     setViewMonth((prev) => new Date(prev.getFullYear(), prev.getMonth() + 1, 1));
   }, [rangeMode, selectedKey]);
+
+  const handleGridPointerDown = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
+    gridSwipeStartX.current = e.clientX;
+    gridSwipeMoved.current = false;
+  }, []);
+
+  const handleGridPointerMove = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
+    if (gridSwipeStartX.current === null) return;
+    if (Math.abs(e.clientX - gridSwipeStartX.current) > 10) gridSwipeMoved.current = true;
+  }, []);
+
+  const handleGridPointerUp = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
+    if (gridSwipeStartX.current === null) return;
+    const dx = e.clientX - gridSwipeStartX.current;
+    gridSwipeStartX.current = null;
+    if (!gridSwipeMoved.current || Math.abs(dx) < 60) return;
+    if (dx > 0) handlePrev(); else handleNext();
+  }, [handlePrev, handleNext]);
 
   const jumpToGroup = useCallback(
     (item: NormalizedLogItem) => {
@@ -2048,18 +2116,24 @@ export const LogCalendar: React.FC = () => {
                 ))}
               </div>
               <div className="overflow-x-auto no-scrollbar">
-                <div className="grid min-w-[740px] grid-cols-7 gap-2">
+                <div
+                  className="grid min-w-[740px] grid-cols-7 gap-2"
+                  onPointerDown={handleGridPointerDown}
+                  onPointerMove={handleGridPointerMove}
+                  onPointerUp={handleGridPointerUp}
+                >
                   {weekDays.map((day) => {
                     const daySummary = selectors.getDaySummary(day.key, now) || EMPTY_DAY_SUMMARY;
                     const isSelected = day.key === selectedKey;
                     const isToday = day.key === todayKey;
                     const chDay = getChallengeDayState(day.key);
+                    const wkIntensity = Math.min(1, daySummary.minutesTracked / 480);
                     return (
                       <button
                         key={day.key}
                         type="button"
                         onClick={() => selectDate(day.key, day.date)}
-                        className={`relative min-h-[80px] rounded-lg border p-3 text-left transition-colors ${
+                        className={`relative min-h-[80px] rounded-lg border p-3 text-left transition-all duration-200 overflow-hidden ${
                           isSelected
                             ? 'border-[color-mix(in_srgb,var(--app-accent)_60%,transparent)] bg-[color-mix(in_srgb,var(--app-accent)_16%,var(--app-panel))]'
                             : chDay.inRange
@@ -2069,11 +2143,19 @@ export const LogCalendar: React.FC = () => {
                                 : 'border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-[var(--app-panel-2)]'
                         }`}
                       >
+                        {/* XP heat gradient */}
+                        {wkIntensity > 0 && (
+                          <div
+                            aria-hidden="true"
+                            className="pointer-events-none absolute inset-0"
+                            style={{ background: `linear-gradient(160deg, transparent 30%, color-mix(in srgb, var(--app-accent) ${Math.round(wkIntensity * 22)}%, transparent) 100%)` }}
+                          />
+                        )}
                         {chDay.excluded && (
                           <span className={`pointer-events-none absolute top-[6px] right-[6px] flex h-4 w-4 items-center justify-center rounded-sm text-[10px] leading-none text-[var(--app-muted)] ${isSelected ? 'opacity-35' : 'opacity-55'}`}>×</span>
                         )}
                         {chDay.inRange && chDay.done && (
-                          <span className={`pointer-events-none absolute bottom-[7px] right-[7px] h-[6px] w-[6px] rounded-full bg-[var(--app-accent)] shadow-[0_0_5px_color-mix(in_srgb,var(--app-accent)_45%,transparent)] ${isSelected ? 'opacity-60' : ''}`} />
+                          <span className={`pointer-events-none absolute bottom-[9px] right-[7px] h-[6px] w-[6px] rounded-full bg-[var(--app-accent)] shadow-[0_0_6px_color-mix(in_srgb,var(--app-accent)_55%,transparent)] ${isSelected ? 'opacity-60' : ''}`} />
                         )}
                         {challengeList.length > 1 && (() => { const n = getChallengeCountForDay(day.key); return n > 0 ? <span className="pointer-events-none absolute top-[6px] left-[6px] flex h-4 w-4 items-center justify-center rounded text-[8px] leading-none text-[var(--app-accent)] bg-[color-mix(in_srgb,var(--app-accent)_18%,transparent)]">{n}</span> : null; })()}
                         <div className={`text-[11px] uppercase tracking-[0.16em] ${isToday ? 'text-[var(--app-accent)]' : 'text-[var(--app-muted)]'}`}>
@@ -2085,6 +2167,12 @@ export const LogCalendar: React.FC = () => {
                         <div className="text-[10px] uppercase tracking-[0.14em] text-[var(--app-muted)] mt-1">
                           {daySummary.activityCount} items
                         </div>
+                        {/* Mini XP bar */}
+                        {wkIntensity > 0 && (
+                          <div aria-hidden="true" className="pointer-events-none absolute bottom-0 left-0 right-0 h-[2px]" style={{ opacity: 0.55 }}>
+                            <div className="h-full" style={{ width: `${Math.min(100, wkIntensity * 100)}%`, background: 'var(--app-accent)', borderRadius: '0 1px 0 0' }} />
+                          </div>
+                        )}
                       </button>
                     );
                   })}
@@ -2119,19 +2207,36 @@ export const LogCalendar: React.FC = () => {
                 ))}
               </div>
 
-              <div className="grid grid-cols-7 gap-2">
+              <div
+                className="grid grid-cols-7 gap-2"
+                onPointerDown={handleGridPointerDown}
+                onPointerMove={handleGridPointerMove}
+                onPointerUp={handleGridPointerUp}
+              >
                 {gridDays.map((day) => {
                   const isSelected = selectedKey === day.key;
                   const info = summaryByDay.get(day.key) || { activityCount: 0, loggedMinutes: 0, running: false };
                   const loggedMin = info.loggedMinutes;
                   const isToday = day.key === todayKey;
                   const chDay = getChallengeDayState(day.key);
+                  const xpIntensity = xpIntensityByDay.get(day.key) ?? 0;
+                  const streakConn = streakConnectorsByDay.get(day.key);
+                  const isQuickOpen = quickPopoverKey === day.key;
+                  // multi-challenge dots: up to 5 dots for challenge completions
+                  const multiChDots = challengeList.length > 1 ? challengeMeta.slice(0, 5).map(m => ({
+                    id: m.id,
+                    done: m.completionsSet.has(day.key) && m.eligibleSet.has(day.key),
+                    inRange: m.eligibleSet.has(day.key),
+                  })).filter(d => d.inRange) : [];
                   return (
                     <button
                       key={day.key}
                       type="button"
-                      onClick={() => selectDate(day.key, day.date)}
-                      className={`relative min-h-[72px] rounded-lg border p-2 text-left transition-colors ${
+                      onClick={() => {
+                        selectDate(day.key, day.date);
+                        setQuickPopoverKey(prev => prev === day.key ? null : day.key);
+                      }}
+                      className={`relative min-h-[72px] rounded-lg border p-2 text-left transition-all duration-200 overflow-hidden ${
                         isSelected
                           ? 'border-[color-mix(in_srgb,var(--app-accent)_70%,transparent)] bg-[color-mix(in_srgb,var(--app-accent)_16%,var(--app-panel))]'
                           : chDay.inRange && !day.inMonth
@@ -2145,18 +2250,113 @@ export const LogCalendar: React.FC = () => {
                                   : 'border-[color-mix(in_srgb,var(--app-text)_5%,transparent)] bg-[var(--app-bg)] text-[var(--app-muted)]'
                       }`}
                     >
+                      {/* XP heat map layer — bottom-rising gradient */}
+                      {xpIntensity > 0 && (
+                        <div
+                          aria-hidden="true"
+                          className="pointer-events-none absolute inset-0"
+                          style={{
+                            background: `linear-gradient(170deg, transparent 30%, color-mix(in srgb, var(--app-accent) ${Math.round(xpIntensity * 22)}%, transparent) 100%)`,
+                            opacity: day.inMonth ? 1 : 0.45,
+                          }}
+                        />
+                      )}
+
+                      {/* Streak chain: horizontal band that aligns across adjacent done cells */}
+                      {streakConn && (
+                        <div
+                          aria-hidden="true"
+                          className="pointer-events-none absolute left-0 right-0"
+                          style={{
+                            top: '44%',
+                            height: 3,
+                            background: streakConn.left && streakConn.right
+                              ? 'color-mix(in srgb, var(--app-accent) 38%, transparent)'
+                              : streakConn.left
+                                ? 'linear-gradient(90deg, color-mix(in srgb, var(--app-accent) 42%, transparent) 0%, transparent 100%)'
+                                : 'linear-gradient(90deg, transparent 0%, color-mix(in srgb, var(--app-accent) 42%, transparent) 100%)',
+                          }}
+                        />
+                      )}
+
                       {chDay.excluded && (
                         <span className={`pointer-events-none absolute top-[6px] right-[6px] flex h-4 w-4 items-center justify-center rounded-sm text-[10px] leading-none text-[var(--app-muted)] ${isSelected ? 'opacity-35' : 'opacity-55'}`}>×</span>
                       )}
-                      {chDay.inRange && chDay.done && (
-                        <span className={`pointer-events-none absolute bottom-[7px] right-[7px] h-[6px] w-[6px] rounded-full bg-[var(--app-accent)] shadow-[0_0_5px_color-mix(in_srgb,var(--app-accent)_45%,transparent)] ${isSelected ? 'opacity-60' : ''}`} />
+                      {chDay.inRange && chDay.done && challengeList.length <= 1 && (
+                        <span className={`pointer-events-none absolute bottom-[9px] right-[6px] h-[6px] w-[6px] rounded-full bg-[var(--app-accent)] shadow-[0_0_6px_color-mix(in_srgb,var(--app-accent)_55%,transparent)] ${isSelected ? 'opacity-60' : ''}`} />
                       )}
+
+                      {/* Multi-challenge completion dots */}
+                      {multiChDots.length > 0 && (
+                        <div className="pointer-events-none absolute bottom-[4px] left-[4px] flex gap-[3px]">
+                          {multiChDots.map(d => (
+                            <span
+                              key={d.id}
+                              className="rounded-full"
+                              style={{
+                                width: 4, height: 4,
+                                background: d.done
+                                  ? 'var(--app-accent)'
+                                  : 'color-mix(in srgb, var(--app-accent) 28%, transparent)',
+                              }}
+                            />
+                          ))}
+                        </div>
+                      )}
+
+                      {/* Single-challenge count badge (when only 1 challenge) */}
                       {challengeList.length > 1 && (() => { const n = getChallengeCountForDay(day.key); return n > 0 ? <span className="pointer-events-none absolute top-[6px] left-[6px] flex h-4 w-4 items-center justify-center rounded text-[8px] leading-none text-[var(--app-accent)] bg-[color-mix(in_srgb,var(--app-accent)_18%,transparent)]">{n}</span> : null; })()}
+
                       <span className={`text-sm font-medium leading-none ${isToday ? 'text-[var(--app-accent)]' : 'text-[var(--app-text)]'}`}>{day.date.getDate()}</span>
                       {loggedMin > 0 && (
-                        <p className="mt-1.5 text-[9px] leading-none tracking-[0.1em] tabular-nums text-[var(--app-muted)]">
-                          {loggedMin}m{info.running ? ' ·' : ''}
+                        <p className={`mt-1.5 text-[9px] leading-none tracking-[0.1em] tabular-nums ${info.running ? 'text-[var(--app-accent)]' : 'text-[var(--app-muted)]'}`}>
+                          {loggedMin}m{info.running ? ' ●' : ''}
                         </p>
+                      )}
+
+                      {/* Quick-action: challenge toggle on selected day */}
+                      {isSelected && isQuickOpen && chDay.inRange && !chDay.excluded && (
+                        <button
+                          type="button"
+                          title={chDay.done ? 'Undo challenge done' : 'Mark challenge done'}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            if (primaryChallenge) toggleChallengeDay(primaryChallenge.id, day.key);
+                          }}
+                          className="absolute bottom-[5px] right-[5px] flex h-[18px] w-[18px] items-center justify-center rounded border transition-colors"
+                          style={{
+                            borderColor: chDay.done
+                              ? 'color-mix(in srgb, var(--app-accent) 55%, transparent)'
+                              : 'color-mix(in srgb, var(--app-accent) 38%, transparent)',
+                            color: 'var(--app-accent)',
+                            background: chDay.done
+                              ? 'color-mix(in srgb, var(--app-accent) 20%, var(--app-panel))'
+                              : 'transparent',
+                          }}
+                        >
+                          {chDay.done
+                            ? <svg width="9" height="9" viewBox="0 0 9 9" fill="none"><path d="M2 4.5L3.8 6.5L7 2.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                            : <svg width="9" height="9" viewBox="0 0 9 9" fill="none"><path d="M2 4.5L3.8 6.5L7 2.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" strokeOpacity="0.5"/></svg>
+                          }
+                        </button>
+                      )}
+
+                      {/* Mini XP progress bar at cell bottom */}
+                      {xpIntensity > 0 && (
+                        <div
+                          aria-hidden="true"
+                          className="pointer-events-none absolute bottom-0 left-0 right-0 h-[2px]"
+                          style={{ opacity: day.inMonth ? 0.55 : 0.25 }}
+                        >
+                          <div
+                            className="h-full"
+                            style={{
+                              width: `${Math.min(100, xpIntensity * 100)}%`,
+                              background: 'var(--app-accent)',
+                              borderRadius: '0 1px 0 0',
+                            }}
+                          />
+                        </div>
                       )}
                     </button>
                   );
@@ -2166,61 +2366,217 @@ export const LogCalendar: React.FC = () => {
           ) : null}
 
           {rangeMode === 'year' ? (
-            <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-3">
-              {yearMonths.map((monthDate) => {
-                const monthKey = toDateKey(monthDate);
-                const monthSummary = selectors.getDaySummary(monthKey, now) || EMPTY_DAY_SUMMARY;
-                const isSelectedMonth =
-                  viewMonth.getFullYear() === monthDate.getFullYear() &&
-                  viewMonth.getMonth() === monthDate.getMonth();
-                const mStart = toDateKey(new Date(monthDate.getFullYear(), monthDate.getMonth(), 1));
-                const mEnd = toDateKey(new Date(monthDate.getFullYear(), monthDate.getMonth() + 1, 0));
-                const chMonthEligible = primaryChallenge && challengeMeta[0]
-                  ? Array.from(challengeMeta[0].eligibleSet).filter(k => k >= mStart && k <= mEnd).length
-                  : 0;
-                const chMonthDone = primaryChallenge && challengeMeta[0]
-                  ? Array.from(challengeMeta[0].eligibleSet).filter(k => k >= mStart && k <= mEnd && challengeMeta[0].completionsSet.has(k)).length
-                  : 0;
-                return (
-                  <button
-                    key={monthDate.toISOString()}
-                    type="button"
-                    onClick={() => {
-                      const firstDay = new Date(monthDate.getFullYear(), monthDate.getMonth(), 1);
-                      setViewMonth(firstDay);
-                      selectDate(toDateKey(firstDay), firstDay);
-                      setRangeMode('month');
-                    }}
-                    className={`rounded-lg border p-3 text-left transition-colors ${
-                      isSelectedMonth
-                        ? 'border-[color-mix(in_srgb,var(--app-accent)_60%,transparent)] bg-[color-mix(in_srgb,var(--app-accent)_14%,var(--app-panel))]'
-                        : chMonthEligible > 0
-                          ? 'border-[color-mix(in_srgb,var(--app-accent)_25%,transparent)] bg-[color-mix(in_srgb,var(--app-accent)_8%,var(--app-panel-2))]'
-                          : 'border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-[var(--app-panel-2)]'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between gap-1">
-                      <div className="text-xs uppercase tracking-[0.18em] text-[var(--app-text)]">
-                        {monthDate.toLocaleDateString(undefined, { month: 'short' })}
-                      </div>
-                      {chMonthEligible > 0 && (
-                        <span className="text-[9px] uppercase tracking-[0.12em] text-[var(--app-accent)]">
-                          {chMonthDone}/{chMonthEligible}
-                        </span>
+            (() => {
+              // Month boundaries for labels
+              const year = selectedDate.getFullYear();
+              const monthStartWeeks: Record<number, number> = {};
+              yearHeatMapWeeks.forEach((week, wi) => {
+                const firstInYear = week.find(d => d.inYear);
+                if (firstInYear) {
+                  const m = firstInYear.date.getMonth();
+                  if (monthStartWeeks[m] === undefined) monthStartWeeks[m] = wi;
+                }
+              });
+              const MONTH_ABBR = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+              const DAY_ROW_LABELS = ['Mon','','Wed','','Fri','',''];
+              return (
+                <div>
+                  {/* Legend */}
+                  <div className="flex items-center gap-3 mb-3 text-[9px] uppercase tracking-[0.14em] text-[var(--app-muted)]">
+                    <span>Less</span>
+                    {[0, 0.25, 0.5, 0.75, 1].map(v => (
+                      <span
+                        key={v}
+                        className="rounded-sm"
+                        style={{
+                          width: 10, height: 10, display: 'inline-block',
+                          background: v === 0
+                            ? 'color-mix(in srgb, var(--app-text) 9%, transparent)'
+                            : `color-mix(in srgb, var(--app-accent) ${Math.round(v * 80)}%, var(--app-panel-2))`,
+                        }}
+                      />
+                    ))}
+                    <span>More</span>
+                    {primaryChallenge && (
+                      <span className="ml-2 flex items-center gap-1">
+                        <span className="rounded-full bg-[var(--app-accent)]" style={{ width: 6, height: 6, display: 'inline-block' }} />
+                        Challenge done
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="overflow-x-auto xt-scroll pb-2">
+                    <div style={{ display: 'grid', gridTemplateColumns: `28px repeat(${yearHeatMapWeeks.length}, 11px)`, gridTemplateRows: 'auto repeat(7, 11px)', gap: '2px', minWidth: 0 }}>
+                      {/* Month labels row */}
+                      <div style={{ gridColumn: 1, gridRow: 1 }} />
+                      {yearHeatMapWeeks.map((_, wi) => {
+                        const monthIdx = Object.entries(monthStartWeeks).find(([, w]) => w === wi);
+                        return (
+                          <div
+                            key={`ml-${wi}`}
+                            style={{ gridColumn: wi + 2, gridRow: 1, height: 14 }}
+                            className="text-[8px] uppercase tracking-[0.1em] text-[var(--app-muted)] whitespace-nowrap overflow-visible leading-none flex items-end"
+                          >
+                            {monthIdx ? MONTH_ABBR[parseInt(monthIdx[0])] : ''}
+                          </div>
+                        );
+                      })}
+
+                      {/* Day row labels (Mon/Wed/Fri) */}
+                      {DAY_ROW_LABELS.map((lbl, di) => (
+                        <div
+                          key={`dl-${di}`}
+                          style={{ gridColumn: 1, gridRow: di + 2 }}
+                          className="text-[7px] uppercase tracking-[0.06em] text-[var(--app-muted)] leading-none flex items-center justify-end pr-1"
+                        >
+                          {lbl}
+                        </div>
+                      ))}
+
+                      {/* Heat squares */}
+                      {yearHeatMapWeeks.map((week, wi) =>
+                        week.map((day, di) => {
+                          const s = day.inYear ? (selectors.getDaySummary(day.key, now) || EMPTY_DAY_SUMMARY) : EMPTY_DAY_SUMMARY;
+                          const intensity = Math.min(1, s.minutesTracked / 480);
+                          const isSelectedDay = day.key === selectedKey;
+                          const isToday2 = day.key === todayKey;
+                          const chDone = primaryChallenge && challengeMeta[0]
+                            ? challengeMeta[0].completionsSet.has(day.key) && challengeMeta[0].eligibleSet.has(day.key)
+                            : false;
+                          return (
+                            <button
+                              key={`hs-${wi}-${di}`}
+                              type="button"
+                              title={`${day.key} · ${s.minutesTracked}m`}
+                              onClick={() => {
+                                const firstDay = new Date(day.date.getFullYear(), day.date.getMonth(), 1);
+                                setViewMonth(firstDay);
+                                selectDate(day.key, day.date);
+                                setRangeMode('month');
+                              }}
+                              style={{
+                                gridColumn: wi + 2,
+                                gridRow: di + 2,
+                                width: 11, height: 11,
+                                borderRadius: 2,
+                                background: !day.inYear
+                                  ? 'transparent'
+                                  : intensity === 0
+                                    ? 'color-mix(in srgb, var(--app-text) 9%, transparent)'
+                                    : `color-mix(in srgb, var(--app-accent) ${Math.round(intensity * 80)}%, var(--app-panel-2))`,
+                                outline: isSelectedDay
+                                  ? '1.5px solid color-mix(in srgb, var(--app-accent) 80%, transparent)'
+                                  : isToday2
+                                    ? '1.5px solid color-mix(in srgb, var(--app-text) 35%, transparent)'
+                                    : 'none',
+                                outlineOffset: 1,
+                                boxShadow: chDone
+                                  ? '0 0 0 1px color-mix(in srgb, var(--app-accent) 60%, transparent)'
+                                  : undefined,
+                                cursor: day.inYear ? 'pointer' : 'default',
+                                position: 'relative',
+                              }}
+                            >
+                              {chDone && (
+                                <span
+                                  aria-hidden="true"
+                                  style={{
+                                    position: 'absolute', bottom: 1, right: 1,
+                                    width: 3, height: 3,
+                                    borderRadius: '50%',
+                                    background: 'var(--app-accent)',
+                                    boxShadow: '0 0 3px var(--app-accent)',
+                                  }}
+                                />
+                              )}
+                            </button>
+                          );
+                        })
                       )}
                     </div>
-                    <div className="mt-2 text-[11px] uppercase tracking-[0.14em] text-[var(--app-muted)]">
-                      {monthSummary.minutesTracked}m tracked
-                    </div>
-                    <div className="text-[10px] uppercase tracking-[0.14em] text-[var(--app-muted)] mt-1">
-                      {monthSummary.activityCount} items
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
+                  </div>
+
+                  {/* Year summary stats */}
+                  {(() => {
+                    const yearStart = `${year}-01-01`;
+                    const yearEnd = `${year}-12-31`;
+                    const totalMin = yearHeatMapWeeks.flat().filter(d => d.inYear).reduce((sum, d) => {
+                      const s = selectors.getDaySummary(d.key, now) || EMPTY_DAY_SUMMARY;
+                      return sum + s.minutesTracked;
+                    }, 0);
+                    const activeDays = yearHeatMapWeeks.flat().filter(d => d.inYear && (selectors.getDaySummary(d.key, now)?.minutesTracked || 0) > 0).length;
+                    const chYearDone = primaryChallenge && challengeMeta[0]
+                      ? [...challengeMeta[0].completionsSet].filter(k => k >= yearStart && k <= yearEnd).length : 0;
+                    return (
+                      <div className="mt-3 flex flex-wrap gap-3 text-[9px] uppercase tracking-[0.14em] text-[var(--app-muted)]">
+                        <span className="rounded px-2 py-1 bg-[color-mix(in_srgb,var(--app-text)_6%,transparent)]">
+                          {Math.round(totalMin / 60)}h tracked in {year}
+                        </span>
+                        <span className="rounded px-2 py-1 bg-[color-mix(in_srgb,var(--app-text)_6%,transparent)]">
+                          {activeDays} active days
+                        </span>
+                        {primaryChallenge && (
+                          <span className="rounded px-2 py-1 bg-[color-mix(in_srgb,var(--app-accent)_14%,transparent)] text-[var(--app-accent)]">
+                            {chYearDone} challenge completions
+                          </span>
+                        )}
+                      </div>
+                    );
+                  })()}
+                </div>
+              );
+            })()
           ) : null}
         </div>
+
+        {/* Quick-action panel: shows between calendar and Day Console when a day is selected via popover */}
+        {quickPopoverKey && rangeMode === 'month' && (() => {
+          const qKey = quickPopoverKey;
+          const qChDay = getChallengeDayState(qKey);
+          const qSummary = selectors.getDaySummary(qKey, now) || EMPTY_DAY_SUMMARY;
+          const qDateLabel = fromDateKey(qKey).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
+          return (
+            <div className="rounded-xl border border-[color-mix(in_srgb,var(--app-accent)_35%,transparent)] bg-[color-mix(in_srgb,var(--app-accent)_7%,var(--app-panel))] px-4 py-3 flex flex-wrap items-center gap-3" style={{ animation: 'glass-panel-in 0.18s ease' }}>
+              <div className="min-w-0 flex-1">
+                <div className="text-[9px] uppercase tracking-[0.2em] text-[var(--app-muted)]">Quick Actions</div>
+                <div className="text-[11px] uppercase tracking-[0.14em] text-[var(--app-text)] mt-0.5">{qDateLabel}</div>
+              </div>
+              <div className="flex items-center gap-1.5 text-[9px] uppercase tracking-[0.14em] text-[var(--app-muted)]">
+                <span>{qSummary.minutesTracked}m tracked</span>
+                <span>·</span>
+                <span>{qSummary.activityCount} items</span>
+              </div>
+              {primaryChallenge && (qChDay.inRange || qChDay.done) && !qChDay.excluded && (
+                <button
+                  type="button"
+                  onClick={() => toggleChallengeDay(primaryChallenge.id, qKey)}
+                  className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-md border text-[9px] uppercase tracking-[0.14em] transition-colors ${
+                    qChDay.done
+                      ? 'border-[color-mix(in_srgb,var(--app-accent)_50%,transparent)] bg-[color-mix(in_srgb,var(--app-accent)_18%,var(--app-panel))] text-[var(--app-accent)]'
+                      : 'border-[color-mix(in_srgb,var(--app-accent)_35%,transparent)] text-[var(--app-muted)] hover:text-[var(--app-accent)]'
+                  }`}
+                >
+                  <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M2 5L4 7.5L8 2" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                  {qChDay.done ? 'Done ✓' : 'Mark done'}
+                </button>
+              )}
+              <button
+                type="button"
+                onClick={openQuestAddFlow}
+                className="px-2.5 py-1.5 rounded-md border border-[color-mix(in_srgb,var(--app-text)_18%,transparent)] text-[9px] uppercase tracking-[0.14em] text-[var(--app-muted)] hover:text-[var(--app-text)] transition-colors"
+              >
+                + Quest
+              </button>
+              <button
+                type="button"
+                onClick={() => setQuickPopoverKey(null)}
+                className="flex h-6 w-6 items-center justify-center rounded border border-[color-mix(in_srgb,var(--app-text)_14%,transparent)] text-[var(--app-muted)] hover:text-[var(--app-text)] text-[10px] transition-colors"
+              >
+                ×
+              </button>
+            </div>
+          );
+        })()}
 
         {dayConsole}
 
