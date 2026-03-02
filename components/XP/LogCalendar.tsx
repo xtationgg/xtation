@@ -741,6 +741,15 @@ export const LogCalendar: React.FC = () => {
       ? (challengeCompletionsSet.has(selectedKey) ? 'done' : 'not_done')
       : 'not_in_range';
 
+  const getChallengeDayState = (dateKey: string): { inRange: boolean; excluded: boolean; done: boolean } => {
+    if (!challengeSaved) return { inRange: false, excluded: false, done: false };
+    const inDateRange = dateKey >= challengeSaved.start && dateKey <= challengeSaved.end;
+    const inRange = inDateRange && challengeEligibleSet.has(dateKey);
+    const excluded = inDateRange && !challengeEligibleSet.has(dateKey);
+    const done = challengeCompletionsSet.has(dateKey);
+    return { inRange, excluded, done };
+  };
+
   const yearMonths = useMemo(() => {
     const year = selectedDate.getFullYear();
     return Array.from({ length: 12 }, (_, idx) => new Date(year, idx, 1, 0, 0, 0, 0));
@@ -1866,17 +1875,28 @@ export const LogCalendar: React.FC = () => {
                     const daySummary = selectors.getDaySummary(day.key, now) || EMPTY_DAY_SUMMARY;
                     const isSelected = day.key === selectedKey;
                     const isToday = day.key === todayKey;
+                    const chDay = getChallengeDayState(day.key);
                     return (
                       <button
                         key={day.key}
                         type="button"
                         onClick={() => selectDate(day.key, day.date)}
-                        className={`min-h-[104px] rounded-lg border p-3 text-left transition-colors ${
+                        className={`relative min-h-[104px] rounded-lg border p-3 text-left transition-colors ${
                           isSelected
                             ? 'border-[color-mix(in_srgb,var(--app-accent)_60%,transparent)] bg-[color-mix(in_srgb,var(--app-accent)_16%,var(--app-panel))]'
-                            : 'border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-[var(--app-panel-2)]'
+                            : chDay.inRange
+                              ? 'border-[color-mix(in_srgb,var(--app-accent)_30%,transparent)] bg-[color-mix(in_srgb,var(--app-accent)_10%,var(--app-panel-2))]'
+                              : chDay.excluded
+                                ? 'border-[color-mix(in_srgb,var(--app-text)_8%,transparent)] bg-[color-mix(in_srgb,var(--app-text)_3%,var(--app-panel-2))]'
+                                : 'border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-[var(--app-panel-2)]'
                         }`}
                       >
+                        {chDay.excluded && (
+                          <span className="pointer-events-none absolute top-1.5 right-1.5 text-[9px] leading-none text-[var(--app-muted)] opacity-60">×</span>
+                        )}
+                        {chDay.inRange && chDay.done && (
+                          <span className="pointer-events-none absolute bottom-2 right-2 h-2 w-2 rounded-full bg-[var(--app-accent)] shadow-[0_0_4px_var(--app-accent)]" />
+                        )}
                         <div className={`text-[11px] uppercase tracking-[0.16em] ${isToday ? 'text-[var(--app-accent)]' : 'text-[var(--app-muted)]'}`}>
                           {formatWeekdayLabel(day.key)}
                         </div>
@@ -1910,19 +1930,30 @@ export const LogCalendar: React.FC = () => {
                   const info = summaryByDay.get(day.key) || { activityCount: 0, loggedMinutes: 0, running: false };
                   const loggedMin = info.loggedMinutes;
                   const isToday = day.key === todayKey;
+                  const chDay = getChallengeDayState(day.key);
                   return (
                     <button
                       key={day.key}
                       type="button"
                       onClick={() => selectDate(day.key, day.date)}
-                      className={`min-h-[108px] rounded-lg border p-2 text-left transition-colors ${
+                      className={`relative min-h-[108px] rounded-lg border p-2 text-left transition-colors ${
                         isSelected
                           ? 'border-[color-mix(in_srgb,var(--app-accent)_70%,transparent)] bg-[color-mix(in_srgb,var(--app-accent)_16%,var(--app-panel))]'
-                          : day.inMonth
-                            ? 'border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-[var(--app-panel-2)] hover:bg-[var(--app-panel-2)]'
-                            : 'border-[color-mix(in_srgb,var(--app-text)_5%,transparent)] bg-[var(--app-bg)] text-[var(--app-muted)]'
+                          : chDay.inRange
+                            ? 'border-[color-mix(in_srgb,var(--app-accent)_30%,transparent)] bg-[color-mix(in_srgb,var(--app-accent)_10%,var(--app-panel-2))]'
+                            : chDay.excluded
+                              ? 'border-[color-mix(in_srgb,var(--app-text)_8%,transparent)] bg-[color-mix(in_srgb,var(--app-text)_3%,var(--app-panel-2))]'
+                              : day.inMonth
+                                ? 'border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-[var(--app-panel-2)] hover:bg-[var(--app-panel-2)]'
+                                : 'border-[color-mix(in_srgb,var(--app-text)_5%,transparent)] bg-[var(--app-bg)] text-[var(--app-muted)]'
                       }`}
                     >
+                      {chDay.excluded && (
+                        <span className="pointer-events-none absolute top-1 right-1 text-[9px] leading-none text-[var(--app-muted)] opacity-60">×</span>
+                      )}
+                      {chDay.inRange && chDay.done && (
+                        <span className="pointer-events-none absolute bottom-1.5 right-1.5 h-2 w-2 rounded-full bg-[var(--app-accent)] shadow-[0_0_4px_var(--app-accent)]" />
+                      )}
                       <div className="flex items-center justify-between mb-2">
                         <span className={`text-sm font-medium ${isToday ? 'text-[var(--app-accent)]' : 'text-[var(--app-text)]'}`}>{day.date.getDate()}</span>
                         {loggedMin > 0 ? (
@@ -1963,6 +1994,14 @@ export const LogCalendar: React.FC = () => {
                 const isSelectedMonth =
                   viewMonth.getFullYear() === monthDate.getFullYear() &&
                   viewMonth.getMonth() === monthDate.getMonth();
+                const mStart = toDateKey(new Date(monthDate.getFullYear(), monthDate.getMonth(), 1));
+                const mEnd = toDateKey(new Date(monthDate.getFullYear(), monthDate.getMonth() + 1, 0));
+                const chMonthEligible = challengeSaved
+                  ? challengeEligibleSorted.filter(k => k >= mStart && k <= mEnd).length
+                  : 0;
+                const chMonthDone = challengeSaved
+                  ? challengeEligibleSorted.filter(k => k >= mStart && k <= mEnd && challengeCompletionsSet.has(k)).length
+                  : 0;
                 return (
                   <button
                     key={monthDate.toISOString()}
@@ -1976,11 +2015,20 @@ export const LogCalendar: React.FC = () => {
                     className={`rounded-lg border p-3 text-left transition-colors ${
                       isSelectedMonth
                         ? 'border-[color-mix(in_srgb,var(--app-accent)_60%,transparent)] bg-[color-mix(in_srgb,var(--app-accent)_14%,var(--app-panel))]'
-                        : 'border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-[var(--app-panel-2)]'
+                        : chMonthEligible > 0
+                          ? 'border-[color-mix(in_srgb,var(--app-accent)_25%,transparent)] bg-[color-mix(in_srgb,var(--app-accent)_8%,var(--app-panel-2))]'
+                          : 'border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-[var(--app-panel-2)]'
                     }`}
                   >
-                    <div className="text-xs uppercase tracking-[0.18em] text-[var(--app-text)]">
-                      {monthDate.toLocaleDateString(undefined, { month: 'short' })}
+                    <div className="flex items-center justify-between gap-1">
+                      <div className="text-xs uppercase tracking-[0.18em] text-[var(--app-text)]">
+                        {monthDate.toLocaleDateString(undefined, { month: 'short' })}
+                      </div>
+                      {chMonthEligible > 0 && (
+                        <span className="text-[9px] uppercase tracking-[0.12em] text-[var(--app-accent)]">
+                          {chMonthDone}/{chMonthEligible}
+                        </span>
+                      )}
                     </div>
                     <div className="mt-2 text-[11px] uppercase tracking-[0.14em] text-[var(--app-muted)]">
                       {monthSummary.minutesTracked}m tracked
@@ -2619,6 +2667,9 @@ export const LogCalendar: React.FC = () => {
                     {day.date.getDate()}
                     {isExcluded && (
                       <span className="pointer-events-none absolute top-0.5 right-0.5 text-[8px] leading-none text-red-400/80">×</span>
+                    )}
+                    {(inRange || isStart || isEnd) && !isExcluded && challengeCompletionsSet.has(day.key) && (
+                      <span className="pointer-events-none absolute bottom-0.5 right-0.5 h-1.5 w-1.5 rounded-full bg-[var(--app-accent)] shadow-[0_0_3px_var(--app-accent)]" />
                     )}
                   </button>
                 );
