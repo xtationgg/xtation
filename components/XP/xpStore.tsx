@@ -886,7 +886,38 @@ export const XPProvider: React.FC<{ children: React.ReactNode }> = ({ children }
           console.warn('[xp-sync] Invalid cloud ledger snapshot. Falling back to empty state.', snapshotError);
           nextSnapshot = xpRepository.createEmpty();
         }
-        cloudLedgerRef.current = cloudRecord.ledger;
+
+        // On first-ever login, migrate anonymous local data into the new cloud account.
+        if (cloudRecord.isNew) {
+          const anonSnapshot = xpRepository.load(null, { allowLegacyMigration: true, initializeIfMissing: false });
+          const hasAnonData =
+            anonSnapshot.tasks.length > 0 ||
+            anonSnapshot.sessions.length > 0 ||
+            anonSnapshot.manualLogs.length > 0;
+          if (hasAnonData) {
+            nextSnapshot = anonSnapshot;
+            const totalMs = anonSnapshot.sessions
+              .filter((s) => s.status === 'completed')
+              .reduce((sum, s) => sum + getSessionDisplayMs(s), 0);
+            const totalXp =
+              toXPMinutes(totalMs) +
+              anonSnapshot.manualLogs.reduce((sum, e) => sum + Math.max(0, e.minutes), 0);
+            const migratePayload = buildCloudLedgerPayload(null, anonSnapshot, totalXp);
+            try {
+              const saved = await saveLedger(migratePayload);
+              if (syncLoadRequestIdRef.current === requestId && syncUserIdRef.current === normalizedUserId) {
+                cloudLedgerRef.current = saved.ledger;
+              }
+            } catch (migrateError) {
+              console.warn('[xp-sync] Failed to migrate anonymous data to cloud on first login:', migrateError);
+            }
+            if (syncLoadRequestIdRef.current !== requestId || syncUserIdRef.current !== normalizedUserId) return;
+          }
+        }
+
+        if (!cloudRecord.isNew || !cloudLedgerRef.current) {
+          cloudLedgerRef.current = cloudRecord.ledger;
+        }
         replaceLedgerState(nextSnapshot, true);
         syncSkipNextSaveRef.current = true;
         syncLastSavedSignatureRef.current = getLedgerSyncSignature(nextSnapshot);
