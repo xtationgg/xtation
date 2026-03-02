@@ -530,6 +530,7 @@ type ChallengeSaved = {
   excluded: string[];
   goalType: 'daily' | 'count';
   goalTarget: number;
+  timePreset?: 'anytime' | 'morning' | 'noon' | 'evening';
 };
 
 type ChallengeItem = ChallengeSaved & { id: string };
@@ -617,6 +618,7 @@ export const LogCalendar: React.FC = () => {
   const [pickerExcluded, setPickerExcluded] = useState<string[]>([]);
   const [pickerGoalType, setPickerGoalType] = useState<'daily' | 'count'>('daily');
   const [pickerGoalTarget, setPickerGoalTarget] = useState(30);
+  const [pickerTimePreset, setPickerTimePreset] = useState<'anytime' | 'morning' | 'noon' | 'evening'>('anytime');
   const [highlightedChallengeId, setHighlightedChallengeId] = useState<string | null>(null);
   const [pickerDragging, setPickerDragging] = useState(false);
   const pickerDragStartKeyRef = useRef<string | null>(null);
@@ -1201,6 +1203,9 @@ export const LogCalendar: React.FC = () => {
                     <div className="flex items-center gap-1.5 flex-wrap">
                       <span className="text-[8px] uppercase tracking-[0.18em] text-[color-mix(in_srgb,var(--app-accent)_65%,var(--app-muted))] shrink-0">Challenge</span>
                       <span className="text-[11px] uppercase tracking-[0.12em] text-[var(--app-text)] truncate">{ch.badge} · {ch.name || 'Challenge'}</span>
+                      {(ch.timePreset && ch.timePreset !== 'anytime') && (
+                        <span className="rounded px-1 py-0.5 text-[8px] uppercase tracking-[0.12em] bg-[color-mix(in_srgb,var(--app-text)_8%,transparent)] text-[var(--app-muted)] shrink-0">{ch.timePreset}</span>
+                      )}
                     </div>
                   </div>
                   <span
@@ -1780,6 +1785,7 @@ export const LogCalendar: React.FC = () => {
                   setPickerBadge('Bronze');
                   setPickerGoalType('daily');
                   setPickerGoalTarget(30);
+                  setPickerTimePreset('anytime');
                   setChallengePickerOpen(true);
                 }}
                 className="flex items-center gap-1 px-2 py-1 rounded border border-[color-mix(in_srgb,var(--app-accent)_45%,transparent)] text-[9px] uppercase tracking-[0.14em] text-[var(--app-accent)] hover:border-[var(--app-accent)] transition-colors"
@@ -1813,7 +1819,7 @@ export const LogCalendar: React.FC = () => {
                     <div className="text-[10px] uppercase tracking-[0.14em] text-[var(--app-accent)] truncate leading-tight">{ch.badge} · {ch.name || 'Challenge'}</div>
                     <div className="text-[9px] uppercase tracking-[0.1em] text-[var(--app-muted)] truncate leading-tight">{formatShortDate(ch.start)} → {formatShortDate(ch.end)}</div>
                   </div>
-                  {/* Middle: status + progress + streak */}
+                  {/* Middle: status + progress + streak + time */}
                   <div className="flex items-center gap-1.5 shrink-0">
                     <span className={`rounded px-1.5 py-0.5 text-[8px] uppercase tracking-[0.14em] whitespace-nowrap ${statusPillClass}`}>
                       {statusLabel}
@@ -1821,6 +1827,11 @@ export const LogCalendar: React.FC = () => {
                     <span className="text-[9px] text-[var(--app-muted)] whitespace-nowrap tabular-nums">{meta.progress}/{ch.goalTarget}</span>
                     {meta.streak > 0 && (
                       <span className="text-[9px] text-[var(--app-muted)] whitespace-nowrap tabular-nums">🔥{meta.streak}</span>
+                    )}
+                    {(ch.timePreset && ch.timePreset !== 'anytime') && (
+                      <span className="rounded px-1.5 py-0.5 text-[8px] uppercase tracking-[0.14em] whitespace-nowrap bg-[color-mix(in_srgb,var(--app-text)_8%,transparent)] text-[var(--app-muted)]">
+                        {ch.timePreset}
+                      </span>
                     )}
                   </div>
                   {/* Right: Done/Undo + Edit + Delete */}
@@ -1853,6 +1864,7 @@ export const LogCalendar: React.FC = () => {
                         setPickerBadge(ch.badge);
                         setPickerGoalType(ch.goalType);
                         setPickerGoalTarget(ch.goalTarget);
+                        setPickerTimePreset(ch.timePreset ?? 'anytime');
                         setChallengePickerOpen(true);
                       }}
                       className="inline-flex h-[24px] w-[24px] items-center justify-center rounded border border-[color-mix(in_srgb,var(--app-text)_14%,transparent)] text-[var(--app-muted)] hover:border-[color-mix(in_srgb,var(--app-accent)_38%,transparent)] hover:text-[var(--app-text)] transition-colors"
@@ -1922,6 +1934,7 @@ export const LogCalendar: React.FC = () => {
                   setPickerBadge('Bronze');
                   setPickerGoalType('daily');
                   setPickerGoalTarget(30);
+                  setPickerTimePreset('anytime');
                   setChallengePickerOpen(true);
                 }}
                 className="px-3 py-2 rounded-md border text-[10px] tracking-[0.2em] uppercase transition-colors whitespace-nowrap border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-[var(--app-panel-2)] text-[var(--app-text)] hover:border-[color-mix(in_srgb,var(--app-text)_30%,transparent)]"
@@ -2670,6 +2683,21 @@ export const LogCalendar: React.FC = () => {
               </span>
             </div>
 
+            {/* ── Time row ── */}
+            <div className="flex items-center gap-2 mb-3">
+              <span className="text-[10px] uppercase tracking-[0.14em] text-[var(--app-muted)] shrink-0">Time</span>
+              <select
+                value={pickerTimePreset}
+                onChange={e => setPickerTimePreset(e.target.value as 'anytime' | 'morning' | 'noon' | 'evening')}
+                className="rounded-md border border-[color-mix(in_srgb,var(--app-text)_14%,transparent)] bg-[var(--app-panel-2)] px-3 py-1.5 text-[10px] uppercase tracking-[0.12em] text-[var(--app-text)] focus:outline-none focus:border-[color-mix(in_srgb,var(--app-accent)_50%,transparent)]"
+              >
+                <option value="anytime">Anytime</option>
+                <option value="morning">Morning</option>
+                <option value="noon">Noon</option>
+                <option value="evening">Evening</option>
+              </select>
+            </div>
+
             {/* ── Instruction ── */}
             <div className="mb-2 text-[10px] tracking-[0.1em] text-[var(--app-muted)]">
               {pickerEffectiveStart && pickerEffectiveEnd
@@ -2813,6 +2841,7 @@ export const LogCalendar: React.FC = () => {
                     excluded: finalExcluded,
                     goalType: pickerGoalType,
                     goalTarget: pickerGoalTarget,
+                    timePreset: pickerTimePreset,
                   };
                   if (pickerEditId) {
                     setChallengeList(prev => prev.map(ch => ch.id === pickerEditId ? { ...ch, ...challengeData } : ch));
