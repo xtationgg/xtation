@@ -530,9 +530,6 @@ type ChallengeSaved = {
   excluded: string[];
   goalType: 'daily' | 'count';
   goalTarget: number;
-  progressCount: number;
-  completedTodayKey: string | null;
-  status: 'active' | 'completed' | 'paused';
 };
 
 const BADGE_OPTIONS = ['Bronze', 'Silver', 'Gold', 'Diamond', 'Legend'] as const;
@@ -577,7 +574,18 @@ export const LogCalendar: React.FC = () => {
   const [hoveredDotId, setHoveredDotId] = useState<string | null>(null);
   const [legendFilterStates, setLegendFilterStates] = useState<QuestRowState[]>([]);
   const [challengePickerOpen, setChallengePickerOpen] = useState(false);
-  const [challengeSaved, setChallengeSaved] = useState<ChallengeSaved | null>(null);
+  const [challengeSaved, setChallengeSaved] = useState<ChallengeSaved | null>(() => {
+    try {
+      const raw = localStorage.getItem('xtation.challenge.saved.v1');
+      return raw ? (JSON.parse(raw) as ChallengeSaved) : null;
+    } catch { return null; }
+  });
+  const [challengeCompletions, setChallengeCompletions] = useState<string[]>(() => {
+    try {
+      const raw = localStorage.getItem('xtation.challenge.completions.v1');
+      return raw ? (JSON.parse(raw) as string[]) : [];
+    } catch { return []; }
+  });
   const [challengeClearConfirmOpen, setChallengeClearConfirmOpen] = useState(false);
   const [pickerName, setPickerName] = useState('');
   const [pickerBadge, setPickerBadge] = useState('Bronze');
@@ -634,6 +642,18 @@ export const LogCalendar: React.FC = () => {
     return () => ro.disconnect();
   }, []);
 
+  useEffect(() => {
+    if (challengeSaved) {
+      localStorage.setItem('xtation.challenge.saved.v1', JSON.stringify(challengeSaved));
+    } else {
+      localStorage.removeItem('xtation.challenge.saved.v1');
+    }
+  }, [challengeSaved]);
+
+  useEffect(() => {
+    localStorage.setItem('xtation.challenge.completions.v1', JSON.stringify(challengeCompletions));
+  }, [challengeCompletions]);
+
   const gridDays = useMemo(() => {
     const start = monthGridStart(viewMonth);
     return Array.from({ length: 42 }, (_, idx) => {
@@ -679,11 +699,43 @@ export const LogCalendar: React.FC = () => {
   const pickerFinalDayCount = pickerEffectiveStart && pickerEffectiveEnd
     ? pickerDayCount - pickerExcluded.filter(k => k > pickerEffectiveStart! && k < pickerEffectiveEnd!).length
     : 0;
-  const savedFinalDayCount = (() => {
-    if (!challengeSaved) return 0;
-    const s = challengeSaved;
-    return daysBetweenKeys(s.start, s.end) - s.excluded.filter(k => k > s.start && k < s.end).length;
-  })();
+  const challengeCompletionsSet = useMemo(() => new Set(challengeCompletions), [challengeCompletions]);
+  const challengeEligibleSorted = useMemo(() => {
+    if (!challengeSaved) return [] as string[];
+    const excSet = new Set(challengeSaved.excluded);
+    const days: string[] = [];
+    const cursor = fromDateKey(challengeSaved.start);
+    const endDate = fromDateKey(challengeSaved.end);
+    while (cursor <= endDate) {
+      const k = toDateKey(cursor);
+      if (!excSet.has(k)) days.push(k);
+      cursor.setDate(cursor.getDate() + 1);
+    }
+    return days;
+  }, [challengeSaved]);
+  const challengeEligibleSet = useMemo(() => new Set(challengeEligibleSorted), [challengeEligibleSorted]);
+  const challengeProgress = useMemo(
+    () => challengeCompletions.filter(k => challengeEligibleSet.has(k)).length,
+    [challengeCompletions, challengeEligibleSet]
+  );
+  const { challengeCurrentStreak, challengeBestStreak } = useMemo(() => {
+    const past = challengeEligibleSorted.filter(k => k <= todayKey);
+    let best = 0;
+    let run = 0;
+    for (const k of past) {
+      if (challengeCompletionsSet.has(k)) { run++; if (run > best) best = run; }
+      else run = 0;
+    }
+    let current = 0;
+    for (let i = past.length - 1; i >= 0; i--) {
+      if (challengeCompletionsSet.has(past[i])) current++;
+      else break;
+    }
+    return { challengeCurrentStreak: current, challengeBestStreak: best };
+  }, [challengeEligibleSorted, challengeCompletionsSet, todayKey]);
+  const challengeTodayEligible = challengeEligibleSet.has(todayKey);
+  const challengeTodayDone = challengeCompletionsSet.has(todayKey);
+  const challengeComplete = challengeSaved ? challengeProgress >= challengeSaved.goalTarget : false;
 
   const yearMonths = useMemo(() => {
     const year = selectedDate.getFullYear();
@@ -1666,7 +1718,7 @@ export const LogCalendar: React.FC = () => {
 
           {challengeSaved ? (
             <div className="mb-3 rounded-xl border border-[color-mix(in_srgb,var(--app-accent)_35%,transparent)] bg-[color-mix(in_srgb,var(--app-accent)_8%,var(--app-panel))] p-3">
-              {/* Title + actions row */}
+              {/* Title + Edit/Clear */}
               <div className="flex items-start justify-between gap-2 mb-2">
                 <div className="min-w-0">
                   <div className="text-[11px] uppercase tracking-[0.16em] text-[var(--app-accent)] font-medium truncate">
@@ -1674,8 +1726,7 @@ export const LogCalendar: React.FC = () => {
                   </div>
                   <div className="text-[10px] uppercase tracking-[0.12em] text-[var(--app-muted)] mt-0.5">
                     {formatShortDate(challengeSaved.start)} → {formatShortDate(challengeSaved.end)}
-                    {' · '}{savedFinalDayCount} day{savedFinalDayCount !== 1 ? 's' : ''}
-                    {challengeSaved.status === 'completed' ? ' · Completed' : ''}
+                    {' · '}{challengeEligibleSorted.length} day{challengeEligibleSorted.length !== 1 ? 's' : ''}
                   </div>
                 </div>
                 <div className="flex items-center gap-1 shrink-0">
@@ -1705,59 +1756,53 @@ export const LogCalendar: React.FC = () => {
                   </button>
                 </div>
               </div>
-              {/* Progress bar */}
-              <div className="mb-2">
-                <div className="flex items-center justify-between text-[9px] uppercase tracking-[0.12em] text-[var(--app-muted)] mb-1">
-                  <span>{challengeSaved.goalType === 'daily' ? 'Daily goal' : 'Count goal'}</span>
-                  <span>{challengeSaved.progressCount}/{challengeSaved.goalTarget}</span>
-                </div>
-                <div className="h-1.5 rounded-full bg-[color-mix(in_srgb,var(--app-text)_10%,transparent)] overflow-hidden">
-                  <div
-                    className="h-full rounded-full bg-[var(--app-accent)] transition-all"
-                    style={{ width: `${Math.min(100, (challengeSaved.progressCount / Math.max(1, challengeSaved.goalTarget)) * 100)}%` }}
-                  />
-                </div>
-              </div>
-              {/* Primary action */}
-              <div className="flex items-center gap-2">
-                {challengeSaved.goalType === 'daily' ? (
-                  <button
-                    type="button"
-                    disabled={challengeSaved.status === 'completed' || challengeSaved.completedTodayKey === todayKey}
-                    onClick={() => {
-                      const next = challengeSaved.progressCount + 1;
-                      setChallengeSaved(prev => prev ? {
-                        ...prev,
-                        progressCount: next,
-                        completedTodayKey: todayKey,
-                        status: next >= prev.goalTarget ? 'completed' : prev.status,
-                      } : null);
-                    }}
-                    className="px-3 py-1.5 rounded-md border border-[color-mix(in_srgb,var(--app-accent)_45%,transparent)] bg-[color-mix(in_srgb,var(--app-accent)_14%,var(--app-panel))] text-[10px] uppercase tracking-[0.14em] text-[var(--app-accent)] hover:border-[var(--app-accent)] disabled:opacity-40 disabled:pointer-events-none"
-                  >
-                    {challengeSaved.completedTodayKey === todayKey ? 'Done today ✓' : 'Mark today done'}
-                  </button>
+              {/* Status · Progress · Streak */}
+              <div className="flex items-center gap-3 flex-wrap mb-2">
+                {challengeTodayEligible ? (
+                  <span className={`rounded px-2 py-0.5 text-[9px] uppercase tracking-[0.14em] ${
+                    challengeTodayDone
+                      ? 'bg-[color-mix(in_srgb,var(--app-accent)_22%,var(--app-panel))] text-[var(--app-accent)]'
+                      : 'bg-[color-mix(in_srgb,var(--app-text)_10%,transparent)] text-[var(--app-muted)]'
+                  }`}>
+                    {challengeTodayDone ? 'Done' : 'Not done'}
+                  </span>
                 ) : (
-                  <button
-                    type="button"
-                    disabled={challengeSaved.status === 'completed'}
-                    onClick={() => {
-                      const next = challengeSaved.progressCount + 1;
-                      setChallengeSaved(prev => prev ? {
-                        ...prev,
-                        progressCount: next,
-                        status: next >= prev.goalTarget ? 'completed' : prev.status,
-                      } : null);
-                    }}
-                    className="px-3 py-1.5 rounded-md border border-[color-mix(in_srgb,var(--app-accent)_45%,transparent)] bg-[color-mix(in_srgb,var(--app-accent)_14%,var(--app-panel))] text-[10px] uppercase tracking-[0.14em] text-[var(--app-accent)] hover:border-[var(--app-accent)] disabled:opacity-40 disabled:pointer-events-none"
-                  >
-                    +1
-                  </button>
+                  <span className="rounded px-2 py-0.5 text-[9px] uppercase tracking-[0.14em] bg-[color-mix(in_srgb,var(--app-text)_8%,transparent)] text-[var(--app-muted)]">
+                    Not in range
+                  </span>
                 )}
-                {challengeSaved.status === 'completed' && (
-                  <span className="text-[10px] uppercase tracking-[0.14em] text-[var(--app-accent)]">Challenge complete!</span>
-                )}
+                <span className="text-[10px] uppercase tracking-[0.12em] text-[var(--app-muted)]">
+                  Progress:{' '}
+                  <span className={challengeComplete ? 'text-[var(--app-accent)]' : 'text-[var(--app-text)]'}>
+                    {challengeProgress}/{challengeSaved.goalTarget}
+                  </span>
+                  {challengeComplete && <span className="ml-1 text-[var(--app-accent)]">✓</span>}
+                </span>
+                <span className="text-[10px] uppercase tracking-[0.12em] text-[var(--app-muted)]">
+                  Streak: <span className="text-[var(--app-text)]">{challengeCurrentStreak}</span>
+                  {' · Best: '}<span className="text-[var(--app-text)]">{challengeBestStreak}</span>
+                </span>
               </div>
+              {/* Progress bar */}
+              <div className="h-1.5 rounded-full bg-[color-mix(in_srgb,var(--app-text)_10%,transparent)] overflow-hidden mb-2">
+                <div
+                  className="h-full rounded-full bg-[var(--app-accent)] transition-all"
+                  style={{ width: `${Math.min(100, (challengeProgress / Math.max(1, challengeSaved.goalTarget)) * 100)}%` }}
+                />
+              </div>
+              {/* Action button */}
+              <button
+                type="button"
+                disabled={!challengeTodayEligible}
+                onClick={() => {
+                  setChallengeCompletions(prev =>
+                    prev.includes(todayKey) ? prev.filter(k => k !== todayKey) : [...prev, todayKey]
+                  );
+                }}
+                className="px-3 py-1.5 rounded-md border border-[color-mix(in_srgb,var(--app-accent)_45%,transparent)] bg-[color-mix(in_srgb,var(--app-accent)_14%,var(--app-panel))] text-[10px] uppercase tracking-[0.14em] text-[var(--app-accent)] hover:border-[var(--app-accent)] disabled:opacity-40 disabled:pointer-events-none"
+              >
+                {!challengeTodayEligible ? 'Not available' : challengeTodayDone ? 'Undo' : 'Mark Done'}
+              </button>
             </div>
           ) : null}
 
@@ -2589,9 +2634,6 @@ export const LogCalendar: React.FC = () => {
                     excluded: finalExcluded,
                     goalType: pickerGoalType,
                     goalTarget: pickerGoalTarget,
-                    progressCount: challengeSaved?.progressCount ?? 0,
-                    completedTodayKey: challengeSaved?.completedTodayKey ?? null,
-                    status: challengeSaved?.status ?? 'active',
                   });
                   setChallengePickerOpen(false);
                 }}
@@ -2613,6 +2655,7 @@ export const LogCalendar: React.FC = () => {
         onCancel={() => setChallengeClearConfirmOpen(false)}
         onConfirm={() => {
           setChallengeSaved(null);
+          setChallengeCompletions([]);
           setChallengeClearConfirmOpen(false);
         }}
       />
