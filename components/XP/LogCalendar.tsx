@@ -1168,12 +1168,72 @@ export const LogCalendar: React.FC = () => {
     });
   }, []);
 
-  const renderCompactItemList = (mobile = false) => (
+  const renderCompactItemList = (mobile = false) => {
+    const selectedChallenges = challengeList.filter(ch => {
+      const m = challengeMeta.find(meta => meta.id === ch.id);
+      return m?.selectedStatus === 'done' || m?.selectedStatus === 'not_done';
+    });
+    return (
     <div
       ref={dayConsoleListRef}
       className={`xt-scroll ${mobile ? 'max-h-[58dvh]' : 'max-h-[45vh] min-h-[240px]'} overflow-y-auto overscroll-contain pr-1 space-y-2`}
     >
-      {dayConsoleRows.length === 0 ? (
+      {/* Challenge rows for selectedKey-eligible challenges */}
+      {selectedChallenges.map(ch => {
+        const meta = challengeMeta.find(m => m.id === ch.id)!;
+        const isDone = meta.selectedStatus === 'done';
+        return (
+          <div
+            key={`ch:${ch.id}`}
+            className="rounded-lg border overflow-hidden border-[color-mix(in_srgb,var(--app-text)_6%,transparent)] bg-[var(--app-panel)]"
+          >
+            <div className="flex items-center gap-2 px-3 py-2.5">
+              <button
+                type="button"
+                onClick={() => {
+                  hudContainerRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                  setHighlightedChallengeId(ch.id);
+                }}
+                className="min-w-0 flex-1 text-left"
+              >
+                <div className="flex items-center gap-2">
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-1.5 flex-wrap">
+                      <span className="text-[8px] uppercase tracking-[0.18em] text-[color-mix(in_srgb,var(--app-accent)_65%,var(--app-muted))] shrink-0">Challenge</span>
+                      <span className="text-[11px] uppercase tracking-[0.12em] text-[var(--app-text)] truncate">{ch.badge} · {ch.name || 'Challenge'}</span>
+                    </div>
+                  </div>
+                  <span
+                    className="inline-flex justify-center rounded px-1.5 py-0.5 text-[9px] uppercase tracking-[0.14em] shrink-0 whitespace-nowrap"
+                    style={{
+                      width: DAY_ROW_STATUS_CHIP_WIDTH,
+                      backgroundColor: isDone ? 'color-mix(in srgb, var(--app-accent) 22%, var(--app-panel))' : 'color-mix(in srgb, var(--app-text) 10%, transparent)',
+                      color: isDone ? 'var(--app-accent)' : 'var(--app-muted)',
+                    }}
+                  >
+                    {isDone ? 'Done' : 'Not done'}
+                  </span>
+                </div>
+              </button>
+              <div className="flex shrink-0 items-center gap-1">
+                <button
+                  type="button"
+                  title={isDone ? `Undo ${selectedKey}` : `Mark ${selectedKey} done`}
+                  onClick={() => toggleChallengeDay(ch.id, selectedKey)}
+                  className={`inline-flex h-7 w-7 items-center justify-center rounded border transition-colors ${
+                    isDone
+                      ? 'border-[color-mix(in_srgb,var(--app-accent)_45%,transparent)] text-[var(--app-accent)] hover:border-[var(--app-accent)]'
+                      : 'border-[color-mix(in_srgb,var(--app-accent)_45%,transparent)] text-[var(--app-accent)] hover:border-[var(--app-accent)]'
+                  }`}
+                >
+                  {isDone ? <Undo2 className="h-3.5 w-3.5" /> : <Check className="h-3.5 w-3.5" />}
+                </button>
+              </div>
+            </div>
+          </div>
+        );
+      })}
+      {dayConsoleRows.length === 0 && selectedChallenges.length === 0 ? (
         <div className="rounded-lg border border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-[var(--app-panel)] p-3 text-[11px] uppercase tracking-[0.14em] text-[var(--app-muted)]">
           No items for this tab.
         </div>
@@ -1325,6 +1385,7 @@ export const LogCalendar: React.FC = () => {
       )}
     </div>
   );
+  };
 
   const visibleHourLabels =
     timelineChartWidth > 0 && timelineChartWidth < 900 ? TIMELINE_LABELS_SPARSE : TIMELINE_LABELS_FULL;
