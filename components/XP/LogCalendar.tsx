@@ -736,6 +736,10 @@ export const LogCalendar: React.FC = () => {
   const challengeTodayEligible = challengeEligibleSet.has(todayKey);
   const challengeTodayDone = challengeCompletionsSet.has(todayKey);
   const challengeComplete = challengeSaved ? challengeProgress >= challengeSaved.goalTarget : false;
+  const selectedKeyDoneState: 'done' | 'not_done' | 'not_in_range' =
+    challengeSaved && challengeEligibleSet.has(selectedKey)
+      ? (challengeCompletionsSet.has(selectedKey) ? 'done' : 'not_done')
+      : 'not_in_range';
 
   const yearMonths = useMemo(() => {
     const year = selectedDate.getFullYear();
@@ -1473,12 +1477,116 @@ export const LogCalendar: React.FC = () => {
     );
   };
 
+  const challengeCardSection = challengeSaved ? (
+    <div className="rounded-xl border border-[color-mix(in_srgb,var(--app-accent)_35%,transparent)] bg-[color-mix(in_srgb,var(--app-accent)_8%,var(--app-panel))] p-3">
+      {/* Title + Edit/Clear */}
+      <div className="flex items-start justify-between gap-2 mb-2">
+        <div className="min-w-0">
+          <div className="text-[11px] uppercase tracking-[0.16em] text-[var(--app-accent)] font-medium truncate">
+            {challengeSaved.name || 'Challenge'} · {challengeSaved.badge}
+          </div>
+          <div className="text-[10px] uppercase tracking-[0.12em] text-[var(--app-muted)] mt-0.5">
+            {formatShortDate(challengeSaved.start)} → {formatShortDate(challengeSaved.end)}
+            {' · '}{challengeEligibleSorted.length} day{challengeEligibleSorted.length !== 1 ? 's' : ''}
+          </div>
+        </div>
+        <div className="flex items-center gap-1 shrink-0">
+          <button
+            type="button"
+            onClick={() => {
+              setPickerViewMonth(fromDateKey(challengeSaved.start));
+              setPickerStart(challengeSaved.start);
+              setPickerEnd(challengeSaved.end);
+              setPickerExcluded([...challengeSaved.excluded]);
+              setPickerName(challengeSaved.name);
+              setPickerBadge(challengeSaved.badge);
+              setPickerGoalType(challengeSaved.goalType);
+              setPickerGoalTarget(challengeSaved.goalTarget);
+              setChallengePickerOpen(true);
+            }}
+            className="px-2 py-1 rounded border border-[color-mix(in_srgb,var(--app-text)_18%,transparent)] text-[9px] uppercase tracking-[0.14em] text-[var(--app-muted)] hover:text-[var(--app-text)]"
+          >
+            Edit
+          </button>
+          <button
+            type="button"
+            onClick={() => setChallengeClearConfirmOpen(true)}
+            className="px-2 py-1 rounded border border-[color-mix(in_srgb,var(--app-text)_18%,transparent)] text-[9px] uppercase tracking-[0.14em] text-[var(--app-muted)] hover:text-[var(--app-text)]"
+          >
+            Clear
+          </button>
+        </div>
+      </div>
+      {/* Status · Progress · Streak */}
+      <div className="flex items-center gap-3 flex-wrap mb-2">
+        {challengeTodayEligible ? (
+          <span className={`rounded px-2 py-0.5 text-[9px] uppercase tracking-[0.14em] ${
+            challengeTodayDone
+              ? 'bg-[color-mix(in_srgb,var(--app-accent)_22%,var(--app-panel))] text-[var(--app-accent)]'
+              : 'bg-[color-mix(in_srgb,var(--app-text)_10%,transparent)] text-[var(--app-muted)]'
+          }`}>
+            {challengeTodayDone ? 'Done' : 'Not done'}
+          </span>
+        ) : (
+          <span className="rounded px-2 py-0.5 text-[9px] uppercase tracking-[0.14em] bg-[color-mix(in_srgb,var(--app-text)_8%,transparent)] text-[var(--app-muted)]">
+            Not in range
+          </span>
+        )}
+        <span className="text-[10px] uppercase tracking-[0.12em] text-[var(--app-muted)]">
+          Progress:{' '}
+          <span className={challengeComplete ? 'text-[var(--app-accent)]' : 'text-[var(--app-text)]'}>
+            {challengeProgress}/{challengeSaved.goalTarget}
+          </span>
+          {challengeComplete && <span className="ml-1 text-[var(--app-accent)]">✓</span>}
+        </span>
+        <span className="text-[10px] uppercase tracking-[0.12em] text-[var(--app-muted)]">
+          Streak: <span className="text-[var(--app-text)]">{challengeCurrentStreak}</span>
+          {' · Best: '}<span className="text-[var(--app-text)]">{challengeBestStreak}</span>
+        </span>
+      </div>
+      {/* Progress bar */}
+      <div className="h-1.5 rounded-full bg-[color-mix(in_srgb,var(--app-text)_10%,transparent)] overflow-hidden mb-2">
+        <div
+          className="h-full rounded-full bg-[var(--app-accent)] transition-all"
+          style={{ width: `${Math.min(100, (challengeProgress / Math.max(1, challengeSaved.goalTarget)) * 100)}%` }}
+        />
+      </div>
+      {/* Action button */}
+      <button
+        type="button"
+        disabled={!challengeTodayEligible}
+        onClick={() => {
+          setChallengeCompletions(prev =>
+            prev.includes(todayKey) ? prev.filter(k => k !== todayKey) : [...prev, todayKey]
+          );
+        }}
+        className="px-3 py-1.5 rounded-md border border-[color-mix(in_srgb,var(--app-accent)_45%,transparent)] bg-[color-mix(in_srgb,var(--app-accent)_14%,var(--app-panel))] text-[10px] uppercase tracking-[0.14em] text-[var(--app-accent)] hover:border-[var(--app-accent)] disabled:opacity-40 disabled:pointer-events-none"
+      >
+        {!challengeTodayEligible ? 'Not available' : challengeTodayDone ? 'Undo' : 'Mark Done'}
+      </button>
+    </div>
+  ) : null;
+
   const dayConsole = (
     <div className="rounded-2xl bg-[var(--app-panel-2)] overflow-hidden">
       <div className="px-4 py-3 border-b border-[color-mix(in_srgb,var(--app-text)_8%,transparent)] bg-[var(--app-panel)]">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
-            <div className="text-[10px] uppercase tracking-[0.26em] text-[var(--app-muted)]">Day Console</div>
+            <div className="flex items-center gap-2">
+              <div className="text-[10px] uppercase tracking-[0.26em] text-[var(--app-muted)]">Day Console</div>
+              {challengeSaved && (
+                <span className={`rounded px-1.5 py-0.5 text-[8px] uppercase tracking-[0.14em] ${
+                  selectedKeyDoneState === 'done'
+                    ? 'bg-[color-mix(in_srgb,var(--app-accent)_22%,var(--app-panel))] text-[var(--app-accent)]'
+                    : selectedKeyDoneState === 'not_done'
+                      ? 'bg-[color-mix(in_srgb,var(--app-text)_10%,transparent)] text-[var(--app-muted)]'
+                      : 'bg-[color-mix(in_srgb,var(--app-text)_8%,transparent)] text-[var(--app-muted)]'
+                }`}>
+                  {selectedKeyDoneState === 'done' ? 'Done' : selectedKeyDoneState === 'not_done' ? 'Not done' : 'Not in range'}
+                </span>
+              )}
+            </div>
+            <div className="text-[10px] uppercase tracking-[0.12em] text-[var(--app-muted)] mt-0.5">{selectedDateLabel}</div>
           </div>
           <button
             type="button"
@@ -1560,6 +1668,7 @@ export const LogCalendar: React.FC = () => {
               </button>
             </div>
           </div>
+          {challengeCardSection}
           <div className="relative z-10 p-0.5">
             {renderCompactItemList()}
           </div>
@@ -1613,6 +1722,7 @@ export const LogCalendar: React.FC = () => {
               </button>
             </div>
           </div>
+          {challengeCardSection}
           <button
             type="button"
             onClick={() => setMobileConsoleOpen(true)}
@@ -1716,99 +1826,20 @@ export const LogCalendar: React.FC = () => {
             </div>
           </div>
 
-          {challengeSaved ? (
-            <div className="mb-3 rounded-xl border border-[color-mix(in_srgb,var(--app-accent)_35%,transparent)] bg-[color-mix(in_srgb,var(--app-accent)_8%,var(--app-panel))] p-3">
-              {/* Title + Edit/Clear */}
-              <div className="flex items-start justify-between gap-2 mb-2">
-                <div className="min-w-0">
-                  <div className="text-[11px] uppercase tracking-[0.16em] text-[var(--app-accent)] font-medium truncate">
-                    {challengeSaved.name || 'Challenge'} · {challengeSaved.badge}
-                  </div>
-                  <div className="text-[10px] uppercase tracking-[0.12em] text-[var(--app-muted)] mt-0.5">
-                    {formatShortDate(challengeSaved.start)} → {formatShortDate(challengeSaved.end)}
-                    {' · '}{challengeEligibleSorted.length} day{challengeEligibleSorted.length !== 1 ? 's' : ''}
-                  </div>
-                </div>
-                <div className="flex items-center gap-1 shrink-0">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setPickerViewMonth(fromDateKey(challengeSaved.start));
-                      setPickerStart(challengeSaved.start);
-                      setPickerEnd(challengeSaved.end);
-                      setPickerExcluded([...challengeSaved.excluded]);
-                      setPickerName(challengeSaved.name);
-                      setPickerBadge(challengeSaved.badge);
-                      setPickerGoalType(challengeSaved.goalType);
-                      setPickerGoalTarget(challengeSaved.goalTarget);
-                      setChallengePickerOpen(true);
-                    }}
-                    className="px-2 py-1 rounded border border-[color-mix(in_srgb,var(--app-text)_18%,transparent)] text-[9px] uppercase tracking-[0.14em] text-[var(--app-muted)] hover:text-[var(--app-text)]"
-                  >
-                    Edit
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setChallengeClearConfirmOpen(true)}
-                    className="px-2 py-1 rounded border border-[color-mix(in_srgb,var(--app-text)_18%,transparent)] text-[9px] uppercase tracking-[0.14em] text-[var(--app-muted)] hover:text-[var(--app-text)]"
-                  >
-                    Clear
-                  </button>
-                </div>
-              </div>
-              {/* Status · Progress · Streak */}
-              <div className="flex items-center gap-3 flex-wrap mb-2">
-                {challengeTodayEligible ? (
-                  <span className={`rounded px-2 py-0.5 text-[9px] uppercase tracking-[0.14em] ${
-                    challengeTodayDone
-                      ? 'bg-[color-mix(in_srgb,var(--app-accent)_22%,var(--app-panel))] text-[var(--app-accent)]'
-                      : 'bg-[color-mix(in_srgb,var(--app-text)_10%,transparent)] text-[var(--app-muted)]'
-                  }`}>
-                    {challengeTodayDone ? 'Done' : 'Not done'}
-                  </span>
-                ) : (
-                  <span className="rounded px-2 py-0.5 text-[9px] uppercase tracking-[0.14em] bg-[color-mix(in_srgb,var(--app-text)_8%,transparent)] text-[var(--app-muted)]">
-                    Not in range
-                  </span>
-                )}
-                <span className="text-[10px] uppercase tracking-[0.12em] text-[var(--app-muted)]">
-                  Progress:{' '}
-                  <span className={challengeComplete ? 'text-[var(--app-accent)]' : 'text-[var(--app-text)]'}>
-                    {challengeProgress}/{challengeSaved.goalTarget}
-                  </span>
-                  {challengeComplete && <span className="ml-1 text-[var(--app-accent)]">✓</span>}
-                </span>
-                <span className="text-[10px] uppercase tracking-[0.12em] text-[var(--app-muted)]">
-                  Streak: <span className="text-[var(--app-text)]">{challengeCurrentStreak}</span>
-                  {' · Best: '}<span className="text-[var(--app-text)]">{challengeBestStreak}</span>
-                </span>
-              </div>
-              {/* Progress bar */}
-              <div className="h-1.5 rounded-full bg-[color-mix(in_srgb,var(--app-text)_10%,transparent)] overflow-hidden mb-2">
-                <div
-                  className="h-full rounded-full bg-[var(--app-accent)] transition-all"
-                  style={{ width: `${Math.min(100, (challengeProgress / Math.max(1, challengeSaved.goalTarget)) * 100)}%` }}
-                />
-              </div>
-              {/* Action button */}
-              <button
-                type="button"
-                disabled={!challengeTodayEligible}
-                onClick={() => {
-                  setChallengeCompletions(prev =>
-                    prev.includes(todayKey) ? prev.filter(k => k !== todayKey) : [...prev, todayKey]
-                  );
-                }}
-                className="px-3 py-1.5 rounded-md border border-[color-mix(in_srgb,var(--app-accent)_45%,transparent)] bg-[color-mix(in_srgb,var(--app-accent)_14%,var(--app-panel))] text-[10px] uppercase tracking-[0.14em] text-[var(--app-accent)] hover:border-[var(--app-accent)] disabled:opacity-40 disabled:pointer-events-none"
-              >
-                {!challengeTodayEligible ? 'Not available' : challengeTodayDone ? 'Undo' : 'Mark Done'}
-              </button>
-            </div>
-          ) : null}
-
           {rangeMode === 'today' ? (
             <div className="rounded-xl border border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-[var(--app-panel-2)] p-4">
-              <div className="text-[10px] uppercase tracking-[0.22em] text-[var(--app-muted)]">Today</div>
+              <div className="flex items-center gap-2 text-[10px] uppercase tracking-[0.22em] text-[var(--app-muted)]">
+                Today
+                {challengeSaved && selectedKey === todayKey && (
+                  <span className={`h-2 w-2 rounded-full border ${
+                    selectedKeyDoneState === 'done'
+                      ? 'bg-[var(--app-accent)] border-[var(--app-accent)]'
+                      : selectedKeyDoneState === 'not_done'
+                        ? 'bg-transparent border-[var(--app-accent)]'
+                        : 'bg-transparent border-[color-mix(in_srgb,var(--app-text)_30%,transparent)]'
+                  }`} />
+                )}
+              </div>
               <div className="text-lg uppercase tracking-[0.12em] text-[var(--app-text)] mt-2">{selectedDateLabel}</div>
               <div className="mt-3 flex flex-wrap gap-2 text-[10px] uppercase tracking-[0.16em]">
                 <span className="rounded-full px-2 py-1 bg-[var(--app-panel)] text-[var(--app-text)]">{selectedDaySummary.minutesTracked}m tracked</span>
