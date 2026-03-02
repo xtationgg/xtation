@@ -1449,9 +1449,9 @@ export const LogCalendar: React.FC = () => {
               +{badge.count}
             </div>
           ))}
-          {visibleTimelineDots.length === 0 ? (
+          {visibleTimelineDots.length === 0 && legendFilterStates.length > 0 ? (
             <div className="absolute inset-0 grid place-items-center text-[10px] uppercase tracking-[0.14em] text-[var(--app-muted)]">
-              {legendFilterStates.length ? 'No dots for active legend filter.' : 'No items for this tab.'}
+              No dots for active legend filter.
             </div>
           ) : null}
           {hoveredDot ? (
@@ -1881,23 +1881,21 @@ export const LogCalendar: React.FC = () => {
                         key={day.key}
                         type="button"
                         onClick={() => selectDate(day.key, day.date)}
-                        className={`relative min-h-[104px] rounded-lg border p-3 text-left transition-colors ${
+                        className={`relative min-h-[80px] rounded-lg border p-3 text-left transition-colors ${
                           isSelected
                             ? 'border-[color-mix(in_srgb,var(--app-accent)_60%,transparent)] bg-[color-mix(in_srgb,var(--app-accent)_16%,var(--app-panel))]'
                             : chDay.inRange
-                              ? 'border-[color-mix(in_srgb,var(--app-accent)_30%,transparent)] bg-[color-mix(in_srgb,var(--app-accent)_10%,var(--app-panel-2))]'
+                              ? 'border-[color-mix(in_srgb,var(--app-accent)_28%,transparent)] bg-[color-mix(in_srgb,var(--app-accent)_9%,var(--app-panel-2))]'
                               : chDay.excluded
                                 ? 'border-[color-mix(in_srgb,var(--app-text)_8%,transparent)] bg-[color-mix(in_srgb,var(--app-text)_3%,var(--app-panel-2))]'
                                 : 'border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-[var(--app-panel-2)]'
                         }`}
                       >
-                        {chDay.excluded && (
-                          <span className="pointer-events-none absolute top-1 right-1 flex h-4 w-4 items-center justify-center rounded-sm bg-[color-mix(in_srgb,var(--app-bg)_55%,transparent)] text-[11px] leading-none text-[var(--app-muted)]">×</span>
+                        {!isSelected && chDay.excluded && (
+                          <span className="pointer-events-none absolute top-[6px] right-[6px] flex h-4 w-4 items-center justify-center rounded-sm text-[11px] leading-none text-[var(--app-muted)] opacity-60">×</span>
                         )}
-                        {chDay.inRange && chDay.done && (
-                          <span className="pointer-events-none absolute bottom-1.5 right-1.5 flex h-4 w-4 items-center justify-center rounded bg-[color-mix(in_srgb,var(--app-bg)_55%,transparent)] shadow-[0_0_5px_color-mix(in_srgb,var(--app-accent)_60%,transparent)]">
-                            <svg viewBox="0 0 10 10" width="10" height="10" fill="none" stroke="var(--app-accent)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><polyline points="1.5,5 4,7.5 8.5,2.5" /></svg>
-                          </span>
+                        {!isSelected && chDay.inRange && chDay.done && (
+                          <span className="pointer-events-none absolute bottom-[7px] right-[7px] h-[6px] w-[6px] rounded-full bg-[var(--app-accent)] shadow-[0_0_4px_color-mix(in_srgb,var(--app-accent)_55%,transparent)]" />
                         )}
                         <div className={`text-[11px] uppercase tracking-[0.16em] ${isToday ? 'text-[var(--app-accent)]' : 'text-[var(--app-muted)]'}`}>
                           {formatWeekdayLabel(day.key)}
@@ -1918,6 +1916,22 @@ export const LogCalendar: React.FC = () => {
 
           {rangeMode === 'month' ? (
             <>
+              {challengeSaved && (
+                <div className="flex items-center gap-4 mb-2 px-0.5 text-[9px] uppercase tracking-[0.14em] text-[var(--app-muted)]">
+                  <span className="flex items-center gap-1.5">
+                    <span className="h-3 w-3 rounded-sm border border-[color-mix(in_srgb,var(--app-accent)_28%,transparent)] bg-[color-mix(in_srgb,var(--app-accent)_9%,var(--app-panel-2))]" />
+                    In range
+                  </span>
+                  <span className="flex items-center gap-1.5">
+                    <span className="h-[6px] w-[6px] rounded-full bg-[var(--app-accent)] shadow-[0_0_4px_color-mix(in_srgb,var(--app-accent)_55%,transparent)]" />
+                    Done
+                  </span>
+                  <span className="flex items-center gap-1.5">
+                    <span className="text-[10px] leading-none opacity-60">×</span>
+                    Excluded
+                  </span>
+                </div>
+              )}
               <div className="grid grid-cols-7 gap-2 mb-2">
                 {DAY_NAMES.map((name) => (
                   <div key={name} className="text-[10px] text-[var(--app-muted)] text-center py-1 font-normal uppercase tracking-[0.2em]">
@@ -1938,51 +1952,32 @@ export const LogCalendar: React.FC = () => {
                       key={day.key}
                       type="button"
                       onClick={() => selectDate(day.key, day.date)}
-                      className={`relative min-h-[108px] rounded-lg border p-2 text-left transition-colors ${
+                      className={`relative min-h-[72px] rounded-lg border p-2 text-left transition-colors ${
                         isSelected
                           ? 'border-[color-mix(in_srgb,var(--app-accent)_70%,transparent)] bg-[color-mix(in_srgb,var(--app-accent)_16%,var(--app-panel))]'
-                          : chDay.inRange
-                            ? 'border-[color-mix(in_srgb,var(--app-accent)_30%,transparent)] bg-[color-mix(in_srgb,var(--app-accent)_10%,var(--app-panel-2))]'
-                            : chDay.excluded
-                              ? 'border-[color-mix(in_srgb,var(--app-text)_8%,transparent)] bg-[color-mix(in_srgb,var(--app-text)_3%,var(--app-panel-2))]'
-                              : day.inMonth
-                                ? 'border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-[var(--app-panel-2)] hover:bg-[var(--app-panel-2)]'
-                                : 'border-[color-mix(in_srgb,var(--app-text)_5%,transparent)] bg-[var(--app-bg)] text-[var(--app-muted)]'
+                          : chDay.inRange && !day.inMonth
+                            ? 'border-[color-mix(in_srgb,var(--app-accent)_14%,transparent)] bg-[var(--app-bg)] text-[var(--app-muted)]'
+                            : chDay.inRange
+                              ? 'border-[color-mix(in_srgb,var(--app-accent)_28%,transparent)] bg-[color-mix(in_srgb,var(--app-accent)_9%,var(--app-panel-2))]'
+                              : chDay.excluded
+                                ? 'border-[color-mix(in_srgb,var(--app-text)_8%,transparent)] bg-[color-mix(in_srgb,var(--app-text)_3%,var(--app-panel-2))]'
+                                : day.inMonth
+                                  ? 'border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-[var(--app-panel-2)]'
+                                  : 'border-[color-mix(in_srgb,var(--app-text)_5%,transparent)] bg-[var(--app-bg)] text-[var(--app-muted)]'
                       }`}
                     >
-                      {chDay.excluded && (
-                        <span className="pointer-events-none absolute top-1 right-1 flex h-4 w-4 items-center justify-center rounded-sm bg-[color-mix(in_srgb,var(--app-bg)_55%,transparent)] text-[11px] leading-none text-[var(--app-muted)]">×</span>
+                      {!isSelected && chDay.excluded && (
+                        <span className="pointer-events-none absolute top-[6px] right-[6px] flex h-4 w-4 items-center justify-center rounded-sm text-[11px] leading-none text-[var(--app-muted)] opacity-60">×</span>
                       )}
-                      {chDay.inRange && chDay.done && (
-                        <span className="pointer-events-none absolute bottom-1.5 right-1.5 flex h-4 w-4 items-center justify-center rounded bg-[color-mix(in_srgb,var(--app-bg)_55%,transparent)] shadow-[0_0_5px_color-mix(in_srgb,var(--app-accent)_60%,transparent)]">
-                          <svg viewBox="0 0 10 10" width="10" height="10" fill="none" stroke="var(--app-accent)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><polyline points="1.5,5 4,7.5 8.5,2.5" /></svg>
-                        </span>
+                      {!isSelected && chDay.inRange && chDay.done && (
+                        <span className="pointer-events-none absolute bottom-[7px] right-[7px] h-[6px] w-[6px] rounded-full bg-[var(--app-accent)] shadow-[0_0_4px_color-mix(in_srgb,var(--app-accent)_55%,transparent)]" />
                       )}
-                      <div className="flex items-center justify-between mb-2">
-                        <span className={`text-sm font-medium ${isToday ? 'text-[var(--app-accent)]' : 'text-[var(--app-text)]'}`}>{day.date.getDate()}</span>
-                        {loggedMin > 0 ? (
-                          <span className="text-[10px] rounded-full px-2 py-0.5 bg-[var(--app-panel-2)] text-[var(--app-text)]">
-                            {loggedMin}m
-                          </span>
-                        ) : null}
-                      </div>
-                      <div className="space-y-1">
-                        {isToday && (
-                          <div className="text-[10px] rounded px-2 py-0.5 bg-[color-mix(in_srgb,var(--app-accent)_28%,var(--app-panel))] text-[var(--app-accent)]">
-                            Today
-                          </div>
-                        )}
-                        {info.running && (
-                          <div className="text-[10px] rounded px-2 py-0.5 bg-[color-mix(in_srgb,var(--app-accent)_20%,var(--app-panel))] text-[var(--app-accent)]">
-                            Running
-                          </div>
-                        )}
-                        {info.activityCount > 0 && (
-                          <div className="text-[10px] rounded px-2 py-0.5 bg-[color-mix(in_srgb,var(--app-accent)_18%,var(--app-panel))] text-[var(--app-accent)]">
-                            {info.activityCount} activity
-                          </div>
-                        )}
-                      </div>
+                      <span className={`text-sm font-medium leading-none ${isToday ? 'text-[var(--app-accent)]' : 'text-[var(--app-text)]'}`}>{day.date.getDate()}</span>
+                      {loggedMin > 0 && (
+                        <p className="mt-1.5 text-[9px] leading-none tracking-[0.1em] tabular-nums text-[var(--app-muted)]">
+                          {loggedMin}m{info.running ? ' ·' : ''}
+                        </p>
+                      )}
                     </button>
                   );
                 })}
