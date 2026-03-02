@@ -619,6 +619,7 @@ export const LogCalendar: React.FC = () => {
   const [pickerGoalType, setPickerGoalType] = useState<'daily' | 'count'>('daily');
   const [pickerGoalTarget, setPickerGoalTarget] = useState(30);
   const [pickerTimePreset, setPickerTimePreset] = useState<'anytime' | 'morning' | 'noon' | 'evening'>('anytime');
+  const [hudFilter, setHudFilter] = useState<'eligible' | 'all'>('eligible');
   const [highlightedChallengeId, setHighlightedChallengeId] = useState<string | null>(null);
   const [pickerDragging, setPickerDragging] = useState(false);
   const pickerDragStartKeyRef = useRef<string | null>(null);
@@ -1763,38 +1764,77 @@ export const LogCalendar: React.FC = () => {
             className="rounded-xl border border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-[var(--app-panel-2)] overflow-hidden"
           >
             {/* Header */}
-            <div className="px-4 py-2 flex items-center justify-between border-b border-[color-mix(in_srgb,var(--app-text)_6%,transparent)] bg-[var(--app-panel)]">
-              <div className="flex items-center gap-2">
-                <span className="text-[10px] uppercase tracking-[0.26em] text-[var(--app-muted)]">Challenges</span>
-                {(() => {
-                  const n = challengeMeta.filter(m => m.todayEligible).length;
-                  return n > 0 ? (
-                    <span className="rounded px-1.5 py-0.5 text-[8px] bg-[color-mix(in_srgb,var(--app-accent)_18%,var(--app-panel))] text-[var(--app-accent)]">{n} today</span>
-                  ) : null;
-                })()}
-              </div>
-              <button
-                type="button"
-                onClick={() => {
-                  setPickerEditId(null);
-                  setPickerViewMonth(new Date(viewMonth));
-                  setPickerStart(null);
-                  setPickerEnd(null);
-                  setPickerExcluded([]);
-                  setPickerName('');
-                  setPickerBadge('Bronze');
-                  setPickerGoalType('daily');
-                  setPickerGoalTarget(30);
-                  setPickerTimePreset('anytime');
-                  setChallengePickerOpen(true);
-                }}
-                className="flex items-center gap-1 px-2 py-1 rounded border border-[color-mix(in_srgb,var(--app-accent)_45%,transparent)] text-[9px] uppercase tracking-[0.14em] text-[var(--app-accent)] hover:border-[var(--app-accent)] transition-colors"
-              >
-                + New
-              </button>
-            </div>
-            {/* Challenge rows — all challenges, single-line layout */}
-            {challengeList.map(ch => {
+            {(() => {
+              const eligibleCount = challengeMeta.filter(m => m.selectedStatus === 'done' || m.selectedStatus === 'not_done').length;
+              const allCount = challengeList.length;
+              return (
+                <div className="px-3 py-2 flex items-center gap-2 border-b border-[color-mix(in_srgb,var(--app-text)_6%,transparent)] bg-[var(--app-panel)] overflow-x-auto">
+                  <span className="text-[10px] uppercase tracking-[0.26em] text-[var(--app-muted)] shrink-0">Challenges</span>
+                  {/* Filter toggle */}
+                  <div className="flex gap-0.5 rounded-md border border-[color-mix(in_srgb,var(--app-text)_12%,transparent)] bg-[var(--app-panel-2)] p-0.5 shrink-0">
+                    {(['eligible', 'all'] as const).map(mode => {
+                      const isActive = hudFilter === mode;
+                      const count = mode === 'eligible' ? eligibleCount : allCount;
+                      return (
+                        <button
+                          key={mode}
+                          type="button"
+                          onClick={() => setHudFilter(mode)}
+                          className={`flex items-center gap-1 px-2 py-0.5 rounded text-[9px] uppercase tracking-[0.14em] transition-colors ${
+                            isActive
+                              ? 'bg-[color-mix(in_srgb,var(--app-accent)_16%,var(--app-panel))] border border-[color-mix(in_srgb,var(--app-accent)_50%,transparent)] text-[var(--app-accent)]'
+                              : 'text-[var(--app-muted)] hover:text-[var(--app-text)]'
+                          }`}
+                        >
+                          {mode === 'eligible' ? 'Eligible' : 'All'}
+                          <span className={`rounded px-1 text-[8px] ${
+                            isActive
+                              ? 'bg-[color-mix(in_srgb,var(--app-accent)_22%,var(--app-panel))] text-[var(--app-accent)]'
+                              : 'bg-[color-mix(in_srgb,var(--app-text)_10%,transparent)] text-[var(--app-muted)]'
+                          }`}>{count}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                  <div className="flex-1" />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setPickerEditId(null);
+                      setPickerViewMonth(new Date(viewMonth));
+                      setPickerStart(null);
+                      setPickerEnd(null);
+                      setPickerExcluded([]);
+                      setPickerName('');
+                      setPickerBadge('Bronze');
+                      setPickerGoalType('daily');
+                      setPickerGoalTarget(30);
+                      setPickerTimePreset('anytime');
+                      setChallengePickerOpen(true);
+                    }}
+                    className="flex items-center gap-1 px-2 py-1 rounded border border-[color-mix(in_srgb,var(--app-accent)_45%,transparent)] text-[9px] uppercase tracking-[0.14em] text-[var(--app-accent)] hover:border-[var(--app-accent)] transition-colors shrink-0"
+                  >
+                    + New
+                  </button>
+                </div>
+              );
+            })()}
+            {/* Challenge rows */}
+            {(() => {
+              const visibleList = hudFilter === 'eligible'
+                ? challengeList.filter(ch => {
+                    const m = challengeMeta.find(meta => meta.id === ch.id);
+                    return m?.selectedStatus === 'done' || m?.selectedStatus === 'not_done';
+                  })
+                : challengeList;
+              if (visibleList.length === 0) {
+                return (
+                  <div className="px-4 py-3 text-[10px] uppercase tracking-[0.14em] text-[var(--app-muted)] opacity-60">
+                    No eligible challenges for this day.
+                  </div>
+                );
+              }
+              return visibleList.map(ch => {
               const meta = challengeMeta.find(m => m.id === ch.id)!;
               const isHighlighted = highlightedChallengeId === ch.id;
               const canToggle = meta.selectedStatus === 'done' || meta.selectedStatus === 'not_done';
@@ -1882,7 +1922,8 @@ export const LogCalendar: React.FC = () => {
                   </div>
                 </div>
               );
-            })}
+            });
+            })()}
           </div>
         )}
 
