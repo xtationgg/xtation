@@ -86,16 +86,20 @@ function MonthBlock({ y, m, sel, now, height, hovDay, setHovDay, pendingDay }: M
               style={{
                 height: 28, display: 'flex', alignItems: 'center', justifyContent: 'center',
                 fontSize: 11,
-                color: isSel ? 'var(--app-bg)' : isToday ? 'var(--app-accent)' : 'var(--app-muted)',
+                // Selected: accent bg → always use --app-bg text (works on both light/dark accents)
+                // Today: accent-colored text
+                // Default: muted
+                color: isSel ? 'var(--app-bg)' : isToday ? 'var(--app-accent)' : 'var(--app-text)',
                 fontWeight: isSel || isToday ? 600 : 400,
-                borderRadius: 6,
+                borderRadius: 'var(--app-radius-sm)',
                 background: isSel
                   ? 'var(--app-accent)'
-                  : (isHov || isPending) ? 'color-mix(in srgb, var(--app-text) 8%, transparent)' : 'transparent',
+                  : (isHov || isPending) ? 'var(--app-accent-weak)' : 'transparent',
                 cursor: d ? 'pointer' : 'default',
                 transition: 'background 0.08s',
                 position: 'relative',
                 userSelect: 'none',
+                opacity: d ? 1 : 0,
               }}
             >
               {d || ''}
@@ -184,6 +188,7 @@ function DraggableCalendar({ view, setView, sel, setSel, now }: DraggableCalenda
   return (
     <div onPointerDown={onPointerDown}
       style={{ height: MONTH_H, overflow: 'hidden', cursor: isSnapping ? 'default' : 'ns-resize', userSelect: 'none', position: 'relative' }}>
+      {/* Fade masks use --app-panel so they blend into the panel background of any theme */}
       <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: 22, background: 'linear-gradient(to bottom, var(--app-panel), transparent)', zIndex: 2, pointerEvents: 'none' }} />
       <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: 22, background: 'linear-gradient(to top, var(--app-panel), transparent)', zIndex: 2, pointerEvents: 'none' }} />
       <div style={{
@@ -217,7 +222,6 @@ function DrumColumn({ values, selected, onSelect, label, min, max, format = v =>
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
-  // Use ref so window listeners always see latest values without re-attaching
   const dragRef = useRef({ active: false, startY: 0, startScroll: 0, moved: false });
   const selectedRef = useRef(selected);
   useEffect(() => { selectedRef.current = selected; }, [selected]);
@@ -244,19 +248,16 @@ function DrumColumn({ values, selected, onSelect, label, min, max, format = v =>
     }, 80);
   };
 
-  // Native window listeners — identical pattern to DraggableCalendar so drag
-  // works reliably even inside a portal where synthetic pointer capture fails.
+  // Native window listeners — same pattern as DraggableCalendar; reliable in portals
   useEffect(() => {
     const el = scrollRef.current;
     if (!el) return;
-
     const onMove = (e: PointerEvent) => {
       if (!dragRef.current.active) return;
       const dy = dragRef.current.startY - e.clientY;
       if (Math.abs(dy) > 3) dragRef.current.moved = true;
       el.scrollTop = dragRef.current.startScroll + dy;
     };
-
     const onUp = () => {
       if (!dragRef.current.active) return;
       const wasMoved = dragRef.current.moved;
@@ -267,14 +268,10 @@ function DrumColumn({ values, selected, onSelect, label, min, max, format = v =>
         requestAnimationFrame(() => { inputRef.current?.focus(); inputRef.current?.select(); });
       }
     };
-
     window.addEventListener('pointermove', onMove);
     window.addEventListener('pointerup', onUp);
-    return () => {
-      window.removeEventListener('pointermove', onMove);
-      window.removeEventListener('pointerup', onUp);
-    };
-  }, []); // Attach once — uses refs for latest state
+    return () => { window.removeEventListener('pointermove', onMove); window.removeEventListener('pointerup', onUp); };
+  }, []);
 
   const onPointerDown = (e: React.PointerEvent) => {
     if (editingRef.current || !scrollRef.current) return;
@@ -298,11 +295,13 @@ function DrumColumn({ values, selected, onSelect, label, min, max, format = v =>
     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, padding: '12px 4px' }}>
       <div style={{ fontSize: 9, color: 'var(--app-muted)', letterSpacing: '0.1em', textTransform: 'uppercase', fontWeight: 500 }}>{label}</div>
       <div style={{ position: 'relative', width: 44, height: ITEM_H * (PAD * 2 + 1), overflow: 'hidden' }}>
+        {/* Fade masks */}
         <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: ITEM_H * PAD, background: 'linear-gradient(to bottom, var(--app-panel) 30%, transparent)', zIndex: 2, pointerEvents: 'none' }} />
         <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: ITEM_H * PAD, background: 'linear-gradient(to top, var(--app-panel) 30%, transparent)', zIndex: 2, pointerEvents: 'none' }} />
-        <div style={{ position: 'absolute', top: ITEM_H * PAD, left: 3, right: 3, height: ITEM_H, borderRadius: 8, background: 'color-mix(in srgb, var(--app-text) 5%, transparent)', border: '1px solid color-mix(in srgb, var(--app-text) 12%, transparent)', zIndex: 0, pointerEvents: 'none' }} />
+        {/* Selection highlight box */}
+        <div style={{ position: 'absolute', top: ITEM_H * PAD, left: 3, right: 3, height: ITEM_H, borderRadius: 'var(--app-radius-sm)', background: 'var(--app-accent-weak)', border: '1px solid var(--app-border)', zIndex: 0, pointerEvents: 'none' }} />
         {editing && (
-          <div style={{ position: 'absolute', top: ITEM_H * PAD, left: 3, right: 3, height: ITEM_H, borderRadius: 8, background: 'color-mix(in srgb, var(--app-text) 5%, transparent)', border: '1.5px solid color-mix(in srgb, var(--app-accent) 60%, transparent)', zIndex: 4, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ position: 'absolute', top: ITEM_H * PAD, left: 3, right: 3, height: ITEM_H, borderRadius: 'var(--app-radius-sm)', background: 'var(--app-accent-weak)', border: '1.5px solid var(--app-accent)', zIndex: 4, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
             <input ref={inputRef} value={draft} onChange={e => setDraft(e.target.value)} onBlur={commitDraft} onKeyDown={handleKey}
               style={{ width: '100%', height: '100%', border: 'none', background: 'transparent', textAlign: 'center', fontSize: 15, fontWeight: 600, color: 'var(--app-text)', outline: 'none', padding: 0 }}
               maxLength={2} />
@@ -346,8 +345,6 @@ export function DateTimePicker({ value, onChange, placeholder = 'Set schedule...
   const [min, setMin] = useState(parsed?.min ?? now.getMinutes());
   const [ampm, setAmpm] = useState<'AM' | 'PM'>(parsed?.ampm ?? (now.getHours() < 12 ? 'AM' : 'PM'));
 
-  // dropStyle: initial position computed before render
-  // dropReady: false = invisible (opacity 0) while we measure & clamp
   const [dropStyle, setDropStyle] = useState<React.CSSProperties>({});
   const [dropReady, setDropReady] = useState(false);
 
@@ -359,53 +356,31 @@ export function DateTimePicker({ value, onChange, placeholder = 'Set schedule...
   const hours = Array.from({ length: 12 }, (_, i) => i + 1);
   const minutes = Array.from({ length: 60 }, (_, i) => i);
 
-  // Compute an initial position estimate from trigger's viewport rect.
-  // useLayoutEffect will clamp to actual rendered bounds afterward.
   const computeInitialStyle = useCallback((): React.CSSProperties => {
     if (!triggerRef.current) return {};
     const rect = triggerRef.current.getBoundingClientRect();
-    // Align left edge with trigger, but keep at least 8px from each side
     const left = Math.max(8, Math.min(rect.left, window.innerWidth - 8));
     const spaceBelow = window.innerHeight - rect.bottom;
     if (spaceBelow < 220 && rect.top > spaceBelow) {
-      // Not enough room below — anchor bottom of dropdown to above trigger
       return { bottom: window.innerHeight - rect.top + 6, left };
     }
     return { top: rect.bottom + 6, left };
   }, []);
 
-  // After the portal renders, measure actual size and clamp to viewport.
-  // Runs sync before paint so there's no visual jump.
+  // After portal renders, measure actual bounds and clamp before showing
   useLayoutEffect(() => {
     if (!open || dropReady || !dropdownRef.current || !triggerRef.current) return;
     const drop = dropdownRef.current.getBoundingClientRect();
     const trigger = triggerRef.current.getBoundingClientRect();
     const updates: React.CSSProperties = {};
-
-    // Clamp right overflow
-    if (drop.right > window.innerWidth - 8) {
-      updates.left = Math.max(8, window.innerWidth - drop.width - 8);
-    }
-    // Clamp left overflow (shouldn't happen but be safe)
-    if (drop.left < 8) {
-      updates.left = 8;
-    }
-    // Clamp bottom overflow: flip to above if possible
+    if (drop.right > window.innerWidth - 8) updates.left = Math.max(8, window.innerWidth - drop.width - 8);
+    if (drop.left < 8) updates.left = 8;
     if (drop.bottom > window.innerHeight - 8) {
       const aboveTop = trigger.top - drop.height - 6;
-      if (aboveTop >= 8) {
-        updates.top = aboveTop;
-        updates.bottom = undefined;
-      } else {
-        // Not enough room above either — pin to visible area
-        updates.top = Math.max(8, window.innerHeight - drop.height - 8);
-        updates.bottom = undefined;
-      }
+      updates.top = aboveTop >= 8 ? aboveTop : Math.max(8, window.innerHeight - drop.height - 8);
+      updates.bottom = undefined;
     }
-
-    if (Object.keys(updates).length > 0) {
-      setDropStyle(prev => ({ ...prev, ...updates }));
-    }
+    if (Object.keys(updates).length > 0) setDropStyle(prev => ({ ...prev, ...updates }));
     setDropReady(true);
   }, [open, dropReady]);
 
@@ -413,19 +388,11 @@ export function DateTimePicker({ value, onChange, placeholder = 'Set schedule...
   useEffect(() => {
     if (!open) return;
     const p = parseValue(value);
-    if (p) {
-      setSel(p.sel);
-      setView({ m: p.sel.m, y: p.sel.y });
-      setHour(p.hour);
-      setMin(p.min);
-      setAmpm(p.ampm);
-    } else {
-      setSel(null);
-    }
+    if (p) { setSel(p.sel); setView({ m: p.sel.m, y: p.sel.y }); setHour(p.hour); setMin(p.min); setAmpm(p.ampm); }
+    else { setSel(null); }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
-  // Emit on interaction
   const emit = (newSel: Sel | null, newHour: number, newMin: number, newAmpm: 'AM' | 'PM') => {
     emittingRef.current = true;
     onChange(buildValue(newSel, newHour, newMin, newAmpm));
@@ -478,29 +445,29 @@ export function DateTimePicker({ value, onChange, placeholder = 'Set schedule...
     return () => document.removeEventListener('keydown', handler);
   }, [open]);
 
-  // Reposition on scroll/resize (no opacity animation — picker is already visible)
+  // Reposition on scroll/resize
   useEffect(() => {
     if (!open) return;
-    const update = () => {
-      setDropStyle(computeInitialStyle());
-      // Allow useLayoutEffect to re-clamp on next render
-      setDropReady(false);
-    };
+    const update = () => { setDropStyle(computeInitialStyle()); setDropReady(false); };
     window.addEventListener('scroll', update, true);
     window.addEventListener('resize', update);
-    return () => {
-      window.removeEventListener('scroll', update, true);
-      window.removeEventListener('resize', update);
-    };
+    return () => { window.removeEventListener('scroll', update, true); window.removeEventListener('resize', update); };
   }, [open, computeInitialStyle]);
 
   const display = formatDisplay(sel, hour, min, ampm);
 
+  // Shared footer button style — uses only theme tokens
   const footBtnStyle: React.CSSProperties = {
     background: 'none', border: 'none', cursor: 'pointer',
     fontSize: 10, color: 'var(--app-muted)', fontFamily: 'inherit',
     fontWeight: 500, letterSpacing: '0.06em', padding: '2px 4px',
-    textTransform: 'uppercase', transition: 'color 0.12s', borderRadius: 4,
+    textTransform: 'uppercase', transition: 'color 0.12s',
+    borderRadius: 'var(--app-radius-sm)',
+  };
+
+  // Divider line shared style — uses --app-border so it's always visible
+  const divStyle: React.CSSProperties = {
+    background: 'var(--app-border)',
   };
 
   const dropdownPanel = open && (
@@ -512,22 +479,24 @@ export function DateTimePicker({ value, onChange, placeholder = 'Set schedule...
         ...dropStyle,
         zIndex: 99999,
         background: 'var(--app-panel)',
-        borderRadius: 14,
-        border: '1px solid color-mix(in srgb, var(--app-text) 10%, transparent)',
-        boxShadow: '0 8px 40px rgba(0,0,0,0.55), 0 0 0 1px color-mix(in srgb, var(--app-text) 5%, transparent)',
+        // Theme-aware radius: --app-radius-md gives tight corners on Notion, rounder on glass themes
+        borderRadius: 'var(--app-radius-md)',
+        // Theme-aware border: --app-border is always visible on both light and dark themes
+        border: '1px solid var(--app-border)',
+        // Theme-aware shadow: light themes get subtle shadows, dark themes get deep shadows
+        boxShadow: 'var(--app-shadow-strong)',
         overflow: 'hidden',
         display: 'inline-flex',
-        // Hidden until useLayoutEffect clamps position — prevents flash at wrong position
         opacity: dropReady ? 1 : 0,
-        transition: dropReady ? 'opacity 0.12s ease' : 'none',
+        transition: dropReady ? 'opacity 0.1s ease' : 'none',
         pointerEvents: dropReady ? 'auto' : 'none',
       }}
     >
-      {/* Calendar column */}
+      {/* ── Calendar column ── */}
       <div style={{ padding: '16px 14px 10px', width: 240 }}>
         {/* Month nav */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-          <div style={{ fontSize: 12, fontWeight: 500, color: 'var(--app-text)', letterSpacing: '0.02em' }}>
+          <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--app-text)', letterSpacing: '0.01em' }}>
             {MONTHS[view.m]}{' '}
             <span style={{ color: 'var(--app-muted)', fontWeight: 400 }}>{view.y}</span>
           </div>
@@ -537,8 +506,8 @@ export function DateTimePicker({ value, onChange, placeholder = 'Set schedule...
               { onClick: nextMonth, d: 'M4.5 2L8 6l-3.5 4' },
             ].map(({ onClick, d }, idx) => (
               <button key={idx} type="button" onClick={onClick}
-                style={{ background: 'none', border: 'none', cursor: 'pointer', width: 24, height: 24, borderRadius: 6, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--app-muted)', padding: 0, transition: 'background 0.1s, color 0.1s' }}
-                onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'color-mix(in srgb, var(--app-text) 8%, transparent)'; (e.currentTarget as HTMLButtonElement).style.color = 'var(--app-text)'; }}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', width: 24, height: 24, borderRadius: 'var(--app-radius-sm)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--app-muted)', padding: 0, transition: 'background 0.1s, color 0.1s' }}
+                onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'var(--app-accent-weak)'; (e.currentTarget as HTMLButtonElement).style.color = 'var(--app-text)'; }}
                 onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'none'; (e.currentTarget as HTMLButtonElement).style.color = 'var(--app-muted)'; }}
               >
                 <svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d={d} /></svg>
@@ -550,7 +519,7 @@ export function DateTimePicker({ value, onChange, placeholder = 'Set schedule...
         <DraggableCalendar view={view} setView={setView} sel={sel} setSel={handleSel} now={now} />
 
         {/* Footer */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 10, paddingTop: 10, borderTop: '1px solid color-mix(in srgb, var(--app-text) 7%, transparent)' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 10, paddingTop: 10, borderTop: '1px solid var(--app-border)' }}>
           <button type="button" onClick={handleClear} style={footBtnStyle}
             onMouseEnter={e => (e.currentTarget.style.color = 'var(--app-text)')}
             onMouseLeave={e => (e.currentTarget.style.color = 'var(--app-muted)')}
@@ -562,33 +531,34 @@ export function DateTimePicker({ value, onChange, placeholder = 'Set schedule...
         </div>
       </div>
 
-      {/* Divider */}
-      <div style={{ width: 1, background: 'color-mix(in srgb, var(--app-text) 7%, transparent)', alignSelf: 'stretch' }} />
+      {/* ── Vertical divider ── */}
+      <div style={{ width: 1, ...divStyle, alignSelf: 'stretch' }} />
 
-      {/* Time column */}
+      {/* ── Time column ── */}
       <div style={{ display: 'flex', alignItems: 'center', padding: '0 4px' }}>
         <DrumColumn values={hours} selected={hour} onSelect={handleHour} label="HR" min={1} max={12} />
-        <div style={{ fontSize: 18, color: 'color-mix(in srgb, var(--app-text) 18%, transparent)', fontWeight: 300, marginTop: 8, padding: '0 1px' }}>:</div>
+        <div style={{ fontSize: 18, color: 'var(--app-muted)', fontWeight: 300, marginTop: 8, padding: '0 1px' }}>:</div>
         <DrumColumn values={minutes} selected={min} onSelect={handleMin} label="MIN" min={0} max={59} />
 
         {/* AM/PM + Now */}
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 5, paddingLeft: 10, marginLeft: 4, borderLeft: '1px solid color-mix(in srgb, var(--app-text) 7%, transparent)', alignSelf: 'stretch' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 5, paddingLeft: 10, marginLeft: 4, borderLeft: '1px solid var(--app-border)', alignSelf: 'stretch' }}>
           {(['AM', 'PM'] as const).map(p => (
             <button
               key={p}
               type="button"
               onClick={() => handleAmpm(p)}
               style={{
-                background: ampm === p ? 'var(--app-accent)' : 'none',
-                border: `1.5px solid ${ampm === p ? 'var(--app-accent)' : 'color-mix(in srgb, var(--app-text) 14%, transparent)'}`,
-                borderRadius: 7,
+                background: ampm === p ? 'var(--app-accent)' : 'transparent',
+                border: `1.5px solid ${ampm === p ? 'var(--app-accent)' : 'var(--app-border)'}`,
+                borderRadius: 'var(--app-radius-sm)',
+                // Active: --app-bg gives white on dark accent on dark themes, and white on blue on light
                 color: ampm === p ? 'var(--app-bg)' : 'var(--app-muted)',
                 fontSize: 10, fontWeight: 600, width: 38, height: 28,
                 cursor: 'pointer', letterSpacing: '0.06em', transition: 'all 0.15s',
               }}
             >{p}</button>
           ))}
-          <div style={{ width: '100%', height: 1, background: 'color-mix(in srgb, var(--app-text) 7%, transparent)' }} />
+          <div style={{ width: '100%', height: 1, ...divStyle }} />
           <button type="button" onClick={goNow} style={footBtnStyle}
             onMouseEnter={e => (e.currentTarget.style.color = 'var(--app-accent)')}
             onMouseLeave={e => (e.currentTarget.style.color = 'var(--app-muted)')}
@@ -600,22 +570,31 @@ export function DateTimePicker({ value, onChange, placeholder = 'Set schedule...
 
   return (
     <div ref={wrapperRef} style={{ position: 'relative' }} className={className}>
-      {/* ── Trigger ── */}
+      {/* ── Trigger button ── */}
       <button
         ref={triggerRef}
         type="button"
         onClick={handleOpen}
-        className={`w-full bg-[var(--app-panel-2)] border text-[9px] text-left p-2 outline-none uppercase transition-colors ${
-          open
-            ? 'border-[color-mix(in_srgb,var(--app-accent)_50%,transparent)]'
-            : 'border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] hover:border-[color-mix(in_srgb,var(--app-text)_25%,transparent)]'
-        }`}
-        style={{ color: display ? 'var(--app-text)' : undefined }}
+        style={{
+          width: '100%',
+          background: 'var(--app-panel-2)',
+          // Always use --app-border so the button outline is readable on any theme
+          border: `1px solid ${open ? 'var(--app-accent)' : 'var(--app-border)'}`,
+          borderRadius: 'var(--app-radius-sm)',
+          // Always explicit text color — never let the cascade decide
+          color: display ? 'var(--app-text)' : 'var(--app-muted)',
+          fontSize: 9, textAlign: 'left', padding: '7px 8px',
+          outline: 'none', cursor: 'pointer', letterSpacing: '0.06em',
+          textTransform: 'uppercase', transition: 'border-color 0.15s',
+          fontFamily: 'inherit',
+        }}
+        onMouseEnter={e => { if (!open) (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--app-accent)'; }}
+        onMouseLeave={e => { if (!open) (e.currentTarget as HTMLButtonElement).style.borderColor = 'var(--app-border)'; }}
       >
-        {display || <span style={{ color: 'var(--app-muted)' }}>{placeholder}</span>}
+        {display || placeholder}
       </button>
 
-      {/* ── Dropdown portal — renders at document.body, escapes all overflow/stacking contexts ── */}
+      {/* ── Dropdown portal — renders at document.body, escapes all overflow/stacking ── */}
       {typeof document !== 'undefined' && createPortal(dropdownPanel, document.body)}
     </div>
   );
