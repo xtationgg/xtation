@@ -504,6 +504,14 @@ const toPanelSubtitle = (item: NormalizedLogItem) => {
 
 const clampTimelineX = (xPct: number) => Math.max(7, Math.min(93, xPct));
 
+const formatShortDate = (dateKey: string) => {
+  const d = fromDateKey(dateKey);
+  return d.toLocaleDateString(undefined, { month: 'short', day: '2-digit' });
+};
+
+const daysBetweenKeys = (a: string, b: string) =>
+  Math.round(Math.abs(fromDateKey(b).getTime() - fromDateKey(a).getTime()) / 86400000) + 1;
+
 export const LogCalendar: React.FC = () => {
   const {
     tasks,
@@ -532,6 +540,15 @@ export const LogCalendar: React.FC = () => {
   const [deleteConfirmState, setDeleteConfirmState] = useState<DeleteConfirmState | null>(null);
   const [hoveredDotId, setHoveredDotId] = useState<string | null>(null);
   const [legendFilterStates, setLegendFilterStates] = useState<QuestRowState[]>([]);
+  const [challengePickerOpen, setChallengePickerOpen] = useState(false);
+  const [challengeRange, setChallengeRange] = useState<{ start: string; end: string } | null>(null);
+  const [pickerViewMonth, setPickerViewMonth] = useState(() => new Date());
+  const [pickerStart, setPickerStart] = useState<string | null>(null);
+  const [pickerEnd, setPickerEnd] = useState<string | null>(null);
+  const [pickerDragging, setPickerDragging] = useState(false);
+  const pickerDragStartKeyRef = useRef<string | null>(null);
+  const pickerDragMovedRef = useRef(false);
+  const pickerNavCooldownRef = useRef(false);
   const dayConsoleListRef = useRef<HTMLDivElement | null>(null);
   const rowRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const timelineChartRef = useRef<HTMLDivElement>(null);
@@ -596,6 +613,25 @@ export const LogCalendar: React.FC = () => {
       return { date, key: toDateKey(date) };
     });
   }, [selectedKey]);
+
+  const pickerGridDays = useMemo(() => {
+    const start = monthGridStart(pickerViewMonth);
+    return Array.from({ length: 42 }, (_, idx) => {
+      const date = new Date(start);
+      date.setDate(start.getDate() + idx);
+      return { date, key: toDateKey(date), inMonth: date.getMonth() === pickerViewMonth.getMonth() };
+    });
+  }, [pickerViewMonth]);
+
+  const pickerEffectiveStart = pickerStart && pickerEnd
+    ? (pickerStart <= pickerEnd ? pickerStart : pickerEnd)
+    : pickerStart || null;
+  const pickerEffectiveEnd = pickerStart && pickerEnd
+    ? (pickerStart <= pickerEnd ? pickerEnd : pickerStart)
+    : null;
+  const pickerDayCount = pickerEffectiveStart && pickerEffectiveEnd
+    ? daysBetweenKeys(pickerEffectiveStart, pickerEffectiveEnd)
+    : 0;
 
   const yearMonths = useMemo(() => {
     const year = selectedDate.getFullYear();
@@ -891,6 +927,21 @@ export const LogCalendar: React.FC = () => {
     const nextTop = panelRow.offsetTop - container.offsetTop - 8;
     container.scrollTo({ top: Math.max(0, nextTop), behavior: 'smooth' });
   }, []);
+
+  const handlePickerMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    if (!pickerDragging || pickerNavCooldownRef.current) return;
+    const rect = e.currentTarget.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    if (x < 48) {
+      pickerNavCooldownRef.current = true;
+      setPickerViewMonth(prev => new Date(prev.getFullYear(), prev.getMonth() - 1, 1));
+      setTimeout(() => { pickerNavCooldownRef.current = false; }, 700);
+    } else if (x > rect.width - 48) {
+      pickerNavCooldownRef.current = true;
+      setPickerViewMonth(prev => new Date(prev.getFullYear(), prev.getMonth() + 1, 1));
+      setTimeout(() => { pickerNavCooldownRef.current = false; }, 700);
+    }
+  }, [pickerDragging]);
 
   const handlePanelItemClick = useCallback(
     (item: NormalizedLogItem) => {
@@ -1525,8 +1576,40 @@ export const LogCalendar: React.FC = () => {
               >
                 Next
               </button>
+              <div className="w-px h-4 bg-[color-mix(in_srgb,var(--app-text)_14%,transparent)] shrink-0" />
+              <button
+                type="button"
+                onClick={() => {
+                  setPickerViewMonth(new Date(viewMonth));
+                  setPickerStart(null);
+                  setPickerEnd(null);
+                  setChallengePickerOpen(true);
+                }}
+                className={`px-3 py-2 rounded-md border text-[10px] tracking-[0.2em] uppercase transition-colors whitespace-nowrap ${
+                  challengeRange
+                    ? 'border-[color-mix(in_srgb,var(--app-accent)_60%,transparent)] bg-[color-mix(in_srgb,var(--app-accent)_18%,var(--app-panel))] text-[var(--app-accent)]'
+                    : 'border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-[var(--app-panel-2)] text-[var(--app-text)] hover:border-[color-mix(in_srgb,var(--app-text)_30%,transparent)]'
+                }`}
+              >
+                Challenge Range
+              </button>
             </div>
           </div>
+
+          {challengeRange ? (
+            <div className="flex items-center gap-2 mb-2">
+              <span className="inline-flex items-center rounded-full border border-[color-mix(in_srgb,var(--app-accent)_50%,transparent)] bg-[color-mix(in_srgb,var(--app-accent)_12%,var(--app-panel))] px-3 py-1 text-[10px] uppercase tracking-[0.16em] text-[var(--app-accent)]">
+                Challenge: {formatShortDate(challengeRange.start)} → {formatShortDate(challengeRange.end)}
+              </span>
+              <button
+                type="button"
+                onClick={() => setChallengeRange(null)}
+                className="text-[10px] uppercase tracking-[0.16em] text-[var(--app-muted)] hover:text-[var(--app-text)]"
+              >
+                Clear
+              </button>
+            </div>
+          ) : null}
 
           {rangeMode === 'today' ? (
             <div className="rounded-xl border border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-[var(--app-panel-2)] p-4">
@@ -2120,6 +2203,151 @@ export const LogCalendar: React.FC = () => {
             >
               Close
             </button>
+          </div>
+        </div>
+      ) : null}
+
+      {challengePickerOpen ? (
+        <div
+          className="fixed inset-0 z-[70] flex items-center justify-center p-4"
+          onMouseUp={() => setPickerDragging(false)}
+          onMouseLeave={() => setPickerDragging(false)}
+        >
+          <button
+            type="button"
+            className="absolute inset-0 bg-black/60 backdrop-blur-[1px]"
+            aria-label="Close challenge range picker"
+            onClick={() => setChallengePickerOpen(false)}
+          />
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-label="Select Challenge Date Range"
+            className="relative w-full max-w-lg rounded-2xl border border-[color-mix(in_srgb,var(--app-text)_14%,transparent)] bg-[color-mix(in_srgb,var(--app-panel)_92%,black)] p-5 shadow-[0_16px_44px_rgba(0,0,0,0.45)]"
+          >
+            <div className="flex items-center justify-between mb-1">
+              <div className="text-sm uppercase tracking-[0.16em] text-[var(--app-text)]">Select Challenge Date Range</div>
+              <div className="flex items-center gap-1">
+                <button
+                  type="button"
+                  onClick={() => setPickerViewMonth(prev => new Date(prev.getFullYear(), prev.getMonth() - 1, 1))}
+                  className="px-2 py-1 rounded border border-[color-mix(in_srgb,var(--app-text)_14%,transparent)] text-[10px] uppercase tracking-[0.14em] text-[var(--app-muted)] hover:text-[var(--app-text)]"
+                >
+                  Prev
+                </button>
+                <span className="text-[11px] uppercase tracking-[0.14em] text-[var(--app-muted)] px-2 min-w-[10rem] text-center">
+                  {formatMonthTitle(pickerViewMonth)}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setPickerViewMonth(prev => new Date(prev.getFullYear(), prev.getMonth() + 1, 1))}
+                  className="px-2 py-1 rounded border border-[color-mix(in_srgb,var(--app-text)_14%,transparent)] text-[10px] uppercase tracking-[0.14em] text-[var(--app-muted)] hover:text-[var(--app-text)]"
+                >
+                  Next
+                </button>
+              </div>
+            </div>
+            <div className="mb-3 text-[10px] tracking-[0.1em] text-[var(--app-muted)]">
+              Drag to select dates. You can also click start then click end.
+            </div>
+            <div className="grid grid-cols-7 gap-1 mb-1">
+              {DAY_NAMES.map(name => (
+                <div key={name} className="text-center text-[10px] uppercase tracking-[0.18em] text-[var(--app-muted)] py-1">
+                  {name}
+                </div>
+              ))}
+            </div>
+            <div
+              className="grid grid-cols-7 gap-1 select-none"
+              onMouseMove={handlePickerMouseMove}
+              onMouseUp={() => setPickerDragging(false)}
+            >
+              {pickerGridDays.map(day => {
+                const isStart = day.key === pickerEffectiveStart;
+                const isEnd = day.key === pickerEffectiveEnd;
+                const inRange = !!(pickerEffectiveStart && pickerEffectiveEnd
+                  && day.key > pickerEffectiveStart && day.key < pickerEffectiveEnd);
+                const isToday = day.key === todayKey;
+                return (
+                  <button
+                    key={day.key}
+                    type="button"
+                    onMouseDown={() => {
+                      pickerDragStartKeyRef.current = day.key;
+                      pickerDragMovedRef.current = false;
+                      setPickerDragging(true);
+                    }}
+                    onMouseEnter={() => {
+                      if (!pickerDragging) return;
+                      if (!pickerDragMovedRef.current) {
+                        if (day.key === pickerDragStartKeyRef.current) return;
+                        pickerDragMovedRef.current = true;
+                        setPickerStart(pickerDragStartKeyRef.current ?? day.key);
+                      }
+                      setPickerEnd(day.key);
+                    }}
+                    onMouseUp={() => {
+                      if (pickerDragging && pickerDragMovedRef.current) {
+                        setPickerEnd(day.key);
+                      }
+                      setPickerDragging(false);
+                    }}
+                    onClick={() => {
+                      if (pickerDragMovedRef.current) {
+                        pickerDragMovedRef.current = false;
+                        return;
+                      }
+                      if (!pickerStart || pickerEnd !== null) {
+                        setPickerStart(day.key);
+                        setPickerEnd(null);
+                      } else {
+                        setPickerEnd(day.key);
+                      }
+                    }}
+                    className={`relative h-9 w-full rounded text-[11px] font-medium transition-colors ${
+                      isStart || isEnd
+                        ? 'bg-[var(--app-accent)] text-white'
+                        : inRange
+                          ? 'bg-[color-mix(in_srgb,var(--app-accent)_22%,var(--app-panel))] text-[var(--app-text)]'
+                          : day.inMonth
+                            ? 'bg-[var(--app-panel-2)] text-[var(--app-text)] hover:bg-[color-mix(in_srgb,var(--app-accent)_12%,var(--app-panel))]'
+                            : 'bg-transparent text-[var(--app-muted)] opacity-40'
+                    }${isToday && !isStart && !isEnd ? ' ring-1 ring-[var(--app-accent)] ring-inset' : ''}`}
+                  >
+                    {day.date.getDate()}
+                  </button>
+                );
+              })}
+            </div>
+            <div className="mt-3 min-h-[1.25rem] text-[10px] tracking-[0.1em] text-[var(--app-muted)]">
+              {pickerEffectiveStart && pickerEffectiveEnd
+                ? `Selected: ${formatShortDate(pickerEffectiveStart)} → ${formatShortDate(pickerEffectiveEnd)} (${pickerDayCount} day${pickerDayCount !== 1 ? 's' : ''})`
+                : pickerEffectiveStart
+                  ? `Start: ${formatShortDate(pickerEffectiveStart)} — click or drag to select end date`
+                  : 'Click or drag on the calendar to select a date range'}
+            </div>
+            <div className="mt-4 flex items-center justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setChallengePickerOpen(false)}
+                className="rounded-md border border-[color-mix(in_srgb,var(--app-text)_18%,transparent)] bg-[var(--app-panel)] px-3 py-1.5 text-[10px] uppercase tracking-[0.14em] text-[var(--app-muted)] hover:text-[var(--app-text)]"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                disabled={!pickerEffectiveStart || !pickerEffectiveEnd}
+                onClick={() => {
+                  if (pickerEffectiveStart && pickerEffectiveEnd) {
+                    setChallengeRange({ start: pickerEffectiveStart, end: pickerEffectiveEnd });
+                    setChallengePickerOpen(false);
+                  }
+                }}
+                className="rounded-md border border-[color-mix(in_srgb,var(--app-accent)_45%,transparent)] bg-[color-mix(in_srgb,var(--app-accent)_14%,var(--app-panel))] px-3 py-1.5 text-[10px] uppercase tracking-[0.14em] text-[var(--app-accent)] hover:border-[var(--app-accent)] disabled:opacity-40 disabled:pointer-events-none"
+              >
+                Apply
+              </button>
+            </div>
           </div>
         </div>
       ) : null}
