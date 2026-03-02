@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useRef, useEffect, useCallback, useLayoutEffect } from 'react';
 import { createPortal } from 'react-dom';
 
 // ─── Constants & helpers ────────────────────────────────────────────────────
@@ -217,7 +217,12 @@ function DrumColumn({ values, selected, onSelect, label, min, max, format = v =>
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState('');
   const inputRef = useRef<HTMLInputElement>(null);
+  // Use ref so window listeners always see latest values without re-attaching
   const dragRef = useRef({ active: false, startY: 0, startScroll: 0, moved: false });
+  const selectedRef = useRef(selected);
+  useEffect(() => { selectedRef.current = selected; }, [selected]);
+  const editingRef = useRef(editing);
+  useEffect(() => { editingRef.current = editing; }, [editing]);
 
   const scrollTo = useCallback((val: number, smooth = false) => {
     const idx = values.indexOf(val);
@@ -234,32 +239,47 @@ function DrumColumn({ values, selected, onSelect, label, min, max, format = v =>
       if (!scrollRef.current) return;
       const idx = Math.round(scrollRef.current.scrollTop / ITEM_H);
       const v = values[Math.max(0, Math.min(idx, values.length - 1))];
-      if (v !== selected) onSelect(v);
+      if (v !== selectedRef.current) onSelect(v);
       scrollRef.current.scrollTo({ top: Math.max(0, Math.min(idx, values.length - 1)) * ITEM_H, behavior: 'smooth' });
     }, 80);
   };
 
+  // Native window listeners — identical pattern to DraggableCalendar so drag
+  // works reliably even inside a portal where synthetic pointer capture fails.
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+
+    const onMove = (e: PointerEvent) => {
+      if (!dragRef.current.active) return;
+      const dy = dragRef.current.startY - e.clientY;
+      if (Math.abs(dy) > 3) dragRef.current.moved = true;
+      el.scrollTop = dragRef.current.startScroll + dy;
+    };
+
+    const onUp = () => {
+      if (!dragRef.current.active) return;
+      const wasMoved = dragRef.current.moved;
+      dragRef.current.active = false;
+      if (!wasMoved) {
+        setDraft(String(selectedRef.current).padStart(2, '0'));
+        setEditing(true);
+        requestAnimationFrame(() => { inputRef.current?.focus(); inputRef.current?.select(); });
+      }
+    };
+
+    window.addEventListener('pointermove', onMove);
+    window.addEventListener('pointerup', onUp);
+    return () => {
+      window.removeEventListener('pointermove', onMove);
+      window.removeEventListener('pointerup', onUp);
+    };
+  }, []); // Attach once — uses refs for latest state
+
   const onPointerDown = (e: React.PointerEvent) => {
-    if (editing || !scrollRef.current) return;
-    dragRef.current = { active: true, startY: e.clientY, startScroll: scrollRef.current.scrollTop, moved: false };
-    scrollRef.current.setPointerCapture(e.pointerId);
+    if (editingRef.current || !scrollRef.current) return;
     e.preventDefault();
-  };
-  const onPointerMove = (e: React.PointerEvent) => {
-    if (!dragRef.current.active || !scrollRef.current) return;
-    const dy = dragRef.current.startY - e.clientY;
-    if (Math.abs(dy) > 4) dragRef.current.moved = true;
-    scrollRef.current.scrollTop = dragRef.current.startScroll + dy;
-  };
-  const onPointerUp = () => {
-    if (!dragRef.current.active) return;
-    const moved = dragRef.current.moved;
-    dragRef.current.active = false;
-    if (!moved) {
-      setDraft(String(selected).padStart(2, '0'));
-      setEditing(true);
-      setTimeout(() => { inputRef.current?.focus(); inputRef.current?.select(); }, 10);
-    }
+    dragRef.current = { active: true, startY: e.clientY, startScroll: scrollRef.current.scrollTop, moved: false };
   };
 
   const commitDraft = () => {
@@ -288,8 +308,12 @@ function DrumColumn({ values, selected, onSelect, label, min, max, format = v =>
               maxLength={2} />
           </div>
         )}
-        <div ref={scrollRef} onScroll={onScroll} onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={onPointerUp} onPointerCancel={onPointerUp}
-          style={{ position: 'relative', zIndex: 1, height: '100%', overflowY: 'scroll', scrollbarWidth: 'none', paddingTop: ITEM_H * PAD, paddingBottom: ITEM_H * PAD, userSelect: 'none', touchAction: 'none', cursor: 'ns-resize' }}>
+        <div
+          ref={scrollRef}
+          onScroll={onScroll}
+          onPointerDown={onPointerDown}
+          style={{ position: 'relative', zIndex: 1, height: '100%', overflowY: 'scroll', scrollbarWidth: 'none', paddingTop: ITEM_H * PAD, paddingBottom: ITEM_H * PAD, userSelect: 'none', touchAction: 'none', cursor: 'ns-resize' }}
+        >
           {values.map(v => (
             <div key={v} style={{ height: ITEM_H, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: v === selected ? 15 : 12, fontWeight: v === selected ? 600 : 400, color: v === selected ? 'var(--app-text)' : 'var(--app-muted)', userSelect: 'none', transition: 'color 0.1s, font-size 0.1s' }}>
               {format(v)}
@@ -309,10 +333,6 @@ interface DateTimePickerProps {
   className?: string;
 }
 
-// Dropdown panel dimensions (approximate) used for smart flip logic
-const DROP_W = 385;
-const DROP_H = 340;
-
 export function DateTimePicker({ value, onChange, placeholder = 'Set schedule...', className }: DateTimePickerProps) {
   const now = new Date();
   const parsed = parseValue(value);
@@ -325,32 +345,71 @@ export function DateTimePicker({ value, onChange, placeholder = 'Set schedule...
   const [hour, setHour] = useState(parsed?.hour ?? (now.getHours() % 12 || 12));
   const [min, setMin] = useState(parsed?.min ?? now.getMinutes());
   const [ampm, setAmpm] = useState<'AM' | 'PM'>(parsed?.ampm ?? (now.getHours() < 12 ? 'AM' : 'PM'));
+
+  // dropStyle: initial position computed before render
+  // dropReady: false = invisible (opacity 0) while we measure & clamp
   const [dropStyle, setDropStyle] = useState<React.CSSProperties>({});
+  const [dropReady, setDropReady] = useState(false);
 
   const wrapperRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
-  // Track whether we're inside a programmatic onChange to avoid re-init loops
   const emittingRef = useRef(false);
 
   const hours = Array.from({ length: 12 }, (_, i) => i + 1);
   const minutes = Array.from({ length: 60 }, (_, i) => i);
 
-  // Compute portal position from trigger's screen coordinates
-  const computeDropStyle = (): React.CSSProperties => {
+  // Compute an initial position estimate from trigger's viewport rect.
+  // useLayoutEffect will clamp to actual rendered bounds afterward.
+  const computeInitialStyle = useCallback((): React.CSSProperties => {
     if (!triggerRef.current) return {};
     const rect = triggerRef.current.getBoundingClientRect();
+    // Align left edge with trigger, but keep at least 8px from each side
+    const left = Math.max(8, Math.min(rect.left, window.innerWidth - 8));
     const spaceBelow = window.innerHeight - rect.bottom;
-    const above = spaceBelow < DROP_H + 12 && rect.top > DROP_H;
-    // Clamp left so dropdown doesn't overflow right edge
-    const left = Math.min(rect.left, window.innerWidth - DROP_W - 8);
-    if (above) {
+    if (spaceBelow < 220 && rect.top > spaceBelow) {
+      // Not enough room below — anchor bottom of dropdown to above trigger
       return { bottom: window.innerHeight - rect.top + 6, left };
     }
     return { top: rect.bottom + 6, left };
-  };
+  }, []);
 
-  // Re-initialize when the picker opens (picks up any external value changes)
+  // After the portal renders, measure actual size and clamp to viewport.
+  // Runs sync before paint so there's no visual jump.
+  useLayoutEffect(() => {
+    if (!open || dropReady || !dropdownRef.current || !triggerRef.current) return;
+    const drop = dropdownRef.current.getBoundingClientRect();
+    const trigger = triggerRef.current.getBoundingClientRect();
+    const updates: React.CSSProperties = {};
+
+    // Clamp right overflow
+    if (drop.right > window.innerWidth - 8) {
+      updates.left = Math.max(8, window.innerWidth - drop.width - 8);
+    }
+    // Clamp left overflow (shouldn't happen but be safe)
+    if (drop.left < 8) {
+      updates.left = 8;
+    }
+    // Clamp bottom overflow: flip to above if possible
+    if (drop.bottom > window.innerHeight - 8) {
+      const aboveTop = trigger.top - drop.height - 6;
+      if (aboveTop >= 8) {
+        updates.top = aboveTop;
+        updates.bottom = undefined;
+      } else {
+        // Not enough room above either — pin to visible area
+        updates.top = Math.max(8, window.innerHeight - drop.height - 8);
+        updates.bottom = undefined;
+      }
+    }
+
+    if (Object.keys(updates).length > 0) {
+      setDropStyle(prev => ({ ...prev, ...updates }));
+    }
+    setDropReady(true);
+  }, [open, dropReady]);
+
+  // Re-initialize internal state when picker opens
   useEffect(() => {
     if (!open) return;
     const p = parseValue(value);
@@ -366,7 +425,7 @@ export function DateTimePicker({ value, onChange, placeholder = 'Set schedule...
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
-  // Emit value changes immediately as user interacts
+  // Emit on interaction
   const emit = (newSel: Sel | null, newHour: number, newMin: number, newAmpm: 'AM' | 'PM') => {
     emittingRef.current = true;
     onChange(buildValue(newSel, newHour, newMin, newAmpm));
@@ -392,18 +451,20 @@ export function DateTimePicker({ value, onChange, placeholder = 'Set schedule...
   const nextMonth = () => setView(v => v.m === 11 ? { m: 0, y: v.y + 1 } : { ...v, m: v.m + 1 });
 
   const handleOpen = () => {
-    setDropStyle(computeDropStyle());
-    setOpen(o => !o);
+    if (open) { setOpen(false); return; }
+    setDropStyle(computeInitialStyle());
+    setDropReady(false);
+    setOpen(true);
   };
 
-  // Close on outside click (must check both trigger wrapper and portal dropdown)
+  // Close on outside click
   useEffect(() => {
     if (!open) return;
     const handler = (e: MouseEvent) => {
       const t = e.target as Node;
-      const inWrapper = wrapperRef.current?.contains(t);
-      const inDropdown = dropdownRef.current?.contains(t);
-      if (!inWrapper && !inDropdown) setOpen(false);
+      if (wrapperRef.current?.contains(t)) return;
+      if (dropdownRef.current?.contains(t)) return;
+      setOpen(false);
     };
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
@@ -417,15 +478,21 @@ export function DateTimePicker({ value, onChange, placeholder = 'Set schedule...
     return () => document.removeEventListener('keydown', handler);
   }, [open]);
 
-  // Recompute position on scroll/resize while open
+  // Reposition on scroll/resize (no opacity animation — picker is already visible)
   useEffect(() => {
     if (!open) return;
-    const update = () => setDropStyle(computeDropStyle());
+    const update = () => {
+      setDropStyle(computeInitialStyle());
+      // Allow useLayoutEffect to re-clamp on next render
+      setDropReady(false);
+    };
     window.addEventListener('scroll', update, true);
     window.addEventListener('resize', update);
-    return () => { window.removeEventListener('scroll', update, true); window.removeEventListener('resize', update); };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open]);
+    return () => {
+      window.removeEventListener('scroll', update, true);
+      window.removeEventListener('resize', update);
+    };
+  }, [open, computeInitialStyle]);
 
   const display = formatDisplay(sel, hour, min, ampm);
 
@@ -450,6 +517,10 @@ export function DateTimePicker({ value, onChange, placeholder = 'Set schedule...
         boxShadow: '0 8px 40px rgba(0,0,0,0.55), 0 0 0 1px color-mix(in srgb, var(--app-text) 5%, transparent)',
         overflow: 'hidden',
         display: 'inline-flex',
+        // Hidden until useLayoutEffect clamps position — prevents flash at wrong position
+        opacity: dropReady ? 1 : 0,
+        transition: dropReady ? 'opacity 0.12s ease' : 'none',
+        pointerEvents: dropReady ? 'auto' : 'none',
       }}
     >
       {/* Calendar column */}
@@ -544,7 +615,7 @@ export function DateTimePicker({ value, onChange, placeholder = 'Set schedule...
         {display || <span style={{ color: 'var(--app-muted)' }}>{placeholder}</span>}
       </button>
 
-      {/* ── Dropdown portal (renders at document.body, escapes all overflow clipping) ── */}
+      {/* ── Dropdown portal — renders at document.body, escapes all overflow/stacking contexts ── */}
       {typeof document !== 'undefined' && createPortal(dropdownPanel, document.body)}
     </div>
   );
