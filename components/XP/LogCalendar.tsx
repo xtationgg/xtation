@@ -3,7 +3,7 @@ import { useXP } from './xpStore';
 import type { XPDayActivityItem, XPDayActivityGroup, Task } from './xpTypes';
 import { ConfirmModal } from '../UI/ConfirmModal';
 import { DayTimeOrb } from './DayTimeOrb';
-import { Pause, Play, Trash2 } from 'lucide-react';
+import { Check, Pause, Pencil, Play, Trash2, Undo2 } from 'lucide-react';
 
 const DAY_NAMES = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 const RANGE_OPTIONS = [
@@ -1635,30 +1635,70 @@ export const LogCalendar: React.FC = () => {
           </button>
         ))}
         {challengeSaved && (
-          <button
-            type="button"
-            title="Jump to challenge card"
-            onClick={() => document.getElementById('ch-card')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })}
-            className="ml-auto shrink-0 flex items-center gap-1.5 rounded-md border border-[color-mix(in_srgb,var(--app-text)_12%,transparent)] bg-[var(--app-panel-2)] px-2 py-1 transition-colors hover:border-[color-mix(in_srgb,var(--app-accent)_38%,transparent)] hover:text-[var(--app-text)]"
-          >
-            <span className="text-[9px] uppercase tracking-[0.12em] text-[var(--app-muted)] opacity-75 whitespace-nowrap">
-              {challengeSaved.badge} · {formatShortDate(challengeSaved.start)}–{formatShortDate(challengeSaved.end)}
-            </span>
-            <span className={`rounded px-1.5 py-0.5 text-[8px] uppercase tracking-[0.1em] whitespace-nowrap ${
-              selectedChipStatus === 'done'
-                ? 'bg-[color-mix(in_srgb,var(--app-accent)_20%,var(--app-panel))] text-[var(--app-accent)]'
-                : selectedChipStatus === 'not_done'
-                  ? 'bg-[color-mix(in_srgb,var(--app-text)_10%,transparent)] text-[var(--app-muted)]'
-                  : selectedChipStatus === 'excluded'
-                    ? 'bg-[color-mix(in_srgb,var(--app-text)_8%,transparent)] text-[var(--app-muted)] opacity-55'
-                    : 'bg-[color-mix(in_srgb,var(--app-text)_6%,transparent)] text-[var(--app-muted)] opacity-40'
-            }`}>
-              {selectedChipStatus === 'done' ? 'Done'
-                : selectedChipStatus === 'not_done' ? 'Not done'
-                : selectedChipStatus === 'excluded' ? 'Excluded'
-                : 'Out of range'}
-            </span>
-          </button>
+          <div className="ml-auto shrink-0 flex items-center gap-1">
+            {/* Info chip — scrolls to challenge card */}
+            <button
+              type="button"
+              title="Jump to challenge card"
+              onClick={() => document.getElementById('ch-card')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })}
+              className="flex items-center gap-1.5 rounded-md border border-[color-mix(in_srgb,var(--app-text)_12%,transparent)] bg-[var(--app-panel-2)] px-2 py-1 transition-colors hover:border-[color-mix(in_srgb,var(--app-accent)_38%,transparent)] hover:text-[var(--app-text)]"
+            >
+              <span className="text-[9px] uppercase tracking-[0.12em] text-[var(--app-muted)] opacity-75 whitespace-nowrap">
+                {challengeSaved.badge} · {formatShortDate(challengeSaved.start)}–{formatShortDate(challengeSaved.end)}
+              </span>
+              <span className={`rounded px-1.5 py-0.5 text-[8px] uppercase tracking-[0.1em] whitespace-nowrap ${
+                selectedChipStatus === 'done'
+                  ? 'bg-[color-mix(in_srgb,var(--app-accent)_20%,var(--app-panel))] text-[var(--app-accent)]'
+                  : selectedChipStatus === 'not_done'
+                    ? 'bg-[color-mix(in_srgb,var(--app-text)_10%,transparent)] text-[var(--app-muted)]'
+                    : selectedChipStatus === 'excluded'
+                      ? 'bg-[color-mix(in_srgb,var(--app-text)_8%,transparent)] text-[var(--app-muted)] opacity-55'
+                      : 'bg-[color-mix(in_srgb,var(--app-text)_6%,transparent)] text-[var(--app-muted)] opacity-40'
+              }`}>
+                {selectedChipStatus === 'done' ? 'Done'
+                  : selectedChipStatus === 'not_done' ? 'Not done'
+                  : selectedChipStatus === 'excluded' ? 'Excluded'
+                  : 'Out of range'}
+              </span>
+            </button>
+            {/* Mark Done / Undo quick action */}
+            <button
+              type="button"
+              disabled={selectedChipStatus === 'excluded' || selectedChipStatus === 'out_of_range'}
+              title={selectedChipStatus === 'done' ? 'Undo' : selectedChipStatus === 'not_done' ? 'Mark Done' : 'Not available'}
+              onClick={() => setChallengeCompletions(prev =>
+                prev.includes(selectedKey) ? prev.filter(k => k !== selectedKey) : [...prev, selectedKey]
+              )}
+              className={`inline-flex h-[26px] w-[26px] items-center justify-center rounded border transition-colors disabled:opacity-30 disabled:pointer-events-none ${
+                selectedChipStatus === 'done'
+                  ? 'border-[color-mix(in_srgb,var(--app-accent)_50%,transparent)] text-[var(--app-accent)] hover:border-[var(--app-accent)]'
+                  : 'border-[color-mix(in_srgb,var(--app-text)_14%,transparent)] text-[var(--app-muted)] hover:border-[color-mix(in_srgb,var(--app-accent)_50%,transparent)] hover:text-[var(--app-accent)]'
+              }`}
+            >
+              {selectedChipStatus === 'done'
+                ? <Undo2 className="h-3 w-3" />
+                : <Check className="h-3 w-3" />}
+            </button>
+            {/* Edit challenge */}
+            <button
+              type="button"
+              title="Edit challenge"
+              onClick={() => {
+                setPickerViewMonth(fromDateKey(challengeSaved.start));
+                setPickerStart(challengeSaved.start);
+                setPickerEnd(challengeSaved.end);
+                setPickerExcluded([...challengeSaved.excluded]);
+                setPickerName(challengeSaved.name);
+                setPickerBadge(challengeSaved.badge);
+                setPickerGoalType(challengeSaved.goalType);
+                setPickerGoalTarget(challengeSaved.goalTarget);
+                setChallengePickerOpen(true);
+              }}
+              className="inline-flex h-[26px] w-[26px] items-center justify-center rounded border border-[color-mix(in_srgb,var(--app-text)_14%,transparent)] text-[var(--app-muted)] hover:border-[color-mix(in_srgb,var(--app-accent)_38%,transparent)] hover:text-[var(--app-text)] transition-colors"
+            >
+              <Pencil className="h-3 w-3" />
+            </button>
+          </div>
         )}
       </div>
 
