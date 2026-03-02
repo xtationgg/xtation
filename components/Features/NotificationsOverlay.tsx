@@ -118,6 +118,7 @@ export const NotificationsOverlay: React.FC<NotificationsOverlayProps> = ({ isOp
       const toggleBtn = document.getElementById('bell-toggle');
       if (containerRef.current && containerRef.current.contains(target as Node)) return;
       if (toggleBtn && (toggleBtn === target || toggleBtn.contains(target as Node))) return;
+      if (target.closest?.('[data-portal-ignore-outside-click]')) return;
       onClose();
     };
 

@@ -149,6 +149,8 @@ export const HextechAssistant: React.FC<HextechAssistantProps> = ({ isOpen, onCl
       const toggleBtn = document.getElementById('hextech-assistant-toggle');
       if (containerRef.current && containerRef.current.contains(target as Node)) return;
       if (toggleBtn && (toggleBtn === target || toggleBtn.contains(target as Node))) return;
+      // Ignore clicks inside portal overlays (e.g. DateTimePicker dropdown)
+      if (target.closest?.('[data-portal-ignore-outside-click]')) return;
       onClose();
     };
     if (isOpen) {

@@ -73,6 +73,7 @@ export const TrophyOverlay: React.FC<TrophyOverlayProps> = ({ isOpen, onClose, m
 
       if (containerRef.current && containerRef.current.contains(target as Node)) return;
       if (toggleBtn && (toggleBtn === target || toggleBtn.contains(target as Node))) return;
+      if (target.closest?.('[data-portal-ignore-outside-click]')) return;
 
       onClose();
     };
