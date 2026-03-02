@@ -620,6 +620,7 @@ export const LogCalendar: React.FC = () => {
   const [pickerGoalTarget, setPickerGoalTarget] = useState(30);
   const [pickerTimePreset, setPickerTimePreset] = useState<'anytime' | 'morning' | 'noon' | 'evening'>('anytime');
   const [hudFilter, setHudFilter] = useState<'eligible' | 'all'>('eligible');
+  const [hudTimeFilter, setHudTimeFilter] = useState<'all' | 'anytime' | 'morning' | 'noon' | 'evening'>('all');
   const [highlightedChallengeId, setHighlightedChallengeId] = useState<string | null>(null);
   const [pickerDragging, setPickerDragging] = useState(false);
   const pickerDragStartKeyRef = useRef<string | null>(null);
@@ -1796,6 +1797,27 @@ export const LogCalendar: React.FC = () => {
                       );
                     })}
                   </div>
+                  {/* Time filter */}
+                  <div className="flex gap-0.5 rounded-md border border-[color-mix(in_srgb,var(--app-text)_12%,transparent)] bg-[var(--app-panel-2)] p-0.5 shrink-0">
+                    {(['all', 'morning', 'noon', 'evening', 'anytime'] as const).map(t => {
+                      const isActive = hudTimeFilter === t;
+                      const label = t === 'all' ? 'Any time' : t.charAt(0).toUpperCase() + t.slice(1);
+                      return (
+                        <button
+                          key={t}
+                          type="button"
+                          onClick={() => setHudTimeFilter(t)}
+                          className={`px-2 py-0.5 rounded text-[9px] uppercase tracking-[0.14em] transition-colors whitespace-nowrap ${
+                            isActive
+                              ? 'bg-[color-mix(in_srgb,var(--app-accent)_16%,var(--app-panel))] border border-[color-mix(in_srgb,var(--app-accent)_50%,transparent)] text-[var(--app-accent)]'
+                              : 'text-[var(--app-muted)] hover:text-[var(--app-text)]'
+                          }`}
+                        >
+                          {label}
+                        </button>
+                      );
+                    })}
+                  </div>
                   <div className="flex-1" />
                   <button
                     type="button"
@@ -1821,16 +1843,22 @@ export const LogCalendar: React.FC = () => {
             })()}
             {/* Challenge rows */}
             {(() => {
-              const visibleList = hudFilter === 'eligible'
+              const baseList = hudFilter === 'eligible'
                 ? challengeList.filter(ch => {
                     const m = challengeMeta.find(meta => meta.id === ch.id);
                     return m?.selectedStatus === 'done' || m?.selectedStatus === 'not_done';
                   })
                 : challengeList;
+              const visibleList = hudTimeFilter === 'all'
+                ? baseList
+                : baseList.filter(ch => {
+                    const t = ch.timePreset ?? 'anytime';
+                    return t === hudTimeFilter;
+                  });
               if (visibleList.length === 0) {
                 return (
                   <div className="px-4 py-3 text-[10px] uppercase tracking-[0.14em] text-[var(--app-muted)] opacity-60">
-                    No eligible challenges for this day.
+                    {hudFilter === 'eligible' ? 'No eligible challenges for this day.' : 'No challenges match this filter.'}
                   </div>
                 );
               }
