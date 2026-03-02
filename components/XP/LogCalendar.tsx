@@ -532,6 +532,9 @@ type ChallengeSaved = {
   goalTarget: number;
 };
 
+type ChallengeItem = ChallengeSaved & { id: string };
+type ChallengeCompletionsMap = Record<string, string[]>;
+
 const BADGE_OPTIONS = ['Bronze', 'Silver', 'Gold', 'Diamond', 'Legend'] as const;
 
 const expandDateRange = (start: string, end: string): string[] => {
@@ -543,6 +546,34 @@ const expandDateRange = (start: string, end: string): string[] => {
     cursor.setDate(cursor.getDate() + 1);
   }
   return days;
+};
+
+let _challengeInitCache: { list: ChallengeItem[]; completions: ChallengeCompletionsMap } | null = null;
+const getChallengeInit = (): { list: ChallengeItem[]; completions: ChallengeCompletionsMap } => {
+  if (!_challengeInitCache) {
+    try {
+      const v2List = localStorage.getItem('xtation.challenge.list.v2');
+      const v2Comps = localStorage.getItem('xtation.challenge.completions.v2');
+      if (v2List) {
+        _challengeInitCache = {
+          list: JSON.parse(v2List) as ChallengeItem[],
+          completions: v2Comps ? (JSON.parse(v2Comps) as ChallengeCompletionsMap) : {},
+        };
+      } else {
+        const v1Saved = localStorage.getItem('xtation.challenge.saved.v1');
+        if (v1Saved) {
+          const saved = JSON.parse(v1Saved) as ChallengeSaved;
+          const id = `ch_${Date.now()}`;
+          const v1Comps = localStorage.getItem('xtation.challenge.completions.v1');
+          const oldComps: string[] = v1Comps ? (JSON.parse(v1Comps) as string[]) : [];
+          _challengeInitCache = { list: [{ ...saved, id }], completions: { [id]: oldComps } };
+        } else {
+          _challengeInitCache = { list: [], completions: {} };
+        }
+      }
+    } catch { _challengeInitCache = { list: [], completions: {} }; }
+  }
+  return _challengeInitCache;
 };
 
 export const LogCalendar: React.FC = () => {
@@ -574,19 +605,10 @@ export const LogCalendar: React.FC = () => {
   const [hoveredDotId, setHoveredDotId] = useState<string | null>(null);
   const [legendFilterStates, setLegendFilterStates] = useState<QuestRowState[]>([]);
   const [challengePickerOpen, setChallengePickerOpen] = useState(false);
-  const [challengeSaved, setChallengeSaved] = useState<ChallengeSaved | null>(() => {
-    try {
-      const raw = localStorage.getItem('xtation.challenge.saved.v1');
-      return raw ? (JSON.parse(raw) as ChallengeSaved) : null;
-    } catch { return null; }
-  });
-  const [challengeCompletions, setChallengeCompletions] = useState<string[]>(() => {
-    try {
-      const raw = localStorage.getItem('xtation.challenge.completions.v1');
-      return raw ? (JSON.parse(raw) as string[]) : [];
-    } catch { return []; }
-  });
-  const [challengeClearConfirmOpen, setChallengeClearConfirmOpen] = useState(false);
+  const [pickerEditId, setPickerEditId] = useState<string | null>(null);
+  const [challengeList, setChallengeList] = useState<ChallengeItem[]>(() => getChallengeInit().list);
+  const [challengeCompletions, setChallengeCompletions] = useState<ChallengeCompletionsMap>(() => getChallengeInit().completions);
+  const [challengeDeleteTarget, setChallengeDeleteTarget] = useState<string | null>(null);
   const [pickerName, setPickerName] = useState('');
   const [pickerBadge, setPickerBadge] = useState('Bronze');
   const [pickerViewMonth, setPickerViewMonth] = useState(() => new Date());
@@ -643,15 +665,11 @@ export const LogCalendar: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    if (challengeSaved) {
-      localStorage.setItem('xtation.challenge.saved.v1', JSON.stringify(challengeSaved));
-    } else {
-      localStorage.removeItem('xtation.challenge.saved.v1');
-    }
-  }, [challengeSaved]);
+    localStorage.setItem('xtation.challenge.list.v2', JSON.stringify(challengeList));
+  }, [challengeList]);
 
   useEffect(() => {
-    localStorage.setItem('xtation.challenge.completions.v1', JSON.stringify(challengeCompletions));
+    localStorage.setItem('xtation.challenge.completions.v2', JSON.stringify(challengeCompletions));
   }, [challengeCompletions]);
 
   const gridDays = useMemo(() => {
@@ -699,64 +717,43 @@ export const LogCalendar: React.FC = () => {
   const pickerFinalDayCount = pickerEffectiveStart && pickerEffectiveEnd
     ? pickerDayCount - pickerExcluded.filter(k => k > pickerEffectiveStart! && k < pickerEffectiveEnd!).length
     : 0;
-  const challengeCompletionsSet = useMemo(() => new Set(challengeCompletions), [challengeCompletions]);
-  const challengeEligibleSorted = useMemo(() => {
-    if (!challengeSaved) return [] as string[];
-    const excSet = new Set(challengeSaved.excluded);
-    const days: string[] = [];
-    const cursor = fromDateKey(challengeSaved.start);
-    const endDate = fromDateKey(challengeSaved.end);
+  const primaryChallenge = challengeList[0] ?? null;
+  const challengeMeta = useMemo(() => challengeList.map(ch => {
+    const excSet = new Set(ch.excluded);
+    const eligibleSet = new Set<string>();
+    const cursor = fromDateKey(ch.start);
+    const endDate = fromDateKey(ch.end);
     while (cursor <= endDate) {
       const k = toDateKey(cursor);
-      if (!excSet.has(k)) days.push(k);
+      if (!excSet.has(k)) eligibleSet.add(k);
       cursor.setDate(cursor.getDate() + 1);
     }
-    return days;
-  }, [challengeSaved]);
-  const challengeEligibleSet = useMemo(() => new Set(challengeEligibleSorted), [challengeEligibleSorted]);
-  const challengeProgress = useMemo(
-    () => challengeCompletions.filter(k => challengeEligibleSet.has(k)).length,
-    [challengeCompletions, challengeEligibleSet]
-  );
-  const { challengeCurrentStreak, challengeBestStreak } = useMemo(() => {
-    const past = challengeEligibleSorted.filter(k => k <= todayKey);
-    let best = 0;
-    let run = 0;
-    for (const k of past) {
-      if (challengeCompletionsSet.has(k)) { run++; if (run > best) best = run; }
-      else run = 0;
-    }
-    let current = 0;
-    for (let i = past.length - 1; i >= 0; i--) {
-      if (challengeCompletionsSet.has(past[i])) current++;
-      else break;
-    }
-    return { challengeCurrentStreak: current, challengeBestStreak: best };
-  }, [challengeEligibleSorted, challengeCompletionsSet, todayKey]);
-  const challengeTodayEligible = challengeEligibleSet.has(todayKey);
-  const challengeTodayDone = challengeCompletionsSet.has(todayKey);
-  const challengeComplete = challengeSaved ? challengeProgress >= challengeSaved.goalTarget : false;
-  const selectedKeyDoneState: 'done' | 'not_done' | 'not_in_range' =
-    challengeSaved && challengeEligibleSet.has(selectedKey)
-      ? (challengeCompletionsSet.has(selectedKey) ? 'done' : 'not_done')
-      : 'not_in_range';
-
-  const selectedChipStatus: 'done' | 'not_done' | 'excluded' | 'out_of_range' = (() => {
-    if (!challengeSaved) return 'out_of_range';
-    const inDateRange = selectedKey >= challengeSaved.start && selectedKey <= challengeSaved.end;
-    if (!inDateRange) return 'out_of_range';
-    if (!challengeEligibleSet.has(selectedKey)) return 'excluded';
-    return challengeCompletionsSet.has(selectedKey) ? 'done' : 'not_done';
-  })();
+    const comps = challengeCompletions[ch.id] ?? [];
+    const completionsSet = new Set(comps);
+    const progress = comps.filter(k => eligibleSet.has(k)).length;
+    const todayEligible = eligibleSet.has(todayKey);
+    const todayDone = completionsSet.has(todayKey);
+    const complete = progress >= ch.goalTarget;
+    const selectedStatus: 'done' | 'not_done' | 'excluded' | 'out_of_range' = (() => {
+      if (selectedKey < ch.start || selectedKey > ch.end) return 'out_of_range';
+      if (!eligibleSet.has(selectedKey)) return 'excluded';
+      return completionsSet.has(selectedKey) ? 'done' : 'not_done';
+    })();
+    return { id: ch.id, eligibleSet, completionsSet, progress, todayEligible, todayDone, complete, selectedStatus };
+  }), [challengeList, challengeCompletions, todayKey, selectedKey]);
 
   const getChallengeDayState = (dateKey: string): { inRange: boolean; excluded: boolean; done: boolean } => {
-    if (!challengeSaved) return { inRange: false, excluded: false, done: false };
-    const inDateRange = dateKey >= challengeSaved.start && dateKey <= challengeSaved.end;
-    const inRange = inDateRange && challengeEligibleSet.has(dateKey);
-    const excluded = inDateRange && !challengeEligibleSet.has(dateKey);
-    const done = challengeCompletionsSet.has(dateKey);
+    if (!primaryChallenge || !challengeMeta[0]) return { inRange: false, excluded: false, done: false };
+    const m = challengeMeta[0];
+    const inDateRange = dateKey >= primaryChallenge.start && dateKey <= primaryChallenge.end;
+    const inRange = inDateRange && m.eligibleSet.has(dateKey);
+    const excluded = inDateRange && !m.eligibleSet.has(dateKey);
+    const done = m.completionsSet.has(dateKey);
     return { inRange, excluded, done };
   };
+
+  const getChallengeCountForDay = (dateKey: string): number =>
+    challengeMeta.filter(m => m.eligibleSet.has(dateKey)).length;
 
   const yearMonths = useMemo(() => {
     const year = selectedDate.getFullYear();
@@ -1146,6 +1143,16 @@ export const LogCalendar: React.FC = () => {
     rowButtons[nextIndex]?.focus();
   }, []);
 
+  const toggleChallengeDay = useCallback((id: string, dateKey: string) => {
+    setChallengeCompletions(prev => {
+      const existing = prev[id] ?? [];
+      const next = existing.includes(dateKey)
+        ? existing.filter(k => k !== dateKey)
+        : [...existing, dateKey];
+      return { ...prev, [id]: next };
+    });
+  }, []);
+
   const renderCompactItemList = (mobile = false) => (
     <div
       ref={dayConsoleListRef}
@@ -1494,96 +1501,6 @@ export const LogCalendar: React.FC = () => {
     );
   };
 
-  const challengeCardSection = challengeSaved ? (
-    <div className="rounded-xl border border-[color-mix(in_srgb,var(--app-accent)_35%,transparent)] bg-[color-mix(in_srgb,var(--app-accent)_8%,var(--app-panel))] p-3">
-      {/* Title + Edit/Clear */}
-      <div className="flex items-start justify-between gap-2 mb-2">
-        <div className="min-w-0">
-          <div className="text-[11px] uppercase tracking-[0.16em] text-[var(--app-accent)] font-medium truncate">
-            {challengeSaved.name || 'Challenge'} · {challengeSaved.badge}
-          </div>
-          <div className="text-[10px] uppercase tracking-[0.12em] text-[var(--app-muted)] mt-0.5">
-            {formatShortDate(challengeSaved.start)} → {formatShortDate(challengeSaved.end)}
-            {' · '}{challengeEligibleSorted.length} day{challengeEligibleSorted.length !== 1 ? 's' : ''}
-          </div>
-        </div>
-        <div className="flex items-center gap-1 shrink-0">
-          <button
-            type="button"
-            onClick={() => {
-              setPickerViewMonth(fromDateKey(challengeSaved.start));
-              setPickerStart(challengeSaved.start);
-              setPickerEnd(challengeSaved.end);
-              setPickerExcluded([...challengeSaved.excluded]);
-              setPickerName(challengeSaved.name);
-              setPickerBadge(challengeSaved.badge);
-              setPickerGoalType(challengeSaved.goalType);
-              setPickerGoalTarget(challengeSaved.goalTarget);
-              setChallengePickerOpen(true);
-            }}
-            className="px-2 py-1 rounded border border-[color-mix(in_srgb,var(--app-text)_18%,transparent)] text-[9px] uppercase tracking-[0.14em] text-[var(--app-muted)] hover:text-[var(--app-text)]"
-          >
-            Edit
-          </button>
-          <button
-            type="button"
-            onClick={() => setChallengeClearConfirmOpen(true)}
-            className="px-2 py-1 rounded border border-[color-mix(in_srgb,var(--app-text)_18%,transparent)] text-[9px] uppercase tracking-[0.14em] text-[var(--app-muted)] hover:text-[var(--app-text)]"
-          >
-            Clear
-          </button>
-        </div>
-      </div>
-      {/* Status · Progress · Streak */}
-      <div className="flex items-center gap-3 flex-wrap mb-2">
-        {challengeTodayEligible ? (
-          <span className={`rounded px-2 py-0.5 text-[9px] uppercase tracking-[0.14em] ${
-            challengeTodayDone
-              ? 'bg-[color-mix(in_srgb,var(--app-accent)_22%,var(--app-panel))] text-[var(--app-accent)]'
-              : 'bg-[color-mix(in_srgb,var(--app-text)_10%,transparent)] text-[var(--app-muted)]'
-          }`}>
-            {challengeTodayDone ? 'Done' : 'Not done'}
-          </span>
-        ) : (
-          <span className="rounded px-2 py-0.5 text-[9px] uppercase tracking-[0.14em] bg-[color-mix(in_srgb,var(--app-text)_8%,transparent)] text-[var(--app-muted)]">
-            Not in range
-          </span>
-        )}
-        <span className="text-[10px] uppercase tracking-[0.12em] text-[var(--app-muted)]">
-          Progress:{' '}
-          <span className={challengeComplete ? 'text-[var(--app-accent)]' : 'text-[var(--app-text)]'}>
-            {challengeProgress}/{challengeSaved.goalTarget}
-          </span>
-          {challengeComplete && <span className="ml-1 text-[var(--app-accent)]">✓</span>}
-        </span>
-        <span className="text-[10px] uppercase tracking-[0.12em] text-[var(--app-muted)]">
-          Streak: <span className="text-[var(--app-text)]">{challengeCurrentStreak}</span>
-          {' · Best: '}<span className="text-[var(--app-text)]">{challengeBestStreak}</span>
-        </span>
-      </div>
-      {/* Progress bar */}
-      <div className="h-1.5 rounded-full bg-[color-mix(in_srgb,var(--app-text)_10%,transparent)] overflow-hidden mb-2">
-        <div
-          className="h-full rounded-full bg-[var(--app-accent)] transition-all"
-          style={{ width: `${Math.min(100, (challengeProgress / Math.max(1, challengeSaved.goalTarget)) * 100)}%` }}
-        />
-      </div>
-      {/* Action button */}
-      <button
-        type="button"
-        disabled={!challengeTodayEligible}
-        onClick={() => {
-          setChallengeCompletions(prev =>
-            prev.includes(todayKey) ? prev.filter(k => k !== todayKey) : [...prev, todayKey]
-          );
-        }}
-        className="px-3 py-1.5 rounded-md border border-[color-mix(in_srgb,var(--app-accent)_45%,transparent)] bg-[color-mix(in_srgb,var(--app-accent)_14%,var(--app-panel))] text-[10px] uppercase tracking-[0.14em] text-[var(--app-accent)] hover:border-[var(--app-accent)] disabled:opacity-40 disabled:pointer-events-none"
-      >
-        {!challengeTodayEligible ? 'Not available' : challengeTodayDone ? 'Undo' : 'Mark Done'}
-      </button>
-    </div>
-  ) : null;
-
   const dayConsole = (
     <div className="rounded-2xl bg-[var(--app-panel-2)] overflow-hidden">
       <div className="px-4 py-3 border-b border-[color-mix(in_srgb,var(--app-text)_8%,transparent)] bg-[var(--app-panel)]">
@@ -1759,89 +1676,111 @@ export const LogCalendar: React.FC = () => {
           <DayTimeOrb size={552} showLiveLabel={selectedKey !== todayKey} />
         </div>
 
-        {challengeSaved && (
-          <div className="rounded-xl border border-[color-mix(in_srgb,var(--app-accent)_30%,transparent)] bg-[color-mix(in_srgb,var(--app-accent)_7%,var(--app-panel-2))] px-4 py-2.5 flex items-center gap-4">
-            {/* Left: name + badge + range */}
-            <div className="min-w-0 shrink-0">
-              <div className="text-[10px] uppercase tracking-[0.18em] text-[var(--app-accent)] font-medium truncate">{challengeSaved.badge} {challengeSaved.name || 'Challenge'}</div>
-              <div className="text-[9px] uppercase tracking-[0.12em] text-[var(--app-muted)]">{formatShortDate(challengeSaved.start)} → {formatShortDate(challengeSaved.end)}</div>
-            </div>
-            <div className="w-px h-6 bg-[color-mix(in_srgb,var(--app-text)_10%,transparent)] shrink-0" />
-            {/* Middle: selected-day status + progress + progress bar + streak */}
-            <div className="flex items-center gap-3 flex-1 min-w-0 overflow-x-auto no-scrollbar">
-              <span className={`rounded px-1.5 py-0.5 text-[8px] uppercase tracking-[0.14em] whitespace-nowrap shrink-0 ${
-                selectedChipStatus === 'done'
-                  ? 'bg-[color-mix(in_srgb,var(--app-accent)_22%,var(--app-panel))] text-[var(--app-accent)]'
-                  : selectedChipStatus === 'not_done'
-                    ? 'bg-[color-mix(in_srgb,var(--app-text)_10%,transparent)] text-[var(--app-muted)]'
-                    : selectedChipStatus === 'excluded'
-                      ? 'bg-[color-mix(in_srgb,var(--app-text)_8%,transparent)] text-[var(--app-muted)] opacity-60'
-                      : 'bg-[color-mix(in_srgb,var(--app-text)_6%,transparent)] text-[var(--app-muted)] opacity-40'
-              }`}>
-                {selectedChipStatus === 'done' ? 'Done'
-                  : selectedChipStatus === 'not_done' ? 'Not done'
-                  : selectedChipStatus === 'excluded' ? 'Excluded'
-                  : 'Out of range'}
-              </span>
-              <span className="text-[9px] uppercase tracking-[0.12em] text-[var(--app-muted)] whitespace-nowrap shrink-0">
-                {challengeProgress}/{challengeSaved.goalTarget}
-                {challengeComplete && <span className="ml-1 text-[var(--app-accent)]">✓</span>}
-              </span>
-              <div className="h-1 flex-1 min-w-[40px] rounded-full bg-[color-mix(in_srgb,var(--app-text)_10%,transparent)] overflow-hidden">
-                <div
-                  className="h-full rounded-full bg-[var(--app-accent)] transition-all"
-                  style={{ width: `${Math.min(100, (challengeProgress / Math.max(1, challengeSaved.goalTarget)) * 100)}%` }}
-                />
+        {challengeList.length > 0 && (
+          <div className="rounded-xl border border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-[var(--app-panel-2)] overflow-hidden">
+            {/* Header */}
+            <div className="px-4 py-2 flex items-center justify-between border-b border-[color-mix(in_srgb,var(--app-text)_6%,transparent)] bg-[var(--app-panel)]">
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] uppercase tracking-[0.26em] text-[var(--app-muted)]">Challenges Today</span>
+                {(() => {
+                  const n = challengeMeta.filter(m => m.todayEligible).length;
+                  return n > 0 ? (
+                    <span className="rounded px-1.5 py-0.5 text-[8px] bg-[color-mix(in_srgb,var(--app-accent)_18%,var(--app-panel))] text-[var(--app-accent)]">{n}</span>
+                  ) : null;
+                })()}
               </div>
-              <span className="text-[9px] uppercase tracking-[0.12em] text-[var(--app-muted)] whitespace-nowrap shrink-0">
-                Streak <span className="text-[var(--app-text)]">{challengeCurrentStreak}</span>
-              </span>
-            </div>
-            <div className="w-px h-6 bg-[color-mix(in_srgb,var(--app-text)_10%,transparent)] shrink-0" />
-            {/* Right: toggle done + edit + clear */}
-            <div className="flex items-center gap-1 shrink-0">
               <button
                 type="button"
-                disabled={selectedChipStatus === 'excluded' || selectedChipStatus === 'out_of_range'}
-                title={selectedChipStatus === 'done' ? 'Undo' : 'Mark Done'}
-                onClick={() => setChallengeCompletions(prev =>
-                  prev.includes(selectedKey) ? prev.filter(k => k !== selectedKey) : [...prev, selectedKey]
-                )}
-                className={`inline-flex h-[26px] w-[26px] items-center justify-center rounded border transition-colors disabled:opacity-30 disabled:pointer-events-none ${
-                  selectedChipStatus === 'done'
-                    ? 'border-[color-mix(in_srgb,var(--app-accent)_50%,transparent)] text-[var(--app-accent)] hover:border-[var(--app-accent)]'
-                    : 'border-[color-mix(in_srgb,var(--app-text)_14%,transparent)] text-[var(--app-muted)] hover:border-[color-mix(in_srgb,var(--app-accent)_50%,transparent)] hover:text-[var(--app-accent)]'
-                }`}
-              >
-                {selectedChipStatus === 'done' ? <Undo2 className="h-3 w-3" /> : <Check className="h-3 w-3" />}
-              </button>
-              <button
-                type="button"
-                title="Edit challenge"
                 onClick={() => {
-                  setPickerViewMonth(fromDateKey(challengeSaved.start));
-                  setPickerStart(challengeSaved.start);
-                  setPickerEnd(challengeSaved.end);
-                  setPickerExcluded([...challengeSaved.excluded]);
-                  setPickerName(challengeSaved.name);
-                  setPickerBadge(challengeSaved.badge);
-                  setPickerGoalType(challengeSaved.goalType);
-                  setPickerGoalTarget(challengeSaved.goalTarget);
+                  setPickerEditId(null);
+                  setPickerViewMonth(new Date(viewMonth));
+                  setPickerStart(null);
+                  setPickerEnd(null);
+                  setPickerExcluded([]);
+                  setPickerName('');
+                  setPickerBadge('Bronze');
+                  setPickerGoalType('daily');
+                  setPickerGoalTarget(30);
                   setChallengePickerOpen(true);
                 }}
-                className="inline-flex h-[26px] w-[26px] items-center justify-center rounded border border-[color-mix(in_srgb,var(--app-text)_14%,transparent)] text-[var(--app-muted)] hover:border-[color-mix(in_srgb,var(--app-accent)_38%,transparent)] hover:text-[var(--app-text)] transition-colors"
+                className="flex items-center gap-1 px-2 py-1 rounded border border-[color-mix(in_srgb,var(--app-accent)_45%,transparent)] text-[9px] uppercase tracking-[0.14em] text-[var(--app-accent)] hover:border-[var(--app-accent)] transition-colors"
               >
-                <Pencil className="h-3 w-3" />
-              </button>
-              <button
-                type="button"
-                title="Clear challenge"
-                onClick={() => setChallengeClearConfirmOpen(true)}
-                className="inline-flex h-[26px] w-[26px] items-center justify-center rounded border border-[color-mix(in_srgb,var(--app-text)_14%,transparent)] text-[var(--app-muted)] hover:border-[color-mix(in_srgb,var(--app-text)_30%,transparent)] hover:text-[var(--app-text)] transition-colors"
-              >
-                <Trash2 className="h-3 w-3" />
+                + New
               </button>
             </div>
+            {/* Challenge rows */}
+            {(() => {
+              const eligible = challengeList.filter((_, i) => challengeMeta[i]?.todayEligible);
+              if (eligible.length === 0) {
+                return (
+                  <div className="px-4 py-2.5 text-[10px] uppercase tracking-[0.14em] text-[var(--app-muted)] opacity-50">
+                    No active challenges today.
+                  </div>
+                );
+              }
+              return eligible.map(ch => {
+                const meta = challengeMeta.find(m => m.id === ch.id)!;
+                return (
+                  <div key={ch.id} className="px-4 py-2 flex items-center gap-3 border-b border-[color-mix(in_srgb,var(--app-text)_5%,transparent)] last:border-0">
+                    {/* badge + name */}
+                    <div className="min-w-0 flex-1">
+                      <div className="text-[10px] uppercase tracking-[0.14em] text-[var(--app-accent)] truncate">{ch.badge} {ch.name || 'Challenge'}</div>
+                      <div className="text-[9px] uppercase tracking-[0.1em] text-[var(--app-muted)]">{formatShortDate(ch.start)} → {formatShortDate(ch.end)}</div>
+                    </div>
+                    {/* status chip */}
+                    <span className={`shrink-0 rounded px-1.5 py-0.5 text-[8px] uppercase tracking-[0.14em] whitespace-nowrap ${
+                      meta.todayDone
+                        ? 'bg-[color-mix(in_srgb,var(--app-accent)_22%,var(--app-panel))] text-[var(--app-accent)]'
+                        : 'bg-[color-mix(in_srgb,var(--app-text)_10%,transparent)] text-[var(--app-muted)]'
+                    }`}>
+                      {meta.todayDone ? 'Done' : 'Not done'}
+                    </span>
+                    {/* quick actions */}
+                    <div className="flex items-center gap-1 shrink-0">
+                      <button
+                        type="button"
+                        title={meta.todayDone ? 'Undo' : 'Mark Done'}
+                        onClick={() => toggleChallengeDay(ch.id, todayKey)}
+                        className={`inline-flex h-[24px] w-[24px] items-center justify-center rounded border transition-colors ${
+                          meta.todayDone
+                            ? 'border-[color-mix(in_srgb,var(--app-accent)_50%,transparent)] text-[var(--app-accent)] hover:border-[var(--app-accent)]'
+                            : 'border-[color-mix(in_srgb,var(--app-text)_14%,transparent)] text-[var(--app-muted)] hover:border-[color-mix(in_srgb,var(--app-accent)_50%,transparent)] hover:text-[var(--app-accent)]'
+                        }`}
+                      >
+                        {meta.todayDone ? <Undo2 className="h-3 w-3" /> : <Check className="h-3 w-3" />}
+                      </button>
+                      <button
+                        type="button"
+                        title="Edit challenge"
+                        onClick={() => {
+                          setPickerEditId(ch.id);
+                          setPickerViewMonth(fromDateKey(ch.start));
+                          setPickerStart(ch.start);
+                          setPickerEnd(ch.end);
+                          setPickerExcluded([...ch.excluded]);
+                          setPickerName(ch.name);
+                          setPickerBadge(ch.badge);
+                          setPickerGoalType(ch.goalType);
+                          setPickerGoalTarget(ch.goalTarget);
+                          setChallengePickerOpen(true);
+                        }}
+                        className="inline-flex h-[24px] w-[24px] items-center justify-center rounded border border-[color-mix(in_srgb,var(--app-text)_14%,transparent)] text-[var(--app-muted)] hover:border-[color-mix(in_srgb,var(--app-accent)_38%,transparent)] hover:text-[var(--app-text)] transition-colors"
+                      >
+                        <Pencil className="h-3 w-3" />
+                      </button>
+                      <button
+                        type="button"
+                        title="Delete challenge"
+                        onClick={() => setChallengeDeleteTarget(ch.id)}
+                        className="inline-flex h-[24px] w-[24px] items-center justify-center rounded border border-[color-mix(in_srgb,var(--app-text)_14%,transparent)] text-[var(--app-muted)] hover:border-[color-mix(in_srgb,var(--app-text)_30%,transparent)] hover:text-[var(--app-text)] transition-colors"
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </button>
+                    </div>
+                  </div>
+                );
+              });
+            })()}
           </div>
         )}
 
@@ -1884,34 +1823,20 @@ export const LogCalendar: React.FC = () => {
               <button
                 type="button"
                 onClick={() => {
-                  if (challengeSaved) {
-                    setPickerViewMonth(fromDateKey(challengeSaved.start));
-                    setPickerStart(challengeSaved.start);
-                    setPickerEnd(challengeSaved.end);
-                    setPickerExcluded([...challengeSaved.excluded]);
-                    setPickerName(challengeSaved.name);
-                    setPickerBadge(challengeSaved.badge);
-                    setPickerGoalType(challengeSaved.goalType);
-                    setPickerGoalTarget(challengeSaved.goalTarget);
-                  } else {
-                    setPickerViewMonth(new Date(viewMonth));
-                    setPickerStart(null);
-                    setPickerEnd(null);
-                    setPickerExcluded([]);
-                    setPickerName('');
-                    setPickerBadge('Bronze');
-                    setPickerGoalType('daily');
-                    setPickerGoalTarget(30);
-                  }
+                  setPickerEditId(null);
+                  setPickerViewMonth(new Date(viewMonth));
+                  setPickerStart(null);
+                  setPickerEnd(null);
+                  setPickerExcluded([]);
+                  setPickerName('');
+                  setPickerBadge('Bronze');
+                  setPickerGoalType('daily');
+                  setPickerGoalTarget(30);
                   setChallengePickerOpen(true);
                 }}
-                className={`px-3 py-2 rounded-md border text-[10px] tracking-[0.2em] uppercase transition-colors whitespace-nowrap ${
-                  challengeSaved
-                    ? 'border-[color-mix(in_srgb,var(--app-accent)_60%,transparent)] bg-[color-mix(in_srgb,var(--app-accent)_18%,var(--app-panel))] text-[var(--app-accent)]'
-                    : 'border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-[var(--app-panel-2)] text-[var(--app-text)] hover:border-[color-mix(in_srgb,var(--app-text)_30%,transparent)]'
-                }`}
+                className="px-3 py-2 rounded-md border text-[10px] tracking-[0.2em] uppercase transition-colors whitespace-nowrap border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-[var(--app-panel-2)] text-[var(--app-text)] hover:border-[color-mix(in_srgb,var(--app-text)_30%,transparent)]"
               >
-                Challenge Setup
+                + Challenge
               </button>
             </div>
           </div>
@@ -1920,11 +1845,11 @@ export const LogCalendar: React.FC = () => {
             <div className="rounded-xl border border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-[var(--app-panel-2)] p-4">
               <div className="flex items-center gap-2 text-[10px] uppercase tracking-[0.22em] text-[var(--app-muted)]">
                 Today
-                {challengeSaved && selectedKey === todayKey && (
+                {primaryChallenge && challengeMeta[0] && selectedKey === todayKey && (
                   <span className={`h-2 w-2 rounded-full border ${
-                    selectedKeyDoneState === 'done'
+                    challengeMeta[0].selectedStatus === 'done'
                       ? 'bg-[var(--app-accent)] border-[var(--app-accent)]'
-                      : selectedKeyDoneState === 'not_done'
+                      : challengeMeta[0].selectedStatus === 'not_done'
                         ? 'bg-transparent border-[var(--app-accent)]'
                         : 'bg-transparent border-[color-mix(in_srgb,var(--app-text)_30%,transparent)]'
                   }`} />
@@ -1978,6 +1903,7 @@ export const LogCalendar: React.FC = () => {
                         {chDay.inRange && chDay.done && (
                           <span className={`pointer-events-none absolute bottom-[7px] right-[7px] h-[6px] w-[6px] rounded-full bg-[var(--app-accent)] shadow-[0_0_5px_color-mix(in_srgb,var(--app-accent)_45%,transparent)] ${isSelected ? 'opacity-60' : ''}`} />
                         )}
+                        {challengeList.length > 1 && (() => { const n = getChallengeCountForDay(day.key); return n > 0 ? <span className="pointer-events-none absolute top-[6px] left-[6px] flex h-4 w-4 items-center justify-center rounded text-[8px] leading-none text-[var(--app-accent)] bg-[color-mix(in_srgb,var(--app-accent)_18%,transparent)]">{n}</span> : null; })()}
                         <div className={`text-[11px] uppercase tracking-[0.16em] ${isToday ? 'text-[var(--app-accent)]' : 'text-[var(--app-muted)]'}`}>
                           {formatWeekdayLabel(day.key)}
                         </div>
@@ -1997,7 +1923,7 @@ export const LogCalendar: React.FC = () => {
 
           {rangeMode === 'month' ? (
             <>
-              {challengeSaved && (
+              {primaryChallenge && (
                 <div className="flex items-center gap-4 mb-2 px-0.5 text-[9px] uppercase tracking-[0.14em] text-[var(--app-muted)]">
                   <span className="flex items-center gap-1.5">
                     <span className="h-3 w-3 rounded-sm border border-[color-mix(in_srgb,var(--app-accent)_28%,transparent)] bg-[color-mix(in_srgb,var(--app-accent)_9%,var(--app-panel-2))]" />
@@ -2053,6 +1979,7 @@ export const LogCalendar: React.FC = () => {
                       {chDay.inRange && chDay.done && (
                         <span className={`pointer-events-none absolute bottom-[7px] right-[7px] h-[6px] w-[6px] rounded-full bg-[var(--app-accent)] shadow-[0_0_5px_color-mix(in_srgb,var(--app-accent)_45%,transparent)] ${isSelected ? 'opacity-60' : ''}`} />
                       )}
+                      {challengeList.length > 1 && (() => { const n = getChallengeCountForDay(day.key); return n > 0 ? <span className="pointer-events-none absolute top-[6px] left-[6px] flex h-4 w-4 items-center justify-center rounded text-[8px] leading-none text-[var(--app-accent)] bg-[color-mix(in_srgb,var(--app-accent)_18%,transparent)]">{n}</span> : null; })()}
                       <span className={`text-sm font-medium leading-none ${isToday ? 'text-[var(--app-accent)]' : 'text-[var(--app-text)]'}`}>{day.date.getDate()}</span>
                       {loggedMin > 0 && (
                         <p className="mt-1.5 text-[9px] leading-none tracking-[0.1em] tabular-nums text-[var(--app-muted)]">
@@ -2076,11 +2003,11 @@ export const LogCalendar: React.FC = () => {
                   viewMonth.getMonth() === monthDate.getMonth();
                 const mStart = toDateKey(new Date(monthDate.getFullYear(), monthDate.getMonth(), 1));
                 const mEnd = toDateKey(new Date(monthDate.getFullYear(), monthDate.getMonth() + 1, 0));
-                const chMonthEligible = challengeSaved
-                  ? challengeEligibleSorted.filter(k => k >= mStart && k <= mEnd).length
+                const chMonthEligible = primaryChallenge && challengeMeta[0]
+                  ? Array.from(challengeMeta[0].eligibleSet).filter(k => k >= mStart && k <= mEnd).length
                   : 0;
-                const chMonthDone = challengeSaved
-                  ? challengeEligibleSorted.filter(k => k >= mStart && k <= mEnd && challengeCompletionsSet.has(k)).length
+                const chMonthDone = primaryChallenge && challengeMeta[0]
+                  ? Array.from(challengeMeta[0].eligibleSet).filter(k => k >= mStart && k <= mEnd && challengeMeta[0].completionsSet.has(k)).length
                   : 0;
                 return (
                   <button
@@ -2581,7 +2508,7 @@ export const LogCalendar: React.FC = () => {
           >
             {/* ── Header: title + month nav ── */}
             <div className="flex items-center justify-between mb-3">
-              <div className="text-sm uppercase tracking-[0.16em] text-[var(--app-text)]">Challenge Setup</div>
+              <div className="text-sm uppercase tracking-[0.16em] text-[var(--app-text)]">{pickerEditId ? 'Edit Challenge' : 'New Challenge'}</div>
               <div className="flex items-center gap-1">
                 <button
                   type="button"
@@ -2748,7 +2675,7 @@ export const LogCalendar: React.FC = () => {
                     {isExcluded && (
                       <span className="pointer-events-none absolute top-0.5 right-0.5 flex h-3.5 w-3.5 items-center justify-center rounded-sm bg-[color-mix(in_srgb,var(--app-bg)_55%,transparent)] text-[10px] leading-none text-[var(--app-muted)]">×</span>
                     )}
-                    {(inRange || isStart || isEnd) && !isExcluded && challengeCompletionsSet.has(day.key) && (
+                    {(inRange || isStart || isEnd) && !isExcluded && (pickerEditId ? (challengeCompletions[pickerEditId] ?? []) : []).includes(day.key) && (
                       <span className="pointer-events-none absolute bottom-[5px] right-[5px] h-[5px] w-[5px] rounded-full bg-[var(--app-accent)] shadow-[0_0_3px_color-mix(in_srgb,var(--app-accent)_35%,transparent)]" />
                     )}
                   </button>
@@ -2788,7 +2715,7 @@ export const LogCalendar: React.FC = () => {
                   const finalExcluded = pickerExcluded.filter(
                     k => k > pickerEffectiveStart && k < pickerEffectiveEnd
                   );
-                  setChallengeSaved({
+                  const challengeData = {
                     name: pickerName.trim(),
                     badge: pickerBadge,
                     start: pickerEffectiveStart,
@@ -2796,7 +2723,13 @@ export const LogCalendar: React.FC = () => {
                     excluded: finalExcluded,
                     goalType: pickerGoalType,
                     goalTarget: pickerGoalTarget,
-                  });
+                  };
+                  if (pickerEditId) {
+                    setChallengeList(prev => prev.map(ch => ch.id === pickerEditId ? { ...ch, ...challengeData } : ch));
+                  } else {
+                    const newId = `ch_${Date.now()}`;
+                    setChallengeList(prev => [...prev, { id: newId, ...challengeData }]);
+                  }
                   setChallengePickerOpen(false);
                 }}
                 className="rounded-md border border-[color-mix(in_srgb,var(--app-accent)_45%,transparent)] bg-[color-mix(in_srgb,var(--app-accent)_14%,var(--app-panel))] px-3 py-1.5 text-[10px] uppercase tracking-[0.14em] text-[var(--app-accent)] hover:border-[var(--app-accent)] disabled:opacity-40 disabled:pointer-events-none"
@@ -2809,16 +2742,21 @@ export const LogCalendar: React.FC = () => {
       ) : null}
 
       <ConfirmModal
-        open={challengeClearConfirmOpen}
-        title="Clear Challenge"
-        message="Clear this challenge and all progress?"
-        confirmLabel="Clear"
+        open={!!challengeDeleteTarget}
+        title="Delete Challenge"
+        message="Delete this challenge and all its progress?"
+        confirmLabel="Delete"
         cancelLabel="Cancel"
-        onCancel={() => setChallengeClearConfirmOpen(false)}
+        onCancel={() => setChallengeDeleteTarget(null)}
         onConfirm={() => {
-          setChallengeSaved(null);
-          setChallengeCompletions([]);
-          setChallengeClearConfirmOpen(false);
+          if (!challengeDeleteTarget) return;
+          setChallengeList(prev => prev.filter(ch => ch.id !== challengeDeleteTarget));
+          setChallengeCompletions(prev => {
+            const next = { ...prev };
+            delete next[challengeDeleteTarget];
+            return next;
+          });
+          setChallengeDeleteTarget(null);
         }}
       />
 
