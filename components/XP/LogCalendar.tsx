@@ -512,6 +512,16 @@ const formatShortDate = (dateKey: string) => {
 const daysBetweenKeys = (a: string, b: string) =>
   Math.round(Math.abs(fromDateKey(b).getTime() - fromDateKey(a).getTime()) / 86400000) + 1;
 
+type ChallengeDraft = {
+  mode: 'range' | 'custom';
+  name: string;
+  badge: string;
+  range?: { start: string; end: string };
+  days?: string[];
+};
+
+const BADGE_OPTIONS = ['Bronze', 'Silver', 'Gold', 'Diamond', 'Legend'] as const;
+
 export const LogCalendar: React.FC = () => {
   const {
     tasks,
@@ -541,14 +551,19 @@ export const LogCalendar: React.FC = () => {
   const [hoveredDotId, setHoveredDotId] = useState<string | null>(null);
   const [legendFilterStates, setLegendFilterStates] = useState<QuestRowState[]>([]);
   const [challengePickerOpen, setChallengePickerOpen] = useState(false);
-  const [challengeRange, setChallengeRange] = useState<{ start: string; end: string } | null>(null);
+  const [challengeDraftSaved, setChallengeDraftSaved] = useState<ChallengeDraft | null>(null);
+  const [pickerMode, setPickerMode] = useState<'range' | 'custom'>('range');
+  const [pickerName, setPickerName] = useState('');
+  const [pickerBadge, setPickerBadge] = useState('Bronze');
   const [pickerViewMonth, setPickerViewMonth] = useState(() => new Date());
   const [pickerStart, setPickerStart] = useState<string | null>(null);
   const [pickerEnd, setPickerEnd] = useState<string | null>(null);
+  const [pickerCustomDays, setPickerCustomDays] = useState<string[]>([]);
   const [pickerDragging, setPickerDragging] = useState(false);
   const pickerDragStartKeyRef = useRef<string | null>(null);
   const pickerDragMovedRef = useRef(false);
   const pickerNavCooldownRef = useRef(false);
+  const pickerLastClickedKeyRef = useRef<string | null>(null);
   const dayConsoleListRef = useRef<HTMLDivElement | null>(null);
   const rowRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const timelineChartRef = useRef<HTMLDivElement>(null);
@@ -632,6 +647,8 @@ export const LogCalendar: React.FC = () => {
   const pickerDayCount = pickerEffectiveStart && pickerEffectiveEnd
     ? daysBetweenKeys(pickerEffectiveStart, pickerEffectiveEnd)
     : 0;
+
+  const pickerCustomDaysSet = useMemo(() => new Set(pickerCustomDays), [pickerCustomDays]);
 
   const yearMonths = useMemo(() => {
     const year = selectedDate.getFullYear();
@@ -1583,27 +1600,40 @@ export const LogCalendar: React.FC = () => {
                   setPickerViewMonth(new Date(viewMonth));
                   setPickerStart(null);
                   setPickerEnd(null);
+                  setPickerCustomDays([]);
+                  setPickerName('');
+                  setPickerBadge('Bronze');
+                  setPickerMode('range');
                   setChallengePickerOpen(true);
                 }}
                 className={`px-3 py-2 rounded-md border text-[10px] tracking-[0.2em] uppercase transition-colors whitespace-nowrap ${
-                  challengeRange
+                  challengeDraftSaved
                     ? 'border-[color-mix(in_srgb,var(--app-accent)_60%,transparent)] bg-[color-mix(in_srgb,var(--app-accent)_18%,var(--app-panel))] text-[var(--app-accent)]'
                     : 'border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-[var(--app-panel-2)] text-[var(--app-text)] hover:border-[color-mix(in_srgb,var(--app-text)_30%,transparent)]'
                 }`}
               >
-                Challenge Range
+                Challenge Setup
               </button>
             </div>
           </div>
 
-          {challengeRange ? (
-            <div className="flex items-center gap-2 mb-2">
+          {challengeDraftSaved ? (
+            <div className="flex items-center gap-2 mb-2 flex-wrap">
               <span className="inline-flex items-center rounded-full border border-[color-mix(in_srgb,var(--app-accent)_50%,transparent)] bg-[color-mix(in_srgb,var(--app-accent)_12%,var(--app-panel))] px-3 py-1 text-[10px] uppercase tracking-[0.16em] text-[var(--app-accent)]">
-                Challenge: {formatShortDate(challengeRange.start)} → {formatShortDate(challengeRange.end)}
+                {[
+                  'Challenge',
+                  challengeDraftSaved.name || null,
+                  challengeDraftSaved.badge,
+                  challengeDraftSaved.mode === 'range' && challengeDraftSaved.range
+                    ? `${formatShortDate(challengeDraftSaved.range.start)} → ${formatShortDate(challengeDraftSaved.range.end)}`
+                    : challengeDraftSaved.days
+                      ? `${challengeDraftSaved.days.length} day${challengeDraftSaved.days.length !== 1 ? 's' : ''}`
+                      : null,
+                ].filter(Boolean).join(' · ')}
               </span>
               <button
                 type="button"
-                onClick={() => setChallengeRange(null)}
+                onClick={() => setChallengeDraftSaved(null)}
                 className="text-[10px] uppercase tracking-[0.16em] text-[var(--app-muted)] hover:text-[var(--app-text)]"
               >
                 Clear
@@ -2216,17 +2246,18 @@ export const LogCalendar: React.FC = () => {
           <button
             type="button"
             className="absolute inset-0 bg-black/60 backdrop-blur-[1px]"
-            aria-label="Close challenge range picker"
+            aria-label="Close challenge setup"
             onClick={() => setChallengePickerOpen(false)}
           />
           <div
             role="dialog"
             aria-modal="true"
-            aria-label="Select Challenge Date Range"
+            aria-label="Challenge Setup"
             className="relative w-full max-w-lg rounded-2xl border border-[color-mix(in_srgb,var(--app-text)_14%,transparent)] bg-[color-mix(in_srgb,var(--app-panel)_92%,black)] p-5 shadow-[0_16px_44px_rgba(0,0,0,0.45)]"
           >
-            <div className="flex items-center justify-between mb-1">
-              <div className="text-sm uppercase tracking-[0.16em] text-[var(--app-text)]">Select Challenge Date Range</div>
+            {/* ── Header: title + month nav ── */}
+            <div className="flex items-center justify-between mb-3">
+              <div className="text-sm uppercase tracking-[0.16em] text-[var(--app-text)]">Challenge Setup</div>
               <div className="flex items-center gap-1">
                 <button
                   type="button"
@@ -2247,9 +2278,51 @@ export const LogCalendar: React.FC = () => {
                 </button>
               </div>
             </div>
-            <div className="mb-3 text-[10px] tracking-[0.1em] text-[var(--app-muted)]">
-              Drag to select dates. You can also click start then click end.
+
+            {/* ── Segmented control: Range / Custom Days ── */}
+            <div className="flex gap-0.5 mb-3 rounded-lg border border-[color-mix(in_srgb,var(--app-text)_12%,transparent)] bg-[var(--app-panel-2)] p-0.5">
+              {(['range', 'custom'] as const).map(m => (
+                <button
+                  key={m}
+                  type="button"
+                  onClick={() => setPickerMode(m)}
+                  className={`flex-1 rounded-md py-1.5 text-[10px] uppercase tracking-[0.16em] transition-colors ${
+                    pickerMode === m
+                      ? 'bg-[color-mix(in_srgb,var(--app-accent)_16%,var(--app-panel))] border border-[color-mix(in_srgb,var(--app-accent)_50%,transparent)] text-[var(--app-accent)]'
+                      : 'text-[var(--app-muted)] hover:text-[var(--app-text)]'
+                  }`}
+                >
+                  {m === 'range' ? 'Range' : 'Custom Days'}
+                </button>
+              ))}
             </div>
+
+            {/* ── Challenge name ── */}
+            <input
+              type="text"
+              value={pickerName}
+              onChange={e => setPickerName(e.target.value)}
+              placeholder="Challenge name (optional)"
+              className="w-full mb-2 rounded-md border border-[color-mix(in_srgb,var(--app-text)_14%,transparent)] bg-[var(--app-panel-2)] px-3 py-2 text-[11px] uppercase tracking-[0.12em] text-[var(--app-text)] placeholder:text-[var(--app-muted)] focus:outline-none focus:border-[color-mix(in_srgb,var(--app-accent)_50%,transparent)]"
+            />
+
+            {/* ── Badge selector ── */}
+            <select
+              value={pickerBadge}
+              onChange={e => setPickerBadge(e.target.value)}
+              className="w-full mb-3 rounded-md border border-[color-mix(in_srgb,var(--app-text)_14%,transparent)] bg-[var(--app-panel-2)] px-3 py-2 text-[11px] uppercase tracking-[0.12em] text-[var(--app-text)] focus:outline-none focus:border-[color-mix(in_srgb,var(--app-accent)_50%,transparent)]"
+            >
+              {BADGE_OPTIONS.map(b => <option key={b} value={b}>{b}</option>)}
+            </select>
+
+            {/* ── Instruction ── */}
+            <div className="mb-2 text-[10px] tracking-[0.1em] text-[var(--app-muted)]">
+              {pickerMode === 'range'
+                ? 'Drag to select dates. You can also click start then click end.'
+                : 'Click to toggle days. Drag to paint. Shift+click to add a range.'}
+            </div>
+
+            {/* ── Day names header ── */}
             <div className="grid grid-cols-7 gap-1 mb-1">
               {DAY_NAMES.map(name => (
                 <div key={name} className="text-center text-[10px] uppercase tracking-[0.18em] text-[var(--app-muted)] py-1">
@@ -2257,17 +2330,69 @@ export const LogCalendar: React.FC = () => {
                 </div>
               ))}
             </div>
+
+            {/* ── Calendar grid ── */}
             <div
               className="grid grid-cols-7 gap-1 select-none"
               onMouseMove={handlePickerMouseMove}
               onMouseUp={() => setPickerDragging(false)}
             >
               {pickerGridDays.map(day => {
-                const isStart = day.key === pickerEffectiveStart;
-                const isEnd = day.key === pickerEffectiveEnd;
-                const inRange = !!(pickerEffectiveStart && pickerEffectiveEnd
-                  && day.key > pickerEffectiveStart && day.key < pickerEffectiveEnd);
                 const isToday = day.key === todayKey;
+
+                if (pickerMode === 'range') {
+                  const isStart = day.key === pickerEffectiveStart;
+                  const isEnd = day.key === pickerEffectiveEnd;
+                  const inRange = !!(pickerEffectiveStart && pickerEffectiveEnd
+                    && day.key > pickerEffectiveStart && day.key < pickerEffectiveEnd);
+                  return (
+                    <button
+                      key={day.key}
+                      type="button"
+                      onMouseDown={() => {
+                        pickerDragStartKeyRef.current = day.key;
+                        pickerDragMovedRef.current = false;
+                        setPickerDragging(true);
+                      }}
+                      onMouseEnter={() => {
+                        if (!pickerDragging) return;
+                        if (!pickerDragMovedRef.current) {
+                          if (day.key === pickerDragStartKeyRef.current) return;
+                          pickerDragMovedRef.current = true;
+                          setPickerStart(pickerDragStartKeyRef.current ?? day.key);
+                        }
+                        setPickerEnd(day.key);
+                      }}
+                      onMouseUp={() => {
+                        if (pickerDragging && pickerDragMovedRef.current) setPickerEnd(day.key);
+                        setPickerDragging(false);
+                      }}
+                      onClick={() => {
+                        if (pickerDragMovedRef.current) { pickerDragMovedRef.current = false; return; }
+                        if (!pickerStart || pickerEnd !== null) {
+                          setPickerStart(day.key);
+                          setPickerEnd(null);
+                        } else {
+                          setPickerEnd(day.key);
+                        }
+                      }}
+                      className={`relative h-9 w-full rounded text-[11px] font-medium transition-colors ${
+                        isStart || isEnd
+                          ? 'bg-[var(--app-accent)] text-white'
+                          : inRange
+                            ? 'bg-[color-mix(in_srgb,var(--app-accent)_22%,var(--app-panel))] text-[var(--app-text)]'
+                            : day.inMonth
+                              ? 'bg-[var(--app-panel-2)] text-[var(--app-text)] hover:bg-[color-mix(in_srgb,var(--app-accent)_12%,var(--app-panel))]'
+                              : 'bg-transparent text-[var(--app-muted)] opacity-40'
+                      }${isToday && !isStart && !isEnd ? ' ring-1 ring-[var(--app-accent)] ring-inset' : ''}`}
+                    >
+                      {day.date.getDate()}
+                    </button>
+                  );
+                }
+
+                // Custom Days mode
+                const isSelected = pickerCustomDaysSet.has(day.key);
                 return (
                   <button
                     key={day.key}
@@ -2282,50 +2407,94 @@ export const LogCalendar: React.FC = () => {
                       if (!pickerDragMovedRef.current) {
                         if (day.key === pickerDragStartKeyRef.current) return;
                         pickerDragMovedRef.current = true;
-                        setPickerStart(pickerDragStartKeyRef.current ?? day.key);
+                        // Paint the start cell too
+                        setPickerCustomDays(prev => {
+                          const startKey = pickerDragStartKeyRef.current;
+                          const next = startKey && !prev.includes(startKey) ? [...prev, startKey] : [...prev];
+                          return next.includes(day.key) ? [...next].sort() : [...next, day.key].sort();
+                        });
+                      } else {
+                        setPickerCustomDays(prev =>
+                          prev.includes(day.key) ? prev : [...prev, day.key].sort()
+                        );
                       }
-                      setPickerEnd(day.key);
                     }}
                     onMouseUp={() => {
                       if (pickerDragging && pickerDragMovedRef.current) {
-                        setPickerEnd(day.key);
+                        setPickerCustomDays(prev =>
+                          prev.includes(day.key) ? prev : [...prev, day.key].sort()
+                        );
                       }
                       setPickerDragging(false);
                     }}
-                    onClick={() => {
-                      if (pickerDragMovedRef.current) {
-                        pickerDragMovedRef.current = false;
-                        return;
-                      }
-                      if (!pickerStart || pickerEnd !== null) {
-                        setPickerStart(day.key);
-                        setPickerEnd(null);
+                    onClick={(e) => {
+                      if (pickerDragMovedRef.current) { pickerDragMovedRef.current = false; return; }
+                      if (e.shiftKey && pickerLastClickedKeyRef.current) {
+                        const [from, to] = [pickerLastClickedKeyRef.current, day.key].sort();
+                        const rangeDays: string[] = [];
+                        const cursor = fromDateKey(from);
+                        const endDate = fromDateKey(to);
+                        while (cursor <= endDate) {
+                          rangeDays.push(toDateKey(cursor));
+                          cursor.setDate(cursor.getDate() + 1);
+                        }
+                        setPickerCustomDays(prev => [...new Set([...prev, ...rangeDays])].sort());
                       } else {
-                        setPickerEnd(day.key);
+                        setPickerCustomDays(prev =>
+                          prev.includes(day.key) ? prev.filter(k => k !== day.key) : [...prev, day.key].sort()
+                        );
+                        pickerLastClickedKeyRef.current = day.key;
                       }
                     }}
                     className={`relative h-9 w-full rounded text-[11px] font-medium transition-colors ${
-                      isStart || isEnd
+                      isSelected
                         ? 'bg-[var(--app-accent)] text-white'
-                        : inRange
-                          ? 'bg-[color-mix(in_srgb,var(--app-accent)_22%,var(--app-panel))] text-[var(--app-text)]'
-                          : day.inMonth
-                            ? 'bg-[var(--app-panel-2)] text-[var(--app-text)] hover:bg-[color-mix(in_srgb,var(--app-accent)_12%,var(--app-panel))]'
-                            : 'bg-transparent text-[var(--app-muted)] opacity-40'
-                    }${isToday && !isStart && !isEnd ? ' ring-1 ring-[var(--app-accent)] ring-inset' : ''}`}
+                        : day.inMonth
+                          ? 'bg-[var(--app-panel-2)] text-[var(--app-text)] hover:bg-[color-mix(in_srgb,var(--app-accent)_12%,var(--app-panel))]'
+                          : 'bg-transparent text-[var(--app-muted)] opacity-40'
+                    }${isToday && !isSelected ? ' ring-1 ring-[var(--app-accent)] ring-inset' : ''}`}
                   >
                     {day.date.getDate()}
                   </button>
                 );
               })}
             </div>
-            <div className="mt-3 min-h-[1.25rem] text-[10px] tracking-[0.1em] text-[var(--app-muted)]">
-              {pickerEffectiveStart && pickerEffectiveEnd
-                ? `Selected: ${formatShortDate(pickerEffectiveStart)} → ${formatShortDate(pickerEffectiveEnd)} (${pickerDayCount} day${pickerDayCount !== 1 ? 's' : ''})`
-                : pickerEffectiveStart
-                  ? `Start: ${formatShortDate(pickerEffectiveStart)} — click or drag to select end date`
-                  : 'Click or drag on the calendar to select a date range'}
+
+            {/* ── Summary ── */}
+            <div className="mt-3 min-h-[2rem]">
+              {pickerMode === 'range' ? (
+                <div className="text-[10px] tracking-[0.1em] text-[var(--app-muted)]">
+                  {pickerEffectiveStart && pickerEffectiveEnd
+                    ? `Selected: ${formatShortDate(pickerEffectiveStart)} → ${formatShortDate(pickerEffectiveEnd)} (${pickerDayCount} day${pickerDayCount !== 1 ? 's' : ''})`
+                    : pickerEffectiveStart
+                      ? `Start: ${formatShortDate(pickerEffectiveStart)} — click or drag to select end date`
+                      : 'Click or drag on the calendar to select a date range'}
+                </div>
+              ) : (
+                <div className="flex flex-wrap items-center gap-1 text-[10px] tracking-[0.1em] text-[var(--app-muted)]">
+                  {pickerCustomDays.length === 0
+                    ? 'Click days to select. Shift+click to add a range between two days.'
+                    : (
+                      <>
+                        <span>Selected: {pickerCustomDays.length} day{pickerCustomDays.length !== 1 ? 's' : ''}</span>
+                        {pickerCustomDays.slice(0, 6).map(k => (
+                          <span
+                            key={k}
+                            className="rounded px-1.5 py-0.5 bg-[color-mix(in_srgb,var(--app-accent)_18%,var(--app-panel))] text-[var(--app-accent)] text-[9px] uppercase tracking-[0.1em]"
+                          >
+                            {formatShortDate(k)}
+                          </span>
+                        ))}
+                        {pickerCustomDays.length > 6 && (
+                          <span className="text-[var(--app-muted)]">+{pickerCustomDays.length - 6}</span>
+                        )}
+                      </>
+                    )}
+                </div>
+              )}
             </div>
+
+            {/* ── Footer ── */}
             <div className="mt-4 flex items-center justify-end gap-2">
               <button
                 type="button"
@@ -2336,12 +2505,21 @@ export const LogCalendar: React.FC = () => {
               </button>
               <button
                 type="button"
-                disabled={!pickerEffectiveStart || !pickerEffectiveEnd}
+                disabled={pickerMode === 'range'
+                  ? (!pickerEffectiveStart || !pickerEffectiveEnd)
+                  : pickerCustomDays.length === 0}
                 onClick={() => {
-                  if (pickerEffectiveStart && pickerEffectiveEnd) {
-                    setChallengeRange({ start: pickerEffectiveStart, end: pickerEffectiveEnd });
-                    setChallengePickerOpen(false);
-                  }
+                  const draft: ChallengeDraft = {
+                    mode: pickerMode,
+                    name: pickerName.trim(),
+                    badge: pickerBadge,
+                    ...(pickerMode === 'range' && pickerEffectiveStart && pickerEffectiveEnd
+                      ? { range: { start: pickerEffectiveStart, end: pickerEffectiveEnd } }
+                      : {}),
+                    ...(pickerMode === 'custom' ? { days: pickerCustomDays } : {}),
+                  };
+                  setChallengeDraftSaved(draft);
+                  setChallengePickerOpen(false);
                 }}
                 className="rounded-md border border-[color-mix(in_srgb,var(--app-accent)_45%,transparent)] bg-[color-mix(in_srgb,var(--app-accent)_14%,var(--app-panel))] px-3 py-1.5 text-[10px] uppercase tracking-[0.14em] text-[var(--app-accent)] hover:border-[var(--app-accent)] disabled:opacity-40 disabled:pointer-events-none"
               >
