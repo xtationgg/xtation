@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 
 // ─── Constants & helpers ────────────────────────────────────────────────────
 const DAYS = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
@@ -308,6 +309,10 @@ interface DateTimePickerProps {
   className?: string;
 }
 
+// Dropdown panel dimensions (approximate) used for smart flip logic
+const DROP_W = 385;
+const DROP_H = 340;
+
 export function DateTimePicker({ value, onChange, placeholder = 'Set schedule...', className }: DateTimePickerProps) {
   const now = new Date();
   const parsed = parseValue(value);
@@ -320,12 +325,29 @@ export function DateTimePicker({ value, onChange, placeholder = 'Set schedule...
   const [hour, setHour] = useState(parsed?.hour ?? (now.getHours() % 12 || 12));
   const [min, setMin] = useState(parsed?.min ?? now.getMinutes());
   const [ampm, setAmpm] = useState<'AM' | 'PM'>(parsed?.ampm ?? (now.getHours() < 12 ? 'AM' : 'PM'));
-  const containerRef = useRef<HTMLDivElement>(null);
+  const [dropStyle, setDropStyle] = useState<React.CSSProperties>({});
+
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
   // Track whether we're inside a programmatic onChange to avoid re-init loops
   const emittingRef = useRef(false);
 
   const hours = Array.from({ length: 12 }, (_, i) => i + 1);
   const minutes = Array.from({ length: 60 }, (_, i) => i);
+
+  // Compute portal position from trigger's screen coordinates
+  const computeDropStyle = (): React.CSSProperties => {
+    if (!triggerRef.current) return {};
+    const rect = triggerRef.current.getBoundingClientRect();
+    const spaceBelow = window.innerHeight - rect.bottom;
+    const above = spaceBelow < DROP_H + 12 && rect.top > DROP_H;
+    // Clamp left so dropdown doesn't overflow right edge
+    const left = Math.min(rect.left, window.innerWidth - DROP_W - 8);
+    if (above) {
+      return { bottom: window.innerHeight - rect.top + 6, left };
+    }
+    return { top: rect.bottom + 6, left };
+  };
 
   // Re-initialize when the picker opens (picks up any external value changes)
   useEffect(() => {
@@ -368,11 +390,19 @@ export function DateTimePicker({ value, onChange, placeholder = 'Set schedule...
   const prevMonth = () => setView(v => v.m === 0 ? { m: 11, y: v.y - 1 } : { ...v, m: v.m - 1 });
   const nextMonth = () => setView(v => v.m === 11 ? { m: 0, y: v.y + 1 } : { ...v, m: v.m + 1 });
 
-  // Close on outside click
+  const handleOpen = () => {
+    setDropStyle(computeDropStyle());
+    setOpen(o => !o);
+  };
+
+  // Close on outside click (must check both trigger wrapper and portal dropdown)
   useEffect(() => {
     if (!open) return;
     const handler = (e: MouseEvent) => {
-      if (containerRef.current && !containerRef.current.contains(e.target as Node)) setOpen(false);
+      const t = e.target as Node;
+      const inTrigger = triggerRef.current?.closest('div')?.contains(t);
+      const inDropdown = dropdownRef.current?.contains(t);
+      if (!inTrigger && !inDropdown) setOpen(false);
     };
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
@@ -386,6 +416,16 @@ export function DateTimePicker({ value, onChange, placeholder = 'Set schedule...
     return () => document.removeEventListener('keydown', handler);
   }, [open]);
 
+  // Recompute position on scroll/resize while open
+  useEffect(() => {
+    if (!open) return;
+    const update = () => setDropStyle(computeDropStyle());
+    window.addEventListener('scroll', update, true);
+    window.addEventListener('resize', update);
+    return () => { window.removeEventListener('scroll', update, true); window.removeEventListener('resize', update); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open]);
+
   const display = formatDisplay(sel, hour, min, ampm);
 
   const footBtnStyle: React.CSSProperties = {
@@ -395,12 +435,103 @@ export function DateTimePicker({ value, onChange, placeholder = 'Set schedule...
     textTransform: 'uppercase', transition: 'color 0.12s', borderRadius: 4,
   };
 
+  const dropdownPanel = open && (
+    <div
+      ref={dropdownRef}
+      style={{
+        position: 'fixed',
+        ...dropStyle,
+        zIndex: 99999,
+        background: 'var(--app-panel)',
+        borderRadius: 14,
+        border: '1px solid color-mix(in srgb, var(--app-text) 10%, transparent)',
+        boxShadow: '0 8px 40px rgba(0,0,0,0.55), 0 0 0 1px color-mix(in srgb, var(--app-text) 5%, transparent)',
+        overflow: 'hidden',
+        display: 'inline-flex',
+      }}
+    >
+      {/* Calendar column */}
+      <div style={{ padding: '16px 14px 10px', width: 240 }}>
+        {/* Month nav */}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+          <div style={{ fontSize: 12, fontWeight: 500, color: 'var(--app-text)', letterSpacing: '0.02em' }}>
+            {MONTHS[view.m]}{' '}
+            <span style={{ color: 'var(--app-muted)', fontWeight: 400 }}>{view.y}</span>
+          </div>
+          <div style={{ display: 'flex', gap: 2 }}>
+            {[
+              { onClick: prevMonth, d: 'M7.5 2L4 6l3.5 4' },
+              { onClick: nextMonth, d: 'M4.5 2L8 6l-3.5 4' },
+            ].map(({ onClick, d }, idx) => (
+              <button key={idx} type="button" onClick={onClick}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', width: 24, height: 24, borderRadius: 6, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--app-muted)', padding: 0, transition: 'background 0.1s, color 0.1s' }}
+                onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'color-mix(in srgb, var(--app-text) 8%, transparent)'; (e.currentTarget as HTMLButtonElement).style.color = 'var(--app-text)'; }}
+                onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'none'; (e.currentTarget as HTMLButtonElement).style.color = 'var(--app-muted)'; }}
+              >
+                <svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d={d} /></svg>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <DraggableCalendar view={view} setView={setView} sel={sel} setSel={handleSel} now={now} />
+
+        {/* Footer */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 10, paddingTop: 10, borderTop: '1px solid color-mix(in srgb, var(--app-text) 7%, transparent)' }}>
+          <button type="button" onClick={handleClear} style={footBtnStyle}
+            onMouseEnter={e => (e.currentTarget.style.color = 'var(--app-text)')}
+            onMouseLeave={e => (e.currentTarget.style.color = 'var(--app-muted)')}
+          >Clear</button>
+          <button type="button" onClick={goToday} style={footBtnStyle}
+            onMouseEnter={e => (e.currentTarget.style.color = 'var(--app-accent)')}
+            onMouseLeave={e => (e.currentTarget.style.color = 'var(--app-muted)')}
+          >Today</button>
+        </div>
+      </div>
+
+      {/* Divider */}
+      <div style={{ width: 1, background: 'color-mix(in srgb, var(--app-text) 7%, transparent)', alignSelf: 'stretch' }} />
+
+      {/* Time column */}
+      <div style={{ display: 'flex', alignItems: 'center', padding: '0 4px' }}>
+        <DrumColumn values={hours} selected={hour} onSelect={handleHour} label="HR" min={1} max={12} />
+        <div style={{ fontSize: 18, color: 'color-mix(in srgb, var(--app-text) 18%, transparent)', fontWeight: 300, marginTop: 8, padding: '0 1px' }}>:</div>
+        <DrumColumn values={minutes} selected={min} onSelect={handleMin} label="MIN" min={0} max={59} />
+
+        {/* AM/PM + Now */}
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 5, paddingLeft: 10, marginLeft: 4, borderLeft: '1px solid color-mix(in srgb, var(--app-text) 7%, transparent)', alignSelf: 'stretch' }}>
+          {(['AM', 'PM'] as const).map(p => (
+            <button
+              key={p}
+              type="button"
+              onClick={() => handleAmpm(p)}
+              style={{
+                background: ampm === p ? 'var(--app-accent)' : 'none',
+                border: `1.5px solid ${ampm === p ? 'var(--app-accent)' : 'color-mix(in srgb, var(--app-text) 14%, transparent)'}`,
+                borderRadius: 7,
+                color: ampm === p ? 'var(--app-bg)' : 'var(--app-muted)',
+                fontSize: 10, fontWeight: 600, width: 38, height: 28,
+                cursor: 'pointer', letterSpacing: '0.06em', transition: 'all 0.15s',
+              }}
+            >{p}</button>
+          ))}
+          <div style={{ width: '100%', height: 1, background: 'color-mix(in srgb, var(--app-text) 7%, transparent)' }} />
+          <button type="button" onClick={goNow} style={footBtnStyle}
+            onMouseEnter={e => (e.currentTarget.style.color = 'var(--app-accent)')}
+            onMouseLeave={e => (e.currentTarget.style.color = 'var(--app-muted)')}
+          >Now</button>
+        </div>
+      </div>
+    </div>
+  );
+
   return (
-    <div ref={containerRef} style={{ position: 'relative' }} className={className}>
+    <div style={{ position: 'relative' }} className={className}>
       {/* ── Trigger ── */}
       <button
+        ref={triggerRef}
         type="button"
-        onClick={() => setOpen(o => !o)}
+        onClick={handleOpen}
         className={`w-full bg-[var(--app-panel-2)] border text-[9px] text-left p-2 outline-none uppercase transition-colors ${
           open
             ? 'border-[color-mix(in_srgb,var(--app-accent)_50%,transparent)]'
@@ -411,96 +542,8 @@ export function DateTimePicker({ value, onChange, placeholder = 'Set schedule...
         {display || <span style={{ color: 'var(--app-muted)' }}>{placeholder}</span>}
       </button>
 
-      {/* ── Dropdown panel ── */}
-      {open && (
-        <div
-          style={{
-            position: 'absolute',
-            top: 'calc(100% + 6px)',
-            left: 0,
-            zIndex: 9999,
-            background: 'var(--app-panel)',
-            borderRadius: 14,
-            border: '1px solid color-mix(in srgb, var(--app-text) 10%, transparent)',
-            boxShadow: '0 8px 40px rgba(0,0,0,0.55), 0 0 0 1px color-mix(in srgb, var(--app-text) 5%, transparent)',
-            overflow: 'hidden',
-            display: 'inline-flex',
-          }}
-        >
-          {/* Calendar column */}
-          <div style={{ padding: '16px 14px 10px', width: 240 }}>
-            {/* Month nav */}
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
-              <div style={{ fontSize: 12, fontWeight: 500, color: 'var(--app-text)', letterSpacing: '0.02em' }}>
-                {MONTHS[view.m]}{' '}
-                <span style={{ color: 'var(--app-muted)', fontWeight: 400 }}>{view.y}</span>
-              </div>
-              <div style={{ display: 'flex', gap: 2 }}>
-                {[
-                  { onClick: prevMonth, d: 'M7.5 2L4 6l3.5 4' },
-                  { onClick: nextMonth, d: 'M4.5 2L8 6l-3.5 4' },
-                ].map(({ onClick, d }, idx) => (
-                  <button key={idx} type="button" onClick={onClick}
-                    style={{ background: 'none', border: 'none', cursor: 'pointer', width: 24, height: 24, borderRadius: 6, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--app-muted)', padding: 0, transition: 'background 0.1s, color 0.1s' }}
-                    onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = 'color-mix(in srgb, var(--app-text) 8%, transparent)'; (e.currentTarget as HTMLButtonElement).style.color = 'var(--app-text)'; }}
-                    onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = 'none'; (e.currentTarget as HTMLButtonElement).style.color = 'var(--app-muted)'; }}
-                  >
-                    <svg width="10" height="10" viewBox="0 0 12 12" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d={d} /></svg>
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <DraggableCalendar view={view} setView={setView} sel={sel} setSel={handleSel} now={now} />
-
-            {/* Footer */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 10, paddingTop: 10, borderTop: '1px solid color-mix(in srgb, var(--app-text) 7%, transparent)' }}>
-              <button type="button" onClick={handleClear} style={footBtnStyle}
-                onMouseEnter={e => (e.currentTarget.style.color = 'var(--app-text)')}
-                onMouseLeave={e => (e.currentTarget.style.color = 'var(--app-muted)')}
-              >Clear</button>
-              <button type="button" onClick={goToday} style={footBtnStyle}
-                onMouseEnter={e => (e.currentTarget.style.color = 'var(--app-accent)')}
-                onMouseLeave={e => (e.currentTarget.style.color = 'var(--app-muted)')}
-              >Today</button>
-            </div>
-          </div>
-
-          {/* Divider */}
-          <div style={{ width: 1, background: 'color-mix(in srgb, var(--app-text) 7%, transparent)', alignSelf: 'stretch' }} />
-
-          {/* Time column */}
-          <div style={{ display: 'flex', alignItems: 'center', padding: '0 4px' }}>
-            <DrumColumn values={hours} selected={hour} onSelect={handleHour} label="HR" min={1} max={12} />
-            <div style={{ fontSize: 18, color: 'color-mix(in srgb, var(--app-text) 18%, transparent)', fontWeight: 300, marginTop: 8, padding: '0 1px' }}>:</div>
-            <DrumColumn values={minutes} selected={min} onSelect={handleMin} label="MIN" min={0} max={59} />
-
-            {/* AM/PM + Now */}
-            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 5, paddingLeft: 10, marginLeft: 4, borderLeft: '1px solid color-mix(in srgb, var(--app-text) 7%, transparent)', alignSelf: 'stretch' }}>
-              {(['AM', 'PM'] as const).map(p => (
-                <button
-                  key={p}
-                  type="button"
-                  onClick={() => handleAmpm(p)}
-                  style={{
-                    background: ampm === p ? 'var(--app-accent)' : 'none',
-                    border: `1.5px solid ${ampm === p ? 'var(--app-accent)' : 'color-mix(in srgb, var(--app-text) 14%, transparent)'}`,
-                    borderRadius: 7,
-                    color: ampm === p ? 'var(--app-bg)' : 'var(--app-muted)',
-                    fontSize: 10, fontWeight: 600, width: 38, height: 28,
-                    cursor: 'pointer', letterSpacing: '0.06em', transition: 'all 0.15s',
-                  }}
-                >{p}</button>
-              ))}
-              <div style={{ width: '100%', height: 1, background: 'color-mix(in srgb, var(--app-text) 7%, transparent)' }} />
-              <button type="button" onClick={goNow} style={footBtnStyle}
-                onMouseEnter={e => (e.currentTarget.style.color = 'var(--app-accent)')}
-                onMouseLeave={e => (e.currentTarget.style.color = 'var(--app-muted)')}
-              >Now</button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* ── Dropdown portal (renders at document.body, escapes all overflow clipping) ── */}
+      {typeof document !== 'undefined' && createPortal(dropdownPanel, document.body)}
     </div>
   );
 }
