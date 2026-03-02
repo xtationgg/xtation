@@ -1591,17 +1591,6 @@ export const LogCalendar: React.FC = () => {
           <div className="min-w-0">
             <div className="flex items-center gap-2">
               <div className="text-[10px] uppercase tracking-[0.26em] text-[var(--app-muted)]">Day Console</div>
-              {challengeSaved && (
-                <span className={`rounded px-1.5 py-0.5 text-[8px] uppercase tracking-[0.14em] ${
-                  selectedKeyDoneState === 'done'
-                    ? 'bg-[color-mix(in_srgb,var(--app-accent)_22%,var(--app-panel))] text-[var(--app-accent)]'
-                    : selectedKeyDoneState === 'not_done'
-                      ? 'bg-[color-mix(in_srgb,var(--app-text)_10%,transparent)] text-[var(--app-muted)]'
-                      : 'bg-[color-mix(in_srgb,var(--app-text)_8%,transparent)] text-[var(--app-muted)]'
-                }`}>
-                  {selectedKeyDoneState === 'done' ? 'Done' : selectedKeyDoneState === 'not_done' ? 'Not done' : 'Not in range'}
-                </span>
-              )}
             </div>
             <div className="text-[10px] uppercase tracking-[0.12em] text-[var(--app-muted)] mt-0.5">{selectedDateLabel}</div>
           </div>
@@ -1634,72 +1623,6 @@ export const LogCalendar: React.FC = () => {
             {tab.label} ({sidePanelTabCounts[tab.value]})
           </button>
         ))}
-        {challengeSaved && (
-          <div className="ml-auto shrink-0 flex items-center gap-1">
-            {/* Info chip — scrolls to challenge card */}
-            <button
-              type="button"
-              title="Jump to challenge card"
-              onClick={() => document.getElementById('ch-card')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })}
-              className="flex items-center gap-1.5 rounded-md border border-[color-mix(in_srgb,var(--app-text)_12%,transparent)] bg-[var(--app-panel-2)] px-2 py-1 transition-colors hover:border-[color-mix(in_srgb,var(--app-accent)_38%,transparent)] hover:text-[var(--app-text)]"
-            >
-              <span className="text-[9px] uppercase tracking-[0.12em] text-[var(--app-muted)] opacity-75 whitespace-nowrap">
-                {challengeSaved.badge} · {formatShortDate(challengeSaved.start)}–{formatShortDate(challengeSaved.end)}
-              </span>
-              <span className={`rounded px-1.5 py-0.5 text-[8px] uppercase tracking-[0.1em] whitespace-nowrap ${
-                selectedChipStatus === 'done'
-                  ? 'bg-[color-mix(in_srgb,var(--app-accent)_20%,var(--app-panel))] text-[var(--app-accent)]'
-                  : selectedChipStatus === 'not_done'
-                    ? 'bg-[color-mix(in_srgb,var(--app-text)_10%,transparent)] text-[var(--app-muted)]'
-                    : selectedChipStatus === 'excluded'
-                      ? 'bg-[color-mix(in_srgb,var(--app-text)_8%,transparent)] text-[var(--app-muted)] opacity-55'
-                      : 'bg-[color-mix(in_srgb,var(--app-text)_6%,transparent)] text-[var(--app-muted)] opacity-40'
-              }`}>
-                {selectedChipStatus === 'done' ? 'Done'
-                  : selectedChipStatus === 'not_done' ? 'Not done'
-                  : selectedChipStatus === 'excluded' ? 'Excluded'
-                  : 'Out of range'}
-              </span>
-            </button>
-            {/* Mark Done / Undo quick action */}
-            <button
-              type="button"
-              disabled={selectedChipStatus === 'excluded' || selectedChipStatus === 'out_of_range'}
-              title={selectedChipStatus === 'done' ? 'Undo' : selectedChipStatus === 'not_done' ? 'Mark Done' : 'Not available'}
-              onClick={() => setChallengeCompletions(prev =>
-                prev.includes(selectedKey) ? prev.filter(k => k !== selectedKey) : [...prev, selectedKey]
-              )}
-              className={`inline-flex h-[26px] w-[26px] items-center justify-center rounded border transition-colors disabled:opacity-30 disabled:pointer-events-none ${
-                selectedChipStatus === 'done'
-                  ? 'border-[color-mix(in_srgb,var(--app-accent)_50%,transparent)] text-[var(--app-accent)] hover:border-[var(--app-accent)]'
-                  : 'border-[color-mix(in_srgb,var(--app-text)_14%,transparent)] text-[var(--app-muted)] hover:border-[color-mix(in_srgb,var(--app-accent)_50%,transparent)] hover:text-[var(--app-accent)]'
-              }`}
-            >
-              {selectedChipStatus === 'done'
-                ? <Undo2 className="h-3 w-3" />
-                : <Check className="h-3 w-3" />}
-            </button>
-            {/* Edit challenge */}
-            <button
-              type="button"
-              title="Edit challenge"
-              onClick={() => {
-                setPickerViewMonth(fromDateKey(challengeSaved.start));
-                setPickerStart(challengeSaved.start);
-                setPickerEnd(challengeSaved.end);
-                setPickerExcluded([...challengeSaved.excluded]);
-                setPickerName(challengeSaved.name);
-                setPickerBadge(challengeSaved.badge);
-                setPickerGoalType(challengeSaved.goalType);
-                setPickerGoalTarget(challengeSaved.goalTarget);
-                setChallengePickerOpen(true);
-              }}
-              className="inline-flex h-[26px] w-[26px] items-center justify-center rounded border border-[color-mix(in_srgb,var(--app-text)_14%,transparent)] text-[var(--app-muted)] hover:border-[color-mix(in_srgb,var(--app-accent)_38%,transparent)] hover:text-[var(--app-text)] transition-colors"
-            >
-              <Pencil className="h-3 w-3" />
-            </button>
-          </div>
-        )}
       </div>
 
       <div className="p-3">
@@ -1707,45 +1630,13 @@ export const LogCalendar: React.FC = () => {
           <div className="px-1 py-1">
             <div className="mb-2 flex items-center justify-between gap-2">
               <div className="text-[10px] uppercase tracking-[0.16em] text-[var(--app-muted)]">{activeTabLabel} • 24h timeline</div>
-              <div className="flex items-center gap-2 shrink-0">
-                {challengeSaved && (
-                  <button
-                    type="button"
-                    title={`${challengeSaved.badge} · ${formatShortDate(challengeSaved.start)}–${formatShortDate(challengeSaved.end)} · ${selectedChipStatus === 'done' ? 'Done' : selectedChipStatus === 'not_done' ? 'Eligible' : selectedChipStatus === 'excluded' ? 'Excluded' : 'Out of range'}`}
-                    onClick={() => document.getElementById('ch-card')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })}
-                    className="inline-flex items-center gap-1 transition-opacity hover:opacity-100"
-                  >
-                    <span className="text-[8px] uppercase tracking-[0.18em] text-[var(--app-muted)] opacity-40">Challenge</span>
-                    <span className="text-[var(--app-muted)] opacity-25 text-[8px]">·</span>
-                    {selectedChipStatus === 'done' ? (
-                      <span className="h-[6px] w-[6px] rounded-full bg-[var(--app-accent)] shadow-[0_0_4px_color-mix(in_srgb,var(--app-accent)_50%,transparent)] shrink-0" />
-                    ) : selectedChipStatus === 'not_done' ? (
-                      <span className="h-[6px] w-[6px] rounded-full border border-[var(--app-accent)] shrink-0" />
-                    ) : selectedChipStatus === 'excluded' ? (
-                      <span className="text-[9px] leading-none text-[var(--app-muted)] opacity-50 shrink-0">×</span>
-                    ) : (
-                      <span className="h-[6px] w-[6px] rounded-full bg-[var(--app-muted)] opacity-25 shrink-0" />
-                    )}
-                    <span className={`text-[9px] uppercase tracking-[0.14em] whitespace-nowrap ${
-                      selectedChipStatus === 'done' ? 'text-[var(--app-accent)]'
-                      : selectedChipStatus === 'not_done' ? 'text-[color-mix(in_srgb,var(--app-accent)_75%,var(--app-muted))]'
-                      : 'text-[var(--app-muted)] opacity-45'
-                    }`}>
-                      {selectedChipStatus === 'done' ? 'Done'
-                        : selectedChipStatus === 'not_done' ? 'Eligible'
-                        : selectedChipStatus === 'excluded' ? 'Excluded'
-                        : 'Out'}
-                    </span>
-                  </button>
-                )}
-                <button
-                  type="button"
-                  onClick={() => setTimelineExpanded(true)}
-                  className="px-2 py-1 rounded border border-[color-mix(in_srgb,var(--app-text)_20%,transparent)] text-[10px] uppercase tracking-[0.14em] text-[var(--app-muted)] hover:text-[var(--app-text)]"
-                >
-                  Expand
-                </button>
-              </div>
+              <button
+                type="button"
+                onClick={() => setTimelineExpanded(true)}
+                className="px-2 py-1 rounded border border-[color-mix(in_srgb,var(--app-text)_20%,transparent)] text-[10px] uppercase tracking-[0.14em] text-[var(--app-muted)] hover:text-[var(--app-text)]"
+              >
+                Expand
+              </button>
             </div>
             {renderTimelineChart()}
             <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-[10px] uppercase tracking-[0.12em] text-[var(--app-muted)]">
@@ -1783,7 +1674,6 @@ export const LogCalendar: React.FC = () => {
               </button>
             </div>
           </div>
-          <div id="ch-card">{challengeCardSection}</div>
           <div className="relative z-10 p-0.5">
             {renderCompactItemList()}
           </div>
@@ -1793,45 +1683,13 @@ export const LogCalendar: React.FC = () => {
           <div className="p-1.5">
             <div className="mb-2 flex items-center justify-between gap-2">
               <div className="text-[10px] uppercase tracking-[0.16em] text-[var(--app-muted)]">{activeTabLabel} • 24h timeline</div>
-              <div className="flex items-center gap-2 shrink-0">
-                {challengeSaved && (
-                  <button
-                    type="button"
-                    title={`${challengeSaved.badge} · ${formatShortDate(challengeSaved.start)}–${formatShortDate(challengeSaved.end)} · ${selectedChipStatus === 'done' ? 'Done' : selectedChipStatus === 'not_done' ? 'Eligible' : selectedChipStatus === 'excluded' ? 'Excluded' : 'Out of range'}`}
-                    onClick={() => document.getElementById('ch-card')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })}
-                    className="inline-flex items-center gap-1 transition-opacity hover:opacity-100"
-                  >
-                    <span className="text-[8px] uppercase tracking-[0.18em] text-[var(--app-muted)] opacity-40">Challenge</span>
-                    <span className="text-[var(--app-muted)] opacity-25 text-[8px]">·</span>
-                    {selectedChipStatus === 'done' ? (
-                      <span className="h-[6px] w-[6px] rounded-full bg-[var(--app-accent)] shadow-[0_0_4px_color-mix(in_srgb,var(--app-accent)_50%,transparent)] shrink-0" />
-                    ) : selectedChipStatus === 'not_done' ? (
-                      <span className="h-[6px] w-[6px] rounded-full border border-[var(--app-accent)] shrink-0" />
-                    ) : selectedChipStatus === 'excluded' ? (
-                      <span className="text-[9px] leading-none text-[var(--app-muted)] opacity-50 shrink-0">×</span>
-                    ) : (
-                      <span className="h-[6px] w-[6px] rounded-full bg-[var(--app-muted)] opacity-25 shrink-0" />
-                    )}
-                    <span className={`text-[9px] uppercase tracking-[0.14em] whitespace-nowrap ${
-                      selectedChipStatus === 'done' ? 'text-[var(--app-accent)]'
-                      : selectedChipStatus === 'not_done' ? 'text-[color-mix(in_srgb,var(--app-accent)_75%,var(--app-muted))]'
-                      : 'text-[var(--app-muted)] opacity-45'
-                    }`}>
-                      {selectedChipStatus === 'done' ? 'Done'
-                        : selectedChipStatus === 'not_done' ? 'Eligible'
-                        : selectedChipStatus === 'excluded' ? 'Excluded'
-                        : 'Out'}
-                    </span>
-                  </button>
-                )}
-                <button
-                  type="button"
-                  onClick={() => setTimelineExpanded(true)}
-                  className="px-2 py-1 rounded border border-[color-mix(in_srgb,var(--app-text)_20%,transparent)] text-[10px] uppercase tracking-[0.14em] text-[var(--app-muted)]"
-                >
-                  Expand
-                </button>
-              </div>
+              <button
+                type="button"
+                onClick={() => setTimelineExpanded(true)}
+                className="px-2 py-1 rounded border border-[color-mix(in_srgb,var(--app-text)_20%,transparent)] text-[10px] uppercase tracking-[0.14em] text-[var(--app-muted)]"
+              >
+                Expand
+              </button>
             </div>
             {renderTimelineChart(true)}
             <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-[10px] uppercase tracking-[0.12em] text-[var(--app-muted)]">
@@ -1869,7 +1727,6 @@ export const LogCalendar: React.FC = () => {
               </button>
             </div>
           </div>
-          {challengeCardSection}
           <button
             type="button"
             onClick={() => setMobileConsoleOpen(true)}
@@ -1901,6 +1758,92 @@ export const LogCalendar: React.FC = () => {
         <div className="flex justify-center lg:justify-end">
           <DayTimeOrb size={552} showLiveLabel={selectedKey !== todayKey} />
         </div>
+
+        {challengeSaved && (
+          <div className="rounded-xl border border-[color-mix(in_srgb,var(--app-accent)_30%,transparent)] bg-[color-mix(in_srgb,var(--app-accent)_7%,var(--app-panel-2))] px-4 py-2.5 flex items-center gap-4">
+            {/* Left: name + badge + range */}
+            <div className="min-w-0 shrink-0">
+              <div className="text-[10px] uppercase tracking-[0.18em] text-[var(--app-accent)] font-medium truncate">{challengeSaved.badge} {challengeSaved.name || 'Challenge'}</div>
+              <div className="text-[9px] uppercase tracking-[0.12em] text-[var(--app-muted)]">{formatShortDate(challengeSaved.start)} → {formatShortDate(challengeSaved.end)}</div>
+            </div>
+            <div className="w-px h-6 bg-[color-mix(in_srgb,var(--app-text)_10%,transparent)] shrink-0" />
+            {/* Middle: selected-day status + progress + progress bar + streak */}
+            <div className="flex items-center gap-3 flex-1 min-w-0 overflow-x-auto no-scrollbar">
+              <span className={`rounded px-1.5 py-0.5 text-[8px] uppercase tracking-[0.14em] whitespace-nowrap shrink-0 ${
+                selectedChipStatus === 'done'
+                  ? 'bg-[color-mix(in_srgb,var(--app-accent)_22%,var(--app-panel))] text-[var(--app-accent)]'
+                  : selectedChipStatus === 'not_done'
+                    ? 'bg-[color-mix(in_srgb,var(--app-text)_10%,transparent)] text-[var(--app-muted)]'
+                    : selectedChipStatus === 'excluded'
+                      ? 'bg-[color-mix(in_srgb,var(--app-text)_8%,transparent)] text-[var(--app-muted)] opacity-60'
+                      : 'bg-[color-mix(in_srgb,var(--app-text)_6%,transparent)] text-[var(--app-muted)] opacity-40'
+              }`}>
+                {selectedChipStatus === 'done' ? 'Done'
+                  : selectedChipStatus === 'not_done' ? 'Not done'
+                  : selectedChipStatus === 'excluded' ? 'Excluded'
+                  : 'Out of range'}
+              </span>
+              <span className="text-[9px] uppercase tracking-[0.12em] text-[var(--app-muted)] whitespace-nowrap shrink-0">
+                {challengeProgress}/{challengeSaved.goalTarget}
+                {challengeComplete && <span className="ml-1 text-[var(--app-accent)]">✓</span>}
+              </span>
+              <div className="h-1 flex-1 min-w-[40px] rounded-full bg-[color-mix(in_srgb,var(--app-text)_10%,transparent)] overflow-hidden">
+                <div
+                  className="h-full rounded-full bg-[var(--app-accent)] transition-all"
+                  style={{ width: `${Math.min(100, (challengeProgress / Math.max(1, challengeSaved.goalTarget)) * 100)}%` }}
+                />
+              </div>
+              <span className="text-[9px] uppercase tracking-[0.12em] text-[var(--app-muted)] whitespace-nowrap shrink-0">
+                Streak <span className="text-[var(--app-text)]">{challengeCurrentStreak}</span>
+              </span>
+            </div>
+            <div className="w-px h-6 bg-[color-mix(in_srgb,var(--app-text)_10%,transparent)] shrink-0" />
+            {/* Right: toggle done + edit + clear */}
+            <div className="flex items-center gap-1 shrink-0">
+              <button
+                type="button"
+                disabled={selectedChipStatus === 'excluded' || selectedChipStatus === 'out_of_range'}
+                title={selectedChipStatus === 'done' ? 'Undo' : 'Mark Done'}
+                onClick={() => setChallengeCompletions(prev =>
+                  prev.includes(selectedKey) ? prev.filter(k => k !== selectedKey) : [...prev, selectedKey]
+                )}
+                className={`inline-flex h-[26px] w-[26px] items-center justify-center rounded border transition-colors disabled:opacity-30 disabled:pointer-events-none ${
+                  selectedChipStatus === 'done'
+                    ? 'border-[color-mix(in_srgb,var(--app-accent)_50%,transparent)] text-[var(--app-accent)] hover:border-[var(--app-accent)]'
+                    : 'border-[color-mix(in_srgb,var(--app-text)_14%,transparent)] text-[var(--app-muted)] hover:border-[color-mix(in_srgb,var(--app-accent)_50%,transparent)] hover:text-[var(--app-accent)]'
+                }`}
+              >
+                {selectedChipStatus === 'done' ? <Undo2 className="h-3 w-3" /> : <Check className="h-3 w-3" />}
+              </button>
+              <button
+                type="button"
+                title="Edit challenge"
+                onClick={() => {
+                  setPickerViewMonth(fromDateKey(challengeSaved.start));
+                  setPickerStart(challengeSaved.start);
+                  setPickerEnd(challengeSaved.end);
+                  setPickerExcluded([...challengeSaved.excluded]);
+                  setPickerName(challengeSaved.name);
+                  setPickerBadge(challengeSaved.badge);
+                  setPickerGoalType(challengeSaved.goalType);
+                  setPickerGoalTarget(challengeSaved.goalTarget);
+                  setChallengePickerOpen(true);
+                }}
+                className="inline-flex h-[26px] w-[26px] items-center justify-center rounded border border-[color-mix(in_srgb,var(--app-text)_14%,transparent)] text-[var(--app-muted)] hover:border-[color-mix(in_srgb,var(--app-accent)_38%,transparent)] hover:text-[var(--app-text)] transition-colors"
+              >
+                <Pencil className="h-3 w-3" />
+              </button>
+              <button
+                type="button"
+                title="Clear challenge"
+                onClick={() => setChallengeClearConfirmOpen(true)}
+                className="inline-flex h-[26px] w-[26px] items-center justify-center rounded border border-[color-mix(in_srgb,var(--app-text)_14%,transparent)] text-[var(--app-muted)] hover:border-[color-mix(in_srgb,var(--app-text)_30%,transparent)] hover:text-[var(--app-text)] transition-colors"
+              >
+                <Trash2 className="h-3 w-3" />
+              </button>
+            </div>
+          </div>
+        )}
 
         <div className="rounded-2xl bg-[var(--app-panel-2)] p-4">
           <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between mb-4">
