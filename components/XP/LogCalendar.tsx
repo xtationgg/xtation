@@ -741,6 +741,14 @@ export const LogCalendar: React.FC = () => {
       ? (challengeCompletionsSet.has(selectedKey) ? 'done' : 'not_done')
       : 'not_in_range';
 
+  const selectedChipStatus: 'done' | 'not_done' | 'excluded' | 'out_of_range' = (() => {
+    if (!challengeSaved) return 'out_of_range';
+    const inDateRange = selectedKey >= challengeSaved.start && selectedKey <= challengeSaved.end;
+    if (!inDateRange) return 'out_of_range';
+    if (!challengeEligibleSet.has(selectedKey)) return 'excluded';
+    return challengeCompletionsSet.has(selectedKey) ? 'done' : 'not_done';
+  })();
+
   const getChallengeDayState = (dateKey: string): { inRange: boolean; excluded: boolean; done: boolean } => {
     if (!challengeSaved) return { inRange: false, excluded: false, done: false };
     const inDateRange = dateKey >= challengeSaved.start && dateKey <= challengeSaved.end;
@@ -1607,7 +1615,7 @@ export const LogCalendar: React.FC = () => {
         </div>
       </div>
 
-      <div className="px-3 py-2 border-b border-[color-mix(in_srgb,var(--app-text)_8%,transparent)] bg-[var(--app-panel)] flex gap-1 overflow-x-auto no-scrollbar">
+      <div className="px-3 py-2 border-b border-[color-mix(in_srgb,var(--app-text)_8%,transparent)] bg-[var(--app-panel)] flex items-center gap-1 overflow-x-auto no-scrollbar">
         {SIDE_PANEL_TABS.map((tab) => (
           <button
             key={tab.value}
@@ -1626,6 +1634,32 @@ export const LogCalendar: React.FC = () => {
             {tab.label} ({sidePanelTabCounts[tab.value]})
           </button>
         ))}
+        {challengeSaved && (
+          <button
+            type="button"
+            title="Jump to challenge card"
+            onClick={() => document.getElementById('ch-card')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })}
+            className="ml-auto shrink-0 flex items-center gap-1.5 rounded-md border border-[color-mix(in_srgb,var(--app-text)_12%,transparent)] bg-[var(--app-panel-2)] px-2 py-1 transition-colors hover:border-[color-mix(in_srgb,var(--app-accent)_38%,transparent)] hover:text-[var(--app-text)]"
+          >
+            <span className="text-[9px] uppercase tracking-[0.12em] text-[var(--app-muted)] opacity-75 whitespace-nowrap">
+              {challengeSaved.badge} · {formatShortDate(challengeSaved.start)}–{formatShortDate(challengeSaved.end)}
+            </span>
+            <span className={`rounded px-1.5 py-0.5 text-[8px] uppercase tracking-[0.1em] whitespace-nowrap ${
+              selectedChipStatus === 'done'
+                ? 'bg-[color-mix(in_srgb,var(--app-accent)_20%,var(--app-panel))] text-[var(--app-accent)]'
+                : selectedChipStatus === 'not_done'
+                  ? 'bg-[color-mix(in_srgb,var(--app-text)_10%,transparent)] text-[var(--app-muted)]'
+                  : selectedChipStatus === 'excluded'
+                    ? 'bg-[color-mix(in_srgb,var(--app-text)_8%,transparent)] text-[var(--app-muted)] opacity-55'
+                    : 'bg-[color-mix(in_srgb,var(--app-text)_6%,transparent)] text-[var(--app-muted)] opacity-40'
+            }`}>
+              {selectedChipStatus === 'done' ? 'Done'
+                : selectedChipStatus === 'not_done' ? 'Not done'
+                : selectedChipStatus === 'excluded' ? 'Excluded'
+                : 'Out of range'}
+            </span>
+          </button>
+        )}
       </div>
 
       <div className="p-3">
@@ -1677,7 +1711,7 @@ export const LogCalendar: React.FC = () => {
               </button>
             </div>
           </div>
-          {challengeCardSection}
+          <div id="ch-card">{challengeCardSection}</div>
           <div className="relative z-10 p-0.5">
             {renderCompactItemList()}
           </div>
