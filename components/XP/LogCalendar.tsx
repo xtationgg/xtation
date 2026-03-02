@@ -1919,17 +1919,17 @@ export const LogCalendar: React.FC = () => {
                           isSelected
                             ? 'border-[color-mix(in_srgb,var(--app-accent)_60%,transparent)] bg-[color-mix(in_srgb,var(--app-accent)_16%,var(--app-panel))]'
                             : chDay.inRange
-                              ? 'border-[color-mix(in_srgb,var(--app-accent)_28%,transparent)] bg-[color-mix(in_srgb,var(--app-accent)_9%,var(--app-panel-2))]'
+                              ? 'border-[color-mix(in_srgb,var(--app-accent)_26%,transparent)] bg-[color-mix(in_srgb,var(--app-accent)_6%,var(--app-panel-2))]'
                               : chDay.excluded
                                 ? 'border-[color-mix(in_srgb,var(--app-text)_8%,transparent)] bg-[color-mix(in_srgb,var(--app-text)_3%,var(--app-panel-2))]'
                                 : 'border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-[var(--app-panel-2)]'
                         }`}
                       >
-                        {!isSelected && chDay.excluded && (
-                          <span className="pointer-events-none absolute top-[6px] right-[6px] flex h-4 w-4 items-center justify-center rounded-sm text-[11px] leading-none text-[var(--app-muted)] opacity-60">×</span>
+                        {chDay.excluded && (
+                          <span className={`pointer-events-none absolute top-[6px] right-[6px] flex h-4 w-4 items-center justify-center rounded-sm text-[10px] leading-none text-[var(--app-muted)] ${isSelected ? 'opacity-35' : 'opacity-55'}`}>×</span>
                         )}
-                        {!isSelected && chDay.inRange && chDay.done && (
-                          <span className="pointer-events-none absolute bottom-[7px] right-[7px] h-[6px] w-[6px] rounded-full bg-[var(--app-accent)] shadow-[0_0_4px_color-mix(in_srgb,var(--app-accent)_55%,transparent)]" />
+                        {chDay.inRange && chDay.done && (
+                          <span className={`pointer-events-none absolute bottom-[7px] right-[7px] h-[6px] w-[6px] rounded-full bg-[var(--app-accent)] shadow-[0_0_5px_color-mix(in_srgb,var(--app-accent)_45%,transparent)] ${isSelected ? 'opacity-60' : ''}`} />
                         )}
                         <div className={`text-[11px] uppercase tracking-[0.16em] ${isToday ? 'text-[var(--app-accent)]' : 'text-[var(--app-muted)]'}`}>
                           {formatWeekdayLabel(day.key)}
@@ -1957,7 +1957,7 @@ export const LogCalendar: React.FC = () => {
                     In range
                   </span>
                   <span className="flex items-center gap-1.5">
-                    <span className="h-[6px] w-[6px] rounded-full bg-[var(--app-accent)] shadow-[0_0_4px_color-mix(in_srgb,var(--app-accent)_55%,transparent)]" />
+                    <span className="h-[6px] w-[6px] rounded-full bg-[var(--app-accent)] shadow-[0_0_5px_color-mix(in_srgb,var(--app-accent)_45%,transparent)]" />
                     Done
                   </span>
                   <span className="flex items-center gap-1.5">
@@ -1990,9 +1990,9 @@ export const LogCalendar: React.FC = () => {
                         isSelected
                           ? 'border-[color-mix(in_srgb,var(--app-accent)_70%,transparent)] bg-[color-mix(in_srgb,var(--app-accent)_16%,var(--app-panel))]'
                           : chDay.inRange && !day.inMonth
-                            ? 'border-[color-mix(in_srgb,var(--app-accent)_14%,transparent)] bg-[var(--app-bg)] text-[var(--app-muted)]'
+                            ? 'border-[color-mix(in_srgb,var(--app-accent)_10%,transparent)] bg-[var(--app-bg)] text-[var(--app-muted)]'
                             : chDay.inRange
-                              ? 'border-[color-mix(in_srgb,var(--app-accent)_28%,transparent)] bg-[color-mix(in_srgb,var(--app-accent)_9%,var(--app-panel-2))]'
+                              ? 'border-[color-mix(in_srgb,var(--app-accent)_26%,transparent)] bg-[color-mix(in_srgb,var(--app-accent)_6%,var(--app-panel-2))]'
                               : chDay.excluded
                                 ? 'border-[color-mix(in_srgb,var(--app-text)_8%,transparent)] bg-[color-mix(in_srgb,var(--app-text)_3%,var(--app-panel-2))]'
                                 : day.inMonth
@@ -2000,11 +2000,11 @@ export const LogCalendar: React.FC = () => {
                                   : 'border-[color-mix(in_srgb,var(--app-text)_5%,transparent)] bg-[var(--app-bg)] text-[var(--app-muted)]'
                       }`}
                     >
-                      {!isSelected && chDay.excluded && (
-                        <span className="pointer-events-none absolute top-[6px] right-[6px] flex h-4 w-4 items-center justify-center rounded-sm text-[11px] leading-none text-[var(--app-muted)] opacity-60">×</span>
+                      {chDay.excluded && (
+                        <span className={`pointer-events-none absolute top-[6px] right-[6px] flex h-4 w-4 items-center justify-center rounded-sm text-[10px] leading-none text-[var(--app-muted)] ${isSelected ? 'opacity-35' : 'opacity-55'}`}>×</span>
                       )}
-                      {!isSelected && chDay.inRange && chDay.done && (
-                        <span className="pointer-events-none absolute bottom-[7px] right-[7px] h-[6px] w-[6px] rounded-full bg-[var(--app-accent)] shadow-[0_0_4px_color-mix(in_srgb,var(--app-accent)_55%,transparent)]" />
+                      {chDay.inRange && chDay.done && (
+                        <span className={`pointer-events-none absolute bottom-[7px] right-[7px] h-[6px] w-[6px] rounded-full bg-[var(--app-accent)] shadow-[0_0_5px_color-mix(in_srgb,var(--app-accent)_45%,transparent)] ${isSelected ? 'opacity-60' : ''}`} />
                       )}
                       <span className={`text-sm font-medium leading-none ${isToday ? 'text-[var(--app-accent)]' : 'text-[var(--app-text)]'}`}>{day.date.getDate()}</span>
                       {loggedMin > 0 && (
@@ -2702,9 +2702,7 @@ export const LogCalendar: React.FC = () => {
                       <span className="pointer-events-none absolute top-0.5 right-0.5 flex h-3.5 w-3.5 items-center justify-center rounded-sm bg-[color-mix(in_srgb,var(--app-bg)_55%,transparent)] text-[10px] leading-none text-[var(--app-muted)]">×</span>
                     )}
                     {(inRange || isStart || isEnd) && !isExcluded && challengeCompletionsSet.has(day.key) && (
-                      <span className="pointer-events-none absolute bottom-0.5 right-0.5 flex h-3.5 w-3.5 items-center justify-center rounded bg-[color-mix(in_srgb,var(--app-bg)_55%,transparent)] shadow-[0_0_4px_color-mix(in_srgb,var(--app-accent)_60%,transparent)]">
-                        <svg viewBox="0 0 10 10" width="8" height="8" fill="none" stroke="var(--app-accent)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><polyline points="1.5,5 4,7.5 8.5,2.5" /></svg>
-                      </span>
+                      <span className="pointer-events-none absolute bottom-[5px] right-[5px] h-[5px] w-[5px] rounded-full bg-[var(--app-accent)] shadow-[0_0_3px_color-mix(in_srgb,var(--app-accent)_35%,transparent)]" />
                     )}
                   </button>
                 );
