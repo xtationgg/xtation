@@ -1892,10 +1892,12 @@ export const LogCalendar: React.FC = () => {
                         }`}
                       >
                         {chDay.excluded && (
-                          <span className="pointer-events-none absolute top-1.5 right-1.5 text-[9px] leading-none text-[var(--app-muted)] opacity-60">×</span>
+                          <span className="pointer-events-none absolute top-1 right-1 flex h-4 w-4 items-center justify-center rounded-sm bg-[color-mix(in_srgb,var(--app-bg)_55%,transparent)] text-[11px] leading-none text-[var(--app-muted)]">×</span>
                         )}
                         {chDay.inRange && chDay.done && (
-                          <span className="pointer-events-none absolute bottom-2 right-2 h-2 w-2 rounded-full bg-[var(--app-accent)] shadow-[0_0_4px_var(--app-accent)]" />
+                          <span className="pointer-events-none absolute bottom-1.5 right-1.5 flex h-4 w-4 items-center justify-center rounded bg-[color-mix(in_srgb,var(--app-bg)_55%,transparent)] shadow-[0_0_5px_color-mix(in_srgb,var(--app-accent)_60%,transparent)]">
+                            <svg viewBox="0 0 10 10" width="10" height="10" fill="none" stroke="var(--app-accent)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><polyline points="1.5,5 4,7.5 8.5,2.5" /></svg>
+                          </span>
                         )}
                         <div className={`text-[11px] uppercase tracking-[0.16em] ${isToday ? 'text-[var(--app-accent)]' : 'text-[var(--app-muted)]'}`}>
                           {formatWeekdayLabel(day.key)}
@@ -1949,10 +1951,12 @@ export const LogCalendar: React.FC = () => {
                       }`}
                     >
                       {chDay.excluded && (
-                        <span className="pointer-events-none absolute top-1 right-1 text-[9px] leading-none text-[var(--app-muted)] opacity-60">×</span>
+                        <span className="pointer-events-none absolute top-1 right-1 flex h-4 w-4 items-center justify-center rounded-sm bg-[color-mix(in_srgb,var(--app-bg)_55%,transparent)] text-[11px] leading-none text-[var(--app-muted)]">×</span>
                       )}
                       {chDay.inRange && chDay.done && (
-                        <span className="pointer-events-none absolute bottom-1.5 right-1.5 h-2 w-2 rounded-full bg-[var(--app-accent)] shadow-[0_0_4px_var(--app-accent)]" />
+                        <span className="pointer-events-none absolute bottom-1.5 right-1.5 flex h-4 w-4 items-center justify-center rounded bg-[color-mix(in_srgb,var(--app-bg)_55%,transparent)] shadow-[0_0_5px_color-mix(in_srgb,var(--app-accent)_60%,transparent)]">
+                          <svg viewBox="0 0 10 10" width="10" height="10" fill="none" stroke="var(--app-accent)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><polyline points="1.5,5 4,7.5 8.5,2.5" /></svg>
+                        </span>
                       )}
                       <div className="flex items-center justify-between mb-2">
                         <span className={`text-sm font-medium ${isToday ? 'text-[var(--app-accent)]' : 'text-[var(--app-text)]'}`}>{day.date.getDate()}</span>
@@ -2666,10 +2670,12 @@ export const LogCalendar: React.FC = () => {
                   >
                     {day.date.getDate()}
                     {isExcluded && (
-                      <span className="pointer-events-none absolute top-0.5 right-0.5 text-[8px] leading-none text-red-400/80">×</span>
+                      <span className="pointer-events-none absolute top-0.5 right-0.5 flex h-3.5 w-3.5 items-center justify-center rounded-sm bg-[color-mix(in_srgb,var(--app-bg)_55%,transparent)] text-[10px] leading-none text-[var(--app-muted)]">×</span>
                     )}
                     {(inRange || isStart || isEnd) && !isExcluded && challengeCompletionsSet.has(day.key) && (
-                      <span className="pointer-events-none absolute bottom-0.5 right-0.5 h-1.5 w-1.5 rounded-full bg-[var(--app-accent)] shadow-[0_0_3px_var(--app-accent)]" />
+                      <span className="pointer-events-none absolute bottom-0.5 right-0.5 flex h-3.5 w-3.5 items-center justify-center rounded bg-[color-mix(in_srgb,var(--app-bg)_55%,transparent)] shadow-[0_0_4px_color-mix(in_srgb,var(--app-accent)_60%,transparent)]">
+                        <svg viewBox="0 0 10 10" width="8" height="8" fill="none" stroke="var(--app-accent)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><polyline points="1.5,5 4,7.5 8.5,2.5" /></svg>
+                      </span>
                     )}
                   </button>
                 );
