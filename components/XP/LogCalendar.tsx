@@ -617,12 +617,15 @@ export const LogCalendar: React.FC = () => {
   const [pickerExcluded, setPickerExcluded] = useState<string[]>([]);
   const [pickerGoalType, setPickerGoalType] = useState<'daily' | 'count'>('daily');
   const [pickerGoalTarget, setPickerGoalTarget] = useState(30);
+  const [highlightedChallengeId, setHighlightedChallengeId] = useState<string | null>(null);
   const [pickerDragging, setPickerDragging] = useState(false);
   const pickerDragStartKeyRef = useRef<string | null>(null);
   const pickerDragMovedRef = useRef(false);
   const pickerNavCooldownRef = useRef(false);
   const dayConsoleListRef = useRef<HTMLDivElement | null>(null);
   const rowRefs = useRef<Record<string, HTMLDivElement | null>>({});
+  const hudContainerRef = useRef<HTMLDivElement | null>(null);
+  const hudRowRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const timelineChartRef = useRef<HTMLDivElement>(null);
   const [timelineChartWidth, setTimelineChartWidth] = useState(0);
   const [timelineChartHeight, setTimelineChartHeight] = useState(0);
@@ -671,6 +674,12 @@ export const LogCalendar: React.FC = () => {
   useEffect(() => {
     localStorage.setItem('xtation.challenge.completions.v2', JSON.stringify(challengeCompletions));
   }, [challengeCompletions]);
+
+  useEffect(() => {
+    if (!highlightedChallengeId) return;
+    const timer = setTimeout(() => setHighlightedChallengeId(null), 1500);
+    return () => clearTimeout(timer);
+  }, [highlightedChallengeId]);
 
   const gridDays = useMemo(() => {
     const start = monthGridStart(viewMonth);
@@ -739,7 +748,13 @@ export const LogCalendar: React.FC = () => {
       if (!eligibleSet.has(selectedKey)) return 'excluded';
       return completionsSet.has(selectedKey) ? 'done' : 'not_done';
     })();
-    return { id: ch.id, eligibleSet, completionsSet, progress, todayEligible, todayDone, complete, selectedStatus };
+    const eligibleUpToToday = [...eligibleSet].filter(k => k <= todayKey).sort().reverse();
+    let streak = 0;
+    for (const k of eligibleUpToToday) {
+      if (completionsSet.has(k)) streak++;
+      else break;
+    }
+    return { id: ch.id, eligibleSet, completionsSet, progress, todayEligible, todayDone, complete, selectedStatus, streak };
   }), [challengeList, challengeCompletions, todayKey, selectedKey]);
 
   const getChallengeDayState = (dateKey: string): { inRange: boolean; excluded: boolean; done: boolean } => {
@@ -1677,15 +1692,18 @@ export const LogCalendar: React.FC = () => {
         </div>
 
         {challengeList.length > 0 && (
-          <div className="rounded-xl border border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-[var(--app-panel-2)] overflow-hidden">
+          <div
+            ref={hudContainerRef}
+            className="rounded-xl border border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-[var(--app-panel-2)] overflow-hidden"
+          >
             {/* Header */}
             <div className="px-4 py-2 flex items-center justify-between border-b border-[color-mix(in_srgb,var(--app-text)_6%,transparent)] bg-[var(--app-panel)]">
               <div className="flex items-center gap-2">
-                <span className="text-[10px] uppercase tracking-[0.26em] text-[var(--app-muted)]">Challenges Today</span>
+                <span className="text-[10px] uppercase tracking-[0.26em] text-[var(--app-muted)]">Challenges</span>
                 {(() => {
                   const n = challengeMeta.filter(m => m.todayEligible).length;
                   return n > 0 ? (
-                    <span className="rounded px-1.5 py-0.5 text-[8px] bg-[color-mix(in_srgb,var(--app-accent)_18%,var(--app-panel))] text-[var(--app-accent)]">{n}</span>
+                    <span className="rounded px-1.5 py-0.5 text-[8px] bg-[color-mix(in_srgb,var(--app-accent)_18%,var(--app-panel))] text-[var(--app-accent)]">{n} today</span>
                   ) : null;
                 })()}
               </div>
@@ -1708,79 +1726,90 @@ export const LogCalendar: React.FC = () => {
                 + New
               </button>
             </div>
-            {/* Challenge rows */}
-            {(() => {
-              const eligible = challengeList.filter((_, i) => challengeMeta[i]?.todayEligible);
-              if (eligible.length === 0) {
-                return (
-                  <div className="px-4 py-2.5 text-[10px] uppercase tracking-[0.14em] text-[var(--app-muted)] opacity-50">
-                    No active challenges today.
+            {/* Challenge rows — all challenges, single-line layout */}
+            {challengeList.map(ch => {
+              const meta = challengeMeta.find(m => m.id === ch.id)!;
+              const isHighlighted = highlightedChallengeId === ch.id;
+              const canToggle = meta.selectedStatus === 'done' || meta.selectedStatus === 'not_done';
+              const selectedDone = meta.selectedStatus === 'done';
+              const statusPillClass = {
+                done: 'bg-[color-mix(in_srgb,var(--app-accent)_22%,var(--app-panel))] text-[var(--app-accent)]',
+                not_done: 'bg-[color-mix(in_srgb,var(--app-text)_10%,transparent)] text-[var(--app-muted)]',
+                excluded: 'bg-[color-mix(in_srgb,#f59e0b_14%,var(--app-panel))] text-[#f59e0b]',
+                out_of_range: 'bg-[color-mix(in_srgb,var(--app-text)_6%,transparent)] text-[var(--app-muted)] opacity-60',
+              }[meta.selectedStatus];
+              const statusLabel = { done: 'Done', not_done: 'Not done', excluded: 'Excl.', out_of_range: 'Off range' }[meta.selectedStatus];
+              return (
+                <div
+                  key={ch.id}
+                  ref={(node) => { hudRowRefs.current[ch.id] = node; }}
+                  className={`px-3 py-2 flex items-center gap-2 border-b border-[color-mix(in_srgb,var(--app-text)_5%,transparent)] last:border-0 transition-colors duration-300 ${
+                    isHighlighted ? 'bg-[color-mix(in_srgb,var(--app-accent)_10%,var(--app-panel-2))]' : ''
+                  }`}
+                >
+                  {/* Left: name + range */}
+                  <div className="min-w-0 flex-1 overflow-hidden">
+                    <div className="text-[10px] uppercase tracking-[0.14em] text-[var(--app-accent)] truncate leading-tight">{ch.badge} · {ch.name || 'Challenge'}</div>
+                    <div className="text-[9px] uppercase tracking-[0.1em] text-[var(--app-muted)] truncate leading-tight">{formatShortDate(ch.start)} → {formatShortDate(ch.end)}</div>
                   </div>
-                );
-              }
-              return eligible.map(ch => {
-                const meta = challengeMeta.find(m => m.id === ch.id)!;
-                return (
-                  <div key={ch.id} className="px-4 py-2 flex items-center gap-3 border-b border-[color-mix(in_srgb,var(--app-text)_5%,transparent)] last:border-0">
-                    {/* badge + name */}
-                    <div className="min-w-0 flex-1">
-                      <div className="text-[10px] uppercase tracking-[0.14em] text-[var(--app-accent)] truncate">{ch.badge} {ch.name || 'Challenge'}</div>
-                      <div className="text-[9px] uppercase tracking-[0.1em] text-[var(--app-muted)]">{formatShortDate(ch.start)} → {formatShortDate(ch.end)}</div>
-                    </div>
-                    {/* status chip */}
-                    <span className={`shrink-0 rounded px-1.5 py-0.5 text-[8px] uppercase tracking-[0.14em] whitespace-nowrap ${
-                      meta.todayDone
-                        ? 'bg-[color-mix(in_srgb,var(--app-accent)_22%,var(--app-panel))] text-[var(--app-accent)]'
-                        : 'bg-[color-mix(in_srgb,var(--app-text)_10%,transparent)] text-[var(--app-muted)]'
-                    }`}>
-                      {meta.todayDone ? 'Done' : 'Not done'}
+                  {/* Middle: status + progress + streak */}
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    <span className={`rounded px-1.5 py-0.5 text-[8px] uppercase tracking-[0.14em] whitespace-nowrap ${statusPillClass}`}>
+                      {statusLabel}
                     </span>
-                    {/* quick actions */}
-                    <div className="flex items-center gap-1 shrink-0">
-                      <button
-                        type="button"
-                        title={meta.todayDone ? 'Undo' : 'Mark Done'}
-                        onClick={() => toggleChallengeDay(ch.id, todayKey)}
-                        className={`inline-flex h-[24px] w-[24px] items-center justify-center rounded border transition-colors ${
-                          meta.todayDone
-                            ? 'border-[color-mix(in_srgb,var(--app-accent)_50%,transparent)] text-[var(--app-accent)] hover:border-[var(--app-accent)]'
-                            : 'border-[color-mix(in_srgb,var(--app-text)_14%,transparent)] text-[var(--app-muted)] hover:border-[color-mix(in_srgb,var(--app-accent)_50%,transparent)] hover:text-[var(--app-accent)]'
-                        }`}
-                      >
-                        {meta.todayDone ? <Undo2 className="h-3 w-3" /> : <Check className="h-3 w-3" />}
-                      </button>
-                      <button
-                        type="button"
-                        title="Edit challenge"
-                        onClick={() => {
-                          setPickerEditId(ch.id);
-                          setPickerViewMonth(fromDateKey(ch.start));
-                          setPickerStart(ch.start);
-                          setPickerEnd(ch.end);
-                          setPickerExcluded([...ch.excluded]);
-                          setPickerName(ch.name);
-                          setPickerBadge(ch.badge);
-                          setPickerGoalType(ch.goalType);
-                          setPickerGoalTarget(ch.goalTarget);
-                          setChallengePickerOpen(true);
-                        }}
-                        className="inline-flex h-[24px] w-[24px] items-center justify-center rounded border border-[color-mix(in_srgb,var(--app-text)_14%,transparent)] text-[var(--app-muted)] hover:border-[color-mix(in_srgb,var(--app-accent)_38%,transparent)] hover:text-[var(--app-text)] transition-colors"
-                      >
-                        <Pencil className="h-3 w-3" />
-                      </button>
-                      <button
-                        type="button"
-                        title="Delete challenge"
-                        onClick={() => setChallengeDeleteTarget(ch.id)}
-                        className="inline-flex h-[24px] w-[24px] items-center justify-center rounded border border-[color-mix(in_srgb,var(--app-text)_14%,transparent)] text-[var(--app-muted)] hover:border-[color-mix(in_srgb,var(--app-text)_30%,transparent)] hover:text-[var(--app-text)] transition-colors"
-                      >
-                        <Trash2 className="h-3 w-3" />
-                      </button>
-                    </div>
+                    <span className="text-[9px] text-[var(--app-muted)] whitespace-nowrap tabular-nums">{meta.progress}/{ch.goalTarget}</span>
+                    {meta.streak > 0 && (
+                      <span className="text-[9px] text-[var(--app-muted)] whitespace-nowrap tabular-nums">🔥{meta.streak}</span>
+                    )}
                   </div>
-                );
-              });
-            })()}
+                  {/* Right: Done/Undo + Edit + Delete */}
+                  <div className="flex items-center gap-1 shrink-0">
+                    <button
+                      type="button"
+                      disabled={!canToggle}
+                      title={selectedDone ? `Undo ${selectedKey}` : `Mark ${selectedKey} done`}
+                      onClick={() => canToggle && toggleChallengeDay(ch.id, selectedKey)}
+                      className={`inline-flex h-[24px] w-[24px] items-center justify-center rounded border transition-colors ${
+                        !canToggle
+                          ? 'border-[color-mix(in_srgb,var(--app-text)_8%,transparent)] text-[var(--app-muted)] opacity-30 pointer-events-none'
+                          : selectedDone
+                          ? 'border-[color-mix(in_srgb,var(--app-accent)_50%,transparent)] text-[var(--app-accent)] hover:border-[var(--app-accent)]'
+                          : 'border-[color-mix(in_srgb,var(--app-text)_14%,transparent)] text-[var(--app-muted)] hover:border-[color-mix(in_srgb,var(--app-accent)_50%,transparent)] hover:text-[var(--app-accent)]'
+                      }`}
+                    >
+                      {selectedDone ? <Undo2 className="h-3 w-3" /> : <Check className="h-3 w-3" />}
+                    </button>
+                    <button
+                      type="button"
+                      title="Edit challenge"
+                      onClick={() => {
+                        setPickerEditId(ch.id);
+                        setPickerViewMonth(fromDateKey(ch.start));
+                        setPickerStart(ch.start);
+                        setPickerEnd(ch.end);
+                        setPickerExcluded([...ch.excluded]);
+                        setPickerName(ch.name);
+                        setPickerBadge(ch.badge);
+                        setPickerGoalType(ch.goalType);
+                        setPickerGoalTarget(ch.goalTarget);
+                        setChallengePickerOpen(true);
+                      }}
+                      className="inline-flex h-[24px] w-[24px] items-center justify-center rounded border border-[color-mix(in_srgb,var(--app-text)_14%,transparent)] text-[var(--app-muted)] hover:border-[color-mix(in_srgb,var(--app-accent)_38%,transparent)] hover:text-[var(--app-text)] transition-colors"
+                    >
+                      <Pencil className="h-3 w-3" />
+                    </button>
+                    <button
+                      type="button"
+                      title="Delete challenge"
+                      onClick={() => setChallengeDeleteTarget(ch.id)}
+                      className="inline-flex h-[24px] w-[24px] items-center justify-center rounded border border-[color-mix(in_srgb,var(--app-text)_14%,transparent)] text-[var(--app-muted)] hover:border-[color-mix(in_srgb,var(--app-text)_30%,transparent)] hover:text-[var(--app-text)] transition-colors"
+                    >
+                      <Trash2 className="h-3 w-3" />
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         )}
 
