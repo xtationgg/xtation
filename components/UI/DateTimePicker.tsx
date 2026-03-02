@@ -327,6 +327,7 @@ export function DateTimePicker({ value, onChange, placeholder = 'Set schedule...
   const [ampm, setAmpm] = useState<'AM' | 'PM'>(parsed?.ampm ?? (now.getHours() < 12 ? 'AM' : 'PM'));
   const [dropStyle, setDropStyle] = useState<React.CSSProperties>({});
 
+  const wrapperRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
   // Track whether we're inside a programmatic onChange to avoid re-init loops
@@ -400,9 +401,9 @@ export function DateTimePicker({ value, onChange, placeholder = 'Set schedule...
     if (!open) return;
     const handler = (e: MouseEvent) => {
       const t = e.target as Node;
-      const inTrigger = triggerRef.current?.closest('div')?.contains(t);
+      const inWrapper = wrapperRef.current?.contains(t);
       const inDropdown = dropdownRef.current?.contains(t);
-      if (!inTrigger && !inDropdown) setOpen(false);
+      if (!inWrapper && !inDropdown) setOpen(false);
     };
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
@@ -438,6 +439,7 @@ export function DateTimePicker({ value, onChange, placeholder = 'Set schedule...
   const dropdownPanel = open && (
     <div
       ref={dropdownRef}
+      data-portal-ignore-outside-click="true"
       style={{
         position: 'fixed',
         ...dropStyle,
@@ -526,7 +528,7 @@ export function DateTimePicker({ value, onChange, placeholder = 'Set schedule...
   );
 
   return (
-    <div style={{ position: 'relative' }} className={className}>
+    <div ref={wrapperRef} style={{ position: 'relative' }} className={className}>
       {/* ── Trigger ── */}
       <button
         ref={triggerRef}
