@@ -1707,13 +1707,45 @@ export const LogCalendar: React.FC = () => {
           <div className="px-1 py-1">
             <div className="mb-2 flex items-center justify-between gap-2">
               <div className="text-[10px] uppercase tracking-[0.16em] text-[var(--app-muted)]">{activeTabLabel} • 24h timeline</div>
-              <button
-                type="button"
-                onClick={() => setTimelineExpanded(true)}
-                className="px-2 py-1 rounded border border-[color-mix(in_srgb,var(--app-text)_20%,transparent)] text-[10px] uppercase tracking-[0.14em] text-[var(--app-muted)] hover:text-[var(--app-text)]"
-              >
-                Expand
-              </button>
+              <div className="flex items-center gap-2 shrink-0">
+                {challengeSaved && (
+                  <button
+                    type="button"
+                    title={`${challengeSaved.badge} · ${formatShortDate(challengeSaved.start)}–${formatShortDate(challengeSaved.end)} · ${selectedChipStatus === 'done' ? 'Done' : selectedChipStatus === 'not_done' ? 'Eligible' : selectedChipStatus === 'excluded' ? 'Excluded' : 'Out of range'}`}
+                    onClick={() => document.getElementById('ch-card')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })}
+                    className="inline-flex items-center gap-1 transition-opacity hover:opacity-100"
+                  >
+                    <span className="text-[8px] uppercase tracking-[0.18em] text-[var(--app-muted)] opacity-40">Challenge</span>
+                    <span className="text-[var(--app-muted)] opacity-25 text-[8px]">·</span>
+                    {selectedChipStatus === 'done' ? (
+                      <span className="h-[6px] w-[6px] rounded-full bg-[var(--app-accent)] shadow-[0_0_4px_color-mix(in_srgb,var(--app-accent)_50%,transparent)] shrink-0" />
+                    ) : selectedChipStatus === 'not_done' ? (
+                      <span className="h-[6px] w-[6px] rounded-full border border-[var(--app-accent)] shrink-0" />
+                    ) : selectedChipStatus === 'excluded' ? (
+                      <span className="text-[9px] leading-none text-[var(--app-muted)] opacity-50 shrink-0">×</span>
+                    ) : (
+                      <span className="h-[6px] w-[6px] rounded-full bg-[var(--app-muted)] opacity-25 shrink-0" />
+                    )}
+                    <span className={`text-[9px] uppercase tracking-[0.14em] whitespace-nowrap ${
+                      selectedChipStatus === 'done' ? 'text-[var(--app-accent)]'
+                      : selectedChipStatus === 'not_done' ? 'text-[color-mix(in_srgb,var(--app-accent)_75%,var(--app-muted))]'
+                      : 'text-[var(--app-muted)] opacity-45'
+                    }`}>
+                      {selectedChipStatus === 'done' ? 'Done'
+                        : selectedChipStatus === 'not_done' ? 'Eligible'
+                        : selectedChipStatus === 'excluded' ? 'Excluded'
+                        : 'Out'}
+                    </span>
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={() => setTimelineExpanded(true)}
+                  className="px-2 py-1 rounded border border-[color-mix(in_srgb,var(--app-text)_20%,transparent)] text-[10px] uppercase tracking-[0.14em] text-[var(--app-muted)] hover:text-[var(--app-text)]"
+                >
+                  Expand
+                </button>
+              </div>
             </div>
             {renderTimelineChart()}
             <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-[10px] uppercase tracking-[0.12em] text-[var(--app-muted)]">
@@ -1761,13 +1793,45 @@ export const LogCalendar: React.FC = () => {
           <div className="p-1.5">
             <div className="mb-2 flex items-center justify-between gap-2">
               <div className="text-[10px] uppercase tracking-[0.16em] text-[var(--app-muted)]">{activeTabLabel} • 24h timeline</div>
-              <button
-                type="button"
-                onClick={() => setTimelineExpanded(true)}
-                className="px-2 py-1 rounded border border-[color-mix(in_srgb,var(--app-text)_20%,transparent)] text-[10px] uppercase tracking-[0.14em] text-[var(--app-muted)]"
-              >
-                Expand
-              </button>
+              <div className="flex items-center gap-2 shrink-0">
+                {challengeSaved && (
+                  <button
+                    type="button"
+                    title={`${challengeSaved.badge} · ${formatShortDate(challengeSaved.start)}–${formatShortDate(challengeSaved.end)} · ${selectedChipStatus === 'done' ? 'Done' : selectedChipStatus === 'not_done' ? 'Eligible' : selectedChipStatus === 'excluded' ? 'Excluded' : 'Out of range'}`}
+                    onClick={() => document.getElementById('ch-card')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })}
+                    className="inline-flex items-center gap-1 transition-opacity hover:opacity-100"
+                  >
+                    <span className="text-[8px] uppercase tracking-[0.18em] text-[var(--app-muted)] opacity-40">Challenge</span>
+                    <span className="text-[var(--app-muted)] opacity-25 text-[8px]">·</span>
+                    {selectedChipStatus === 'done' ? (
+                      <span className="h-[6px] w-[6px] rounded-full bg-[var(--app-accent)] shadow-[0_0_4px_color-mix(in_srgb,var(--app-accent)_50%,transparent)] shrink-0" />
+                    ) : selectedChipStatus === 'not_done' ? (
+                      <span className="h-[6px] w-[6px] rounded-full border border-[var(--app-accent)] shrink-0" />
+                    ) : selectedChipStatus === 'excluded' ? (
+                      <span className="text-[9px] leading-none text-[var(--app-muted)] opacity-50 shrink-0">×</span>
+                    ) : (
+                      <span className="h-[6px] w-[6px] rounded-full bg-[var(--app-muted)] opacity-25 shrink-0" />
+                    )}
+                    <span className={`text-[9px] uppercase tracking-[0.14em] whitespace-nowrap ${
+                      selectedChipStatus === 'done' ? 'text-[var(--app-accent)]'
+                      : selectedChipStatus === 'not_done' ? 'text-[color-mix(in_srgb,var(--app-accent)_75%,var(--app-muted))]'
+                      : 'text-[var(--app-muted)] opacity-45'
+                    }`}>
+                      {selectedChipStatus === 'done' ? 'Done'
+                        : selectedChipStatus === 'not_done' ? 'Eligible'
+                        : selectedChipStatus === 'excluded' ? 'Excluded'
+                        : 'Out'}
+                    </span>
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={() => setTimelineExpanded(true)}
+                  className="px-2 py-1 rounded border border-[color-mix(in_srgb,var(--app-text)_20%,transparent)] text-[10px] uppercase tracking-[0.14em] text-[var(--app-muted)]"
+                >
+                  Expand
+                </button>
+              </div>
             </div>
             {renderTimelineChart(true)}
             <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-[10px] uppercase tracking-[0.12em] text-[var(--app-muted)]">
