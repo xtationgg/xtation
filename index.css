@@ -620,6 +620,135 @@
   );
 }
 
+/* ─── Notion Light ──────────────────────────────────────────────────────────
+   A clean, document-first aesthetic inspired by Notion's UI language:
+   warm white surfaces, near-black text, crisp blue accent, zero glow.
+   ─────────────────────────────────────────────────────────────────────────── */
+[data-theme='notion_light'] {
+  --app-bg: #ffffff;
+  --app-panel: #f7f6f3;
+  --app-panel-2: #efede9;
+  --app-border: #e3e2df;
+  --app-text: #37352f;
+  --app-muted: #9b9a97;
+  --app-accent: #2383e2;
+  --app-accent-weak: color-mix(in srgb, var(--app-accent) 14%, transparent);
+  --app-focus-ring: color-mix(in srgb, var(--app-accent) 32%, transparent);
+  --app-danger: #e03e3e;
+
+  --app-radius-sm: 4px;
+  --app-radius-md: 6px;
+  --app-radius-lg: 8px;
+  --app-cut-sm: 0px;
+  --app-cut-md: 0px;
+  --app-cut-lg: 0px;
+
+  --app-stroke: 1px;
+  --app-shadow-soft: 0 1px 3px rgba(55, 53, 47, 0.08), 0 2px 8px rgba(55, 53, 47, 0.04);
+  --app-shadow-strong: 0 4px 16px rgba(55, 53, 47, 0.12), 0 1px 4px rgba(55, 53, 47, 0.07);
+  --app-glow-accent: 0 0 0 2px color-mix(in srgb, var(--app-accent) 22%, transparent);
+  --app-glow-strength: 0;
+  --app-hover-glow-base: 0%;
+  --app-noise-opacity: 0;
+  --app-glass-opacity: 0;
+  --app-blur: 0px;
+
+  --app-panel-rgb: 247 246 243;
+  --app-panel-2-rgb: 239 237 233;
+  --app-bg-overlay: none;
+
+  --app-motion-fast: 100ms;
+  --app-motion-med: 140ms;
+  --app-motion-slow: 200ms;
+  --app-ease: cubic-bezier(0.25, 0.1, 0.25, 1);
+  --app-hover-lift-y: 0px;
+  --app-hover-scale: 1;
+  --app-body-letter-spacing: 0em;
+
+  --app-clip-all: none;
+  --app-clip-right: none;
+  --app-clip-left: none;
+  --app-clip-card: none;
+  --app-clip-pill: none;
+}
+
+/* Notion Light: light color-scheme so browser chrome (scrollbars, inputs) matches */
+[data-theme='notion_light'] {
+  color-scheme: light;
+}
+
+/* Notion Light: soften the glow utility — on a white bg a hard accent ring is too heavy */
+[data-theme='notion_light'] .ui-glow {
+  box-shadow: 0 0 0 1.5px color-mix(in srgb, var(--app-accent) 55%, transparent),
+              0 2px 8px rgba(55, 53, 47, 0.06) !important;
+}
+
+/* Notion Light: remove the dark transparent overlays used for active states */
+[data-theme='notion_light'] .ui-pressable:hover {
+  background-color: color-mix(in srgb, var(--app-text) 5%, transparent) !important;
+}
+
+/* ─── Notion Dark ───────────────────────────────────────────────────────────
+   Notion's dark mode palette: near-black warm surfaces, off-white text,
+   steel blue accent — same document-first aesthetic, zero glow/glass.
+   ─────────────────────────────────────────────────────────────────────────── */
+[data-theme='notion_dark'] {
+  --app-bg: #191919;
+  --app-panel: #202020;
+  --app-panel-2: #2f2f2f;
+  --app-border: #373737;
+  --app-text: #e6e6e6;
+  --app-muted: #787774;
+  --app-accent: #529cca;
+  --app-accent-weak: color-mix(in srgb, var(--app-accent) 16%, transparent);
+  --app-focus-ring: color-mix(in srgb, var(--app-accent) 36%, transparent);
+  --app-danger: #e55d65;
+
+  --app-radius-sm: 4px;
+  --app-radius-md: 6px;
+  --app-radius-lg: 8px;
+  --app-cut-sm: 0px;
+  --app-cut-md: 0px;
+  --app-cut-lg: 0px;
+
+  --app-stroke: 1px;
+  --app-shadow-soft: 0 1px 3px rgba(0, 0, 0, 0.28), 0 2px 8px rgba(0, 0, 0, 0.18);
+  --app-shadow-strong: 0 4px 16px rgba(0, 0, 0, 0.36), 0 1px 4px rgba(0, 0, 0, 0.22);
+  --app-glow-accent: 0 0 0 2px color-mix(in srgb, var(--app-accent) 28%, transparent);
+  --app-glow-strength: 0;
+  --app-hover-glow-base: 0%;
+  --app-noise-opacity: 0;
+  --app-glass-opacity: 0;
+  --app-blur: 0px;
+
+  --app-panel-rgb: 32 32 32;
+  --app-panel-2-rgb: 47 47 47;
+  --app-bg-overlay: none;
+
+  --app-motion-fast: 100ms;
+  --app-motion-med: 140ms;
+  --app-motion-slow: 200ms;
+  --app-ease: cubic-bezier(0.25, 0.1, 0.25, 1);
+  --app-hover-lift-y: 0px;
+  --app-hover-scale: 1;
+  --app-body-letter-spacing: 0em;
+
+  --app-clip-all: none;
+  --app-clip-right: none;
+  --app-clip-left: none;
+  --app-clip-card: none;
+  --app-clip-pill: none;
+}
+
+[data-theme='notion_dark'] {
+  color-scheme: dark;
+}
+
+[data-theme='notion_dark'] .ui-glow {
+  box-shadow: 0 0 0 1.5px color-mix(in srgb, var(--app-accent) 60%, transparent),
+              0 2px 8px rgba(0, 0, 0, 0.24) !important;
+}
+
 [data-accent='neutral'] {
   --app-accent: #8ea2cc;
   --app-accent-weak: color-mix(in srgb, var(--app-accent) 18%, transparent);

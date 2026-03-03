@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { DateTimePicker } from '../UI/DateTimePicker';
 import { HexButton } from '../UI/HextechUI';
 import { playClickSound, playErrorSound, playPanelOpenSound, playSuccessSound } from '../../utils/SoundEffects';
 import { useXP } from '../XP/xpStore';
@@ -148,6 +149,8 @@ export const HextechAssistant: React.FC<HextechAssistantProps> = ({ isOpen, onCl
       const toggleBtn = document.getElementById('hextech-assistant-toggle');
       if (containerRef.current && containerRef.current.contains(target as Node)) return;
       if (toggleBtn && (toggleBtn === target || toggleBtn.contains(target as Node))) return;
+      // Ignore clicks inside portal overlays (e.g. DateTimePicker dropdown)
+      if (target.closest?.('[data-portal-ignore-outside-click]')) return;
       onClose();
     };
     if (isOpen) {
@@ -455,11 +458,10 @@ export const HextechAssistant: React.FC<HextechAssistantProps> = ({ isOpen, onCl
                     <option value="high">Prio: High</option>
                     <option value="urgent">Prio: Urgent</option>
                   </select>
-                  <input
-                    type="datetime-local"
+                  <DateTimePicker
                     value={newSchedule}
-                    onChange={(event) => setNewSchedule(event.target.value)}
-                    className="w-full bg-[var(--app-panel-2)] border border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] text-[9px] text-[var(--app-text)] p-2 focus:border-[color-mix(in_srgb,var(--app-text)_40%,transparent)] outline-none [color-scheme:dark]"
+                    onChange={setNewSchedule}
+                    placeholder="MM/DD/YYYY, --:-- --"
                   />
                 </div>
                 <div className="flex items-center gap-1">
@@ -895,12 +897,7 @@ const TaskCard: React.FC<{
               <option value="high">Prio: High</option>
               <option value="urgent">Prio: Urgent</option>
             </select>
-            <input
-              type="datetime-local"
-              value={draft.schedule}
-              onChange={(event) => onDraftChange({ schedule: event.target.value })}
-              className="w-full bg-[var(--app-panel-2)] border border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] text-[9px] text-[var(--app-text)] p-2 focus:border-[color-mix(in_srgb,var(--app-text)_40%,transparent)] outline-none [color-scheme:dark]"
-            />
+            <DateTimePicker value={draft.schedule} onChange={(v) => onDraftChange({ schedule: v })} />
           </div>
           <div className="grid grid-cols-[120px,1fr,100px] gap-2">
             <input
@@ -1028,12 +1025,7 @@ const QuestLogRow: React.FC<{
               <option value="high">Prio: High</option>
               <option value="urgent">Prio: Urgent</option>
             </select>
-            <input
-              type="datetime-local"
-              value={draft.schedule}
-              onChange={(event) => onDraftChange({ schedule: event.target.value })}
-              className="w-full bg-[var(--app-panel-2)] border border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] text-[9px] text-[var(--app-text)] p-2 focus:border-[color-mix(in_srgb,var(--app-text)_40%,transparent)] outline-none [color-scheme:dark]"
-            />
+            <DateTimePicker value={draft.schedule} onChange={(v) => onDraftChange({ schedule: v })} />
           </div>
           <div className="flex items-center justify-end gap-2">
             <button

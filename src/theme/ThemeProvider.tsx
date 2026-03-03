@@ -11,7 +11,9 @@ export type XtationTheme =
   | 'dark_minimal_rounded_solid'
   | 'dark_minimal_rounded_glass'
   | 'hud_clean'
-  | 'glass_night';
+  | 'glass_night'
+  | 'notion_light'
+  | 'notion_dark';
 
 export interface XtationThemeOption {
   value: XtationTheme;
@@ -33,6 +35,8 @@ export const XTATION_THEME_OPTIONS: XtationThemeOption[] = [
   { value: 'dark_minimal_rounded_glass', label: 'DARK MINIMAL • ROUNDED • GLASS' },
   { value: 'hud_clean', label: 'HUD Clean' },
   { value: 'glass_night', label: 'Glass Night' },
+  { value: 'notion_light', label: 'Notion Light' },
+  { value: 'notion_dark', label: 'Notion Dark' },
 ];
 
 export const XTATION_ACCENT_OPTIONS: XtationAccentOption[] = [
