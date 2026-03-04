@@ -3,7 +3,7 @@ import { useXP } from './xpStore';
 import type { XPDayActivityItem, XPDayActivityGroup, Task } from './xpTypes';
 import { ConfirmModal } from '../UI/ConfirmModal';
 import { DayTimeOrb } from './DayTimeOrb';
-import { Check, Pause, Pencil, Play, Trash2, Undo2 } from 'lucide-react';
+import { Check, ChevronLeft, ChevronRight, Pause, Pencil, Play, Plus, Trash2, Undo2 } from 'lucide-react';
 
 const DAY_NAMES = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 const RANGE_OPTIONS = [
@@ -583,6 +583,7 @@ export const LogCalendar: React.FC = () => {
     deleteTaskCompletely,
     startSession,
     stopSession,
+    addManualSession,
     selectors,
     activeLogDateKey,
     setActiveLogDateKey,
@@ -634,6 +635,8 @@ export const LogCalendar: React.FC = () => {
   const [timelineChartWidth, setTimelineChartWidth] = useState(0);
   const [timelineChartHeight, setTimelineChartHeight] = useState(0);
   const [quickPopoverKey, setQuickPopoverKey] = useState<string | null>(null);
+  const [qlTitle, setQlTitle] = useState('');
+  const [qlMin, setQlMin] = useState('30');
   const gridSwipeStartX = useRef<number | null>(null);
   const gridSwipeMoved = useRef(false);
 
@@ -823,6 +826,16 @@ export const LogCalendar: React.FC = () => {
     });
     return map;
   }, [primaryChallenge, challengeMeta, gridDays]);
+
+  // Top tasks per day for month grid (computed once for all 42 cells)
+  const topTasksByDay = useMemo(() => {
+    const map = new Map<string, { title: string; minutes: number; running: boolean }[]>();
+    gridDays.forEach(day => {
+      const tops = selectors.getTopTasksForDay(day.key, 2, now);
+      if (tops.length) map.set(day.key, tops);
+    });
+    return map;
+  }, [gridDays, selectors, now]);
 
   // 52-week heat map grid for the year view
   const yearHeatMapWeeks = useMemo(() => {
@@ -2024,61 +2037,82 @@ export const LogCalendar: React.FC = () => {
         )}
 
         <div className="rounded-2xl bg-[var(--app-panel-2)] p-4">
-          <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between mb-4">
-            <div>
-              <div className="text-[10px] text-[var(--app-muted)] tracking-[0.3em] uppercase">Log Calendar</div>
-              <div className="text-xl font-medium tracking-[0.08em] uppercase text-[var(--app-text)]">{formatMonthTitle(viewMonth)}</div>
+          <div className="flex items-center gap-2 mb-4 flex-wrap">
+            {/* ← Prev */}
+            <button
+              type="button"
+              onClick={handlePrev}
+              className="flex h-7 w-7 items-center justify-center rounded-md border border-[color-mix(in_srgb,var(--app-text)_12%,transparent)] text-[var(--app-muted)] hover:text-[var(--app-text)] hover:border-[color-mix(in_srgb,var(--app-text)_26%,transparent)] transition-colors shrink-0"
+            >
+              <ChevronLeft className="h-3.5 w-3.5" />
+            </button>
+
+            {/* Month/Year heading */}
+            <div className="text-[20px] font-semibold text-[var(--app-text)] tracking-tight leading-none min-w-0 flex-1 select-none">
+              {formatMonthTitle(viewMonth)}
             </div>
-            <div className="flex items-center gap-2 overflow-x-auto no-scrollbar">
-              {RANGE_OPTIONS.map((option) => (
-                <button
-                  key={option.value}
-                  type="button"
-                  onClick={() => handleRangeChange(option.value)}
-                  className={`px-3 py-2 rounded-md border text-[10px] tracking-[0.2em] uppercase transition-colors ${
-                    rangeMode === option.value
-                      ? 'border-[color-mix(in_srgb,var(--app-accent)_60%,transparent)] bg-[color-mix(in_srgb,var(--app-accent)_18%,var(--app-panel))] text-[var(--app-accent)]'
-                      : 'border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-[var(--app-panel-2)] text-[var(--app-text)] hover:border-[color-mix(in_srgb,var(--app-text)_30%,transparent)]'
-                  }`}
-                >
-                  {option.label}
-                </button>
-              ))}
-              <button
-                type="button"
-                onClick={handlePrev}
-                className="px-3 py-2 rounded-md border border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] text-[10px] tracking-[0.2em] uppercase text-[var(--app-text)] bg-[var(--app-panel-2)] hover:border-[color-mix(in_srgb,var(--app-text)_30%,transparent)] transition-colors"
-              >
-                Prev
-              </button>
-              <button
-                type="button"
-                onClick={handleNext}
-                className="px-3 py-2 rounded-md border border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] text-[10px] tracking-[0.2em] uppercase text-[var(--app-text)] bg-[var(--app-panel-2)] hover:border-[color-mix(in_srgb,var(--app-text)_30%,transparent)] transition-colors"
-              >
-                Next
-              </button>
-              <div className="w-px h-4 bg-[color-mix(in_srgb,var(--app-text)_14%,transparent)] shrink-0" />
+
+            {/* → Next */}
+            <button
+              type="button"
+              onClick={handleNext}
+              className="flex h-7 w-7 items-center justify-center rounded-md border border-[color-mix(in_srgb,var(--app-text)_12%,transparent)] text-[var(--app-muted)] hover:text-[var(--app-text)] hover:border-[color-mix(in_srgb,var(--app-text)_26%,transparent)] transition-colors shrink-0"
+            >
+              <ChevronRight className="h-3.5 w-3.5" />
+            </button>
+
+            {/* Today chip — only visible when not on current month */}
+            {(viewMonth.getFullYear() !== new Date(now).getFullYear() || viewMonth.getMonth() !== new Date(now).getMonth()) && (
               <button
                 type="button"
                 onClick={() => {
-                  setPickerEditId(null);
-                  setPickerViewMonth(new Date(viewMonth));
-                  setPickerStart(null);
-                  setPickerEnd(null);
-                  setPickerExcluded([]);
-                  setPickerName('');
-                  setPickerBadge('Bronze');
-                  setPickerGoalType('daily');
-                  setPickerGoalTarget(30);
-                  setPickerTimePreset('anytime');
-                  setChallengePickerOpen(true);
+                  const today = new Date(now);
+                  setViewMonth(new Date(today.getFullYear(), today.getMonth(), 1));
+                  setRangeMode('month');
                 }}
-                className="px-3 py-2 rounded-md border text-[10px] tracking-[0.2em] uppercase transition-colors whitespace-nowrap border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-[var(--app-panel-2)] text-[var(--app-text)] hover:border-[color-mix(in_srgb,var(--app-text)_30%,transparent)]"
+                className="px-2.5 py-1 rounded-md border border-[color-mix(in_srgb,var(--app-text)_14%,transparent)] text-[10px] uppercase tracking-[0.18em] text-[var(--app-muted)] hover:text-[var(--app-text)] hover:border-[color-mix(in_srgb,var(--app-text)_26%,transparent)] transition-colors"
               >
-                + Challenge
+                Today
               </button>
+            )}
+
+            <div className="flex-1 min-w-0" />
+
+            {/* M / W / Y pill */}
+            <div className="flex items-center rounded-md border border-[color-mix(in_srgb,var(--app-text)_12%,transparent)] overflow-hidden shrink-0">
+              {(['month', 'week', 'year'] as const).map((mode, i) => (
+                <button
+                  key={mode}
+                  type="button"
+                  onClick={() => handleRangeChange(mode)}
+                  className={`px-2.5 py-1.5 text-[10px] uppercase tracking-[0.18em] transition-colors ${
+                    i > 0 ? 'border-l border-[color-mix(in_srgb,var(--app-text)_12%,transparent)]' : ''
+                  } ${
+                    rangeMode === mode
+                      ? 'bg-[color-mix(in_srgb,var(--app-accent)_18%,var(--app-panel))] text-[var(--app-accent)]'
+                      : 'bg-[var(--app-panel-2)] text-[var(--app-muted)] hover:text-[var(--app-text)]'
+                  }`}
+                >
+                  {mode === 'month' ? 'M' : mode === 'week' ? 'W' : 'Y'}
+                </button>
+              ))}
             </div>
+
+            {/* + Log button */}
+            <button
+              type="button"
+              onClick={() => {
+                const today = new Date(now);
+                setViewMonth(new Date(today.getFullYear(), today.getMonth(), 1));
+                setRangeMode('month');
+                selectDate(todayKey, today);
+                setQuickPopoverKey(todayKey);
+              }}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-md border border-[color-mix(in_srgb,var(--app-accent)_50%,transparent)] bg-[color-mix(in_srgb,var(--app-accent)_12%,var(--app-panel-2))] text-[10px] uppercase tracking-[0.18em] text-[var(--app-accent)] hover:border-[var(--app-accent)] transition-colors shrink-0"
+            >
+              <Plus className="h-3 w-3" />
+              Log
+            </button>
           </div>
 
           {rangeMode === 'today' ? (
@@ -2128,19 +2162,20 @@ export const LogCalendar: React.FC = () => {
                     const isToday = day.key === todayKey;
                     const chDay = getChallengeDayState(day.key);
                     const wkIntensity = Math.min(1, daySummary.minutesTracked / 480);
+                    const wkTopTasks = selectors.getTopTasksForDay(day.key, 3, now);
                     return (
                       <button
                         key={day.key}
                         type="button"
                         onClick={() => selectDate(day.key, day.date)}
-                        className={`relative min-h-[80px] rounded-lg border p-3 text-left transition-all duration-200 overflow-hidden ${
+                        className={`relative min-h-[120px] rounded-lg border p-3 text-left transition-all duration-200 overflow-hidden flex flex-col gap-0.5 ${
                           isSelected
                             ? 'border-[color-mix(in_srgb,var(--app-accent)_60%,transparent)] bg-[color-mix(in_srgb,var(--app-accent)_16%,var(--app-panel))]'
                             : chDay.inRange
-                              ? 'border-[color-mix(in_srgb,var(--app-accent)_26%,transparent)] bg-[color-mix(in_srgb,var(--app-accent)_6%,var(--app-panel-2))]'
+                              ? 'border-[color-mix(in_srgb,var(--app-accent)_26%,transparent)] bg-[color-mix(in_srgb,var(--app-accent)_6%,var(--app-panel-2))] hover:bg-[color-mix(in_srgb,var(--app-text)_4%,var(--app-panel-2))]'
                               : chDay.excluded
-                                ? 'border-[color-mix(in_srgb,var(--app-text)_8%,transparent)] bg-[color-mix(in_srgb,var(--app-text)_3%,var(--app-panel-2))]'
-                                : 'border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-[var(--app-panel-2)]'
+                                ? 'border-[color-mix(in_srgb,var(--app-text)_8%,transparent)] bg-[color-mix(in_srgb,var(--app-text)_3%,var(--app-panel-2))] hover:bg-[color-mix(in_srgb,var(--app-text)_4%,var(--app-panel-2))]'
+                                : 'border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-[var(--app-panel-2)] hover:bg-[color-mix(in_srgb,var(--app-text)_4%,var(--app-panel-2))]'
                         }`}
                       >
                         {/* XP heat gradient */}
@@ -2154,22 +2189,31 @@ export const LogCalendar: React.FC = () => {
                         {chDay.excluded && (
                           <span className={`pointer-events-none absolute top-[6px] right-[6px] flex h-4 w-4 items-center justify-center rounded-sm text-[10px] leading-none text-[var(--app-muted)] ${isSelected ? 'opacity-35' : 'opacity-55'}`}>×</span>
                         )}
-                        {chDay.inRange && chDay.done && (
-                          <span className={`pointer-events-none absolute bottom-[9px] right-[7px] h-[6px] w-[6px] rounded-full bg-[var(--app-accent)] shadow-[0_0_6px_color-mix(in_srgb,var(--app-accent)_55%,transparent)] ${isSelected ? 'opacity-60' : ''}`} />
-                        )}
                         {challengeList.length > 1 && (() => { const n = getChallengeCountForDay(day.key); return n > 0 ? <span className="pointer-events-none absolute top-[6px] left-[6px] flex h-4 w-4 items-center justify-center rounded text-[8px] leading-none text-[var(--app-accent)] bg-[color-mix(in_srgb,var(--app-accent)_18%,transparent)]">{n}</span> : null; })()}
-                        <div className={`text-[11px] uppercase tracking-[0.16em] ${isToday ? 'text-[var(--app-accent)]' : 'text-[var(--app-muted)]'}`}>
+                        {/* Weekday + date */}
+                        <div className={`relative z-[1] text-[11px] uppercase tracking-[0.16em] ${isToday ? 'text-[var(--app-accent)]' : 'text-[var(--app-muted)]'}`}>
                           {formatWeekdayLabel(day.key)}
                         </div>
-                        <div className="mt-2 text-xs uppercase tracking-[0.16em] text-[var(--app-text)]">
-                          {daySummary.minutesTracked}m
+                        {/* Top task lines */}
+                        <div className="relative z-[1] flex-1 min-w-0 space-y-0.5 mt-1">
+                          {wkTopTasks.map((t, i) => (
+                            <p key={i} className="text-[9px] text-[var(--app-muted)] truncate leading-snug">▸ {t.title}</p>
+                          ))}
                         </div>
-                        <div className="text-[10px] uppercase tracking-[0.14em] text-[var(--app-muted)] mt-1">
-                          {daySummary.activityCount} items
+                        {/* Minutes + challenge dot */}
+                        <div className="relative z-[1] mt-auto flex items-center gap-1.5">
+                          {daySummary.minutesTracked > 0 && (
+                            <span className={`text-[10px] uppercase tracking-[0.14em] tabular-nums ${daySummary.runningCount > 0 ? 'text-[var(--app-accent)]' : 'text-[var(--app-text)]'}`}>
+                              {Math.round(daySummary.minutesTracked)}m
+                            </span>
+                          )}
+                          {chDay.inRange && chDay.done && (
+                            <span className={`h-[5px] w-[5px] rounded-full bg-[var(--app-accent)] shadow-[0_0_5px_color-mix(in_srgb,var(--app-accent)_55%,transparent)] ${isSelected ? 'opacity-60' : ''}`} />
+                          )}
                         </div>
                         {/* Mini XP bar */}
                         {wkIntensity > 0 && (
-                          <div aria-hidden="true" className="pointer-events-none absolute bottom-0 left-0 right-0 h-[2px]" style={{ opacity: 0.55 }}>
+                          <div aria-hidden="true" className="pointer-events-none absolute bottom-0 left-0 right-0 h-[3px]" style={{ opacity: 0.55 }}>
                             <div className="h-full" style={{ width: `${Math.min(100, wkIntensity * 100)}%`, background: 'var(--app-accent)', borderRadius: '0 1px 0 0' }} />
                           </div>
                         )}
@@ -2228,6 +2272,7 @@ export const LogCalendar: React.FC = () => {
                     done: m.completionsSet.has(day.key) && m.eligibleSet.has(day.key),
                     inRange: m.eligibleSet.has(day.key),
                   })).filter(d => d.inRange) : [];
+                  const cellTopTasks = topTasksByDay.get(day.key) || [];
                   return (
                     <button
                       key={day.key}
@@ -2236,18 +2281,16 @@ export const LogCalendar: React.FC = () => {
                         selectDate(day.key, day.date);
                         setQuickPopoverKey(prev => prev === day.key ? null : day.key);
                       }}
-                      className={`relative min-h-[72px] rounded-lg border p-2 text-left transition-all duration-200 overflow-hidden ${
+                      className={`group relative min-h-[88px] rounded-lg border p-2 text-left transition-all duration-200 overflow-hidden flex flex-col gap-0.5 ${
                         isSelected
-                          ? 'border-[color-mix(in_srgb,var(--app-accent)_70%,transparent)] bg-[color-mix(in_srgb,var(--app-accent)_16%,var(--app-panel))]'
-                          : chDay.inRange && !day.inMonth
-                            ? 'border-[color-mix(in_srgb,var(--app-accent)_10%,transparent)] bg-[var(--app-bg)] text-[var(--app-muted)]'
+                          ? 'border-transparent border-l-2 border-l-[var(--app-accent)] bg-[color-mix(in_srgb,var(--app-accent)_6%,var(--app-panel))]'
+                          : !day.inMonth
+                            ? 'border-transparent opacity-30'
                             : chDay.inRange
-                              ? 'border-[color-mix(in_srgb,var(--app-accent)_26%,transparent)] bg-[color-mix(in_srgb,var(--app-accent)_6%,var(--app-panel-2))]'
+                              ? 'border-[color-mix(in_srgb,var(--app-accent)_22%,transparent)] bg-[color-mix(in_srgb,var(--app-accent)_5%,var(--app-panel-2))] hover:bg-[color-mix(in_srgb,var(--app-text)_4%,var(--app-panel-2))]'
                               : chDay.excluded
-                                ? 'border-[color-mix(in_srgb,var(--app-text)_8%,transparent)] bg-[color-mix(in_srgb,var(--app-text)_3%,var(--app-panel-2))]'
-                                : day.inMonth
-                                  ? 'border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-[var(--app-panel-2)]'
-                                  : 'border-[color-mix(in_srgb,var(--app-text)_5%,transparent)] bg-[var(--app-bg)] text-[var(--app-muted)]'
+                                ? 'border-[color-mix(in_srgb,var(--app-text)_8%,transparent)] bg-[color-mix(in_srgb,var(--app-text)_3%,var(--app-panel-2))] hover:bg-[color-mix(in_srgb,var(--app-text)_4%,var(--app-panel-2))]'
+                                : 'border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-[var(--app-panel-2)] hover:bg-[color-mix(in_srgb,var(--app-text)_4%,var(--app-panel-2))]'
                       }`}
                     >
                       {/* XP heat map layer — bottom-rising gradient */}
@@ -2262,7 +2305,7 @@ export const LogCalendar: React.FC = () => {
                         />
                       )}
 
-                      {/* Streak chain: horizontal band that aligns across adjacent done cells */}
+                      {/* Streak chain — reduced opacity */}
                       {streakConn && (
                         <div
                           aria-hidden="true"
@@ -2270,6 +2313,7 @@ export const LogCalendar: React.FC = () => {
                           style={{
                             top: '44%',
                             height: 3,
+                            opacity: 0.25,
                             background: streakConn.left && streakConn.right
                               ? 'color-mix(in srgb, var(--app-accent) 38%, transparent)'
                               : streakConn.left
@@ -2280,15 +2324,12 @@ export const LogCalendar: React.FC = () => {
                       )}
 
                       {chDay.excluded && (
-                        <span className={`pointer-events-none absolute top-[6px] right-[6px] flex h-4 w-4 items-center justify-center rounded-sm text-[10px] leading-none text-[var(--app-muted)] ${isSelected ? 'opacity-35' : 'opacity-55'}`}>×</span>
-                      )}
-                      {chDay.inRange && chDay.done && challengeList.length <= 1 && (
-                        <span className={`pointer-events-none absolute bottom-[9px] right-[6px] h-[6px] w-[6px] rounded-full bg-[var(--app-accent)] shadow-[0_0_6px_color-mix(in_srgb,var(--app-accent)_55%,transparent)] ${isSelected ? 'opacity-60' : ''}`} />
+                        <span className={`pointer-events-none absolute top-[5px] right-[5px] flex h-4 w-4 items-center justify-center rounded-sm text-[10px] leading-none text-[var(--app-muted)] ${isSelected ? 'opacity-35' : 'opacity-55'}`}>×</span>
                       )}
 
                       {/* Multi-challenge completion dots */}
                       {multiChDots.length > 0 && (
-                        <div className="pointer-events-none absolute bottom-[4px] left-[4px] flex gap-[3px]">
+                        <div className="pointer-events-none absolute bottom-[6px] left-[4px] flex gap-[3px]">
                           {multiChDots.map(d => (
                             <span
                               key={d.id}
@@ -2304,60 +2345,59 @@ export const LogCalendar: React.FC = () => {
                         </div>
                       )}
 
-                      {/* Single-challenge count badge (when only 1 challenge) */}
-                      {challengeList.length > 1 && (() => { const n = getChallengeCountForDay(day.key); return n > 0 ? <span className="pointer-events-none absolute top-[6px] left-[6px] flex h-4 w-4 items-center justify-center rounded text-[8px] leading-none text-[var(--app-accent)] bg-[color-mix(in_srgb,var(--app-accent)_18%,transparent)]">{n}</span> : null; })()}
+                      {/* Challenge count badge */}
+                      {challengeList.length > 1 && (() => { const n = getChallengeCountForDay(day.key); return n > 0 ? <span className="pointer-events-none absolute top-[5px] left-[5px] flex h-4 w-4 items-center justify-center rounded text-[8px] leading-none text-[var(--app-accent)] bg-[color-mix(in_srgb,var(--app-accent)_18%,transparent)]">{n}</span> : null; })()}
 
-                      <span className={`text-sm font-medium leading-none ${isToday ? 'text-[var(--app-accent)]' : 'text-[var(--app-text)]'}`}>{day.date.getDate()}</span>
-                      {loggedMin > 0 && (
-                        <p className={`mt-1.5 text-[9px] leading-none tracking-[0.1em] tabular-nums ${info.running ? 'text-[var(--app-accent)]' : 'text-[var(--app-muted)]'}`}>
-                          {loggedMin}m{info.running ? ' ●' : ''}
-                        </p>
-                      )}
-
-                      {/* Quick-action: challenge toggle on selected day */}
-                      {isSelected && isQuickOpen && chDay.inRange && !chDay.excluded && (
+                      {/* Hover "+" button top-right */}
+                      {day.inMonth && !chDay.excluded && (
                         <button
                           type="button"
-                          title={chDay.done ? 'Undo challenge done' : 'Mark challenge done'}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            if (primaryChallenge) toggleChallengeDay(primaryChallenge.id, day.key);
-                          }}
-                          className="absolute bottom-[5px] right-[5px] flex h-[18px] w-[18px] items-center justify-center rounded border transition-colors"
-                          style={{
-                            borderColor: chDay.done
-                              ? 'color-mix(in srgb, var(--app-accent) 55%, transparent)'
-                              : 'color-mix(in srgb, var(--app-accent) 38%, transparent)',
-                            color: 'var(--app-accent)',
-                            background: chDay.done
-                              ? 'color-mix(in srgb, var(--app-accent) 20%, var(--app-panel))'
-                              : 'transparent',
-                          }}
+                          onClick={(e) => { e.stopPropagation(); selectDate(day.key, day.date); setQuickPopoverKey(day.key); }}
+                          className="absolute top-[5px] right-[5px] flex items-center justify-center h-[15px] w-[15px] rounded text-[11px] leading-none text-[var(--app-muted)] hover:text-[var(--app-text)] opacity-0 group-hover:opacity-100 transition-opacity z-[2]"
                         >
-                          {chDay.done
-                            ? <svg width="9" height="9" viewBox="0 0 9 9" fill="none"><path d="M2 4.5L3.8 6.5L7 2.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                            : <svg width="9" height="9" viewBox="0 0 9 9" fill="none"><path d="M2 4.5L3.8 6.5L7 2.5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" strokeOpacity="0.5"/></svg>
-                          }
+                          +
                         </button>
                       )}
 
-                      {/* Mini XP progress bar at cell bottom */}
-                      {xpIntensity > 0 && (
-                        <div
-                          aria-hidden="true"
-                          className="pointer-events-none absolute bottom-0 left-0 right-0 h-[2px]"
-                          style={{ opacity: day.inMonth ? 0.55 : 0.25 }}
-                        >
-                          <div
-                            className="h-full"
-                            style={{
-                              width: `${Math.min(100, xpIntensity * 100)}%`,
-                              background: 'var(--app-accent)',
-                              borderRadius: '0 1px 0 0',
-                            }}
-                          />
-                        </div>
-                      )}
+                      {/* Date number */}
+                      <div className="relative z-[1]">
+                        {isToday ? (
+                          <span className="inline-flex items-center justify-center rounded-full w-6 h-6 bg-[var(--app-accent)] text-white text-[13px] font-semibold leading-none">
+                            {day.date.getDate()}
+                          </span>
+                        ) : (
+                          <span className="text-[15px] font-semibold leading-none text-[var(--app-text)]">
+                            {day.date.getDate()}
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Top task lines */}
+                      <div className="relative z-[1] flex-1 min-w-0 space-y-0.5">
+                        {cellTopTasks.map((t, i) => (
+                          <p key={i} className="text-[9px] text-[var(--app-muted)] truncate leading-snug">▸ {t.title}</p>
+                        ))}
+                      </div>
+
+                      {/* Bottom bar: XP bar + minutes + challenge dot */}
+                      <div className="relative z-[1] mt-auto flex items-center gap-1 pb-[5px]">
+                        {xpIntensity > 0 && (
+                          <div className="flex-1 h-[3px] rounded-full overflow-hidden bg-[color-mix(in_srgb,var(--app-text)_8%,transparent)]">
+                            <div
+                              className="h-full rounded-full bg-[var(--app-accent)]"
+                              style={{ width: `${Math.min(100, xpIntensity * 100)}%`, opacity: day.inMonth ? 0.7 : 0.35 }}
+                            />
+                          </div>
+                        )}
+                        {loggedMin > 0 && (
+                          <span className={`text-[8px] tabular-nums shrink-0 ${info.running ? 'text-[var(--app-accent)]' : 'text-[var(--app-muted)]'}`}>
+                            {Math.round(loggedMin)}m{info.running ? ' ●' : ''}
+                          </span>
+                        )}
+                        {chDay.inRange && chDay.done && challengeList.length <= 1 && (
+                          <span className={`h-[5px] w-[5px] rounded-full bg-[var(--app-accent)] shadow-[0_0_5px_color-mix(in_srgb,var(--app-accent)_55%,transparent)] shrink-0 ${isSelected ? 'opacity-60' : ''}`} />
+                        )}
+                      </div>
                     </button>
                   );
                 })}
@@ -2389,7 +2429,7 @@ export const LogCalendar: React.FC = () => {
                         key={v}
                         className="rounded-sm"
                         style={{
-                          width: 10, height: 10, display: 'inline-block',
+                          width: 13, height: 13, display: 'inline-block',
                           background: v === 0
                             ? 'color-mix(in srgb, var(--app-text) 9%, transparent)'
                             : `color-mix(in srgb, var(--app-accent) ${Math.round(v * 80)}%, var(--app-panel-2))`,
@@ -2406,7 +2446,7 @@ export const LogCalendar: React.FC = () => {
                   </div>
 
                   <div className="overflow-x-auto xt-scroll pb-2">
-                    <div style={{ display: 'grid', gridTemplateColumns: `28px repeat(${yearHeatMapWeeks.length}, 11px)`, gridTemplateRows: 'auto repeat(7, 11px)', gap: '2px', minWidth: 0 }}>
+                    <div style={{ display: 'grid', gridTemplateColumns: `28px repeat(${yearHeatMapWeeks.length}, 13px)`, gridTemplateRows: 'auto repeat(7, 13px)', gap: '3px', minWidth: 0 }}>
                       {/* Month labels row */}
                       <div style={{ gridColumn: 1, gridRow: 1 }} />
                       {yearHeatMapWeeks.map((_, wi) => {
@@ -2438,6 +2478,9 @@ export const LogCalendar: React.FC = () => {
                         week.map((day, di) => {
                           const s = day.inYear ? (selectors.getDaySummary(day.key, now) || EMPTY_DAY_SUMMARY) : EMPTY_DAY_SUMMARY;
                           const intensity = Math.min(1, s.minutesTracked / 480);
+                          // 5-level quantized intensity
+                          const lvl = intensity === 0 ? 0 : Math.ceil(intensity * 4);
+                          const lvlPct = [0, 20, 40, 60, 80][lvl] ?? 80;
                           const isSelectedDay = day.key === selectedKey;
                           const isToday2 = day.key === todayKey;
                           const chDone = primaryChallenge && challengeMeta[0]
@@ -2457,13 +2500,13 @@ export const LogCalendar: React.FC = () => {
                               style={{
                                 gridColumn: wi + 2,
                                 gridRow: di + 2,
-                                width: 11, height: 11,
-                                borderRadius: 2,
+                                width: 13, height: 13,
+                                borderRadius: 3,
                                 background: !day.inYear
                                   ? 'transparent'
-                                  : intensity === 0
+                                  : lvl === 0
                                     ? 'color-mix(in srgb, var(--app-text) 9%, transparent)'
-                                    : `color-mix(in srgb, var(--app-accent) ${Math.round(intensity * 80)}%, var(--app-panel-2))`,
+                                    : `color-mix(in srgb, var(--app-accent) ${lvlPct}%, var(--app-panel-2))`,
                                 outline: isSelectedDay
                                   ? '1.5px solid color-mix(in srgb, var(--app-accent) 80%, transparent)'
                                   : isToday2
@@ -2529,51 +2572,111 @@ export const LogCalendar: React.FC = () => {
           ) : null}
         </div>
 
-        {/* Quick-action panel: shows between calendar and Day Console when a day is selected via popover */}
+        {/* Inline day panel — floats between calendar and Day Console */}
         {quickPopoverKey && rangeMode === 'month' && (() => {
           const qKey = quickPopoverKey;
           const qChDay = getChallengeDayState(qKey);
           const qSummary = selectors.getDaySummary(qKey, now) || EMPTY_DAY_SUMMARY;
           const qDateLabel = fromDateKey(qKey).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
+          const qTopTasks = selectors.getTopTasksForDay(qKey, 3, now);
           return (
-            <div className="rounded-xl border border-[color-mix(in_srgb,var(--app-accent)_35%,transparent)] bg-[color-mix(in_srgb,var(--app-accent)_7%,var(--app-panel))] px-4 py-3 flex flex-wrap items-center gap-3" style={{ animation: 'glass-panel-in 0.18s ease' }}>
-              <div className="min-w-0 flex-1">
-                <div className="text-[9px] uppercase tracking-[0.2em] text-[var(--app-muted)]">Quick Actions</div>
-                <div className="text-[11px] uppercase tracking-[0.14em] text-[var(--app-text)] mt-0.5">{qDateLabel}</div>
-              </div>
-              <div className="flex items-center gap-1.5 text-[9px] uppercase tracking-[0.14em] text-[var(--app-muted)]">
-                <span>{qSummary.minutesTracked}m tracked</span>
-                <span>·</span>
-                <span>{qSummary.activityCount} items</span>
-              </div>
-              {primaryChallenge && (qChDay.inRange || qChDay.done) && !qChDay.excluded && (
+            <div
+              className="rounded-xl border border-[color-mix(in_srgb,var(--app-accent)_30%,transparent)] bg-[var(--app-panel)] overflow-hidden"
+              style={{ animation: 'glass-panel-in 0.22s cubic-bezier(0.34,1.56,0.64,1)' }}
+            >
+              {/* Header */}
+              <div className="flex items-center gap-3 px-4 py-3 border-b border-[color-mix(in_srgb,var(--app-text)_8%,transparent)]">
+                <div className="min-w-0 flex-1">
+                  <span className="text-[13px] font-medium text-[var(--app-text)]">{qDateLabel}</span>
+                </div>
+                <div className="flex items-center gap-3 text-[10px] text-[var(--app-muted)] uppercase tracking-[0.14em]">
+                  {qSummary.minutesTracked > 0 && <span>{Math.round(qSummary.minutesTracked)}m tracked</span>}
+                  {qSummary.activityCount > 0 && <span>{qSummary.activityCount} done</span>}
+                </div>
                 <button
                   type="button"
-                  onClick={() => toggleChallengeDay(primaryChallenge.id, qKey)}
-                  className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-md border text-[9px] uppercase tracking-[0.14em] transition-colors ${
-                    qChDay.done
-                      ? 'border-[color-mix(in_srgb,var(--app-accent)_50%,transparent)] bg-[color-mix(in_srgb,var(--app-accent)_18%,var(--app-panel))] text-[var(--app-accent)]'
-                      : 'border-[color-mix(in_srgb,var(--app-accent)_35%,transparent)] text-[var(--app-muted)] hover:text-[var(--app-accent)]'
-                  }`}
+                  onClick={() => setQuickPopoverKey(null)}
+                  className="flex h-6 w-6 items-center justify-center rounded border border-[color-mix(in_srgb,var(--app-text)_14%,transparent)] text-[var(--app-muted)] hover:text-[var(--app-text)] text-[12px] transition-colors"
                 >
-                  <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M2 5L4 7.5L8 2" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/></svg>
-                  {qChDay.done ? 'Done ✓' : 'Mark done'}
+                  ×
                 </button>
+              </div>
+
+              {/* Top tasks list */}
+              {qTopTasks.length > 0 && (
+                <div className="px-4 py-2 border-b border-[color-mix(in_srgb,var(--app-text)_8%,transparent)] space-y-1">
+                  {qTopTasks.map((t) => (
+                    <div key={t.taskId} className="flex items-center gap-2 text-[11px]">
+                      <span className="text-[var(--app-muted)] truncate flex-1">▸ {t.title}</span>
+                      {t.minutes > 0 && <span className="shrink-0 text-[var(--app-muted)] tabular-nums">{Math.round(t.minutes)}m</span>}
+                      {t.running && <span className="shrink-0 text-[var(--app-accent)] text-[9px] uppercase tracking-[0.14em]">running</span>}
+                      {t.doneToday && !t.running && <span className="shrink-0 text-[#43d39e] text-[9px]">✓</span>}
+                    </div>
+                  ))}
+                </div>
               )}
-              <button
-                type="button"
-                onClick={openQuestAddFlow}
-                className="px-2.5 py-1.5 rounded-md border border-[color-mix(in_srgb,var(--app-text)_18%,transparent)] text-[9px] uppercase tracking-[0.14em] text-[var(--app-muted)] hover:text-[var(--app-text)] transition-colors"
-              >
-                + Quest
-              </button>
-              <button
-                type="button"
-                onClick={() => setQuickPopoverKey(null)}
-                className="flex h-6 w-6 items-center justify-center rounded border border-[color-mix(in_srgb,var(--app-text)_14%,transparent)] text-[var(--app-muted)] hover:text-[var(--app-text)] text-[10px] transition-colors"
-              >
-                ×
-              </button>
+
+              {/* Quick-log form */}
+              <div className="px-4 py-3 flex flex-wrap items-center gap-2 border-b border-[color-mix(in_srgb,var(--app-text)_8%,transparent)]">
+                <input
+                  type="text"
+                  placeholder="What did you work on?"
+                  value={qlTitle}
+                  onChange={(e) => setQlTitle(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && qlTitle.trim()) {
+                      const mins = Math.max(1, Number(qlMin) || 30);
+                      addManualSession({ title: qlTitle.trim(), tag: 'Focus', minutes: mins, startAt: fromDateKey(qKey).getTime() + 9 * 3600000 });
+                      setQlTitle('');
+                      setQlMin('30');
+                    }
+                  }}
+                  className="flex-1 min-w-0 rounded border border-[color-mix(in_srgb,var(--app-text)_14%,transparent)] bg-[var(--app-panel-2)] px-2.5 py-1.5 text-[11px] text-[var(--app-text)] placeholder-[var(--app-muted)] outline-none focus:border-[color-mix(in_srgb,var(--app-accent)_50%,transparent)]"
+                />
+                <input
+                  type="number"
+                  value={qlMin}
+                  onChange={(e) => setQlMin(e.target.value)}
+                  min={1}
+                  max={480}
+                  className="w-14 rounded border border-[color-mix(in_srgb,var(--app-text)_14%,transparent)] bg-[var(--app-panel-2)] px-2 py-1.5 text-[11px] text-[var(--app-text)] text-center outline-none focus:border-[color-mix(in_srgb,var(--app-accent)_50%,transparent)] tabular-nums"
+                />
+                <span className="text-[10px] text-[var(--app-muted)]">min</span>
+                <button
+                  type="button"
+                  disabled={!qlTitle.trim()}
+                  onClick={() => {
+                    const mins = Math.max(1, Number(qlMin) || 30);
+                    addManualSession({ title: qlTitle.trim(), tag: 'Focus', minutes: mins, startAt: fromDateKey(qKey).getTime() + 9 * 3600000 });
+                    setQlTitle('');
+                    setQlMin('30');
+                  }}
+                  className="px-3 py-1.5 rounded border border-[color-mix(in_srgb,var(--app-accent)_50%,transparent)] bg-[color-mix(in_srgb,var(--app-accent)_14%,var(--app-panel))] text-[10px] uppercase tracking-[0.14em] text-[var(--app-accent)] hover:border-[var(--app-accent)] disabled:opacity-40 disabled:pointer-events-none transition-colors"
+                >
+                  Log it →
+                </button>
+              </div>
+
+              {/* Challenge row */}
+              {primaryChallenge && qChDay.inRange && !qChDay.excluded && (
+                <div className="px-4 py-2.5 flex items-center gap-3">
+                  <span className="text-[10px] text-[var(--app-muted)] flex-1 truncate uppercase tracking-[0.12em]">
+                    Challenge: {primaryChallenge.name}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => toggleChallengeDay(primaryChallenge.id, qKey)}
+                    className={`flex items-center gap-1.5 px-2.5 py-1 rounded border text-[9px] uppercase tracking-[0.14em] transition-colors ${
+                      qChDay.done
+                        ? 'border-[color-mix(in_srgb,var(--app-accent)_50%,transparent)] bg-[color-mix(in_srgb,var(--app-accent)_16%,var(--app-panel))] text-[var(--app-accent)]'
+                        : 'border-[color-mix(in_srgb,var(--app-text)_18%,transparent)] text-[var(--app-muted)] hover:text-[var(--app-accent)] hover:border-[color-mix(in_srgb,var(--app-accent)_38%,transparent)]'
+                    }`}
+                  >
+                    {qChDay.done ? <Undo2 className="h-2.5 w-2.5" /> : <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><path d="M2 5L4 7.5L8 2" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round"/></svg>}
+                    {qChDay.done ? 'Undo' : 'Mark done'}
+                  </button>
+                </div>
+              )}
             </div>
           );
         })()}
