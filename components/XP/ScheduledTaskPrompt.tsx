@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useXP } from './xpStore';
 import { Task } from './xpTypes';
 import { playMatchFoundSound, playClickSound } from '../../utils/SoundEffects';
+import { ConfirmModal } from '../UI/ConfirmModal';
 
 const SNOOZE_MINUTES = 10;
 
@@ -12,8 +13,9 @@ const priorityRank: Record<Task['priority'], number> = {
 };
 
 export const ScheduledTaskPrompt: React.FC = () => {
-  const { tasks, startSession, updateTask, snoozeTask } = useXP();
+  const { tasks, selectors, pauseSession, startSession, updateTask, snoozeTask } = useXP();
   const [promptTaskId, setPromptTaskId] = useState<string | null>(null);
+  const [showConflictConfirm, setShowConflictConfirm] = useState(false);
   const [now, setNow] = useState<number>(Date.now());
 
   useEffect(() => {
@@ -36,6 +38,9 @@ export const ScheduledTaskPrompt: React.FC = () => {
   }, [tasks, now]);
 
   const promptTask = readyTasks.find((task) => task.id === promptTaskId) || readyTasks[0] || null;
+  const activeSession = selectors.getActiveSession();
+  const runningTaskId = activeSession?.taskId || activeSession?.linkedTaskIds?.[0] || null;
+  const runningTask = runningTaskId ? tasks.find((task) => task.id === runningTaskId) || null : null;
 
   useEffect(() => {
     if (promptTask && promptTask.id !== promptTaskId) {
@@ -44,13 +49,13 @@ export const ScheduledTaskPrompt: React.FC = () => {
     }
     if (!promptTask && promptTaskId) {
       setPromptTaskId(null);
+      setShowConflictConfirm(false);
     }
   }, [promptTask, promptTaskId]);
 
   if (!promptTask) return null;
 
-  const handleStart = () => {
-    playClickSound();
+  const startPromptTask = () => {
     updateTask(promptTask.id, { scheduledAt: undefined });
     startSession({
       title: promptTask.title,
@@ -59,81 +64,116 @@ export const ScheduledTaskPrompt: React.FC = () => {
       linkedTaskIds: [promptTask.id],
     });
     setPromptTaskId(null);
+    setShowConflictConfirm(false);
+  };
+
+  const handleStart = () => {
+    playClickSound();
+
+    const hasConflict =
+      !!activeSession &&
+      activeSession.status === 'running' &&
+      !!runningTask &&
+      runningTask.id !== promptTask.id;
+
+    if (hasConflict) {
+      setShowConflictConfirm(true);
+      return;
+    }
+
+    startPromptTask();
   };
 
   const handleSnooze = (minutes = SNOOZE_MINUTES) => {
     playClickSound();
     snoozeTask(promptTask.id, minutes);
     setPromptTaskId(null);
+    setShowConflictConfirm(false);
   };
 
   const handleCancel = () => {
     playClickSound();
     updateTask(promptTask.id, { scheduledAt: undefined });
     setPromptTaskId(null);
+    setShowConflictConfirm(false);
   };
 
   const containerClass = 'fixed inset-0 z-[220] bg-black/55 flex items-center justify-center px-4';
   const cardClass = 'w-full max-w-md rounded-2xl border border-white/10 bg-[#101014] shadow-[0_24px_60px_rgba(0,0,0,0.6)] p-5';
 
   return (
-    <div className={containerClass}>
-      <div className={cardClass}>
-        <div className="text-[9px] uppercase tracking-[0.35em] text-[#8b847a] mb-2">Scheduled Task</div>
-        <div className="text-xl font-bold text-white mb-1">{promptTask.title}</div>
-        <div className="text-[11px] uppercase tracking-[0.25em] text-[#f46a2e] mb-3">
-          {promptTask.priority} Priority
-        </div>
-        {promptTask.details && (
-          <div className="text-[12px] text-[#b8b2a8] mb-4">{promptTask.details}</div>
-        )}
-        <div className="flex flex-wrap items-center justify-end gap-2">
-          <button
-            type="button"
-            onClick={() => handleSnooze(5)}
-            className="px-3 py-2 rounded border border-white/10 text-[10px] uppercase tracking-[0.25em] text-[#8b847a]"
-          >
-            +5m
-          </button>
-          <button
-            type="button"
-            onClick={() => handleSnooze(15)}
-            className="px-3 py-2 rounded border border-white/10 text-[10px] uppercase tracking-[0.25em] text-[#8b847a]"
-          >
-            +15m
-          </button>
-          <button
-            type="button"
-            onClick={() => handleSnooze(30)}
-            className="px-3 py-2 rounded border border-white/10 text-[10px] uppercase tracking-[0.25em] text-[#8b847a]"
-          >
-            +30m
-          </button>
-          <button
-            type="button"
-            onClick={() => handleSnooze()}
-            className="px-3 py-2 rounded border border-white/10 text-[10px] uppercase tracking-[0.25em] text-[#8b847a]"
-          >
-            Snooze
-          </button>
-          <button
-            type="button"
-            onClick={handleCancel}
-            className="px-3 py-2 rounded border border-white/10 text-[10px] uppercase tracking-[0.25em] text-[#8b847a]"
-          >
-            Cancel
-          </button>
-          <button
-            type="button"
-            onClick={handleStart}
-            className={`px-4 py-2 rounded border text-[10px] uppercase tracking-[0.25em] ${
-              'border-[#f46a2e]/60 text-[#f46a2e] hover:bg-[#2a1a12]'
-            }`}
-          >
-            Start
-          </button>
+    <>
+      <div className={containerClass}>
+        <div className={cardClass}>
+          <div className="text-[9px] uppercase tracking-[0.35em] text-[#8b847a] mb-2">Scheduled Task</div>
+          <div className="text-xl font-bold text-white mb-1">{promptTask.title}</div>
+          <div className="text-[11px] uppercase tracking-[0.25em] text-[#f46a2e] mb-3">
+            {promptTask.priority} Priority
+          </div>
+          {promptTask.details && (
+            <div className="text-[12px] text-[#b8b2a8] mb-4">{promptTask.details}</div>
+          )}
+          <div className="flex flex-wrap items-center justify-end gap-2">
+            <button
+              type="button"
+              onClick={() => handleSnooze(5)}
+              className="px-3 py-2 rounded border border-white/10 text-[10px] uppercase tracking-[0.25em] text-[#8b847a]"
+            >
+              +5m
+            </button>
+            <button
+              type="button"
+              onClick={() => handleSnooze(15)}
+              className="px-3 py-2 rounded border border-white/10 text-[10px] uppercase tracking-[0.25em] text-[#8b847a]"
+            >
+              +15m
+            </button>
+            <button
+              type="button"
+              onClick={() => handleSnooze(30)}
+              className="px-3 py-2 rounded border border-white/10 text-[10px] uppercase tracking-[0.25em] text-[#8b847a]"
+            >
+              +30m
+            </button>
+            <button
+              type="button"
+              onClick={() => handleSnooze()}
+              className="px-3 py-2 rounded border border-white/10 text-[10px] uppercase tracking-[0.25em] text-[#8b847a]"
+            >
+              Snooze
+            </button>
+            <button
+              type="button"
+              onClick={handleCancel}
+              className="px-3 py-2 rounded border border-white/10 text-[10px] uppercase tracking-[0.25em] text-[#8b847a]"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={handleStart}
+              className="px-4 py-2 rounded border text-[10px] uppercase tracking-[0.25em] border-[#f46a2e]/60 text-[#f46a2e] hover:bg-[#2a1a12]"
+            >
+              Start Now
+            </button>
+          </div>
         </div>
       </div>
-    </div>
+
+      <ConfirmModal
+        open={showConflictConfirm}
+        title="Another quest is running"
+        message={`Pause ${runningTask?.title || activeSession?.title || 'current quest'} and start ${promptTask.title}?`}
+        confirmLabel="Pause current + Start this"
+        cancelLabel="Cancel"
+        onCancel={() => setShowConflictConfirm(false)}
+        onConfirm={() => {
+          playClickSound();
+          pauseSession();
+          startPromptTask();
+        }}
+      />
+    </>
   );
 };
+
