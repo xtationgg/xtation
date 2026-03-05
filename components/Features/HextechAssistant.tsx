@@ -170,33 +170,95 @@ const safeDecode = (value: string) => {
   }
 };
 
+type SerializedMediaAsset = {
+  src: string;
+  type: FocusMediaAsset['type'];
+  label?: string;
+};
+
+type SerializedSoundAsset = {
+  src: string;
+  label?: string;
+};
+
+const serializeCustomAsset = <T,>(prefix: string, payload: T) => {
+  return `${prefix}${encodeURIComponent(JSON.stringify(payload))}`;
+};
+
+const parseCustomAsset = <T,>(assetId: string | null, prefix: string): T | null => {
+  if (!assetId?.startsWith(prefix)) return null;
+  try {
+    const payload = JSON.parse(safeDecode(assetId.slice(prefix.length)));
+    return payload as T;
+  } catch {
+    return null;
+  }
+};
+
 const inferMediaTypeFromUrl = (url: string): FocusMediaAsset['type'] => {
   if (url.startsWith('data:image/')) return 'image';
   if (url.startsWith('data:video/')) return 'video';
+  if (url.startsWith('blob:')) return 'video';
   const clean = url.toLowerCase().split('?')[0].split('#')[0];
   if (/\.(png|jpe?g|webp|gif|avif|svg)$/i.test(clean)) return 'image';
   if (/\.(mp4|webm|ogg|mov|m4v)$/i.test(clean)) return 'video';
   return 'image';
 };
 
-const getFocusMediaAsset = (assetId: string | null) =>
-  assetId?.startsWith('url:')
-    ? ({
-        id: assetId,
-        label: 'Custom URL',
-        type: inferMediaTypeFromUrl(safeDecode(assetId.slice(4))),
-        src: safeDecode(assetId.slice(4)),
-      } satisfies FocusMediaAsset)
-    : FOCUS_MEDIA_LIBRARY.find((asset) => asset.id === assetId) || FOCUS_MEDIA_LIBRARY[0];
+const fileToDataUrl = (file: File) =>
+  new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (typeof reader.result === 'string') {
+        resolve(reader.result);
+        return;
+      }
+      reject(new Error('Failed to read file'));
+    };
+    reader.onerror = () => reject(reader.error || new Error('Failed to read file'));
+    reader.readAsDataURL(file);
+  });
 
-const getFocusSoundAsset = (assetId: string | null) =>
-  assetId?.startsWith('sound-url:')
-    ? ({
-        id: assetId,
-        label: 'Custom Sound',
-        src: safeDecode(assetId.slice('sound-url:'.length)),
-      } satisfies FocusSoundAsset)
-    : FOCUS_SOUND_LIBRARY.find((asset) => asset.id === assetId) || null;
+const getFocusMediaAsset = (assetId: string | null) => {
+  const serialized = parseCustomAsset<SerializedMediaAsset>(assetId, 'media-custom:');
+  if (serialized?.src) {
+    return {
+      id: assetId!,
+      label: serialized.label || 'Custom media',
+      type: serialized.type || inferMediaTypeFromUrl(serialized.src),
+      src: serialized.src,
+    } satisfies FocusMediaAsset;
+  }
+  if (assetId?.startsWith('url:')) {
+    const src = safeDecode(assetId.slice(4));
+    return {
+      id: assetId,
+      label: 'Custom URL',
+      type: inferMediaTypeFromUrl(src),
+      src,
+    } satisfies FocusMediaAsset;
+  }
+  return FOCUS_MEDIA_LIBRARY.find((asset) => asset.id === assetId) || FOCUS_MEDIA_LIBRARY[0];
+};
+
+const getFocusSoundAsset = (assetId: string | null) => {
+  const serialized = parseCustomAsset<SerializedSoundAsset>(assetId, 'sound-custom:');
+  if (serialized?.src) {
+    return {
+      id: assetId!,
+      label: serialized.label || 'Custom sound',
+      src: serialized.src,
+    } satisfies FocusSoundAsset;
+  }
+  if (assetId?.startsWith('sound-url:')) {
+    return {
+      id: assetId,
+      label: 'Custom Sound',
+      src: safeDecode(assetId.slice('sound-url:'.length)),
+    } satisfies FocusSoundAsset;
+  }
+  return FOCUS_SOUND_LIBRARY.find((asset) => asset.id === assetId) || null;
+};
 
 type ActiveSession = ReturnType<ReturnType<typeof useXP>['selectors']['getActiveSession']>;
 
@@ -316,7 +378,7 @@ const ActiveAreaDefault: React.FC<{
         <img
           src={selectedAsset.src}
           alt={selectedAsset.label}
-          className="h-full w-full object-cover opacity-90"
+          className="h-full w-full object-contain p-2 opacity-95"
           onError={() => setImageFailed(true)}
         />
       ) : null}
@@ -328,7 +390,7 @@ const ActiveAreaDefault: React.FC<{
           muted
           loop
           playsInline
-          className="h-full w-full object-cover"
+          className="h-full w-full object-contain p-2"
           onError={() => setVideoFailed(true)}
           onLoadedMetadata={() => {
             const video = videoRef.current;
@@ -360,13 +422,6 @@ const ActiveAreaDefault: React.FC<{
         </div>
       ) : null}
 
-      {selectedAsset.type !== 'animation' ? (
-        <div className="pointer-events-none absolute bottom-3 left-3 rounded-md border border-[var(--app-border)] bg-[color-mix(in_srgb,var(--app-panel)_88%,black)] px-2 py-1 text-[9px] uppercase tracking-[0.12em] text-[var(--app-muted)]">
-          {selectedAsset.label}
-          {selectedSound?.label ? ` • ${selectedSound.label}` : ''}
-        </div>
-      ) : null}
-
       <audio ref={audioRef} preload="auto" />
     </section>
   );
@@ -379,7 +434,11 @@ const ActiveLibraryView: React.FC<{
 }> = ({ kind, selectedAsset, onSelect }) => {
   const [customUrl, setCustomUrl] = useState('');
   const [customError, setCustomError] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const hoverTimerRef = useRef<number | null>(null);
+  const previewAudioRef = useRef<HTMLAudioElement | null>(null);
+  const [hoverSoundId, setHoverSoundId] = useState<string | null>(null);
   const items = kind === 'media' ? FOCUS_MEDIA_LIBRARY : FOCUS_SOUND_LIBRARY;
   const listHeightClass = 'h-[calc(100%-92px)]';
 
@@ -393,6 +452,37 @@ const ActiveLibraryView: React.FC<{
     }
   };
 
+  const stopHoverPreview = () => {
+    if (hoverTimerRef.current) {
+      window.clearTimeout(hoverTimerRef.current);
+      hoverTimerRef.current = null;
+    }
+    if (previewAudioRef.current) {
+      previewAudioRef.current.pause();
+      previewAudioRef.current.currentTime = 0;
+    }
+    setHoverSoundId(null);
+  };
+
+  useEffect(() => () => stopHoverPreview(), []);
+
+  const selectedMedia = kind === 'media' ? getFocusMediaAsset(selectedAsset) : null;
+  const selectedSound = kind === 'sound' ? getFocusSoundAsset(selectedAsset) : null;
+  const currentSource = kind === 'media' ? selectedMedia?.src : selectedSound?.src;
+  const selectedLabel = kind === 'media' ? selectedMedia?.label || 'Focus Animation' : selectedSound?.label || 'None';
+  const currentSourceLabel = useMemo(() => {
+    if (!currentSource) return '';
+    if (currentSource.startsWith('data:')) return 'Local uploaded file';
+    if (currentSource.startsWith('blob:')) return 'Local blob source';
+    return currentSource;
+  }, [currentSource]);
+
+  useEffect(() => {
+    if (!currentSource) return;
+    if (currentSource.startsWith('data:') || currentSource.startsWith('blob:')) return;
+    setCustomUrl((prev) => (prev ? prev : currentSource));
+  }, [currentSource]);
+
   const applyCustomUrl = () => {
     const url = customUrl.trim();
     if (!url) return;
@@ -400,26 +490,66 @@ const ActiveLibraryView: React.FC<{
       setCustomError('Invalid URL. Use https://, data:, or blob:');
       return;
     }
-    const nextId = kind === 'media' ? `url:${encodeURIComponent(url)}` : `sound-url:${encodeURIComponent(url)}`;
-    onSelect(nextId, false);
+    const nextId =
+      kind === 'media'
+        ? serializeCustomAsset<SerializedMediaAsset>('media-custom:', {
+            src: url,
+            type: inferMediaTypeFromUrl(url),
+            label: 'Custom URL',
+          })
+        : serializeCustomAsset<SerializedSoundAsset>('sound-custom:', {
+            src: url,
+            label: 'Custom URL',
+          });
+    onSelect(nextId, true);
     setCustomError(null);
-    setCustomUrl('');
+    setCustomUrl(url);
   };
 
   const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
-    const reader = new FileReader();
-    const base64 = await new Promise<string | null>((resolve) => {
-      reader.onload = () => resolve(typeof reader.result === 'string' ? reader.result : null);
-      reader.onerror = () => resolve(null);
-      reader.readAsDataURL(file);
-    });
-    if (!base64) return;
-    const nextId = kind === 'media' ? `url:${encodeURIComponent(base64)}` : `sound-url:${encodeURIComponent(base64)}`;
-    onSelect(nextId, false);
-    setCustomError(null);
-    event.currentTarget.value = '';
+    setUploading(true);
+    try {
+      const src = await fileToDataUrl(file);
+      const nextId =
+        kind === 'media'
+          ? serializeCustomAsset<SerializedMediaAsset>('media-custom:', {
+              src,
+              type: file.type.startsWith('video/') ? 'video' : 'image',
+              label: file.name || 'Uploaded file',
+            })
+          : serializeCustomAsset<SerializedSoundAsset>('sound-custom:', {
+              src,
+              label: file.name || 'Uploaded audio',
+            });
+      onSelect(nextId, true);
+      setCustomError(null);
+      setCustomUrl(file.name || '');
+    } catch {
+      setCustomError('Could not load this file. Try a smaller file or direct URL.');
+    } finally {
+      setUploading(false);
+      event.currentTarget.value = '';
+    }
+  };
+
+  const queueHoverPreview = (sound: FocusSoundAsset) => {
+    if (kind !== 'sound') return;
+    stopHoverPreview();
+    hoverTimerRef.current = window.setTimeout(() => {
+      if (!previewAudioRef.current) {
+        previewAudioRef.current = new Audio();
+      }
+      const audio = previewAudioRef.current;
+      audio.src = sound.src;
+      audio.volume = 0.55;
+      audio.loop = false;
+      audio.currentTime = 0;
+      void audio.play().catch(() => {});
+      setHoverSoundId(sound.id);
+      hoverTimerRef.current = null;
+    }, 1000);
   };
 
   return (
@@ -436,6 +566,14 @@ const ActiveLibraryView: React.FC<{
             key={item.id}
             type="button"
             onClick={() => onSelect(item.id, true)}
+            onPointerEnter={() => {
+              if (kind === 'sound') queueHoverPreview(item as FocusSoundAsset);
+            }}
+            onFocus={() => {
+              if (kind === 'sound') queueHoverPreview(item as FocusSoundAsset);
+            }}
+            onPointerLeave={stopHoverPreview}
+            onBlur={stopHoverPreview}
             className={`flex min-h-[78px] items-center justify-center rounded-[10px] border transition-colors ${
               selectedAsset === item.id
                 ? 'border-[var(--app-accent)] bg-[color-mix(in_srgb,var(--app-accent)_16%,var(--app-panel-2))] text-[var(--app-text)]'
@@ -445,6 +583,9 @@ const ActiveLibraryView: React.FC<{
             <div className="flex flex-col items-center gap-1">
               {kind === 'media' ? <Play size={18} /> : <Volume2 size={18} />}
               <span className="text-[9px] uppercase tracking-[0.1em]">{item.label}</span>
+              {kind === 'sound' && hoverSoundId === item.id ? (
+                <span className="text-[8px] uppercase tracking-[0.12em] text-[var(--app-accent)]">Preview</span>
+              ) : null}
             </div>
           </button>
         ))}
@@ -469,9 +610,10 @@ const ActiveLibraryView: React.FC<{
         <button
           type="button"
           onClick={() => fileInputRef.current?.click()}
+          disabled={uploading}
           className="h-9 rounded-md border border-[var(--app-border)] px-3 text-[10px] font-semibold uppercase tracking-[0.1em] text-[var(--app-muted)] hover:text-[var(--app-text)]"
         >
-          Upload
+          {uploading ? 'Loading' : 'Upload'}
         </button>
         <input
           ref={fileInputRef}
@@ -481,6 +623,15 @@ const ActiveLibraryView: React.FC<{
           onChange={handleFileSelect}
         />
       </div>
+      <div className="mt-2 rounded-md border border-[var(--app-border)] bg-[var(--app-panel-2)] px-2 py-1.5 text-[9px] uppercase tracking-[0.1em] text-[var(--app-muted)]">
+        <span className="mr-1 text-[var(--app-text)]">Current:</span>
+        {selectedLabel}
+      </div>
+      {currentSource ? (
+        <div className="mt-1 truncate rounded-md border border-[var(--app-border)] bg-[var(--app-panel-2)] px-2 py-1.5 text-[9px] tracking-[0.04em] text-[var(--app-muted)]">
+          {currentSourceLabel}
+        </div>
+      ) : null}
       {customError ? <div className="mt-1 text-[10px] tracking-[0.03em] text-[#ef6f83]">{customError}</div> : null}
     </section>
   );
@@ -1027,8 +1178,6 @@ const QuestPanel: React.FC<{
   onToggleStep: (stepId: string) => void;
   onDeleteStep: (stepId: string) => void;
   onAddStep: (text: string) => void;
-  selectedMediaLabel: string;
-  selectedSoundLabel: string | null;
   scheduleChipLabel: string;
   isDirty: boolean;
   onBackToFocus: () => void;
@@ -1051,8 +1200,6 @@ const QuestPanel: React.FC<{
   onToggleStep,
   onDeleteStep,
   onAddStep,
-  selectedMediaLabel,
-  selectedSoundLabel,
   scheduleChipLabel,
   isDirty,
   onBackToFocus,
@@ -1062,11 +1209,9 @@ const QuestPanel: React.FC<{
 }) => {
   const [stepInput, setStepInput] = useState('');
   const isFocusMode = workspaceMode === 'focus';
-  const isCreateMode = workspaceMode === 'create';
   const canEditDraft = workspaceMode === 'create' || workspaceMode === 'edit';
   const showChecklist = true;
   const showChecklistComposer = canEditDraft;
-  const modeLabel = isCreateMode ? 'Create quest' : workspaceMode === 'edit' ? 'Edit quest' : 'Quest workspace';
 
   const modeOptions: Array<{ key: FocusMode; label: string; icon: React.ReactNode; onClick: () => void }> = [
     { key: 'schedule', label: 'Schedule', icon: <CalendarDays size={14} />, onClick: onToggleSchedule },
@@ -1081,46 +1226,33 @@ const QuestPanel: React.FC<{
   };
 
   return (
-    <section className="min-h-0 w-full overflow-hidden rounded-[12px] border border-[var(--app-border)] bg-[var(--app-panel)] p-3">
+    <section className="min-h-0 w-full overflow-hidden rounded-[12px] bg-[var(--app-panel)]">
+      <span className="sr-only">Quest workspace</span>
       <div className="flex h-full flex-col gap-3">
-        <div className="text-[10px] uppercase tracking-[0.14em] text-[var(--app-muted)]">{modeLabel}</div>
-
         {canEditDraft ? (
           <>
-            <div className="rounded-[10px] border border-[var(--app-border)] bg-[var(--app-panel-2)] p-2.5">
-              <div className="text-[10px] uppercase tracking-[0.12em] text-[var(--app-muted)]">Quest name</div>
-              <input
-                value={title}
-                onChange={(event) => setTitle(event.target.value)}
-                className="mt-1 w-full rounded-md border border-transparent bg-transparent px-1 py-1 text-[14px] font-semibold tracking-[0.03em] text-[var(--app-text)] outline-none focus:border-[var(--app-accent)]"
-                placeholder="Quest title"
-              />
-            </div>
+            <input
+              value={title}
+              onChange={(event) => setTitle(event.target.value)}
+              className="h-11 w-full rounded-[10px] border border-[var(--app-border)] bg-[var(--app-panel-2)] px-3 text-[14px] font-semibold tracking-[0.03em] text-[var(--app-text)] outline-none placeholder:text-[var(--app-muted)] focus:border-[var(--app-accent)]"
+              placeholder="Quest title"
+            />
 
-            <div className="rounded-[10px] border border-[var(--app-border)] bg-[var(--app-panel-2)] p-2.5">
-              <div className="text-[10px] uppercase tracking-[0.12em] text-[var(--app-muted)]">Details</div>
-              <textarea
-                value={details}
-                onChange={(event) => setDetails(event.target.value)}
-                className="mt-1 h-20 w-full resize-none rounded-md border border-transparent bg-transparent px-1 py-1 text-[12px] leading-relaxed tracking-[0.03em] text-[var(--app-text)] outline-none focus:border-[var(--app-accent)]"
-                placeholder="Quest notes"
-              />
-            </div>
+            <textarea
+              value={details}
+              onChange={(event) => setDetails(event.target.value)}
+              className="h-24 w-full resize-none rounded-[10px] border border-[var(--app-border)] bg-[var(--app-panel-2)] px-3 py-2 text-[12px] leading-relaxed tracking-[0.03em] text-[var(--app-text)] outline-none placeholder:text-[var(--app-muted)] focus:border-[var(--app-accent)]"
+              placeholder="Quest notes"
+            />
           </>
         ) : (
           <>
-            <div className="rounded-[10px] border border-[var(--app-border)] bg-[var(--app-panel-2)] p-2.5">
-              <div className="text-[10px] uppercase tracking-[0.12em] text-[var(--app-muted)]">Quest name</div>
-              <div className="mt-1 truncate text-[14px] font-semibold tracking-[0.03em] text-[var(--app-text)]">
-                {title || 'Untitled quest'}
-              </div>
+            <div className="rounded-[10px] border border-[var(--app-border)] bg-[var(--app-panel-2)] px-3 py-2 text-[14px] font-semibold tracking-[0.03em] text-[var(--app-text)]">
+              {title || 'Untitled quest'}
             </div>
 
-            <div className="rounded-[10px] border border-[var(--app-border)] bg-[var(--app-panel-2)] p-2.5">
-              <div className="text-[10px] uppercase tracking-[0.12em] text-[var(--app-muted)]">Details</div>
-              <div className="mt-1 h-16 overflow-y-auto whitespace-pre-wrap text-[12px] leading-relaxed tracking-[0.03em] text-[var(--app-text)]">
-                {details?.trim() || 'No details set'}
-              </div>
+            <div className="h-24 overflow-y-auto whitespace-pre-wrap rounded-[10px] border border-[var(--app-border)] bg-[var(--app-panel-2)] px-3 py-2 text-[12px] leading-relaxed tracking-[0.03em] text-[var(--app-text)]">
+              {details?.trim() || 'No details set'}
             </div>
           </>
         )}
@@ -1149,8 +1281,6 @@ const QuestPanel: React.FC<{
 
         {canEditDraft ? (
           <div className="flex items-center justify-between gap-2 rounded-[10px] border border-[var(--app-border)] bg-[var(--app-panel-2)] px-2.5 py-2 text-[9px] uppercase tracking-[0.1em] text-[var(--app-muted)]">
-            <span>{selectedMediaLabel}</span>
-            <span>{selectedSoundLabel || 'No sound'}</span>
             <span>{scheduleChipLabel}</span>
             {isDirty ? <span className="text-[var(--app-accent)]">Unsaved</span> : null}
           </div>
@@ -1590,8 +1720,6 @@ const FocusWorkspace: React.FC<{
           onAddStep={(text) =>
             setDraftSteps((prev) => [...prev, { id: createStepId(), text: text.trim(), done: false }])
           }
-          selectedMediaLabel={getFocusMediaAsset(draftMediaAsset).label}
-          selectedSoundLabel={getFocusSoundAsset(draftSoundAsset)?.label || null}
           scheduleChipLabel={scheduleChipLabel}
           isDirty={isDirty}
           onBackToFocus={() => requestExit('back')}
@@ -1730,9 +1858,8 @@ export const HextechAssistant: React.FC<HextechAssistantProps> = ({ isOpen, onCl
   const getTaskPreview = (taskId: string) => {
     const asset = getFocusMediaAsset(taskMediaSelections[taskId] || 'focus-animation');
     return {
-      url: asset.type === 'image' && asset.src ? asset.src : null,
+      url: asset.src || null,
       type: asset.type,
-      label: asset.label,
     };
   };
 
@@ -2091,7 +2218,7 @@ export const HextechAssistant: React.FC<HextechAssistantProps> = ({ isOpen, onCl
                     isFocused={focusedTaskId === runningTask.id}
                     mediaPreviewUrl={preview.url}
                     mediaPreviewType={preview.type}
-                    mediaLabel={preview.label}
+                    priorityVisual={(taskPriorityVisuals[runningTask.id] as FocusPriority | undefined) || (runningTask.priority as FocusPriority) || 'normal'}
                     onOpen={() => openFocusPanel(runningTask.id)}
                     onToggleRun={() => handleToggleRun(runningTask)}
                     onComplete={() => handleComplete(runningTask)}
@@ -2126,7 +2253,7 @@ export const HextechAssistant: React.FC<HextechAssistantProps> = ({ isOpen, onCl
                           isFocused={focusedTaskId === task.id}
                           mediaPreviewUrl={preview.url}
                           mediaPreviewType={preview.type}
-                          mediaLabel={preview.label}
+                          priorityVisual={(taskPriorityVisuals[task.id] as FocusPriority | undefined) || (task.priority as FocusPriority) || 'normal'}
                           onOpen={() => openFocusPanel(task.id)}
                           onToggleRun={() => handleToggleRun(task)}
                           onComplete={() => handleComplete(task)}

@@ -58,7 +58,7 @@ export interface QuestCardProps {
   isFocused?: boolean;
   mediaPreviewUrl?: string | null;
   mediaPreviewType?: 'animation' | 'image' | 'video';
-  mediaLabel?: string;
+  priorityVisual?: 'normal' | 'high' | 'urgent' | 'extreme';
   onOpen: () => void;
   onToggleRun: () => void;
   onComplete: () => void;
@@ -73,7 +73,7 @@ export const QuestCard: React.FC<QuestCardProps> = ({
   isFocused = false,
   mediaPreviewUrl = null,
   mediaPreviewType = 'animation',
-  mediaLabel,
+  priorityVisual = 'normal',
   onOpen,
   onToggleRun,
   onComplete,
@@ -103,6 +103,19 @@ export const QuestCard: React.FC<QuestCardProps> = ({
   const isCompleted = task.completedAt || task.status === 'done';
   const stepProgress = useMemo(() => getStepProgress(task.details), [task.details]);
   const progressPct = stepProgress.total > 0 ? Math.round((stepProgress.done / stepProgress.total) * 100) : 0;
+  const priorityLevel = useMemo(() => {
+    if (priorityVisual === 'extreme') return 4;
+    if (priorityVisual === 'urgent') return 3;
+    if (priorityVisual === 'high') return 2;
+    return 1;
+  }, [priorityVisual]);
+  const statusTone = useMemo(() => {
+    if (status === 'Done') return 'bg-[#3fcf8e]/20 text-[#8de5bb]';
+    if (status === 'Running') return 'bg-[var(--app-accent)]/24 text-[var(--app-text)]';
+    if (status === 'Scheduled') return 'bg-[#55a3ff]/22 text-[#95c4ff]';
+    return 'bg-[var(--app-panel-2)] text-[var(--app-muted)]';
+  }, [status]);
+  const rightTimeLabel = timerLabel || formatClock(task.scheduledAt);
 
   return (
     <article
@@ -114,7 +127,7 @@ export const QuestCard: React.FC<QuestCardProps> = ({
           : 'border-[var(--app-border)] bg-[var(--app-panel)] hover:bg-[color-mix(in_srgb,var(--app-accent)_7%,var(--app-panel))]'
       } ${isCompleted ? 'opacity-70' : ''}`}
     >
-      {mediaPreviewUrl ? (
+      {mediaPreviewUrl && mediaPreviewType === 'image' ? (
         <img
           src={mediaPreviewUrl}
           alt=""
@@ -124,11 +137,23 @@ export const QuestCard: React.FC<QuestCardProps> = ({
           }`}
         />
       ) : null}
+      {mediaPreviewUrl && mediaPreviewType === 'video' ? (
+        <video
+          src={mediaPreviewUrl}
+          muted
+          loop
+          autoPlay
+          playsInline
+          className={`pointer-events-none absolute inset-0 h-full w-full object-cover transition-opacity duration-300 ${
+            isFocused || isRunning ? 'opacity-[0.24]' : 'opacity-0 group-hover:opacity-[0.2]'
+          }`}
+        />
+      ) : null}
       {!mediaPreviewUrl && mediaPreviewType === 'video' ? (
         <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(120deg,rgba(110,70,168,0.14),rgba(18,20,28,0.18),rgba(16,18,24,0.12))]" />
       ) : null}
       <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(90deg,rgba(8,9,12,0.78),rgba(8,9,12,0.48))]" />
-      <div className="relative z-[1] flex items-center gap-2 p-3">
+      <div className="relative z-[1] flex items-start gap-2 p-3">
         <button
           type="button"
           onClick={onOpen}
@@ -138,21 +163,9 @@ export const QuestCard: React.FC<QuestCardProps> = ({
           <div className="min-w-0 flex-1">
             <div className="truncate text-[12px] font-semibold leading-5 tracking-[0.04em] text-[var(--app-text)]">{task.title}</div>
             <div className="mt-0.5 flex items-center gap-1.5 text-[10px] uppercase leading-4 tracking-[0.1em] text-[var(--app-muted)]">
-              <span>{status}</span>
+              <span className="font-medium text-[var(--app-text)]">{'▲'.repeat(priorityLevel)}</span>
               <span>•</span>
-              <span>{formatClock(task.scheduledAt)}</span>
-              {isRunning ? (
-                <>
-                  <span>•</span>
-                  <span className="font-medium text-[var(--app-accent)]">{timerLabel}</span>
-                </>
-              ) : null}
-              {mediaPreviewType !== 'animation' ? (
-                <>
-                  <span>•</span>
-                  <span>{mediaPreviewType === 'video' ? 'video' : 'image'}</span>
-                </>
-              ) : null}
+              <span>{task.scheduledAt ? 'Scheduled' : 'No schedule'}</span>
             </div>
             {stepProgress.total > 0 ? (
               <div className="mt-1.5">
@@ -167,43 +180,42 @@ export const QuestCard: React.FC<QuestCardProps> = ({
                 </div>
               </div>
             ) : null}
-            {mediaLabel && mediaPreviewType !== 'animation' ? (
-              <div className="mt-1 truncate text-[9px] uppercase tracking-[0.1em] text-[var(--app-muted)]">
-                {mediaLabel}
-              </div>
-            ) : null}
           </div>
         </button>
 
-        <div className="flex items-center gap-1.5 pr-0.5">
+        <div className="flex w-[124px] shrink-0 flex-col items-end gap-1.5 pr-0.5">
+          <div className={`rounded-md px-2 py-0.5 text-[9px] font-semibold uppercase tracking-[0.1em] ${statusTone}`}>
+            {status}
+          </div>
+          <div className="text-[14px] font-semibold tracking-[0.06em] text-[var(--app-text)]">{rightTimeLabel}</div>
           {!isCompleted ? (
-            <button
-              type="button"
-              aria-label={isRunning ? 'Pause quest' : 'Start quest'}
-              disabled={disabled}
-              onClick={(event) => {
-                event.stopPropagation();
-                onToggleRun();
-              }}
-              className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-[var(--app-border)] bg-[var(--app-panel-2)] text-[var(--app-text)] transition-colors hover:border-[var(--app-accent)] hover:text-[var(--app-accent)] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--app-accent)] disabled:opacity-40"
-            >
-              {isRunning ? <Pause size={16} /> : <Play size={16} />}
-            </button>
-          ) : null}
+            <div className="mt-0.5 grid w-full grid-cols-1 gap-1.5">
+              <button
+                type="button"
+                aria-label={isRunning ? 'Pause quest' : 'Start quest'}
+                disabled={disabled}
+                onClick={(event) => {
+                  event.stopPropagation();
+                  onToggleRun();
+                }}
+                className="inline-flex h-8 w-full items-center justify-center rounded-lg border border-[var(--app-border)] bg-[var(--app-panel-2)] text-[var(--app-text)] transition-colors hover:border-[var(--app-accent)] hover:text-[var(--app-accent)] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--app-accent)] disabled:opacity-40"
+              >
+                {isRunning ? <Pause size={16} /> : <Play size={16} />}
+              </button>
 
-          {!isCompleted ? (
-            <button
-              type="button"
-              aria-label="Complete quest"
-              disabled={disabled}
-              onClick={(event) => {
-                event.stopPropagation();
-                onComplete();
-              }}
-              className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-[var(--app-border)] bg-[var(--app-panel-2)] text-[var(--app-text)] transition-colors hover:border-[var(--app-accent)] hover:text-[var(--app-accent)] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--app-accent)] disabled:opacity-40"
-            >
-              <Check size={16} />
-            </button>
+              <button
+                type="button"
+                aria-label="Complete quest"
+                disabled={disabled}
+                onClick={(event) => {
+                  event.stopPropagation();
+                  onComplete();
+                }}
+                className="inline-flex h-8 w-full items-center justify-center rounded-lg border border-[var(--app-border)] bg-[var(--app-panel-2)] text-[var(--app-text)] transition-colors hover:border-[var(--app-accent)] hover:text-[var(--app-accent)] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--app-accent)] disabled:opacity-40"
+              >
+                <Check size={16} />
+              </button>
+            </div>
           ) : null}
         </div>
       </div>
