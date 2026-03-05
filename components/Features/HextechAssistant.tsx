@@ -135,6 +135,7 @@ const FOCUS_SOUND_LIBRARY: FocusSoundAsset[] = [
 const QUEST_MEDIA_STORAGE_KEY = 'xtation.quest_media_selections.v1';
 const QUEST_SOUND_STORAGE_KEY = 'xtation.quest_sound_selections.v1';
 const QUEST_PRIORITY_STORAGE_KEY = 'xtation.quest_priority_selections.v1';
+const QUEST_MEDIA_PINNED_STORAGE_KEY = 'xtation.quest_media_pinned.v1';
 
 const loadSelectionMap = (storageKey: string): Record<string, string> => {
   if (typeof window === 'undefined') return {};
@@ -196,6 +197,8 @@ const parseCustomAsset = <T,>(assetId: string | null, prefix: string): T | null 
 };
 
 const inferMediaTypeFromUrl = (url: string): FocusMediaAsset['type'] => {
+  const lower = url.toLowerCase();
+  if (lower.includes('youtube.com') || lower.includes('youtu.be')) return 'video';
   if (url.startsWith('data:image/')) return 'image';
   if (url.startsWith('data:video/')) return 'video';
   if (url.startsWith('blob:')) return 'video';
@@ -203,6 +206,37 @@ const inferMediaTypeFromUrl = (url: string): FocusMediaAsset['type'] => {
   if (/\.(png|jpe?g|webp|gif|avif|svg)$/i.test(clean)) return 'image';
   if (/\.(mp4|webm|ogg|mov|m4v)$/i.test(clean)) return 'video';
   return 'image';
+};
+
+const extractYouTubeVideoId = (url: string) => {
+  try {
+    const parsed = new URL(url);
+    if (parsed.hostname.includes('youtu.be')) {
+      return parsed.pathname.replace('/', '') || null;
+    }
+    if (parsed.hostname.includes('youtube.com')) {
+      if (parsed.pathname.startsWith('/shorts/')) {
+        return parsed.pathname.split('/shorts/')[1] || null;
+      }
+      return parsed.searchParams.get('v');
+    }
+  } catch {
+    return null;
+  }
+  return null;
+};
+
+const getYouTubeEmbedUrl = (url: string, startSeconds = 0) => {
+  const videoId = extractYouTubeVideoId(url);
+  if (!videoId) return null;
+  const start = Math.max(0, Math.floor(startSeconds));
+  return `https://www.youtube.com/embed/${videoId}?rel=0&modestbranding=1&controls=1&autoplay=1&mute=1&start=${start}`;
+};
+
+const getYouTubeThumbnailUrl = (url: string) => {
+  const videoId = extractYouTubeVideoId(url);
+  if (!videoId) return null;
+  return `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
 };
 
 const fileToDataUrl = (file: File) =>
@@ -323,6 +357,13 @@ const ActiveAreaDefault: React.FC<{
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [videoFailed, setVideoFailed] = useState(false);
   const [imageFailed, setImageFailed] = useState(false);
+  const youtubeEmbedUrl = useMemo(
+    () =>
+      selectedAsset.type === 'video' && selectedAsset.src
+        ? getYouTubeEmbedUrl(selectedAsset.src, elapsedMs / 1000)
+        : null,
+    [selectedAsset.type, selectedAsset.src, elapsedMs]
+  );
 
   useEffect(() => {
     setVideoFailed(false);
@@ -330,7 +371,7 @@ const ActiveAreaDefault: React.FC<{
   }, [selectedAsset.id]);
 
   useEffect(() => {
-    if (selectedAsset.type !== 'video' || videoFailed) return;
+    if (selectedAsset.type !== 'video' || videoFailed || youtubeEmbedUrl) return;
     const video = videoRef.current;
     if (!video) return;
 
@@ -349,7 +390,7 @@ const ActiveAreaDefault: React.FC<{
     };
 
     syncVideo();
-  }, [selectedAsset.id, selectedAsset.type, elapsedMs, isRunning]);
+  }, [selectedAsset.id, selectedAsset.type, elapsedMs, isRunning, videoFailed, youtubeEmbedUrl]);
 
   useEffect(() => {
     const audio = audioRef.current;
@@ -378,19 +419,29 @@ const ActiveAreaDefault: React.FC<{
         <img
           src={selectedAsset.src}
           alt={selectedAsset.label}
-          className="h-full w-full object-contain p-2 opacity-95"
+          className="h-full w-full object-cover opacity-95"
           onError={() => setImageFailed(true)}
         />
       ) : null}
 
-      {selectedAsset.type === 'video' && selectedAsset.src && !videoFailed ? (
+      {selectedAsset.type === 'video' && youtubeEmbedUrl ? (
+        <iframe
+          src={youtubeEmbedUrl}
+          title={selectedAsset.label}
+          allow="autoplay; encrypted-media; picture-in-picture"
+          allowFullScreen
+          className="h-full w-full border-0"
+        />
+      ) : null}
+
+      {selectedAsset.type === 'video' && selectedAsset.src && !videoFailed && !youtubeEmbedUrl ? (
         <video
           ref={videoRef}
           src={selectedAsset.src}
           muted
           loop
           playsInline
-          className="h-full w-full object-contain p-2"
+          className="h-full w-full object-cover"
           onError={() => setVideoFailed(true)}
           onLoadedMetadata={() => {
             const video = videoRef.current;
@@ -403,7 +454,7 @@ const ActiveAreaDefault: React.FC<{
         />
       ) : null}
 
-      {selectedAsset.type === 'animation' || videoFailed || imageFailed ? (
+      {selectedAsset.type === 'animation' || (selectedAsset.type === 'video' && videoFailed && !youtubeEmbedUrl) || imageFailed ? (
         <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center gap-5">
           <div className="relative h-16 w-[72%] rounded-full border border-[color-mix(in_srgb,var(--app-accent)_30%,transparent)]">
             <div className="absolute inset-x-6 top-1/2 h-10 -translate-y-1/2 rounded-full border border-[color-mix(in_srgb,var(--app-accent)_22%,transparent)]" />
@@ -1190,7 +1241,7 @@ const PriorityStrip: React.FC<{
   const currentLevel = value === 'extreme' ? 4 : value === 'urgent' ? 3 : value === 'high' ? 2 : 1;
 
   return (
-    <section className="grid h-full grid-rows-4 gap-1.5 overflow-hidden rounded-[12px] border border-[var(--app-border)] bg-[var(--app-panel)] p-1.5">
+    <section className="grid h-full grid-rows-4 gap-1.5 overflow-hidden rounded-[12px] bg-[var(--app-panel)] p-1">
       {priorities.map((priority) => (
         <button
           key={priority.key}
@@ -1198,10 +1249,10 @@ const PriorityStrip: React.FC<{
           disabled={disabled}
           onClick={() => onChange(priority.key)}
           title={`Set ${priority.key} priority`}
-          className={`flex h-full w-full items-center justify-center rounded-[10px] border border-[var(--app-border)] text-[11px] font-medium tracking-[0.03em] transition-colors ${
+          className={`flex h-full w-full items-center justify-center rounded-[10px] text-[11px] font-medium tracking-[0.03em] transition-colors ${
             currentLevel >= priority.level
               ? 'bg-[color-mix(in_srgb,var(--app-accent)_22%,var(--app-panel))] text-[var(--app-text)]'
-              : 'text-[var(--app-muted)] hover:bg-[var(--app-panel-2)]'
+              : 'bg-[color-mix(in_srgb,var(--app-panel-2)_82%,transparent)] text-[var(--app-muted)] hover:bg-[color-mix(in_srgb,var(--app-accent)_10%,var(--app-panel-2))]'
           } ${disabled ? 'cursor-not-allowed opacity-60' : ''}`}
         >
           <ChevronUp size={18} strokeWidth={2.2} />
@@ -1211,14 +1262,38 @@ const PriorityStrip: React.FC<{
   );
 };
 
+type CharacterVisual = 'default' | 'schedule' | 'countdown';
+
 const CharacterPanel: React.FC<{
-}> = () => (
-  <section className="min-h-0 rounded-[12px] border border-[var(--app-border)] bg-[color-mix(in_srgb,var(--app-accent)_14%,var(--app-panel))] p-3">
-    <div className="flex h-full items-center justify-center">
-      <img src="/ui-reference/auth/character.svg" alt="Character" className="max-h-full w-full object-contain" />
-    </div>
-  </section>
-);
+  visual: CharacterVisual;
+}> = ({ visual }) => {
+  const visualConfig =
+    visual === 'schedule'
+      ? {
+          src: '/ui-reference/auth/illustration-up.svg',
+          alt: 'Schedule state illustration',
+          bg: 'bg-[color-mix(in_srgb,var(--app-accent)_10%,var(--app-panel))]',
+        }
+      : visual === 'countdown'
+      ? {
+          src: '/ui-reference/brand/eye-orb.svg',
+          alt: 'Countdown state illustration',
+          bg: 'bg-[color-mix(in_srgb,var(--app-accent)_16%,var(--app-panel))]',
+        }
+      : {
+          src: '/ui-reference/auth/character.svg',
+          alt: 'Default character illustration',
+          bg: 'bg-[color-mix(in_srgb,var(--app-accent)_14%,var(--app-panel))]',
+        };
+
+  return (
+    <section className={`min-h-0 rounded-[12px] border border-[var(--app-border)] p-3 ${visualConfig.bg}`}>
+      <div className="flex h-full items-center justify-center">
+        <img src={visualConfig.src} alt={visualConfig.alt} className="max-h-full w-full object-contain" />
+      </div>
+    </section>
+  );
+};
 
 const QuestPanel: React.FC<{
   workspaceMode: WorkspaceMode;
@@ -1370,9 +1445,15 @@ const QuestPanel: React.FC<{
                       onClick={() => onToggleStep(step.id)}
                       role="checkbox"
                       aria-checked={step.done}
-                      className={`h-4 w-4 rounded-sm border ${step.done ? 'border-[var(--app-accent)] bg-[color-mix(in_srgb,var(--app-accent)_30%,var(--app-panel))]' : 'border-[var(--app-border)]'}`}
+                      className={`inline-flex h-4 w-4 items-center justify-center rounded-full border ${
+                        step.done
+                          ? 'border-white bg-white text-[var(--app-panel)]'
+                          : 'border-[color-mix(in_srgb,var(--app-muted)_80%,transparent)] bg-transparent'
+                      }`}
                       aria-label={step.done ? 'Mark step incomplete' : 'Mark step complete'}
-                    />
+                    >
+                      {step.done ? <Check size={10} strokeWidth={3} /> : null}
+                    </button>
                     <span className={`min-w-0 flex-1 truncate text-[11px] tracking-[0.03em] ${step.done ? 'text-[var(--app-muted)] line-through' : 'text-[var(--app-text)]'}`}>
                       {step.text}
                     </span>
@@ -1618,6 +1699,12 @@ const FocusWorkspace: React.FC<{
       : task.scheduledAt
       ? `Schedule: Applied ${formatShortTime(task.scheduledAt)}`
       : 'Schedule: None';
+  const characterVisual: CharacterVisual =
+    activeMode === 'countdown' || (!!draftCountdownMin && draftCountdownMin > 0)
+      ? 'countdown'
+      : activeMode === 'schedule' || !!draftScheduledAt
+      ? 'schedule'
+      : 'default';
   const saveDraft = () => {
     if (!draftTitle.trim() || mode === 'focus') return;
     onSaveDraft({
@@ -1715,7 +1802,7 @@ const FocusWorkspace: React.FC<{
               type="button"
               aria-label="Close focus workspace"
               onClick={() => requestExit('close')}
-              className="absolute -right-2 -top-2 inline-flex h-8 w-8 items-center justify-center rounded-md border border-[var(--app-border)] bg-[var(--app-panel-2)] text-[var(--app-muted)] hover:text-[var(--app-text)]"
+              className="absolute -right-12 top-1 inline-flex h-8 w-8 items-center justify-center rounded-md border border-[var(--app-border)] bg-[var(--app-panel-2)] text-[var(--app-muted)] hover:text-[var(--app-text)]"
             >
               <X size={14} />
             </button>
@@ -1833,7 +1920,7 @@ const FocusWorkspace: React.FC<{
           onToggleRun={onToggleRun}
           onComplete={onComplete}
             />
-            <CharacterPanel />
+            <CharacterPanel visual={characterVisual} />
           </div>
         </div>
       </div>
@@ -1876,6 +1963,7 @@ export const HextechAssistant: React.FC<HextechAssistantProps> = ({ isOpen, onCl
   const [taskMediaSelections, setTaskMediaSelections] = useState<Record<string, string>>({});
   const [taskSoundSelections, setTaskSoundSelections] = useState<Record<string, string>>({});
   const [taskPriorityVisuals, setTaskPriorityVisuals] = useState<Record<string, string>>({});
+  const [taskMediaPinned, setTaskMediaPinned] = useState<Record<string, string>>({});
   const [, setUiRevision] = useState(0);
 
   const [rendered, setRendered] = useState(isOpen);
@@ -1955,6 +2043,15 @@ export const HextechAssistant: React.FC<HextechAssistantProps> = ({ isOpen, onCl
 
   const getTaskPreview = (taskId: string) => {
     const asset = getFocusMediaAsset(taskMediaSelections[taskId] || 'focus-animation');
+    if (asset.type === 'video' && asset.src) {
+      const ytThumb = getYouTubeThumbnailUrl(asset.src);
+      if (ytThumb) {
+        return {
+          url: ytThumb,
+          type: 'image' as const,
+        };
+      }
+    }
     return {
       url: asset.src || null,
       type: asset.type,
@@ -1965,6 +2062,7 @@ export const HextechAssistant: React.FC<HextechAssistantProps> = ({ isOpen, onCl
     setTaskMediaSelections(loadSelectionMap(QUEST_MEDIA_STORAGE_KEY));
     setTaskSoundSelections(loadSelectionMap(QUEST_SOUND_STORAGE_KEY));
     setTaskPriorityVisuals(loadSelectionMap(QUEST_PRIORITY_STORAGE_KEY));
+    setTaskMediaPinned(loadSelectionMap(QUEST_MEDIA_PINNED_STORAGE_KEY));
   }, []);
 
   useEffect(() => {
@@ -1978,6 +2076,10 @@ export const HextechAssistant: React.FC<HextechAssistantProps> = ({ isOpen, onCl
   useEffect(() => {
     persistSelectionMap(QUEST_PRIORITY_STORAGE_KEY, taskPriorityVisuals);
   }, [taskPriorityVisuals]);
+
+  useEffect(() => {
+    persistSelectionMap(QUEST_MEDIA_PINNED_STORAGE_KEY, taskMediaPinned);
+  }, [taskMediaPinned]);
 
   useEffect(() => {
     if (isOpen) {
@@ -2317,6 +2419,13 @@ export const HextechAssistant: React.FC<HextechAssistantProps> = ({ isOpen, onCl
                     mediaPreviewUrl={preview.url}
                     mediaPreviewType={preview.type}
                     priorityVisual={(taskPriorityVisuals[runningTask.id] as FocusPriority | undefined) || (runningTask.priority as FocusPriority) || 'normal'}
+                    isPreviewPinned={taskMediaPinned[runningTask.id] === '1'}
+                    onTogglePreviewPin={() =>
+                      setTaskMediaPinned((prev) => ({
+                        ...prev,
+                        [runningTask.id]: prev[runningTask.id] === '1' ? '0' : '1',
+                      }))
+                    }
                     onOpen={() => openFocusPanel(runningTask.id)}
                     onToggleRun={() => handleToggleRun(runningTask)}
                     onComplete={() => handleComplete(runningTask)}
@@ -2352,6 +2461,13 @@ export const HextechAssistant: React.FC<HextechAssistantProps> = ({ isOpen, onCl
                           mediaPreviewUrl={preview.url}
                           mediaPreviewType={preview.type}
                           priorityVisual={(taskPriorityVisuals[task.id] as FocusPriority | undefined) || (task.priority as FocusPriority) || 'normal'}
+                          isPreviewPinned={taskMediaPinned[task.id] === '1'}
+                          onTogglePreviewPin={() =>
+                            setTaskMediaPinned((prev) => ({
+                              ...prev,
+                              [task.id]: prev[task.id] === '1' ? '0' : '1',
+                            }))
+                          }
                           onOpen={() => openFocusPanel(task.id)}
                           onToggleRun={() => handleToggleRun(task)}
                           onComplete={() => handleComplete(task)}

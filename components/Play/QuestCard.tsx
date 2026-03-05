@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Check, Pause, Play } from 'lucide-react';
+import { Check, ChevronUp, Pause, Pin, Play } from 'lucide-react';
 import { Task, XPSession } from '../XP/xpTypes';
 
 const STEPS_BLOCK_REGEX = /\n?---\s*\n\[xstation_steps_v1\]\s*\n([\s\S]*?)\n---\s*$/;
@@ -66,9 +66,11 @@ export interface QuestCardProps {
   mediaPreviewUrl?: string | null;
   mediaPreviewType?: 'animation' | 'image' | 'video';
   priorityVisual?: 'normal' | 'high' | 'urgent' | 'extreme';
+  isPreviewPinned?: boolean;
   onOpen: () => void;
   onToggleRun: () => void;
   onComplete: () => void;
+  onTogglePreviewPin?: () => void;
   disabled?: boolean;
 }
 
@@ -81,9 +83,11 @@ export const QuestCard: React.FC<QuestCardProps> = ({
   mediaPreviewUrl = null,
   mediaPreviewType = 'animation',
   priorityVisual = 'normal',
+  isPreviewPinned = false,
   onOpen,
   onToggleRun,
   onComplete,
+  onTogglePreviewPin,
   disabled = false,
 }) => {
   const [tickNow, setTickNow] = useState(() => Date.now());
@@ -161,7 +165,7 @@ export const QuestCard: React.FC<QuestCardProps> = ({
           alt=""
           aria-hidden
           className={`pointer-events-none absolute inset-0 h-full w-full object-cover transition-opacity duration-300 ${
-            isFocused || isRunning ? 'opacity-[0.34]' : 'opacity-0 group-hover:opacity-[0.28]'
+            isFocused || isRunning || isPreviewPinned ? 'opacity-[0.38]' : 'opacity-0 group-hover:opacity-[0.28]'
           }`}
         />
       ) : null}
@@ -173,7 +177,7 @@ export const QuestCard: React.FC<QuestCardProps> = ({
           autoPlay
           playsInline
           className={`pointer-events-none absolute inset-0 h-full w-full object-cover transition-opacity duration-300 ${
-            isFocused || isRunning ? 'opacity-[0.34]' : 'opacity-0 group-hover:opacity-[0.28]'
+            isFocused || isRunning || isPreviewPinned ? 'opacity-[0.38]' : 'opacity-0 group-hover:opacity-[0.28]'
           }`}
         />
       ) : null}
@@ -183,12 +187,23 @@ export const QuestCard: React.FC<QuestCardProps> = ({
       <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(90deg,rgba(8,9,12,0.78),rgba(8,9,12,0.48))]" />
       <div className="relative z-[1] flex items-start gap-2 p-3">
         <div className="flex min-w-0 flex-1 items-center gap-3 rounded-lg px-1 py-0.5 text-left outline-none transition-transform duration-200 group-hover:translate-x-[1px]">
+          <div className="flex w-4 shrink-0 flex-col items-center justify-center gap-0.5">
+            {[4, 3, 2, 1].map((level) => (
+              <ChevronUp
+                key={level}
+                size={11}
+                className={
+                  priorityLevel >= level
+                    ? 'text-[var(--app-text)]'
+                    : 'text-[color-mix(in_srgb,var(--app-muted)_45%,transparent)]'
+                }
+                strokeWidth={2.3}
+              />
+            ))}
+          </div>
           <div className={`h-10 w-1 rounded-full ${isRunning ? 'bg-[var(--app-accent)]' : 'bg-transparent'}`} />
           <div className="min-w-0 flex-1">
             <div className="truncate text-[12px] font-semibold leading-5 tracking-[0.04em] text-[var(--app-text)]">{task.title}</div>
-            <div className="mt-0.5 flex items-center gap-1.5 text-[10px] uppercase leading-4 tracking-[0.1em] text-[var(--app-muted)]">
-              <span className="font-medium text-[var(--app-text)]">{'▲'.repeat(priorityLevel)}</span>
-            </div>
             {stepProgress.total > 0 ? (
               <div className="mt-1.5">
                 <div className="text-[9px] uppercase tracking-[0.1em] text-[var(--app-muted)]">
@@ -205,7 +220,7 @@ export const QuestCard: React.FC<QuestCardProps> = ({
           </div>
         </div>
 
-        <div className="flex w-[124px] shrink-0 flex-col items-end gap-1.5 pr-0.5">
+        <div className="flex w-[112px] shrink-0 flex-col items-end gap-1.5 pr-0.5">
           {statusTone ? (
             <div className={`rounded-md px-2 py-0.5 text-[9px] font-semibold uppercase tracking-[0.1em] ${statusTone}`}>
               {status}
@@ -216,6 +231,25 @@ export const QuestCard: React.FC<QuestCardProps> = ({
           <div className="text-[14px] font-semibold tracking-[0.06em] text-[var(--app-text)]">{rightTimeLabel}</div>
           {!isCompleted ? (
             <div className="mt-0.5 grid w-full grid-cols-1 gap-1.5">
+              {onTogglePreviewPin ? (
+                <button
+                  type="button"
+                  aria-label={isPreviewPinned ? 'Unpin media preview' : 'Pin media preview'}
+                  disabled={disabled}
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    event.preventDefault();
+                    onTogglePreviewPin();
+                  }}
+                  className={`inline-flex h-7 w-full items-center justify-center rounded-lg border text-[var(--app-text)] transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--app-accent)] disabled:opacity-40 ${
+                    isPreviewPinned
+                      ? 'border-[var(--app-accent)] bg-[color-mix(in_srgb,var(--app-accent)_18%,var(--app-panel-2))]'
+                      : 'border-[var(--app-border)] bg-[var(--app-panel-2)] hover:border-[var(--app-accent)]'
+                  }`}
+                >
+                  <Pin size={15} />
+                </button>
+              ) : null}
               <button
                 type="button"
                 aria-label={isRunning ? 'Pause quest' : 'Start quest'}
@@ -225,7 +259,7 @@ export const QuestCard: React.FC<QuestCardProps> = ({
                   event.preventDefault();
                   onToggleRun();
                 }}
-                className="inline-flex h-8 w-full items-center justify-center rounded-lg border border-[var(--app-border)] bg-[var(--app-panel-2)] text-[var(--app-text)] transition-colors hover:border-[var(--app-accent)] hover:text-[var(--app-accent)] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--app-accent)] disabled:opacity-40"
+                className="inline-flex h-7 w-full items-center justify-center rounded-lg border border-[var(--app-border)] bg-[var(--app-panel-2)] text-[var(--app-text)] transition-colors hover:border-[var(--app-accent)] hover:text-[var(--app-accent)] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--app-accent)] disabled:opacity-40"
               >
                 {isRunning ? <Pause size={16} /> : <Play size={16} />}
               </button>
@@ -239,7 +273,7 @@ export const QuestCard: React.FC<QuestCardProps> = ({
                   event.preventDefault();
                   onComplete();
                 }}
-                className="inline-flex h-8 w-full items-center justify-center rounded-lg border border-[var(--app-border)] bg-[var(--app-panel-2)] text-[var(--app-text)] transition-colors hover:border-[var(--app-accent)] hover:text-[var(--app-accent)] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--app-accent)] disabled:opacity-40"
+                className="inline-flex h-7 w-full items-center justify-center rounded-lg border border-[var(--app-border)] bg-[var(--app-panel-2)] text-[var(--app-text)] transition-colors hover:border-[var(--app-accent)] hover:text-[var(--app-accent)] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--app-accent)] disabled:opacity-40"
               >
                 <Check size={16} />
               </button>
