@@ -829,8 +829,6 @@ const FocusWorkspace: React.FC<{
   getTaskTrackedMs: (taskId: string, now?: number) => number;
   selectedMediaAsset: string | null;
   selectedSoundAsset: string | null;
-  onSelectMediaAsset: (assetId: string) => void;
-  onSelectSoundAsset: (assetId: string) => void;
   onClose: () => void;
   onBackToFocus: () => void;
   onEditMode: () => void;
@@ -841,6 +839,8 @@ const FocusWorkspace: React.FC<{
     priority: Task['priority'];
     priorityLabel: FocusPriority;
     scheduledAt?: number;
+    mediaAssetId: string;
+    soundAssetId: string | null;
   }) => void;
   onToggleRun: () => void;
   onComplete: () => void;
@@ -854,8 +854,6 @@ const FocusWorkspace: React.FC<{
   getTaskTrackedMs,
   selectedMediaAsset,
   selectedSoundAsset,
-  onSelectMediaAsset,
-  onSelectSoundAsset,
   onClose,
   onBackToFocus,
   onEditMode,
@@ -880,6 +878,8 @@ const FocusWorkspace: React.FC<{
   const [draftScheduleValue, setDraftScheduleValue] = useState<string>(
     task.scheduledAt ? toLocalDateTimeValue(task.scheduledAt) : toLocalDateTimeValue(roundToFiveMinutes(Date.now()))
   );
+  const [draftMediaAsset, setDraftMediaAsset] = useState<string>(selectedMediaAsset || 'focus-animation');
+  const [draftSoundAsset, setDraftSoundAsset] = useState<string | null>(selectedSoundAsset || null);
 
   useEffect(() => {
     if (!open || !isRunning || !runningSession) return;
@@ -895,8 +895,10 @@ const FocusWorkspace: React.FC<{
     setDraftPriorityLabel(initialPriorityLabel || (task.priority as FocusPriority) || 'normal');
     setDraftScheduledAt(task.scheduledAt);
     setDraftScheduleValue(task.scheduledAt ? toLocalDateTimeValue(task.scheduledAt) : toLocalDateTimeValue(roundToFiveMinutes(Date.now())));
+    setDraftMediaAsset(selectedMediaAsset || 'focus-animation');
+    setDraftSoundAsset(selectedSoundAsset || null);
     setActiveMode(mode === 'create' ? initialMode : 'default');
-  }, [task.id, task.title, task.details, task.priority, task.scheduledAt, mode, initialMode, initialPriorityLabel]);
+  }, [task.id, task.title, task.details, task.priority, task.scheduledAt, mode, initialMode, initialPriorityLabel, selectedMediaAsset, selectedSoundAsset]);
 
   useEffect(() => {
     if (mode === 'focus' && activeMode !== 'default') {
@@ -915,6 +917,7 @@ const FocusWorkspace: React.FC<{
   const displayMinute = scheduleDate.getMinutes();
   const originalDetails = stripStepsFromDetails(task.details);
   const originalSteps = parseQuestSteps(task.details);
+  const initialVisualPriority = initialPriorityLabel || (task.priority as FocusPriority) || 'normal';
   const normalizedDraftSteps = draftSteps
     .map((step) => ({ text: step.text.trim(), done: !!step.done }))
     .filter((step) => !!step.text);
@@ -926,7 +929,10 @@ const FocusWorkspace: React.FC<{
     draftTitle.trim() !== task.title ||
     draftDetails.trim() !== originalDetails ||
     draftPriority !== (task.priority || 'normal') ||
+    draftPriorityLabel !== initialVisualPriority ||
     (draftScheduledAt || 0) !== (task.scheduledAt || 0) ||
+    draftMediaAsset !== (selectedMediaAsset || 'focus-animation') ||
+    (draftSoundAsset || null) !== (selectedSoundAsset || null) ||
     hasStepsChanged;
 
   const scheduleChipLabel =
@@ -944,6 +950,8 @@ const FocusWorkspace: React.FC<{
       priority: draftPriority,
       priorityLabel: draftPriorityLabel,
       scheduledAt: draftScheduledAt,
+      mediaAssetId: draftMediaAsset,
+      soundAssetId: draftSoundAsset,
     });
   };
 
@@ -1018,8 +1026,8 @@ const FocusWorkspace: React.FC<{
         <div className="min-h-0">
           {activeMode === 'default' ? (
             <ActiveAreaDefault
-              selectedAssetId={selectedMediaAsset}
-              selectedSoundAsset={selectedSoundAsset}
+              selectedAssetId={draftMediaAsset}
+              selectedSoundAsset={draftSoundAsset}
               elapsedMs={elapsed}
               isRunning={isRunning}
             />
@@ -1051,9 +1059,9 @@ const FocusWorkspace: React.FC<{
           {activeMode === 'media' ? (
             <ActiveLibraryView
               kind="media"
-              selectedAsset={selectedMediaAsset}
+              selectedAsset={draftMediaAsset}
               onSelect={(assetId) => {
-                onSelectMediaAsset(assetId);
+                setDraftMediaAsset(assetId);
                 setActiveMode('default');
               }}
             />
@@ -1061,9 +1069,9 @@ const FocusWorkspace: React.FC<{
           {activeMode === 'sound' ? (
             <ActiveLibraryView
               kind="sound"
-              selectedAsset={selectedSoundAsset}
+              selectedAsset={draftSoundAsset}
               onSelect={(assetId) => {
-                onSelectSoundAsset(assetId);
+                setDraftSoundAsset(assetId);
                 setActiveMode('default');
               }}
             />
@@ -1100,8 +1108,8 @@ const FocusWorkspace: React.FC<{
           onAddStep={(text) =>
             setDraftSteps((prev) => [...prev, { id: createStepId(), text: text.trim(), done: false }])
           }
-          selectedMediaLabel={getFocusMediaAsset(selectedMediaAsset).label}
-          selectedSoundLabel={selectedSoundAsset}
+          selectedMediaLabel={getFocusMediaAsset(draftMediaAsset).label}
+          selectedSoundLabel={draftSoundAsset}
           scheduleChipLabel={scheduleChipLabel}
           isDirty={isDirty}
           onClose={onClose}
@@ -1324,6 +1332,8 @@ export const HextechAssistant: React.FC<HextechAssistantProps> = ({ isOpen, onCl
     priority: Task['priority'];
     priorityLabel: FocusPriority;
     scheduledAt?: number;
+    mediaAssetId: string;
+    soundAssetId: string | null;
   }) => {
     if (!draft.title.trim()) {
       playErrorSound();
@@ -1331,7 +1341,6 @@ export const HextechAssistant: React.FC<HextechAssistantProps> = ({ isOpen, onCl
     }
 
     if (workspaceMode === 'create') {
-      const draftWorkspaceKey = `draft-${createSeed}`;
       const createdId = addTask({
         title: draft.title,
         details: draft.details,
@@ -1340,32 +1349,9 @@ export const HextechAssistant: React.FC<HextechAssistantProps> = ({ isOpen, onCl
         scheduledAt: draft.scheduledAt,
         icon: 'sword',
       });
-      setTaskMediaSelections((prev) => {
-        const next = { ...prev };
-        if (next[draftWorkspaceKey]) {
-          next[createdId] = next[draftWorkspaceKey];
-          delete next[draftWorkspaceKey];
-        }
-        return next;
-      });
-      setTaskSoundSelections((prev) => {
-        const next = { ...prev };
-        if (next[draftWorkspaceKey]) {
-          next[createdId] = next[draftWorkspaceKey];
-          delete next[draftWorkspaceKey];
-        }
-        return next;
-      });
-      setTaskPriorityVisuals((prev) => {
-        const next = { ...prev };
-        if (next[draftWorkspaceKey]) {
-          next[createdId] = next[draftWorkspaceKey];
-          delete next[draftWorkspaceKey];
-        } else {
-          next[createdId] = draft.priorityLabel;
-        }
-        return next;
-      });
+      setTaskMediaSelections((prev) => ({ ...prev, [createdId]: draft.mediaAssetId || 'focus-animation' }));
+      setTaskSoundSelections((prev) => ({ ...prev, [createdId]: draft.soundAssetId || null }));
+      setTaskPriorityVisuals((prev) => ({ ...prev, [createdId]: draft.priorityLabel }));
       setFocusedTaskId(createdId);
       setWorkspaceMode('focus');
     } else if (focusedTaskId) {
@@ -1375,6 +1361,8 @@ export const HextechAssistant: React.FC<HextechAssistantProps> = ({ isOpen, onCl
         priority: draft.priority,
         scheduledAt: draft.scheduledAt,
       });
+      setTaskMediaSelections((prev) => ({ ...prev, [focusedTaskId]: draft.mediaAssetId || 'focus-animation' }));
+      setTaskSoundSelections((prev) => ({ ...prev, [focusedTaskId]: draft.soundAssetId || null }));
       setTaskPriorityVisuals((prev) => ({ ...prev, [focusedTaskId]: draft.priorityLabel }));
       setWorkspaceMode('focus');
     }
@@ -1486,26 +1474,6 @@ export const HextechAssistant: React.FC<HextechAssistantProps> = ({ isOpen, onCl
             getTaskTrackedMs={getTaskTrackedMs}
             selectedMediaAsset={workspaceKey ? taskMediaSelections[workspaceKey] || 'focus-animation' : 'focus-animation'}
             selectedSoundAsset={workspaceKey ? taskSoundSelections[workspaceKey] || null : null}
-            onSelectMediaAsset={(assetId) =>
-              setTaskMediaSelections((prev) =>
-                workspaceKey
-                  ? {
-                      ...prev,
-                      [workspaceKey]: assetId,
-                    }
-                  : prev
-              )
-            }
-            onSelectSoundAsset={(assetId) =>
-              setTaskSoundSelections((prev) =>
-                workspaceKey
-                  ? {
-                      ...prev,
-                      [workspaceKey]: assetId,
-                    }
-                  : prev
-              )
-            }
             onClose={closeFocusPanel}
             onBackToFocus={backToFocus}
             onEditMode={openEditInWorkspace}
