@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { CalendarDays, Pause, Play, Plus, Save, Timer, Volume2, X } from 'lucide-react';
+import { CalendarDays, Check, ChevronUp, Pause, Pencil, Play, Plus, Save, Timer, Video, Volume2, X } from 'lucide-react';
 import { useXP } from '../XP/xpStore';
 import { Task } from '../XP/xpTypes';
 import { ConfirmModal } from '../UI/ConfirmModal';
@@ -286,12 +286,12 @@ const LeftControlStrip: React.FC<{
         title={canConfigureAssets ? (workspaceMode === 'focus' ? 'Media panel' : 'Media library') : 'Switch to Edit to change media'}
         className={`inline-flex h-full min-h-[68px] items-center justify-center rounded-[10px] border text-[var(--app-text)] transition-colors ${
           mediaActive
-            ? 'border-[var(--app-accent)] bg-[color-mix(in_srgb,var(--app-accent)_20%,var(--app-panel))]'
+            ? 'border-transparent bg-[color-mix(in_srgb,var(--app-accent)_24%,var(--app-panel))]'
             : 'border-[var(--app-border)] bg-[color-mix(in_srgb,var(--app-accent)_10%,var(--app-panel))] hover:bg-[color-mix(in_srgb,var(--app-accent)_18%,var(--app-panel))]'
         } ${!canConfigureAssets ? 'cursor-not-allowed opacity-55 hover:bg-[color-mix(in_srgb,var(--app-accent)_10%,var(--app-panel))]' : ''}`}
         aria-label="Open media library"
       >
-        <Play size={24} />
+        <Video size={24} />
       </button>
       <button
         type="button"
@@ -300,7 +300,7 @@ const LeftControlStrip: React.FC<{
         title={canConfigureAssets ? (workspaceMode === 'focus' ? 'Sound panel' : 'Sound library') : 'Switch to Edit to change sound'}
         className={`inline-flex h-full min-h-[68px] items-center justify-center rounded-[10px] border text-[var(--app-text)] transition-colors ${
           soundActive
-            ? 'border-[var(--app-accent)] bg-[color-mix(in_srgb,var(--app-accent)_20%,var(--app-panel))]'
+            ? 'border-transparent bg-[color-mix(in_srgb,var(--app-accent)_24%,var(--app-panel))]'
             : 'border-[var(--app-border)] bg-[var(--app-panel)] hover:bg-[var(--app-panel-2)]'
         } ${!canConfigureAssets ? 'cursor-not-allowed opacity-55 hover:bg-[var(--app-panel)]' : ''}`}
         aria-label="Open sound library"
@@ -645,6 +645,9 @@ const ActiveCountdownView: React.FC<{
   const hours = Math.floor(totalSeconds / 3600);
   const minutes = Math.floor((totalSeconds % 3600) / 60);
   const seconds = totalSeconds % 60;
+  const hourDragRef = useRef<{ startY: number; startValue: number } | null>(null);
+  const minuteDragRef = useRef<{ startY: number; startValue: number } | null>(null);
+  const secondDragRef = useRef<{ startY: number; startValue: number } | null>(null);
 
   const updatePart = (part: 'h' | 'm' | 's', value: number) => {
     const safe = Number.isFinite(value) ? Math.max(0, Math.floor(value)) : 0;
@@ -655,44 +658,146 @@ const ActiveCountdownView: React.FC<{
     onChange(nextTotal > 0 ? nextTotal / 60 : undefined);
   };
 
+  useEffect(() => {
+    const releaseDrag = () => {
+      hourDragRef.current = null;
+      minuteDragRef.current = null;
+      secondDragRef.current = null;
+    };
+    window.addEventListener('pointerup', releaseDrag);
+    return () => window.removeEventListener('pointerup', releaseDrag);
+  }, []);
+
   const setPreset = (minutesPreset: number) => onChange(minutesPreset);
+
+  const dragHandler =
+    (ref: React.MutableRefObject<{ startY: number; startValue: number } | null>, part: 'h' | 'm' | 's', step = 12) =>
+    (event: React.PointerEvent<HTMLDivElement>) => {
+      if (!ref.current) return;
+      const deltaY = ref.current.startY - event.clientY;
+      const deltaStep = Math.trunc(deltaY / step);
+      updatePart(part, ref.current.startValue + deltaStep);
+    };
+
+  const wheelHandler = (part: 'h' | 'm' | 's') => (event: React.WheelEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    const dir = event.deltaY > 0 ? -1 : 1;
+    if (part === 'h') updatePart(part, hours + dir);
+    if (part === 'm') updatePart(part, minutes + dir);
+    if (part === 's') updatePart(part, seconds + dir);
+  };
+
+  const dialClass =
+    'cursor-ns-resize rounded-md bg-[color-mix(in_srgb,var(--app-accent)_22%,var(--app-panel))] px-2 py-1 transition-colors hover:bg-[color-mix(in_srgb,var(--app-accent)_30%,var(--app-panel))]';
 
   return (
     <section className="min-h-0 rounded-[12px] border border-[var(--app-border)] bg-[var(--app-panel)] p-3">
       <div className="mb-2 text-[10px] uppercase tracking-[0.16em] text-[var(--app-muted)]">Countdown</div>
-      <div className="grid grid-cols-3 gap-2">
-        <label className="text-[9px] uppercase tracking-[0.1em] text-[var(--app-muted)]">
+      <div className="grid grid-cols-3 gap-2 text-center">
+        <div className="text-[9px] uppercase tracking-[0.1em] text-[var(--app-muted)]">
           H
-          <input
-            type="number"
-            min={0}
-            value={hours}
-            onChange={(event) => updatePart('h', Number(event.target.value))}
-            className="mt-1 h-10 w-full rounded-md border border-[var(--app-border)] bg-[var(--app-panel-2)] px-2 text-center text-[16px] font-semibold text-[var(--app-text)] outline-none focus:border-[var(--app-accent)]"
-          />
-        </label>
-        <label className="text-[9px] uppercase tracking-[0.1em] text-[var(--app-muted)]">
+          <div
+            className={`${dialClass} mt-1`}
+            tabIndex={0}
+            role="spinbutton"
+            aria-label="Countdown hours"
+            aria-valuemin={0}
+            aria-valuenow={hours}
+            onPointerDown={(event) => {
+              hourDragRef.current = { startY: event.clientY, startValue: hours };
+              (event.currentTarget as HTMLDivElement).setPointerCapture(event.pointerId);
+            }}
+            onPointerMove={dragHandler(hourDragRef, 'h', 16)}
+            onPointerUp={() => {
+              hourDragRef.current = null;
+            }}
+            onWheel={wheelHandler('h')}
+            onKeyDown={(event) => {
+              if (event.key === 'ArrowUp') {
+                event.preventDefault();
+                updatePart('h', hours + 1);
+              }
+              if (event.key === 'ArrowDown') {
+                event.preventDefault();
+                updatePart('h', hours - 1);
+              }
+            }}
+          >
+            <div className="w-full select-none text-center text-[22px] font-semibold leading-8 text-[var(--app-text)]">
+              {pad(hours)}
+            </div>
+          </div>
+        </div>
+        <div className="text-[9px] uppercase tracking-[0.1em] text-[var(--app-muted)]">
           M
-          <input
-            type="number"
-            min={0}
-            max={59}
-            value={minutes}
-            onChange={(event) => updatePart('m', Number(event.target.value))}
-            className="mt-1 h-10 w-full rounded-md border border-[var(--app-border)] bg-[var(--app-panel-2)] px-2 text-center text-[16px] font-semibold text-[var(--app-text)] outline-none focus:border-[var(--app-accent)]"
-          />
-        </label>
-        <label className="text-[9px] uppercase tracking-[0.1em] text-[var(--app-muted)]">
+          <div
+            className={`${dialClass} mt-1`}
+            tabIndex={0}
+            role="spinbutton"
+            aria-label="Countdown minutes"
+            aria-valuemin={0}
+            aria-valuemax={59}
+            aria-valuenow={minutes}
+            onPointerDown={(event) => {
+              minuteDragRef.current = { startY: event.clientY, startValue: minutes };
+              (event.currentTarget as HTMLDivElement).setPointerCapture(event.pointerId);
+            }}
+            onPointerMove={dragHandler(minuteDragRef, 'm')}
+            onPointerUp={() => {
+              minuteDragRef.current = null;
+            }}
+            onWheel={wheelHandler('m')}
+            onKeyDown={(event) => {
+              if (event.key === 'ArrowUp') {
+                event.preventDefault();
+                updatePart('m', minutes + 1);
+              }
+              if (event.key === 'ArrowDown') {
+                event.preventDefault();
+                updatePart('m', minutes - 1);
+              }
+            }}
+          >
+            <div className="w-full select-none text-center text-[22px] font-semibold leading-8 text-[var(--app-text)]">
+              {pad(minutes)}
+            </div>
+          </div>
+        </div>
+        <div className="text-[9px] uppercase tracking-[0.1em] text-[var(--app-muted)]">
           S
-          <input
-            type="number"
-            min={0}
-            max={59}
-            value={seconds}
-            onChange={(event) => updatePart('s', Number(event.target.value))}
-            className="mt-1 h-10 w-full rounded-md border border-[var(--app-border)] bg-[var(--app-panel-2)] px-2 text-center text-[16px] font-semibold text-[var(--app-text)] outline-none focus:border-[var(--app-accent)]"
-          />
-        </label>
+          <div
+            className={`${dialClass} mt-1`}
+            tabIndex={0}
+            role="spinbutton"
+            aria-label="Countdown seconds"
+            aria-valuemin={0}
+            aria-valuemax={59}
+            aria-valuenow={seconds}
+            onPointerDown={(event) => {
+              secondDragRef.current = { startY: event.clientY, startValue: seconds };
+              (event.currentTarget as HTMLDivElement).setPointerCapture(event.pointerId);
+            }}
+            onPointerMove={dragHandler(secondDragRef, 's')}
+            onPointerUp={() => {
+              secondDragRef.current = null;
+            }}
+            onWheel={wheelHandler('s')}
+            onKeyDown={(event) => {
+              if (event.key === 'ArrowUp') {
+                event.preventDefault();
+                updatePart('s', seconds + 1);
+              }
+              if (event.key === 'ArrowDown') {
+                event.preventDefault();
+                updatePart('s', seconds - 1);
+              }
+            }}
+          >
+            <div className="w-full select-none text-center text-[22px] font-semibold leading-8 text-[var(--app-text)]">
+              {pad(seconds)}
+            </div>
+          </div>
+        </div>
       </div>
       <div className="mt-3 grid grid-cols-3 gap-2">
         {[5, 15, 30].map((preset) => (
@@ -887,68 +992,58 @@ const ActiveScheduleView: React.FC<{
   return (
     <section
       data-testid="schedule-panel"
-      className="grid min-h-0 grid-cols-[minmax(0,1fr)_244px] gap-3 rounded-[12px] border border-[var(--app-border)] bg-[var(--app-panel)] p-3"
+      className="grid min-h-0 grid-rows-[auto_1fr_auto] gap-2 rounded-[12px] border border-[var(--app-border)] bg-[var(--app-panel)] p-3"
     >
-      <div className="grid min-h-0 grid-rows-[auto_auto_1fr_auto] gap-2">
-        <div className="flex items-center justify-between">
-          <div className="text-[10px] uppercase tracking-[0.16em] text-[var(--app-muted)]">{monthLabel}</div>
-          <div className="flex items-center gap-1">
-            <button
-              type="button"
-              onClick={() => shiftMonth(-1)}
-              className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-[var(--app-border)] text-[11px] text-[var(--app-muted)] hover:text-[var(--app-text)]"
-              aria-label="Previous month"
-            >
-              ←
-            </button>
-            <button
-              type="button"
-              onClick={() => shiftMonth(1)}
-              className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-[var(--app-border)] text-[11px] text-[var(--app-muted)] hover:text-[var(--app-text)]"
-              aria-label="Next month"
-            >
-              →
-            </button>
-          </div>
-        </div>
-        <div className="h-9 rounded-md border border-[var(--app-border)] bg-[var(--app-panel-2)] px-3 text-[11px] font-medium tracking-[0.08em] text-[var(--app-text)] inline-flex items-center">
-          {new Date(`${datePart}T00:00:00`).toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })}
-        </div>
-        <div className="grid min-h-0 grid-cols-7 gap-1 rounded-[10px] border border-[var(--app-border)] bg-[var(--app-panel-2)] p-2">
-          {WEEKDAY_LABELS.map((label) => (
-            <div key={label} className="text-center text-[9px] uppercase tracking-[0.14em] text-[var(--app-muted)]">
-              {label}
-            </div>
-          ))}
-          {dayCells.map((cell, index) =>
-            cell ? (
-              <button
-                key={cell.dateKey}
-                type="button"
-                onClick={() => onValueChange(composeScheduleValue(cell.dateKey))}
-                className={`h-7 rounded-md border text-[10px] font-medium transition-colors ${
-                  cell.dateKey === selectedDateKey
-                    ? 'border-[var(--app-accent)] bg-[color-mix(in_srgb,var(--app-accent)_16%,var(--app-panel))] text-[var(--app-text)]'
-                    : 'border-transparent text-[var(--app-muted)] hover:border-[var(--app-border)] hover:text-[var(--app-text)]'
-                }`}
-              >
-                {cell.day}
-              </button>
-            ) : (
-              <span key={`empty-${index}`} className="h-7" />
-            )
-          )}
-        </div>
-        <div className="grid grid-cols-2 gap-2">
-          <button type="button" onClick={onClear} className="h-8 rounded-md border border-[var(--app-border)] text-[10px] uppercase tracking-[0.12em] text-[var(--app-muted)]">
-            Clear
+      <div className="flex items-center justify-between">
+        <div className="text-[10px] uppercase tracking-[0.16em] text-[var(--app-muted)]">{monthLabel}</div>
+        <div className="flex items-center gap-1">
+          <button
+            type="button"
+            onClick={() => shiftMonth(-1)}
+            className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-[var(--app-border)] text-[11px] text-[var(--app-muted)] hover:text-[var(--app-text)]"
+            aria-label="Previous month"
+          >
+            ←
           </button>
-          <button type="button" onClick={onToday} className="h-8 rounded-md border border-[var(--app-border)] text-[10px] uppercase tracking-[0.12em] text-[var(--app-muted)]">
-            Today
+          <button
+            type="button"
+            onClick={() => shiftMonth(1)}
+            className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-[var(--app-border)] text-[11px] text-[var(--app-muted)] hover:text-[var(--app-text)]"
+            aria-label="Next month"
+          >
+            →
           </button>
         </div>
       </div>
-      <div className="grid min-h-0 grid-rows-[auto_1fr_auto] gap-2 rounded-[10px] border border-[var(--app-border)] bg-[var(--app-panel-2)] p-2.5">
+      <div className="h-9 rounded-md border border-[var(--app-border)] bg-[var(--app-panel-2)] px-3 text-[11px] font-medium tracking-[0.08em] text-[var(--app-text)] inline-flex items-center">
+        {new Date(`${datePart}T00:00:00`).toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })}
+      </div>
+      <div className="grid min-h-0 grid-cols-7 gap-1 rounded-[10px] border border-[var(--app-border)] bg-[var(--app-panel-2)] p-2">
+        {WEEKDAY_LABELS.map((label) => (
+          <div key={label} className="text-center text-[9px] uppercase tracking-[0.14em] text-[var(--app-muted)]">
+            {label}
+          </div>
+        ))}
+        {dayCells.map((cell, index) =>
+          cell ? (
+            <button
+              key={cell.dateKey}
+              type="button"
+              onClick={() => onValueChange(composeScheduleValue(cell.dateKey))}
+              className={`h-7 rounded-md border text-[10px] font-medium transition-colors ${
+                cell.dateKey === selectedDateKey
+                  ? 'border-transparent bg-[color-mix(in_srgb,var(--app-accent)_20%,var(--app-panel))] text-[var(--app-text)]'
+                  : 'border-transparent text-[var(--app-muted)] hover:border-[var(--app-border)] hover:text-[var(--app-text)]'
+              }`}
+            >
+              {cell.day}
+            </button>
+          ) : (
+            <span key={`empty-${index}`} className="h-7" />
+          )
+        )}
+      </div>
+      <div className="grid grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)] gap-2 rounded-[10px] border border-[var(--app-border)] bg-[var(--app-panel-2)] p-2.5">
         <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2 text-center text-[22px] font-semibold text-[var(--app-text)]">
           <div
             className="cursor-ns-resize rounded-md bg-[color-mix(in_srgb,var(--app-accent)_24%,var(--app-panel))] px-2 py-1 transition-colors hover:bg-[color-mix(in_srgb,var(--app-accent)_32%,var(--app-panel))]"
@@ -1025,49 +1120,57 @@ const ActiveScheduleView: React.FC<{
               {pad(minute)}
             </div>
           </div>
+          <div className="col-span-3 grid grid-cols-2 gap-2">
+            <button
+              type="button"
+              onClick={() => onMeridiemChange('AM')}
+              className={`h-8 rounded-md border text-[10px] font-semibold uppercase tracking-[0.12em] ${
+                meridiem === 'AM'
+                  ? 'border-transparent bg-[color-mix(in_srgb,var(--app-accent)_20%,var(--app-panel))] text-[var(--app-text)]'
+                  : 'border-[var(--app-border)] text-[var(--app-muted)]'
+              }`}
+            >
+              AM
+            </button>
+            <button
+              type="button"
+              onClick={() => onMeridiemChange('PM')}
+              className={`h-8 rounded-md border text-[10px] font-semibold uppercase tracking-[0.12em] ${
+                meridiem === 'PM'
+                  ? 'border-transparent bg-[color-mix(in_srgb,var(--app-accent)_20%,var(--app-panel))] text-[var(--app-text)]'
+                  : 'border-[var(--app-border)] text-[var(--app-muted)]'
+              }`}
+            >
+              PM
+            </button>
+          </div>
         </div>
-        <div className="grid grid-cols-2 gap-2">
-          <button
-            type="button"
-            onClick={() => onMeridiemChange('AM')}
-            className={`h-9 rounded-md border text-[10px] font-semibold uppercase tracking-[0.12em] ${
-              meridiem === 'AM'
-                ? 'border-[var(--app-accent)] bg-[color-mix(in_srgb,var(--app-accent)_16%,var(--app-panel))] text-[var(--app-text)]'
-                : 'border-[var(--app-border)] text-[var(--app-muted)]'
-            }`}
-          >
-            AM
-          </button>
-          <button
-            type="button"
-            onClick={() => onMeridiemChange('PM')}
-            className={`h-9 rounded-md border text-[10px] font-semibold uppercase tracking-[0.12em] ${
-              meridiem === 'PM'
-                ? 'border-[var(--app-accent)] bg-[color-mix(in_srgb,var(--app-accent)_16%,var(--app-panel))] text-[var(--app-text)]'
-                : 'border-[var(--app-border)] text-[var(--app-muted)]'
-            }`}
-          >
-            PM
-          </button>
-          <button type="button" onClick={onNow} className="col-span-2 h-9 rounded-md border border-[var(--app-border)] text-[10px] uppercase tracking-[0.12em] text-[var(--app-muted)]">
-            Now
-          </button>
-        </div>
-        <div className="grid grid-cols-1 gap-1">
+        <div className="grid grid-rows-2 gap-2">
+          <div className="grid grid-cols-3 gap-2">
+            <button type="button" onClick={onNow} className="h-8 rounded-md border border-[var(--app-border)] text-[10px] uppercase tracking-[0.12em] text-[var(--app-muted)]">
+              Now
+            </button>
+            <button type="button" onClick={onToday} className="h-8 rounded-md border border-[var(--app-border)] text-[10px] uppercase tracking-[0.12em] text-[var(--app-muted)]">
+              Today
+            </button>
+            <button type="button" onClick={onClear} className="h-8 rounded-md border border-[var(--app-border)] text-[10px] uppercase tracking-[0.12em] text-[var(--app-muted)]">
+              Clear
+            </button>
+          </div>
           <button
             type="button"
             onClick={onApply}
             data-testid="schedule-add"
-            className="h-10 rounded-md border border-[var(--app-accent)] bg-[color-mix(in_srgb,var(--app-accent)_12%,var(--app-panel))] text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--app-text)]"
+            className="h-10 rounded-md border border-transparent bg-[color-mix(in_srgb,var(--app-accent)_26%,var(--app-panel))] text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--app-text)]"
           >
             Add Scheduled
           </button>
-          <div className="text-center text-[9px] uppercase tracking-[0.1em] text-[var(--app-muted)]">
-            {scheduledAt
-              ? `Scheduled ${new Date(scheduledAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
-              : 'No schedule applied'}
-          </div>
         </div>
+      </div>
+      <div className="text-center text-[9px] uppercase tracking-[0.1em] text-[var(--app-muted)]">
+        {scheduledAt
+          ? `Scheduled ${new Date(scheduledAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
+          : 'No schedule applied'}
       </div>
     </section>
   );
@@ -1078,12 +1181,13 @@ const PriorityStrip: React.FC<{
   value: FocusPriority;
   onChange: (value: FocusPriority) => void;
 }> = ({ disabled = false, value, onChange }) => {
-  const priorities: Array<{ key: FocusPriority; label: string }> = [
-    { key: 'extreme', label: 'Extreme' },
-    { key: 'urgent', label: 'Urgent' },
-    { key: 'high', label: 'High' },
-    { key: 'normal', label: 'Normal' },
+  const priorities: Array<{ key: FocusPriority; level: number }> = [
+    { key: 'extreme', level: 4 },
+    { key: 'urgent', level: 3 },
+    { key: 'high', level: 2 },
+    { key: 'normal', level: 1 },
   ];
+  const currentLevel = value === 'extreme' ? 4 : value === 'urgent' ? 3 : value === 'high' ? 2 : 1;
 
   return (
     <section className="grid h-full grid-rows-4 gap-1.5 overflow-hidden rounded-[12px] border border-[var(--app-border)] bg-[var(--app-panel)] p-1.5">
@@ -1093,14 +1197,14 @@ const PriorityStrip: React.FC<{
           type="button"
           disabled={disabled}
           onClick={() => onChange(priority.key)}
-          title={`Set ${priority.label} priority`}
+          title={`Set ${priority.key} priority`}
           className={`flex h-full w-full items-center justify-center rounded-[10px] border border-[var(--app-border)] text-[11px] font-medium tracking-[0.03em] transition-colors ${
-            value === priority.key
-              ? 'bg-[color-mix(in_srgb,var(--app-accent)_16%,var(--app-panel))] text-[var(--app-text)]'
+            currentLevel >= priority.level
+              ? 'bg-[color-mix(in_srgb,var(--app-accent)_22%,var(--app-panel))] text-[var(--app-text)]'
               : 'text-[var(--app-muted)] hover:bg-[var(--app-panel-2)]'
           } ${disabled ? 'cursor-not-allowed opacity-60' : ''}`}
         >
-          {priority.label}
+          <ChevronUp size={18} strokeWidth={2.2} />
         </button>
       ))}
     </section>
@@ -1108,57 +1212,11 @@ const PriorityStrip: React.FC<{
 };
 
 const CharacterPanel: React.FC<{
-  timerLabel: string;
-  timerMode: 'timer' | 'countdown';
-  isRunning: boolean;
-  onToggleRun: () => void;
-  onComplete: () => void;
-  onEdit: () => void;
-  showControls: boolean;
-}> = ({ timerLabel, timerMode, isRunning, onToggleRun, onComplete, onEdit, showControls }) => (
+}> = () => (
   <section className="min-h-0 rounded-[12px] border border-[var(--app-border)] bg-[color-mix(in_srgb,var(--app-accent)_14%,var(--app-panel))] p-3">
-    <div className="text-[10px] uppercase tracking-[0.16em] text-[var(--app-muted)]">Character</div>
-    <div className="mt-2 rounded-md border border-[var(--app-border)] bg-[color-mix(in_srgb,var(--app-panel)_92%,black)] px-2 py-1.5 text-center">
-      <div className="text-[9px] uppercase tracking-[0.12em] text-[var(--app-muted)]">{timerMode}</div>
-      <div
-        className={`mt-0.5 font-mono text-[26px] font-semibold leading-none text-[var(--app-text)] drop-shadow-[0_0_10px_rgba(168,130,229,0.28)] ${
-          isRunning ? 'animate-[pulse_2.6s_ease-in-out_infinite]' : ''
-        }`}
-      >
-        {timerLabel}
-      </div>
-    </div>
-    <div className={`flex items-center justify-center ${showControls ? 'h-[calc(100%-168px)]' : 'h-[calc(100%-86px)]'}`}>
+    <div className="flex h-full items-center justify-center">
       <img src="/ui-reference/auth/character.svg" alt="Character" className="max-h-full w-full object-contain" />
     </div>
-    {showControls ? (
-      <div className="mt-2 grid grid-cols-3 gap-2">
-        <button
-          type="button"
-          aria-label={isRunning ? 'Pause quest' : 'Start quest'}
-          onClick={onToggleRun}
-          className="h-10 rounded-md border border-[var(--app-border)] bg-[var(--app-panel)] text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--app-text)] transition-colors hover:border-[var(--app-accent)]"
-        >
-          {isRunning ? 'Pause' : 'Start'}
-        </button>
-        <button
-          type="button"
-          aria-label="Complete quest"
-          onClick={onComplete}
-          className="h-10 rounded-md border border-[var(--app-accent)] bg-[color-mix(in_srgb,var(--app-accent)_14%,var(--app-panel))] text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--app-text)] transition-colors hover:bg-[color-mix(in_srgb,var(--app-accent)_20%,var(--app-panel))]"
-        >
-          Complete
-        </button>
-        <button
-          type="button"
-          aria-label="Edit quest"
-          onClick={onEdit}
-          className="h-10 rounded-md border border-[var(--app-border)] bg-[var(--app-panel)] text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--app-text)] transition-colors hover:border-[var(--app-accent)]"
-        >
-          Edit
-        </button>
-      </div>
-    ) : null}
   </section>
 );
 
@@ -1184,6 +1242,10 @@ const QuestPanel: React.FC<{
   onEdit: () => void;
   onSave: () => void;
   onCloseWorkspace: () => void;
+  timerLabel: string;
+  isRunningSession: boolean;
+  onToggleRun: () => void;
+  onComplete: () => void;
 }> = ({
   workspaceMode,
   title,
@@ -1206,6 +1268,10 @@ const QuestPanel: React.FC<{
   onEdit,
   onSave,
   onCloseWorkspace,
+  timerLabel,
+  isRunningSession,
+  onToggleRun,
+  onComplete,
 }) => {
   const [stepInput, setStepInput] = useState('');
   const isFocusMode = workspaceMode === 'focus';
@@ -1267,7 +1333,7 @@ const QuestPanel: React.FC<{
                 data-testid={option.key === 'schedule' ? 'schedule-toggle' : undefined}
                 className={`inline-flex h-9 items-center justify-center gap-1.5 rounded-md border text-[9px] font-semibold uppercase tracking-[0.1em] ${
                   activeMode === option.key
-                    ? 'border-[var(--app-accent)] bg-[color-mix(in_srgb,var(--app-accent)_14%,var(--app-panel))] text-[var(--app-text)]'
+                    ? 'border-transparent bg-[color-mix(in_srgb,var(--app-accent)_20%,var(--app-panel))] text-[var(--app-text)]'
                     : 'border-[var(--app-border)] text-[var(--app-muted)]'
                 }`}
                 aria-label={`Open ${option.label.toLowerCase()} mode`}
@@ -1373,6 +1439,42 @@ const QuestPanel: React.FC<{
             </button>
           </div>
         )}
+        {isFocusMode ? (
+          <div className="mt-auto rounded-[10px] border border-[var(--app-border)] bg-[var(--app-panel-2)] px-2.5 py-2">
+            <div className="mb-2 font-mono text-center text-[30px] font-semibold leading-none tracking-[0.06em] text-[var(--app-text)]">
+              {timerLabel}
+            </div>
+            <div className="grid grid-cols-3 gap-2">
+              <button
+                type="button"
+                aria-label={isRunningSession ? 'Pause quest' : 'Start quest'}
+                title={isRunningSession ? 'Pause quest' : 'Start quest'}
+                onClick={onToggleRun}
+                className="inline-flex h-10 items-center justify-center rounded-md border border-[var(--app-border)] bg-[var(--app-panel)] text-[var(--app-text)] transition-colors hover:border-[var(--app-accent)]"
+              >
+                {isRunningSession ? <Pause size={16} /> : <Play size={16} />}
+              </button>
+              <button
+                type="button"
+                aria-label="Complete quest"
+                title="Complete quest"
+                onClick={onComplete}
+                className="inline-flex h-10 items-center justify-center rounded-md border border-[var(--app-accent)] bg-[color-mix(in_srgb,var(--app-accent)_14%,var(--app-panel))] text-[var(--app-text)] transition-colors hover:bg-[color-mix(in_srgb,var(--app-accent)_22%,var(--app-panel))]"
+              >
+                <Check size={16} />
+              </button>
+              <button
+                type="button"
+                aria-label="Edit quest"
+                title="Edit quest"
+                onClick={onEdit}
+                className="inline-flex h-10 items-center justify-center rounded-md border border-[var(--app-border)] bg-[var(--app-panel)] text-[var(--app-text)] transition-colors hover:border-[var(--app-accent)]"
+              >
+                <Pencil size={16} />
+              </button>
+            </div>
+          </div>
+        ) : null}
       </div>
     </section>
   );
@@ -1608,7 +1710,7 @@ const FocusWorkspace: React.FC<{
     <>
       <div className="pointer-events-none absolute inset-y-4 left-4 right-[calc(clamp(320px,34vw,380px)+16px)] z-[170] max-sm:hidden">
         <div className="flex h-full items-center justify-center">
-          <div className="pointer-events-auto relative grid aspect-[3/1.5] w-[clamp(760px,65vw,1200px)] max-w-[min(1200px,calc(100vw-clamp(320px,34vw,380px)-48px))] grid-cols-[54px_minmax(0,2.08fr)_70px_minmax(340px,1.2fr)_minmax(210px,0.86fr)] gap-2.5 rounded-[16px] border border-[var(--app-border)] bg-[color-mix(in_srgb,var(--app-panel)_96%,black)] p-2.5">
+          <div className="pointer-events-auto relative grid aspect-[3.5/1.5] w-[clamp(820px,72vw,1320px)] max-w-[min(1320px,calc(100vw-clamp(320px,34vw,380px)-40px))] grid-cols-[56px_minmax(0,2.15fr)_72px_minmax(360px,1.18fr)_minmax(230px,0.88fr)] gap-2.5 rounded-[16px] border border-[var(--app-border)] bg-[color-mix(in_srgb,var(--app-panel)_96%,black)] p-2.5">
             <button
               type="button"
               aria-label="Close focus workspace"
@@ -1726,16 +1828,12 @@ const FocusWorkspace: React.FC<{
           onEdit={onEditMode}
           onSave={saveDraft}
           onCloseWorkspace={() => requestExit('close')}
+          timerLabel={formatTimer(timerDisplayMs)}
+          isRunningSession={isRunning}
+          onToggleRun={onToggleRun}
+          onComplete={onComplete}
             />
-            <CharacterPanel
-              timerLabel={formatTimer(timerDisplayMs)}
-              timerMode={hasCountdown ? 'countdown' : 'timer'}
-              isRunning={isRunning}
-              onToggleRun={onToggleRun}
-              onComplete={onComplete}
-              onEdit={onEditMode}
-              showControls={mode === 'focus'}
-            />
+            <CharacterPanel />
           </div>
         </div>
       </div>
@@ -2192,7 +2290,7 @@ export const HextechAssistant: React.FC<HextechAssistantProps> = ({ isOpen, onCl
                     }}
                     className={`h-8 rounded-lg border px-2 text-[10px] font-medium uppercase tracking-[0.1em] transition-colors ${
                       filter === option.key
-                        ? 'border-[var(--app-accent)] bg-[color-mix(in_srgb,var(--app-accent)_10%,transparent)] text-[var(--app-text)]'
+                        ? 'border-transparent bg-[color-mix(in_srgb,var(--app-accent)_22%,var(--app-panel))] text-[var(--app-text)]'
                         : 'border-[color-mix(in_srgb,var(--app-border)_70%,transparent)] bg-transparent text-[var(--app-muted)] hover:text-[var(--app-text)]'
                     }`}
                   >

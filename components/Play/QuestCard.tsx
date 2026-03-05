@@ -14,7 +14,7 @@ const formatDuration = (ms: number) => {
 };
 
 const formatClock = (timestamp?: number) => {
-  if (!timestamp) return 'No schedule';
+  if (!timestamp) return '--:--';
   return new Date(timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 };
 
@@ -32,6 +32,13 @@ const getStatus = (task: Task, isRunning: boolean) => {
   if (task.completedAt || task.status === 'done') return 'Done';
   if (task.scheduledAt && task.scheduledAt > Date.now()) return 'Scheduled';
   return 'Active';
+};
+
+const getPriorityLevel = (priorityVisual: 'normal' | 'high' | 'urgent' | 'extreme') => {
+  if (priorityVisual === 'extreme') return 4;
+  if (priorityVisual === 'urgent') return 3;
+  if (priorityVisual === 'high') return 2;
+  return 1;
 };
 
 const getStepProgress = (details?: string) => {
@@ -103,27 +110,48 @@ export const QuestCard: React.FC<QuestCardProps> = ({
   const isCompleted = task.completedAt || task.status === 'done';
   const stepProgress = useMemo(() => getStepProgress(task.details), [task.details]);
   const progressPct = stepProgress.total > 0 ? Math.round((stepProgress.done / stepProgress.total) * 100) : 0;
-  const priorityLevel = useMemo(() => {
-    if (priorityVisual === 'extreme') return 4;
-    if (priorityVisual === 'urgent') return 3;
-    if (priorityVisual === 'high') return 2;
-    return 1;
-  }, [priorityVisual]);
+  const priorityLevel = useMemo(() => getPriorityLevel(priorityVisual), [priorityVisual]);
+  const targetMs = useMemo(() => getDurationTargetMs(task), [task]);
+  const timedProgress = useMemo(() => {
+    if (!targetMs || targetMs <= 0) return null;
+    const ratio = Math.max(0, Math.min(1, elapsedMs / targetMs));
+    return ratio;
+  }, [elapsedMs, targetMs]);
+  const schedulePulse = useMemo(() => {
+    if (!task.scheduledAt || task.scheduledAt <= Date.now()) return null;
+    const until = task.scheduledAt - Date.now();
+    const totalWindow = 1000 * 60 * 60 * 24;
+    const ratio = 1 - Math.max(0, Math.min(1, until / totalWindow));
+    return ratio;
+  }, [task.scheduledAt, tickNow]);
   const statusTone = useMemo(() => {
     if (status === 'Done') return 'bg-[#3fcf8e]/20 text-[#8de5bb]';
-    if (status === 'Running') return 'bg-[var(--app-accent)]/24 text-[var(--app-text)]';
     if (status === 'Scheduled') return 'bg-[#55a3ff]/22 text-[#95c4ff]';
-    return 'bg-[var(--app-panel-2)] text-[var(--app-muted)]';
+    return null;
   }, [status]);
   const rightTimeLabel = timerLabel || formatClock(task.scheduledAt);
+  const isTimedQuest = !!targetMs || !!task.scheduledAt || isRunning;
+  const effectiveProgress = timedProgress ?? schedulePulse;
+  const hasActiveTiming = isRunning || !!targetMs || (!!task.scheduledAt && task.scheduledAt > Date.now());
 
   return (
     <article
+      role="button"
+      tabIndex={0}
+      onClick={onOpen}
+      onKeyDown={(event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          onOpen();
+        }
+      }}
       className={`group relative w-full overflow-hidden rounded-[12px] border text-left transition-colors ${
         isRunning
-          ? 'border-[color-mix(in_srgb,var(--app-accent)_40%,transparent)] bg-[color-mix(in_srgb,var(--app-accent)_10%,var(--app-panel))]'
+          ? 'border-[color-mix(in_srgb,var(--app-accent)_58%,transparent)] bg-[color-mix(in_srgb,var(--app-accent)_12%,var(--app-panel))] shadow-[0_0_0_1px_color-mix(in_srgb,var(--app-accent)_30%,transparent)]'
           : isFocused
           ? 'border-[color-mix(in_srgb,var(--app-accent)_34%,transparent)] bg-[color-mix(in_srgb,var(--app-accent)_8%,var(--app-panel))]'
+          : hasActiveTiming
+          ? 'border-[color-mix(in_srgb,var(--app-accent)_28%,transparent)] bg-[color-mix(in_srgb,var(--app-accent)_6%,var(--app-panel))]'
           : 'border-[var(--app-border)] bg-[var(--app-panel)] hover:bg-[color-mix(in_srgb,var(--app-accent)_7%,var(--app-panel))]'
       } ${isCompleted ? 'opacity-70' : ''}`}
     >
@@ -133,7 +161,7 @@ export const QuestCard: React.FC<QuestCardProps> = ({
           alt=""
           aria-hidden
           className={`pointer-events-none absolute inset-0 h-full w-full object-cover transition-opacity duration-300 ${
-            isFocused || isRunning ? 'opacity-[0.24]' : 'opacity-0 group-hover:opacity-[0.2]'
+            isFocused || isRunning ? 'opacity-[0.34]' : 'opacity-0 group-hover:opacity-[0.28]'
           }`}
         />
       ) : null}
@@ -145,7 +173,7 @@ export const QuestCard: React.FC<QuestCardProps> = ({
           autoPlay
           playsInline
           className={`pointer-events-none absolute inset-0 h-full w-full object-cover transition-opacity duration-300 ${
-            isFocused || isRunning ? 'opacity-[0.24]' : 'opacity-0 group-hover:opacity-[0.2]'
+            isFocused || isRunning ? 'opacity-[0.34]' : 'opacity-0 group-hover:opacity-[0.28]'
           }`}
         />
       ) : null}
@@ -154,18 +182,12 @@ export const QuestCard: React.FC<QuestCardProps> = ({
       ) : null}
       <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(90deg,rgba(8,9,12,0.78),rgba(8,9,12,0.48))]" />
       <div className="relative z-[1] flex items-start gap-2 p-3">
-        <button
-          type="button"
-          onClick={onOpen}
-          className="flex min-w-0 flex-1 items-center gap-3 rounded-lg px-1 py-0.5 text-left outline-none transition-transform duration-200 focus-visible:ring-1 focus-visible:ring-[var(--app-accent)] group-hover:translate-x-[1px]"
-        >
+        <div className="flex min-w-0 flex-1 items-center gap-3 rounded-lg px-1 py-0.5 text-left outline-none transition-transform duration-200 group-hover:translate-x-[1px]">
           <div className={`h-10 w-1 rounded-full ${isRunning ? 'bg-[var(--app-accent)]' : 'bg-transparent'}`} />
           <div className="min-w-0 flex-1">
             <div className="truncate text-[12px] font-semibold leading-5 tracking-[0.04em] text-[var(--app-text)]">{task.title}</div>
             <div className="mt-0.5 flex items-center gap-1.5 text-[10px] uppercase leading-4 tracking-[0.1em] text-[var(--app-muted)]">
               <span className="font-medium text-[var(--app-text)]">{'▲'.repeat(priorityLevel)}</span>
-              <span>•</span>
-              <span>{task.scheduledAt ? 'Scheduled' : 'No schedule'}</span>
             </div>
             {stepProgress.total > 0 ? (
               <div className="mt-1.5">
@@ -181,12 +203,16 @@ export const QuestCard: React.FC<QuestCardProps> = ({
               </div>
             ) : null}
           </div>
-        </button>
+        </div>
 
         <div className="flex w-[124px] shrink-0 flex-col items-end gap-1.5 pr-0.5">
-          <div className={`rounded-md px-2 py-0.5 text-[9px] font-semibold uppercase tracking-[0.1em] ${statusTone}`}>
-            {status}
-          </div>
+          {statusTone ? (
+            <div className={`rounded-md px-2 py-0.5 text-[9px] font-semibold uppercase tracking-[0.1em] ${statusTone}`}>
+              {status}
+            </div>
+          ) : (
+            <div className="h-5" />
+          )}
           <div className="text-[14px] font-semibold tracking-[0.06em] text-[var(--app-text)]">{rightTimeLabel}</div>
           {!isCompleted ? (
             <div className="mt-0.5 grid w-full grid-cols-1 gap-1.5">
@@ -196,6 +222,7 @@ export const QuestCard: React.FC<QuestCardProps> = ({
                 disabled={disabled}
                 onClick={(event) => {
                   event.stopPropagation();
+                  event.preventDefault();
                   onToggleRun();
                 }}
                 className="inline-flex h-8 w-full items-center justify-center rounded-lg border border-[var(--app-border)] bg-[var(--app-panel-2)] text-[var(--app-text)] transition-colors hover:border-[var(--app-accent)] hover:text-[var(--app-accent)] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--app-accent)] disabled:opacity-40"
@@ -209,6 +236,7 @@ export const QuestCard: React.FC<QuestCardProps> = ({
                 disabled={disabled}
                 onClick={(event) => {
                   event.stopPropagation();
+                  event.preventDefault();
                   onComplete();
                 }}
                 className="inline-flex h-8 w-full items-center justify-center rounded-lg border border-[var(--app-border)] bg-[var(--app-panel-2)] text-[var(--app-text)] transition-colors hover:border-[var(--app-accent)] hover:text-[var(--app-accent)] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--app-accent)] disabled:opacity-40"
@@ -219,6 +247,22 @@ export const QuestCard: React.FC<QuestCardProps> = ({
           ) : null}
         </div>
       </div>
+      {isTimedQuest ? (
+        <div className="relative z-[1] px-3 pb-3">
+          <div className="h-1.5 overflow-hidden rounded-full bg-[color-mix(in_srgb,var(--app-border)_70%,transparent)]">
+            <div
+              className={`h-full rounded-full transition-[width] duration-500 ${
+                isRunning
+                  ? 'bg-[color-mix(in_srgb,var(--app-accent)_80%,#ffffff)]'
+                  : status === 'Scheduled'
+                  ? 'bg-[#55a3ff]'
+                  : 'bg-[var(--app-accent)]'
+              }`}
+              style={{ width: `${Math.max(4, ((effectiveProgress || 0) * 100))}%` }}
+            />
+          </div>
+        </div>
+      ) : null}
     </article>
   );
 };
