@@ -554,6 +554,8 @@ const ActiveScheduleView: React.FC<{
   onApply,
   scheduledAt,
 }) => {
+  const WEEKDAY_LABELS = ['MO', 'TU', 'WE', 'TH', 'FR', 'SA', 'SU'];
+
   const handleHourWheel = (event: React.WheelEvent<HTMLInputElement>) => {
     event.preventDefault();
     const next = hour + (event.deltaY > 0 ? -1 : 1);
@@ -567,28 +569,111 @@ const ActiveScheduleView: React.FC<{
   };
 
   const now = new Date();
-  const datePart = value ? value.slice(0, 10) : `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
-  const monthLabel = new Date(`${datePart}T00:00:00`).toLocaleDateString([], { month: 'long', year: 'numeric' });
+  const parsedValueDate = useMemo(() => {
+    if (!value) return new Date();
+    const parsed = new Date(value);
+    return Number.isNaN(parsed.getTime()) ? new Date() : parsed;
+  }, [value]);
+  const datePart = `${parsedValueDate.getFullYear()}-${pad(parsedValueDate.getMonth() + 1)}-${pad(parsedValueDate.getDate())}`;
+  const selectedMonthToken = `${parsedValueDate.getFullYear()}-${parsedValueDate.getMonth()}`;
+  const [visibleMonth, setVisibleMonth] = useState(
+    () => new Date(parsedValueDate.getFullYear(), parsedValueDate.getMonth(), 1)
+  );
+
+  useEffect(() => {
+    setVisibleMonth(new Date(parsedValueDate.getFullYear(), parsedValueDate.getMonth(), 1));
+  }, [selectedMonthToken]);
+
+  const monthLabel = visibleMonth.toLocaleDateString([], { month: 'long', year: 'numeric' });
   const hour24 = meridiem === 'PM' ? (hour % 12) + 12 : hour % 12;
   const composeScheduleValue = (nextDatePart: string, nextHour24 = hour24, nextMinute = minute) => {
     if (!nextDatePart) return '';
     return `${nextDatePart}T${String(nextHour24).padStart(2, '0')}:${pad(Math.max(0, Math.min(59, nextMinute)))}`;
   };
 
+  const firstWeekday = (new Date(visibleMonth.getFullYear(), visibleMonth.getMonth(), 1).getDay() + 6) % 7;
+  const daysInMonth = new Date(visibleMonth.getFullYear(), visibleMonth.getMonth() + 1, 0).getDate();
+  const totalCells = Math.ceil((firstWeekday + daysInMonth) / 7) * 7;
+  const selectedDateKey = datePart;
+
+  const dayCells = Array.from({ length: totalCells }, (_, index) => {
+    const day = index - firstWeekday + 1;
+    if (day < 1 || day > daysInMonth) return null;
+    const dateKey = `${visibleMonth.getFullYear()}-${pad(visibleMonth.getMonth() + 1)}-${pad(day)}`;
+    return { day, dateKey };
+  });
+
+  const shiftMonth = (offset: number) => {
+    setVisibleMonth((prev) => new Date(prev.getFullYear(), prev.getMonth() + offset, 1));
+  };
+
+  const handleDateInputChange = (nextDatePart: string) => {
+    onValueChange(composeScheduleValue(nextDatePart));
+    if (!nextDatePart) return;
+    const [year, month] = nextDatePart.split('-').map(Number);
+    if (!year || !month) return;
+    setVisibleMonth(new Date(year, month - 1, 1));
+  };
+
   return (
     <section
       data-testid="schedule-panel"
-      className="grid min-h-0 grid-cols-[minmax(0,1fr)_214px] gap-3 rounded-[12px] border border-[var(--app-border)] bg-[var(--app-panel)] p-3"
+      className="grid min-h-0 grid-cols-[minmax(0,1fr)_244px] gap-3 rounded-[12px] border border-[var(--app-border)] bg-[var(--app-panel)] p-3"
     >
-      <div className="min-h-0">
-        <div className="mb-2 text-[10px] uppercase tracking-[0.16em] text-[var(--app-muted)]">{monthLabel}</div>
+      <div className="grid min-h-0 grid-rows-[auto_auto_1fr_auto] gap-2">
+        <div className="flex items-center justify-between">
+          <div className="text-[10px] uppercase tracking-[0.16em] text-[var(--app-muted)]">{monthLabel}</div>
+          <div className="flex items-center gap-1">
+            <button
+              type="button"
+              onClick={() => shiftMonth(-1)}
+              className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-[var(--app-border)] text-[11px] text-[var(--app-muted)] hover:text-[var(--app-text)]"
+              aria-label="Previous month"
+            >
+              ←
+            </button>
+            <button
+              type="button"
+              onClick={() => shiftMonth(1)}
+              className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-[var(--app-border)] text-[11px] text-[var(--app-muted)] hover:text-[var(--app-text)]"
+              aria-label="Next month"
+            >
+              →
+            </button>
+          </div>
+        </div>
         <input
           type="date"
           value={datePart}
-          onChange={(event) => onValueChange(composeScheduleValue(event.target.value))}
-          className="h-11 w-full rounded-md border border-[var(--app-border)] bg-[var(--app-panel-2)] px-3 text-[11px] tracking-[0.03em] text-[var(--app-text)] outline-none focus:border-[var(--app-accent)]"
+          onChange={(event) => handleDateInputChange(event.target.value)}
+          className="h-9 w-full rounded-md border border-[var(--app-border)] bg-[var(--app-panel-2)] px-3 text-[11px] tracking-[0.03em] text-[var(--app-text)] outline-none focus:border-[var(--app-accent)]"
         />
-        <div className="mt-2 grid grid-cols-2 gap-2">
+        <div className="grid min-h-0 grid-cols-7 gap-1 rounded-[10px] border border-[var(--app-border)] bg-[var(--app-panel-2)] p-2">
+          {WEEKDAY_LABELS.map((label) => (
+            <div key={label} className="text-center text-[9px] uppercase tracking-[0.14em] text-[var(--app-muted)]">
+              {label}
+            </div>
+          ))}
+          {dayCells.map((cell, index) =>
+            cell ? (
+              <button
+                key={cell.dateKey}
+                type="button"
+                onClick={() => onValueChange(composeScheduleValue(cell.dateKey))}
+                className={`h-7 rounded-md border text-[10px] font-medium transition-colors ${
+                  cell.dateKey === selectedDateKey
+                    ? 'border-[var(--app-accent)] bg-[color-mix(in_srgb,var(--app-accent)_16%,var(--app-panel))] text-[var(--app-text)]'
+                    : 'border-transparent text-[var(--app-muted)] hover:border-[var(--app-border)] hover:text-[var(--app-text)]'
+                }`}
+              >
+                {cell.day}
+              </button>
+            ) : (
+              <span key={`empty-${index}`} className="h-7" />
+            )
+          )}
+        </div>
+        <div className="grid grid-cols-2 gap-2">
           <button type="button" onClick={onClear} className="h-8 rounded-md border border-[var(--app-border)] text-[10px] uppercase tracking-[0.12em] text-[var(--app-muted)]">
             Clear
           </button>
@@ -857,7 +942,7 @@ const QuestPanel: React.FC<{
         )}
 
         {canEditDraft ? (
-          <div className="grid grid-cols-4 gap-1.5">
+          <div className="grid grid-cols-3 gap-1.5">
             {modeOptions.map((option) => (
               <button
                 key={option.key}
