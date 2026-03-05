@@ -117,6 +117,7 @@ const FOCUS_MEDIA_LIBRARY: FocusMediaAsset[] = [
 
 const QUEST_MEDIA_STORAGE_KEY = 'xtation.quest_media_selections.v1';
 const QUEST_SOUND_STORAGE_KEY = 'xtation.quest_sound_selections.v1';
+const QUEST_PRIORITY_STORAGE_KEY = 'xtation.quest_priority_selections.v1';
 
 const loadSelectionMap = (storageKey: string): Record<string, string> => {
   if (typeof window === 'undefined') return {};
@@ -573,6 +574,9 @@ const QuestPanel: React.FC<{
   const isFocusMode = workspaceMode === 'focus';
   const isCreateMode = workspaceMode === 'create';
   const canEditDraft = workspaceMode === 'create' || workspaceMode === 'edit';
+  const showTimer = workspaceMode === 'focus';
+  const showChecklist = true;
+  const showChecklistComposer = canEditDraft;
   const modeLabel = isCreateMode ? 'Create quest' : workspaceMode === 'edit' ? 'Edit quest' : 'Quest workspace';
 
   const modeOptions: Array<{ key: FocusMode; label: string; icon: React.ReactNode; onClick: () => void }> = [
@@ -687,74 +691,80 @@ const QuestPanel: React.FC<{
           </div>
         )}
 
-        <div className="rounded-[10px] border border-[var(--app-border)] bg-[var(--app-panel-2)] px-3 py-2">
-          <div className="text-[10px] uppercase tracking-[0.12em] text-[var(--app-muted)]">Timer</div>
-          <div className="mt-1 text-center text-[34px] font-semibold leading-none tracking-[0.04em] text-[var(--app-text)]">
-            {formatTimer(elapsed)}
-          </div>
-        </div>
-
-        <div className="rounded-[10px] border border-[var(--app-border)] bg-[var(--app-panel-2)] px-3 py-2">
-          <div className="mb-2 text-[10px] uppercase tracking-[0.12em] text-[var(--app-muted)]">
-            Checklist steps ({stepsDone}/{stepsTotal || 0})
-          </div>
-          <div className="space-y-1.5">
-            {steps.length === 0 ? (
-              <div className="text-[10px] uppercase tracking-[0.1em] text-[var(--app-muted)]">No checklist steps.</div>
-            ) : (
-              steps.map((step) => (
-                <div key={step.id} className="flex items-center gap-2 rounded-md border border-[var(--app-border)] bg-[var(--app-panel)] px-2 py-1">
-                  <button
-                    type="button"
-                    onClick={() => onToggleStep(step.id)}
-                    disabled={!canEditDraft}
-                    role="checkbox"
-                    aria-checked={step.done}
-                    className={`h-4 w-4 rounded-sm border ${step.done ? 'border-[var(--app-accent)] bg-[color-mix(in_srgb,var(--app-accent)_30%,var(--app-panel))]' : 'border-[var(--app-border)]'}`}
-                    aria-label={step.done ? 'Mark step incomplete' : 'Mark step complete'}
-                  />
-                  <span className={`min-w-0 flex-1 truncate text-[11px] tracking-[0.03em] ${step.done ? 'text-[var(--app-muted)] line-through' : 'text-[var(--app-text)]'}`}>
-                    {step.text}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={() => onDeleteStep(step.id)}
-                    disabled={!canEditDraft}
-                    className="text-[10px] uppercase tracking-[0.1em] text-[var(--app-muted)] hover:text-[var(--app-text)]"
-                    aria-label="Delete step"
-                  >
-                    Del
-                  </button>
-                </div>
-              ))
-            )}
-            <div className="flex items-center gap-2">
-              <input
-                value={stepInput}
-                onChange={(event) => setStepInput(event.target.value)}
-                onKeyDown={(event) => {
-                  if (event.key === 'Enter') {
-                    event.preventDefault();
-                    if (!canEditDraft) return;
-                    submitStep();
-                  }
-                }}
-                disabled={!canEditDraft}
-                className="h-8 min-w-0 flex-1 rounded-md border border-[var(--app-border)] bg-[var(--app-panel)] px-2 text-[11px] tracking-[0.03em] text-[var(--app-text)] outline-none focus:border-[var(--app-accent)]"
-                placeholder="Add step"
-              />
-              <button
-                type="button"
-                onClick={submitStep}
-                disabled={!canEditDraft}
-                aria-label="Add step"
-                className="h-8 rounded-md border border-[var(--app-border)] px-2 text-[9px] uppercase tracking-[0.1em] text-[var(--app-muted)] hover:text-[var(--app-text)]"
-              >
-                Add
-              </button>
+        {showTimer ? (
+          <div className="rounded-[10px] border border-[var(--app-border)] bg-[var(--app-panel-2)] px-3 py-2">
+            <div className="text-[10px] uppercase tracking-[0.12em] text-[var(--app-muted)]">Timer</div>
+            <div className="mt-1 text-center text-[34px] font-semibold leading-none tracking-[0.04em] text-[var(--app-text)]">
+              {formatTimer(elapsed)}
             </div>
           </div>
-        </div>
+        ) : null}
+
+        {showChecklist ? (
+          <div className="rounded-[10px] border border-[var(--app-border)] bg-[var(--app-panel-2)] px-3 py-2">
+            <div className="mb-2 text-[10px] uppercase tracking-[0.12em] text-[var(--app-muted)]">
+              Checklist steps ({stepsDone}/{stepsTotal || 0})
+            </div>
+            <div className="space-y-1.5">
+              {steps.length === 0 ? (
+                <div className="text-[10px] uppercase tracking-[0.1em] text-[var(--app-muted)]">
+                  {canEditDraft ? 'No checklist steps. Add one below.' : 'No checklist steps.'}
+                </div>
+              ) : (
+                steps.map((step) => (
+                  <div key={step.id} className="flex items-center gap-2 rounded-md border border-[var(--app-border)] bg-[var(--app-panel)] px-2 py-1">
+                    <button
+                      type="button"
+                      onClick={() => onToggleStep(step.id)}
+                      disabled={!canEditDraft}
+                      role="checkbox"
+                      aria-checked={step.done}
+                      className={`h-4 w-4 rounded-sm border ${step.done ? 'border-[var(--app-accent)] bg-[color-mix(in_srgb,var(--app-accent)_30%,var(--app-panel))]' : 'border-[var(--app-border)]'}`}
+                      aria-label={step.done ? 'Mark step incomplete' : 'Mark step complete'}
+                    />
+                    <span className={`min-w-0 flex-1 truncate text-[11px] tracking-[0.03em] ${step.done ? 'text-[var(--app-muted)] line-through' : 'text-[var(--app-text)]'}`}>
+                      {step.text}
+                    </span>
+                    {canEditDraft ? (
+                      <button
+                        type="button"
+                        onClick={() => onDeleteStep(step.id)}
+                        className="text-[10px] uppercase tracking-[0.1em] text-[var(--app-muted)] hover:text-[var(--app-text)]"
+                        aria-label="Delete step"
+                      >
+                        Del
+                      </button>
+                    ) : null}
+                  </div>
+                ))
+              )}
+              {showChecklistComposer ? (
+                <div className="flex items-center gap-2">
+                  <input
+                    value={stepInput}
+                    onChange={(event) => setStepInput(event.target.value)}
+                    onKeyDown={(event) => {
+                      if (event.key === 'Enter') {
+                        event.preventDefault();
+                        submitStep();
+                      }
+                    }}
+                    className="h-8 min-w-0 flex-1 rounded-md border border-[var(--app-border)] bg-[var(--app-panel)] px-2 text-[11px] tracking-[0.03em] text-[var(--app-text)] outline-none focus:border-[var(--app-accent)]"
+                    placeholder="Add step"
+                  />
+                  <button
+                    type="button"
+                    onClick={submitStep}
+                    aria-label="Add step"
+                    className="h-8 rounded-md border border-[var(--app-border)] px-2 text-[9px] uppercase tracking-[0.1em] text-[var(--app-muted)] hover:text-[var(--app-text)]"
+                  >
+                    Add
+                  </button>
+                </div>
+              ) : null}
+            </div>
+          </div>
+        ) : null}
 
         {isFocusMode ? (
           <div className="mt-auto grid grid-cols-3 gap-2">
@@ -824,7 +834,14 @@ const FocusWorkspace: React.FC<{
   onClose: () => void;
   onBackToFocus: () => void;
   onEditMode: () => void;
-  onSaveDraft: (draft: { title: string; details: string; priority: Task['priority']; scheduledAt?: number }) => void;
+  initialPriorityLabel?: FocusPriority;
+  onSaveDraft: (draft: {
+    title: string;
+    details: string;
+    priority: Task['priority'];
+    priorityLabel: FocusPriority;
+    scheduledAt?: number;
+  }) => void;
   onToggleRun: () => void;
   onComplete: () => void;
   initialMode?: FocusMode;
@@ -842,6 +859,7 @@ const FocusWorkspace: React.FC<{
   onClose,
   onBackToFocus,
   onEditMode,
+  initialPriorityLabel,
   onSaveDraft,
   onToggleRun,
   onComplete,
@@ -856,7 +874,7 @@ const FocusWorkspace: React.FC<{
   const [draftSteps, setDraftSteps] = useState<FocusStep[]>(parseQuestStepsForEditor(task.details));
   const [draftPriority, setDraftPriority] = useState<Task['priority']>(task.priority || 'normal');
   const [draftPriorityLabel, setDraftPriorityLabel] = useState<FocusPriority>(
-    (task.priority as FocusPriority) || 'normal'
+    initialPriorityLabel || (task.priority as FocusPriority) || 'normal'
   );
   const [draftScheduledAt, setDraftScheduledAt] = useState<number | undefined>(task.scheduledAt);
   const [draftScheduleValue, setDraftScheduleValue] = useState<string>(
@@ -874,11 +892,11 @@ const FocusWorkspace: React.FC<{
     setDraftDetails(stripStepsFromDetails(task.details));
     setDraftSteps(parseQuestStepsForEditor(task.details));
     setDraftPriority(task.priority || 'normal');
-    setDraftPriorityLabel((task.priority as FocusPriority) || 'normal');
+    setDraftPriorityLabel(initialPriorityLabel || (task.priority as FocusPriority) || 'normal');
     setDraftScheduledAt(task.scheduledAt);
     setDraftScheduleValue(task.scheduledAt ? toLocalDateTimeValue(task.scheduledAt) : toLocalDateTimeValue(roundToFiveMinutes(Date.now())));
     setActiveMode(mode === 'create' ? initialMode : 'default');
-  }, [task.id, task.title, task.details, task.priority, task.scheduledAt, mode]);
+  }, [task.id, task.title, task.details, task.priority, task.scheduledAt, mode, initialMode, initialPriorityLabel]);
 
   useEffect(() => {
     if (mode === 'focus' && activeMode !== 'default') {
@@ -924,6 +942,7 @@ const FocusWorkspace: React.FC<{
       title: draftTitle.trim(),
       details: buildDetailsWithSteps(draftDetails, draftSteps),
       priority: draftPriority,
+      priorityLabel: draftPriorityLabel,
       scheduledAt: draftScheduledAt,
     });
   };
@@ -1119,6 +1138,7 @@ export const HextechAssistant: React.FC<HextechAssistantProps> = ({ isOpen, onCl
   const [createSeed, setCreateSeed] = useState(0);
   const [taskMediaSelections, setTaskMediaSelections] = useState<Record<string, string>>({});
   const [taskSoundSelections, setTaskSoundSelections] = useState<Record<string, string>>({});
+  const [taskPriorityVisuals, setTaskPriorityVisuals] = useState<Record<string, string>>({});
   const [, setUiRevision] = useState(0);
 
   const [rendered, setRendered] = useState(isOpen);
@@ -1190,6 +1210,7 @@ export const HextechAssistant: React.FC<HextechAssistantProps> = ({ isOpen, onCl
   useEffect(() => {
     setTaskMediaSelections(loadSelectionMap(QUEST_MEDIA_STORAGE_KEY));
     setTaskSoundSelections(loadSelectionMap(QUEST_SOUND_STORAGE_KEY));
+    setTaskPriorityVisuals(loadSelectionMap(QUEST_PRIORITY_STORAGE_KEY));
   }, []);
 
   useEffect(() => {
@@ -1199,6 +1220,10 @@ export const HextechAssistant: React.FC<HextechAssistantProps> = ({ isOpen, onCl
   useEffect(() => {
     persistSelectionMap(QUEST_SOUND_STORAGE_KEY, taskSoundSelections);
   }, [taskSoundSelections]);
+
+  useEffect(() => {
+    persistSelectionMap(QUEST_PRIORITY_STORAGE_KEY, taskPriorityVisuals);
+  }, [taskPriorityVisuals]);
 
   useEffect(() => {
     if (isOpen) {
@@ -1297,6 +1322,7 @@ export const HextechAssistant: React.FC<HextechAssistantProps> = ({ isOpen, onCl
     title: string;
     details: string;
     priority: Task['priority'];
+    priorityLabel: FocusPriority;
     scheduledAt?: number;
   }) => {
     if (!draft.title.trim()) {
@@ -1330,6 +1356,16 @@ export const HextechAssistant: React.FC<HextechAssistantProps> = ({ isOpen, onCl
         }
         return next;
       });
+      setTaskPriorityVisuals((prev) => {
+        const next = { ...prev };
+        if (next[draftWorkspaceKey]) {
+          next[createdId] = next[draftWorkspaceKey];
+          delete next[draftWorkspaceKey];
+        } else {
+          next[createdId] = draft.priorityLabel;
+        }
+        return next;
+      });
       setFocusedTaskId(createdId);
       setWorkspaceMode('focus');
     } else if (focusedTaskId) {
@@ -1339,6 +1375,7 @@ export const HextechAssistant: React.FC<HextechAssistantProps> = ({ isOpen, onCl
         priority: draft.priority,
         scheduledAt: draft.scheduledAt,
       });
+      setTaskPriorityVisuals((prev) => ({ ...prev, [focusedTaskId]: draft.priorityLabel }));
       setWorkspaceMode('focus');
     }
 
@@ -1472,6 +1509,7 @@ export const HextechAssistant: React.FC<HextechAssistantProps> = ({ isOpen, onCl
             onClose={closeFocusPanel}
             onBackToFocus={backToFocus}
             onEditMode={openEditInWorkspace}
+            initialPriorityLabel={workspaceKey ? (taskPriorityVisuals[workspaceKey] as FocusPriority | undefined) : undefined}
             onSaveDraft={handleSaveWorkspace}
             initialMode={workspaceMode === 'create' ? 'default' : 'default'}
             onToggleRun={() => {
