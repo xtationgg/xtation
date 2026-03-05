@@ -1,10 +1,9 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { CalendarDays, Pause, Play, Plus, Save, Timer, Volume2, VolumeX, X } from 'lucide-react';
+import { CalendarDays, Clapperboard, Pause, Play, Plus, Save, Timer, Volume2, X } from 'lucide-react';
 import { useXP } from '../XP/xpStore';
 import { Task } from '../XP/xpTypes';
 import { ConfirmModal } from '../UI/ConfirmModal';
 import { QuestCard } from '../Play/QuestCard';
-import { DateTimePicker } from '../UI/DateTimePicker';
 import { playClickSound, playErrorSound, playSuccessSound } from '../../utils/SoundEffects';
 
 interface HextechAssistantProps {
@@ -164,6 +163,8 @@ const persistSelectionMap = (storageKey: string, value: Record<string, string>) 
 };
 
 const inferMediaTypeFromUrl = (url: string): FocusMediaAsset['type'] => {
+  if (url.startsWith('data:image/')) return 'image';
+  if (url.startsWith('data:video/')) return 'video';
   const clean = url.toLowerCase().split('?')[0].split('#')[0];
   if (/\.(png|jpe?g|webp|gif|avif|svg)$/.test(clean)) return 'image';
   return 'video';
@@ -180,61 +181,56 @@ const getFocusMediaAsset = (assetId: string | null) =>
     : FOCUS_MEDIA_LIBRARY.find((asset) => asset.id === assetId) || FOCUS_MEDIA_LIBRARY[0];
 
 const getFocusSoundAsset = (assetId: string | null) =>
-  FOCUS_SOUND_LIBRARY.find((asset) => asset.id === assetId) || null;
+  assetId?.startsWith('sound-url:')
+    ? ({
+        id: assetId,
+        label: 'Custom Sound',
+        src: decodeURIComponent(assetId.slice('sound-url:'.length)),
+      } satisfies FocusSoundAsset)
+    : FOCUS_SOUND_LIBRARY.find((asset) => asset.id === assetId) || null;
 
 type ActiveSession = ReturnType<ReturnType<typeof useXP>['selectors']['getActiveSession']>;
 
 const LeftControlStrip: React.FC<{
   workspaceMode: WorkspaceMode;
-  activeMode: 'media' | 'sound' | 'default' | 'schedule';
-  isRunning: boolean;
-  isMuted: boolean;
-  onToggleRun: () => void;
-  onToggleMute: () => void;
+  activeMode: FocusMode;
   onOpenMedia: () => void;
   onOpenSound: () => void;
 }> = ({
   workspaceMode,
   activeMode,
-  isRunning,
-  isMuted,
-  onToggleRun,
-  onToggleMute,
   onOpenMedia,
   onOpenSound,
 }) => {
-  const inFocus = workspaceMode === 'focus';
+  const mediaActive = activeMode === 'media';
+  const soundActive = activeMode === 'sound';
   return (
     <section className="grid h-full grid-rows-[1fr_1fr] gap-2">
       <button
         type="button"
-        onClick={inFocus ? onToggleRun : onOpenMedia}
-        title={inFocus ? (isRunning ? 'Pause quest' : 'Start quest') : 'Media library'}
+        onClick={onOpenMedia}
+        title={workspaceMode === 'focus' ? 'Media panel' : 'Media library'}
         className={`inline-flex h-full min-h-[68px] items-center justify-center rounded-[10px] border text-[var(--app-text)] transition-colors ${
-          inFocus
-            ? 'border-[var(--app-accent)] bg-[color-mix(in_srgb,var(--app-accent)_16%,var(--app-panel))]'
-            : activeMode === 'media'
+          mediaActive
             ? 'border-[var(--app-accent)] bg-[color-mix(in_srgb,var(--app-accent)_20%,var(--app-panel))]'
             : 'border-[var(--app-border)] bg-[color-mix(in_srgb,var(--app-accent)_10%,var(--app-panel))] hover:bg-[color-mix(in_srgb,var(--app-accent)_18%,var(--app-panel))]'
         }`}
-        aria-label={inFocus ? (isRunning ? 'Pause quest' : 'Start quest') : 'Open media library'}
+        aria-label="Open media library"
       >
-        {inFocus && isRunning ? <Pause size={26} /> : <Play size={26} />}
+        <Clapperboard size={24} />
       </button>
       <button
         type="button"
-        onClick={inFocus ? onToggleMute : onOpenSound}
-        title={inFocus ? (isMuted ? 'Unmute focus sound' : 'Mute focus sound') : 'Sound library'}
+        onClick={onOpenSound}
+        title={workspaceMode === 'focus' ? 'Sound panel' : 'Sound library'}
         className={`inline-flex h-full min-h-[68px] items-center justify-center rounded-[10px] border text-[var(--app-text)] transition-colors ${
-          inFocus
-            ? 'border-[var(--app-accent)] bg-[color-mix(in_srgb,var(--app-accent)_16%,var(--app-panel))]'
-            : activeMode === 'sound'
+          soundActive
             ? 'border-[var(--app-accent)] bg-[color-mix(in_srgb,var(--app-accent)_20%,var(--app-panel))]'
             : 'border-[var(--app-border)] bg-[var(--app-panel)] hover:bg-[var(--app-panel-2)]'
         }`}
-        aria-label={inFocus ? (isMuted ? 'Unmute focus sound' : 'Mute focus sound') : 'Open sound library'}
+        aria-label="Open sound library"
       >
-        {inFocus && isMuted ? <VolumeX size={24} /> : <Volume2 size={24} />}
+        <Volume2 size={24} />
       </button>
     </section>
   );
@@ -338,7 +334,7 @@ const ActiveAreaDefault: React.FC<{
             active empty space
             <div className="mt-2 text-[9px] text-[var(--app-text)]">
               {isRunning ? 'synced with quest timer' : 'ready'}
-              {selectedSoundAsset ? ` • ${selectedSoundAsset}` : ''}
+              {selectedSound?.label ? ` • ${selectedSound.label}` : ''}
             </div>
           </div>
         </div>
@@ -347,7 +343,7 @@ const ActiveAreaDefault: React.FC<{
       {selectedAsset.type !== 'animation' ? (
         <div className="pointer-events-none absolute bottom-3 left-3 rounded-md border border-[var(--app-border)] bg-[color-mix(in_srgb,var(--app-panel)_88%,black)] px-2 py-1 text-[9px] uppercase tracking-[0.12em] text-[var(--app-muted)]">
           {selectedAsset.label}
-          {selectedSoundAsset ? ` • ${selectedSoundAsset}` : ''}
+          {selectedSound?.label ? ` • ${selectedSound.label}` : ''}
         </div>
       ) : null}
 
@@ -362,8 +358,32 @@ const ActiveLibraryView: React.FC<{
   onSelect: (assetId: string) => void;
 }> = ({ kind, selectedAsset, onSelect }) => {
   const [customUrl, setCustomUrl] = useState('');
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
   const items = kind === 'media' ? FOCUS_MEDIA_LIBRARY : FOCUS_SOUND_LIBRARY;
-  const listHeightClass = kind === 'media' ? 'h-[calc(100%-88px)]' : 'h-[calc(100%-40px)]';
+  const listHeightClass = 'h-[calc(100%-92px)]';
+
+  const applyCustomUrl = () => {
+    const url = customUrl.trim();
+    if (!url) return;
+    const nextId = kind === 'media' ? `url:${encodeURIComponent(url)}` : `sound-url:${encodeURIComponent(url)}`;
+    onSelect(nextId);
+    setCustomUrl('');
+  };
+
+  const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    const base64 = await new Promise<string | null>((resolve) => {
+      reader.onload = () => resolve(typeof reader.result === 'string' ? reader.result : null);
+      reader.onerror = () => resolve(null);
+      reader.readAsDataURL(file);
+    });
+    if (!base64) return;
+    const nextId = kind === 'media' ? `url:${encodeURIComponent(base64)}` : `sound-url:${encodeURIComponent(base64)}`;
+    onSelect(nextId);
+    event.currentTarget.value = '';
+  };
 
   return (
     <section className="min-h-0 rounded-[12px] border border-[var(--app-border)] bg-[var(--app-panel)] p-3">
@@ -392,28 +412,35 @@ const ActiveLibraryView: React.FC<{
           </button>
         ))}
       </div>
-      {kind === 'media' ? (
-        <div className="mt-2 flex items-center gap-2">
-          <input
-            value={customUrl}
-            onChange={(event) => setCustomUrl(event.target.value)}
-            placeholder="Paste media URL"
-            className="h-9 min-w-0 flex-1 rounded-md border border-[var(--app-border)] bg-[var(--app-panel-2)] px-2 text-[10px] tracking-[0.06em] text-[var(--app-text)] outline-none focus:border-[var(--app-accent)]"
-          />
-          <button
-            type="button"
-            onClick={() => {
-              const url = customUrl.trim();
-              if (!url) return;
-              onSelect(`url:${encodeURIComponent(url)}`);
-              setCustomUrl('');
-            }}
-            className="h-9 rounded-md border border-[var(--app-accent)] px-3 text-[10px] font-semibold uppercase tracking-[0.1em] text-[var(--app-text)]"
-          >
-            Use URL
-          </button>
-        </div>
-      ) : null}
+      <div className="mt-2 flex items-center gap-2">
+        <input
+          value={customUrl}
+          onChange={(event) => setCustomUrl(event.target.value)}
+          placeholder={kind === 'media' ? 'Paste media URL' : 'Paste audio URL'}
+          className="h-9 min-w-0 flex-1 rounded-md border border-[var(--app-border)] bg-[var(--app-panel-2)] px-2 text-[10px] tracking-[0.06em] text-[var(--app-text)] outline-none focus:border-[var(--app-accent)]"
+        />
+        <button
+          type="button"
+          onClick={applyCustomUrl}
+          className="h-9 rounded-md border border-[var(--app-accent)] px-3 text-[10px] font-semibold uppercase tracking-[0.1em] text-[var(--app-text)]"
+        >
+          Use URL
+        </button>
+        <button
+          type="button"
+          onClick={() => fileInputRef.current?.click()}
+          className="h-9 rounded-md border border-[var(--app-border)] px-3 text-[10px] font-semibold uppercase tracking-[0.1em] text-[var(--app-muted)] hover:text-[var(--app-text)]"
+        >
+          Upload
+        </button>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept={kind === 'media' ? 'image/*,video/*' : 'audio/*'}
+          className="hidden"
+          onChange={handleFileSelect}
+        />
+      </div>
     </section>
   );
 };
@@ -504,8 +531,6 @@ const ActiveScheduleView: React.FC<{
   hour: number;
   minute: number;
   meridiem: 'AM' | 'PM';
-  onHourChange: (next: number) => void;
-  onMinuteChange: (next: number) => void;
   onHourInput: (next: number) => void;
   onMinuteInput: (next: number) => void;
   onMeridiemChange: (next: 'AM' | 'PM') => void;
@@ -520,8 +545,6 @@ const ActiveScheduleView: React.FC<{
   hour,
   minute,
   meridiem,
-  onHourChange,
-  onMinuteChange,
   onHourInput,
   onMinuteInput,
   onMeridiemChange,
@@ -543,19 +566,27 @@ const ActiveScheduleView: React.FC<{
     onMinuteInput(next);
   };
 
+  const now = new Date();
+  const datePart = value ? value.slice(0, 10) : `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+  const monthLabel = new Date(`${datePart}T00:00:00`).toLocaleDateString([], { month: 'long', year: 'numeric' });
+  const hour24 = meridiem === 'PM' ? (hour % 12) + 12 : hour % 12;
+  const composeScheduleValue = (nextDatePart: string, nextHour24 = hour24, nextMinute = minute) => {
+    if (!nextDatePart) return '';
+    return `${nextDatePart}T${String(nextHour24).padStart(2, '0')}:${pad(Math.max(0, Math.min(59, nextMinute)))}`;
+  };
+
   return (
     <section
       data-testid="schedule-panel"
       className="grid min-h-0 grid-cols-[minmax(0,1fr)_214px] gap-3 rounded-[12px] border border-[var(--app-border)] bg-[var(--app-panel)] p-3"
     >
       <div className="min-h-0">
-        <div className="mb-2 text-[10px] uppercase tracking-[0.16em] text-[var(--app-muted)]">March 2026</div>
-        <DateTimePicker
-          value={value}
-          onChange={onValueChange}
-          placeholder="Pick date / time"
-          className="h-11 rounded-md border border-[var(--app-border)] bg-[var(--app-panel-2)] px-3 text-[11px] tracking-[0.03em] text-[var(--app-text)]"
-          triggerTestId="schedule-picker-trigger"
+        <div className="mb-2 text-[10px] uppercase tracking-[0.16em] text-[var(--app-muted)]">{monthLabel}</div>
+        <input
+          type="date"
+          value={datePart}
+          onChange={(event) => onValueChange(composeScheduleValue(event.target.value))}
+          className="h-11 w-full rounded-md border border-[var(--app-border)] bg-[var(--app-panel-2)] px-3 text-[11px] tracking-[0.03em] text-[var(--app-text)] outline-none focus:border-[var(--app-accent)]"
         />
         <div className="mt-2 grid grid-cols-2 gap-2">
           <button type="button" onClick={onClear} className="h-8 rounded-md border border-[var(--app-border)] text-[10px] uppercase tracking-[0.12em] text-[var(--app-muted)]">
@@ -586,7 +617,7 @@ const ActiveScheduleView: React.FC<{
               type="number"
               min={0}
               max={59}
-              value={pad(minute)}
+              value={minute}
               onChange={(event) => onMinuteInput(Number(event.target.value || minute))}
               onWheel={handleMinuteWheel}
               className="w-full bg-transparent text-center text-[22px] font-semibold leading-8 text-[var(--app-text)] outline-none"
@@ -696,6 +727,7 @@ const QuestPanel: React.FC<{
   onOpenDefault: () => void;
   isRunning: boolean;
   elapsed: number;
+  countdownMin?: number;
   stepsDone: number;
   stepsTotal: number;
   steps: FocusStep[];
@@ -725,6 +757,7 @@ const QuestPanel: React.FC<{
   onOpenDefault,
   isRunning,
   elapsed,
+  countdownMin,
   stepsDone,
   stepsTotal,
   steps,
@@ -751,6 +784,9 @@ const QuestPanel: React.FC<{
   const showChecklist = true;
   const showChecklistComposer = canEditDraft;
   const modeLabel = isCreateMode ? 'Create quest' : workspaceMode === 'edit' ? 'Edit quest' : 'Quest workspace';
+  const hasCountdown = typeof countdownMin === 'number' && countdownMin > 0;
+  const countdownMs = hasCountdown ? Math.max(0, Math.round(countdownMin * 60_000)) : 0;
+  const timerDisplayMs = hasCountdown ? Math.max(0, countdownMs - elapsed) : elapsed;
 
   const modeOptions: Array<{ key: FocusMode; label: string; icon: React.ReactNode; onClick: () => void }> = [
     { key: 'default', label: 'Focus', icon: <Play size={13} />, onClick: onOpenDefault },
@@ -766,7 +802,7 @@ const QuestPanel: React.FC<{
   };
 
   return (
-    <section className="min-h-0 w-full max-w-[390px] rounded-[12px] border border-[var(--app-border)] bg-[var(--app-panel)] p-3">
+    <section className="min-h-0 w-full rounded-[12px] border border-[var(--app-border)] bg-[var(--app-panel)] p-3">
       <div className="flex h-full flex-col gap-3">
         <div className="flex items-center justify-between">
           <div className="text-[10px] uppercase tracking-[0.14em] text-[var(--app-muted)]">{modeLabel}</div>
@@ -865,20 +901,15 @@ const QuestPanel: React.FC<{
               </span>
             ) : null}
           </div>
-        ) : (
-        <div className="grid grid-cols-1 gap-1.5 rounded-md border border-[var(--app-border)] bg-[var(--app-panel-2)] px-2.5 py-2 text-[9px] uppercase tracking-[0.1em] text-[var(--app-muted)]">
-          <div className="truncate">Media: {selectedMediaLabel}</div>
-          <div className="truncate">Sound: {selectedSoundLabel || 'None'}</div>
-          <div className="truncate">{scheduleChipLabel}</div>
-          <div className="truncate">{countdownChipLabel}</div>
-        </div>
-      )}
+        ) : null}
 
         {showTimer ? (
           <div className="rounded-[10px] border border-[var(--app-border)] bg-[var(--app-panel-2)] px-3 py-2">
-            <div className="text-[10px] uppercase tracking-[0.12em] text-[var(--app-muted)]">Timer</div>
+            <div className="text-[10px] uppercase tracking-[0.12em] text-[var(--app-muted)]">
+              {hasCountdown ? 'Countdown' : 'Timer'}
+            </div>
             <div className="mt-1 text-center text-[34px] font-semibold leading-none tracking-[0.04em] text-[var(--app-text)]">
-              {formatTimer(elapsed)}
+              {formatTimer(timerDisplayMs)}
             </div>
           </div>
         ) : null}
@@ -888,7 +919,7 @@ const QuestPanel: React.FC<{
             <div className="mb-2 text-[10px] uppercase tracking-[0.12em] text-[var(--app-muted)]">
               Checklist steps ({stepsDone}/{stepsTotal || 0})
             </div>
-            <div className="space-y-1.5 max-h-[140px] overflow-y-auto pr-0.5">
+            <div className={`space-y-1.5 overflow-y-auto pr-0.5 ${canEditDraft ? 'max-h-[140px]' : 'max-h-[110px]'}`}>
               {steps.length === 0 ? (
                 <div className="text-[10px] uppercase tracking-[0.1em] text-[var(--app-muted)]">
                   {canEditDraft ? 'No checklist steps. Add one below.' : 'No checklist steps.'}
@@ -1050,7 +1081,6 @@ const FocusWorkspace: React.FC<{
 }) => {
   const [tickNow, setTickNow] = useState(() => Date.now());
   const [activeMode, setActiveMode] = useState<FocusMode>(initialMode);
-  const [isSoundMuted, setIsSoundMuted] = useState(false);
   const isRunning = !!runningSession && runningSession.status === 'running';
   const isCreateMode = mode === 'create';
   const [draftTitle, setDraftTitle] = useState(task.title);
@@ -1086,7 +1116,6 @@ const FocusWorkspace: React.FC<{
     setDraftScheduleValue(task.scheduledAt ? toLocalDateTimeValue(task.scheduledAt) : toLocalDateTimeValue(roundToFiveMinutes(Date.now())));
     setDraftMediaAsset(selectedMediaAsset || 'focus-animation');
     setDraftSoundAsset(selectedSoundAsset || null);
-    setIsSoundMuted(false);
     setActiveMode(mode === 'create' ? initialMode : 'default');
   }, [task.id, task.title, task.details, task.priority, task.scheduledAt, mode, initialMode, initialPriorityLabel, selectedMediaAsset, selectedSoundAsset]);
 
@@ -1100,7 +1129,11 @@ const FocusWorkspace: React.FC<{
 
   const elapsed = isCreateMode ? 0 : getTaskTrackedMs(task.id, tickNow);
   const stepsDone = draftSteps.filter((step) => step.done).length;
-  const scheduleDate = draftScheduleValue ? new Date(draftScheduleValue) : new Date(roundToFiveMinutes(Date.now()));
+  const scheduleDateCandidate = draftScheduleValue ? new Date(draftScheduleValue) : null;
+  const scheduleDate =
+    scheduleDateCandidate && !Number.isNaN(scheduleDateCandidate.getTime())
+      ? scheduleDateCandidate
+      : new Date(roundToFiveMinutes(Date.now()));
   const scheduleHour24 = scheduleDate.getHours();
   const meridiem = scheduleHour24 >= 12 ? 'PM' : 'AM';
   const displayHour = ((scheduleHour24 + 11) % 12) + 1;
@@ -1229,22 +1262,18 @@ const FocusWorkspace: React.FC<{
     <>
       <div className="pointer-events-none absolute inset-y-4 left-4 right-[calc(clamp(320px,34vw,380px)+16px)] z-[170] max-sm:hidden">
         <div className="flex h-full items-center justify-center">
-          <div className="pointer-events-auto grid aspect-[3/1] min-h-[360px] w-full max-w-[min(1260px,calc(100vw-clamp(320px,34vw,380px)-56px))] max-h-[72vh] grid-cols-[48px_minmax(0,2.05fr)_56px_minmax(0,1fr)_minmax(172px,0.82fr)] gap-2.5 rounded-[16px] border border-[var(--app-border)] bg-[color-mix(in_srgb,var(--app-panel)_96%,black)] p-2.5">
+          <div className="pointer-events-auto grid aspect-[3/1] w-full max-w-[min(1240px,calc(100vw-clamp(320px,34vw,380px)-64px))] grid-cols-[48px_minmax(0,1.95fr)_56px_minmax(320px,1.15fr)_minmax(210px,0.95fr)] gap-2.5 rounded-[16px] border border-[var(--app-border)] bg-[color-mix(in_srgb,var(--app-panel)_96%,black)] p-2.5">
             <LeftControlStrip
-          workspaceMode={mode}
-          activeMode={activeMode}
-          isRunning={isRunning}
-          isMuted={isSoundMuted}
-          onToggleRun={onToggleRun}
-          onToggleMute={() => setIsSoundMuted((prev) => !prev)}
-          onOpenMedia={() => setActiveMode('media')}
-          onOpenSound={() => setActiveMode('sound')}
-        />
+              workspaceMode={mode}
+              activeMode={activeMode}
+              onOpenMedia={() => setActiveMode('media')}
+              onOpenSound={() => setActiveMode('sound')}
+            />
             <div className="min-h-0">
               {activeMode === 'default' ? (
                 <ActiveAreaDefault
                   selectedAssetId={draftMediaAsset}
-                  selectedSoundAsset={isSoundMuted ? null : draftSoundAsset}
+                  selectedSoundAsset={draftSoundAsset}
                   elapsedMs={elapsed}
                   isRunning={isRunning}
                 />
@@ -1256,8 +1285,6 @@ const FocusWorkspace: React.FC<{
                   hour={displayHour}
                   minute={displayMinute}
                   meridiem={meridiem}
-                  onHourChange={(nextHour) => updateScheduleParts(nextHour, displayMinute, meridiem)}
-                  onMinuteChange={(nextMinute) => updateScheduleParts(displayHour, nextMinute, meridiem)}
                   onHourInput={updateHourInput}
                   onMinuteInput={updateMinuteInput}
                   onMeridiemChange={(nextMeridiem) => updateScheduleParts(displayHour, displayMinute, nextMeridiem)}
@@ -1269,6 +1296,7 @@ const FocusWorkspace: React.FC<{
                   }}
                   onApply={() => {
                     setDraftScheduledAt(parseLocalDateTimeValue(draftScheduleValue));
+                    setActiveMode('default');
                   }}
                   scheduledAt={draftScheduledAt}
                 />
@@ -1317,6 +1345,7 @@ const FocusWorkspace: React.FC<{
           onOpenDefault={() => setActiveMode('default')}
           isRunning={isRunning}
           elapsed={elapsed}
+          countdownMin={draftCountdownMin}
           stepsDone={stepsDone}
           stepsTotal={draftSteps.length}
           steps={draftSteps}
