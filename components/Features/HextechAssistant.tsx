@@ -905,6 +905,7 @@ const FocusWorkspace: React.FC<{
   );
   const [draftMediaAsset, setDraftMediaAsset] = useState<string>(selectedMediaAsset || 'focus-animation');
   const [draftSoundAsset, setDraftSoundAsset] = useState<string | null>(selectedSoundAsset || null);
+  const [discardIntent, setDiscardIntent] = useState<'close' | 'back' | null>(null);
 
   useEffect(() => {
     if (!open || !isRunning || !runningSession) return;
@@ -981,6 +982,22 @@ const FocusWorkspace: React.FC<{
     });
   };
 
+  const shouldGuardExit = (mode === 'create' || mode === 'edit') && isDirty;
+  const performExit = (intent: 'close' | 'back') => {
+    if (intent === 'close') {
+      onClose();
+      return;
+    }
+    onBackToFocus();
+  };
+  const requestExit = (intent: 'close' | 'back') => {
+    if (shouldGuardExit) {
+      setDiscardIntent(intent);
+      return;
+    }
+    performExit(intent);
+  };
+
   const handleNow = () => {
     setDraftScheduleValue(toLocalDateTimeValue(roundToFiveMinutes(Date.now())));
   };
@@ -1040,10 +1057,11 @@ const FocusWorkspace: React.FC<{
   }, [mode, isDirty, draftTitle, draftDetails, draftPriority, draftScheduledAt, draftSteps]);
 
   return (
-    <div className="pointer-events-none absolute inset-y-3 left-3 right-[calc(clamp(320px,34vw,380px)+12px)] z-[170] max-sm:hidden">
-      <div className="flex h-full items-center justify-center">
-      <div className="pointer-events-auto grid h-[clamp(250px,35vh,330px)] w-full max-w-[min(980px,calc(100vw-clamp(320px,34vw,380px)-56px))] grid-cols-[52px_minmax(0,1.65fr)_54px_minmax(0,1fr)_minmax(170px,0.72fr)] gap-2.5 rounded-[16px] border border-[var(--app-border)] bg-[color-mix(in_srgb,var(--app-panel)_96%,black)] p-2.5">
-        <LeftControlStrip
+    <>
+      <div className="pointer-events-none absolute inset-y-3 left-3 right-[calc(clamp(320px,34vw,380px)+12px)] z-[170] max-sm:hidden">
+        <div className="flex h-full items-center justify-center">
+          <div className="pointer-events-auto grid h-[clamp(250px,35vh,330px)] w-full max-w-[min(980px,calc(100vw-clamp(320px,34vw,380px)-56px))] grid-cols-[52px_minmax(0,1.65fr)_54px_minmax(0,1fr)_minmax(170px,0.72fr)] gap-2.5 rounded-[16px] border border-[var(--app-border)] bg-[color-mix(in_srgb,var(--app-panel)_96%,black)] p-2.5">
+            <LeftControlStrip
           workspaceMode={mode}
           activeMode={activeMode}
           isRunning={isRunning}
@@ -1053,69 +1071,69 @@ const FocusWorkspace: React.FC<{
           onOpenMedia={() => setActiveMode('media')}
           onOpenSound={() => setActiveMode('sound')}
         />
-        <div className="min-h-0">
-          {activeMode === 'default' ? (
-            <ActiveAreaDefault
-              selectedAssetId={draftMediaAsset}
-              selectedSoundAsset={isSoundMuted ? null : draftSoundAsset}
-              elapsedMs={elapsed}
-              isRunning={isRunning}
-            />
-          ) : null}
-          {activeMode === 'schedule' ? (
-            <ActiveScheduleView
-              value={draftScheduleValue}
-              onValueChange={setDraftScheduleValue}
-              hour={displayHour}
-              minute={displayMinute}
-              meridiem={meridiem}
-              onHourChange={(nextHour) => updateScheduleParts(nextHour, displayMinute, meridiem)}
-              onMinuteChange={(nextMinute) => updateScheduleParts(displayHour, nextMinute, meridiem)}
-              onHourInput={updateHourInput}
-              onMinuteInput={updateMinuteInput}
-              onMeridiemChange={(nextMeridiem) => updateScheduleParts(displayHour, displayMinute, nextMeridiem)}
-              onNow={handleNow}
-              onToday={handleToday}
-              onClear={() => {
-                setDraftScheduledAt(undefined);
-                setDraftScheduleValue('');
-              }}
-              onApply={() => {
-                setDraftScheduledAt(parseLocalDateTimeValue(draftScheduleValue));
-              }}
-              scheduledAt={draftScheduledAt}
-            />
-          ) : null}
-          {activeMode === 'media' ? (
-            <ActiveLibraryView
-              kind="media"
-              selectedAsset={draftMediaAsset}
-              onSelect={(assetId) => {
-                setDraftMediaAsset(assetId);
-                setActiveMode('default');
-              }}
-            />
-          ) : null}
-          {activeMode === 'sound' ? (
-            <ActiveLibraryView
-              kind="sound"
-              selectedAsset={draftSoundAsset}
-              onSelect={(assetId) => {
-                setDraftSoundAsset(assetId);
-                setActiveMode('default');
-              }}
-            />
-          ) : null}
-        </div>
-        <PriorityStrip
+            <div className="min-h-0">
+              {activeMode === 'default' ? (
+                <ActiveAreaDefault
+                  selectedAssetId={draftMediaAsset}
+                  selectedSoundAsset={isSoundMuted ? null : draftSoundAsset}
+                  elapsedMs={elapsed}
+                  isRunning={isRunning}
+                />
+              ) : null}
+              {activeMode === 'schedule' ? (
+                <ActiveScheduleView
+                  value={draftScheduleValue}
+                  onValueChange={setDraftScheduleValue}
+                  hour={displayHour}
+                  minute={displayMinute}
+                  meridiem={meridiem}
+                  onHourChange={(nextHour) => updateScheduleParts(nextHour, displayMinute, meridiem)}
+                  onMinuteChange={(nextMinute) => updateScheduleParts(displayHour, nextMinute, meridiem)}
+                  onHourInput={updateHourInput}
+                  onMinuteInput={updateMinuteInput}
+                  onMeridiemChange={(nextMeridiem) => updateScheduleParts(displayHour, displayMinute, nextMeridiem)}
+                  onNow={handleNow}
+                  onToday={handleToday}
+                  onClear={() => {
+                    setDraftScheduledAt(undefined);
+                    setDraftScheduleValue('');
+                  }}
+                  onApply={() => {
+                    setDraftScheduledAt(parseLocalDateTimeValue(draftScheduleValue));
+                  }}
+                  scheduledAt={draftScheduledAt}
+                />
+              ) : null}
+              {activeMode === 'media' ? (
+                <ActiveLibraryView
+                  kind="media"
+                  selectedAsset={draftMediaAsset}
+                  onSelect={(assetId) => {
+                    setDraftMediaAsset(assetId);
+                    setActiveMode('default');
+                  }}
+                />
+              ) : null}
+              {activeMode === 'sound' ? (
+                <ActiveLibraryView
+                  kind="sound"
+                  selectedAsset={draftSoundAsset}
+                  onSelect={(assetId) => {
+                    setDraftSoundAsset(assetId);
+                    setActiveMode('default');
+                  }}
+                />
+              ) : null}
+            </div>
+            <PriorityStrip
           disabled={mode === 'focus'}
           value={draftPriorityLabel}
           onChange={(nextPriority) => {
             setDraftPriorityLabel(nextPriority);
             setDraftPriority(nextPriority === 'extreme' ? 'urgent' : nextPriority);
           }}
-        />
-        <QuestPanel
+            />
+            <QuestPanel
           workspaceMode={mode}
           title={draftTitle}
           details={draftDetails}
@@ -1142,17 +1160,32 @@ const FocusWorkspace: React.FC<{
           selectedSoundLabel={draftSoundAsset}
           scheduleChipLabel={scheduleChipLabel}
           isDirty={isDirty}
-          onClose={onClose}
-          onBackToFocus={onBackToFocus}
+          onClose={() => requestExit('close')}
+          onBackToFocus={() => requestExit('back')}
           onEdit={onEditMode}
           onSave={saveDraft}
           onToggleRun={onToggleRun}
           onComplete={onComplete}
-        />
-        <CharacterPanel />
+            />
+            <CharacterPanel />
+          </div>
+        </div>
       </div>
-      </div>
-    </div>
+      <ConfirmModal
+        open={!!discardIntent}
+        title="Discard changes?"
+        message="You have unsaved quest setup changes. Discard them?"
+        confirmLabel="Discard"
+        cancelLabel="Keep editing"
+        onCancel={() => setDiscardIntent(null)}
+        onConfirm={() => {
+          if (!discardIntent) return;
+          const intent = discardIntent;
+          setDiscardIntent(null);
+          performExit(intent);
+        }}
+      />
+    </>
   );
 };
 

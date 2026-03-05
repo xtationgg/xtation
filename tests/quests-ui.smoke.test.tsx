@@ -274,6 +274,43 @@ describe('Quests drawer filter + running section behavior', () => {
     expect(screen.getByText('Quests')).toBeInTheDocument();
   });
 
+  it('play button starts quest without opening workspace panel', async () => {
+    const user = userEvent.setup();
+    render(<HextechAssistant isOpen onClose={vi.fn()} />);
+
+    const xp = mockUseXP.mock.results.at(-1)?.value;
+    await user.click(screen.getAllByRole('button', { name: /start quest/i })[0]);
+
+    expect(xp.startSession).toHaveBeenCalledTimes(1);
+    expect(screen.queryByText(/quest workspace/i)).not.toBeInTheDocument();
+  });
+
+  it('clicking quest body opens focus workspace', async () => {
+    const user = userEvent.setup();
+    render(<HextechAssistant isOpen onClose={vi.fn()} />);
+
+    await user.click(screen.getByText('Backlog quest'));
+    expect(screen.getByText(/quest workspace/i)).toBeInTheDocument();
+  });
+
+  it('asks before discarding unsaved create draft', async () => {
+    const user = userEvent.setup();
+    render(<HextechAssistant isOpen onClose={vi.fn()} />);
+
+    await user.click(screen.getByRole('button', { name: /add quest/i }));
+    await user.type(screen.getByPlaceholderText('Quest title'), 'Unsaved draft');
+
+    await user.click(screen.getByLabelText(/close focus workspace/i));
+    expect(screen.getByText('Discard changes?')).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: /keep editing/i }));
+    expect(screen.getByDisplayValue('Unsaved draft')).toBeInTheDocument();
+
+    await user.click(screen.getByLabelText(/close focus workspace/i));
+    await user.click(screen.getByRole('button', { name: /^discard$/i }));
+    expect(screen.queryByText(/quest workspace/i)).not.toBeInTheDocument();
+  });
+
   it('smoke: create quest with steps + schedule, start it, then complete it', async () => {
     const user = userEvent.setup();
     const tasks: Task[] = [makeTask({ id: 'task-a', title: 'Quest A', status: 'todo' })];
