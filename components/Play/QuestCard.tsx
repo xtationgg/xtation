@@ -55,6 +55,10 @@ export interface QuestCardProps {
   isRunning: boolean;
   runningSession: XPSession | null;
   getTaskTrackedMs: (taskId: string, now?: number) => number;
+  isFocused?: boolean;
+  mediaPreviewUrl?: string | null;
+  mediaPreviewType?: 'animation' | 'image' | 'video';
+  mediaLabel?: string;
   onOpen: () => void;
   onToggleRun: () => void;
   onComplete: () => void;
@@ -66,6 +70,10 @@ export const QuestCard: React.FC<QuestCardProps> = ({
   isRunning,
   runningSession,
   getTaskTrackedMs,
+  isFocused = false,
+  mediaPreviewUrl = null,
+  mediaPreviewType = 'animation',
+  mediaLabel,
   onOpen,
   onToggleRun,
   onComplete,
@@ -98,13 +106,27 @@ export const QuestCard: React.FC<QuestCardProps> = ({
 
   return (
     <article
-      className={`group w-full rounded-[12px] border text-left transition-colors ${
+      className={`group relative w-full overflow-hidden rounded-[12px] border text-left transition-colors ${
         isRunning
           ? 'border-[color-mix(in_srgb,var(--app-accent)_40%,transparent)] bg-[color-mix(in_srgb,var(--app-accent)_10%,var(--app-panel))]'
+          : isFocused
+          ? 'border-[color-mix(in_srgb,var(--app-accent)_34%,transparent)] bg-[color-mix(in_srgb,var(--app-accent)_8%,var(--app-panel))]'
           : 'border-[var(--app-border)] bg-[var(--app-panel)] hover:bg-[color-mix(in_srgb,var(--app-accent)_7%,var(--app-panel))]'
       } ${isCompleted ? 'opacity-70' : ''}`}
     >
-      <div className="flex items-center gap-2 p-3">
+      {mediaPreviewUrl ? (
+        <img
+          src={mediaPreviewUrl}
+          alt=""
+          aria-hidden
+          className="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-[0.12]"
+        />
+      ) : null}
+      {!mediaPreviewUrl && mediaPreviewType === 'video' ? (
+        <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(120deg,rgba(110,70,168,0.14),rgba(18,20,28,0.18),rgba(16,18,24,0.12))]" />
+      ) : null}
+      <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(90deg,rgba(8,9,12,0.78),rgba(8,9,12,0.48))]" />
+      <div className="relative z-[1] flex items-center gap-2 p-3">
         <button
           type="button"
           onClick={onOpen}
@@ -123,6 +145,12 @@ export const QuestCard: React.FC<QuestCardProps> = ({
                   <span className="font-medium text-[var(--app-accent)]">{timerLabel}</span>
                 </>
               ) : null}
+              {mediaPreviewType !== 'animation' ? (
+                <>
+                  <span>•</span>
+                  <span>{mediaPreviewType === 'video' ? 'video' : 'image'}</span>
+                </>
+              ) : null}
             </div>
             {stepProgress.total > 0 ? (
               <div className="mt-1.5">
@@ -135,6 +163,11 @@ export const QuestCard: React.FC<QuestCardProps> = ({
                     style={{ width: `${progressPct}%` }}
                   />
                 </div>
+              </div>
+            ) : null}
+            {mediaLabel && mediaPreviewType !== 'animation' ? (
+              <div className="mt-1 truncate text-[9px] uppercase tracking-[0.1em] text-[var(--app-muted)]">
+                {mediaLabel}
               </div>
             ) : null}
           </div>

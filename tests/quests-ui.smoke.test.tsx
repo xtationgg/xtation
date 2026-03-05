@@ -293,6 +293,40 @@ describe('Quests drawer filter + running section behavior', () => {
     expect(screen.getByText(/quest workspace/i)).toBeInTheDocument();
   });
 
+  it('allows checklist toggle in focus mode without entering edit mode', async () => {
+    const user = userEvent.setup();
+    const tasks: Task[] = [
+      makeTask({
+        id: 'task-steps',
+        title: 'Steps quest',
+        details: `Focus details
+
+---
+[xstation_steps_v1]
+{"steps":[{"text":"Step A","done":false},{"text":"Step B","done":false}]}
+---`,
+        status: 'active',
+      }),
+    ];
+    const xp = buildXPMock(tasks, null);
+    mockUseXP.mockReturnValue(xp);
+
+    render(<HextechAssistant isOpen onClose={vi.fn()} />);
+
+    await user.click(screen.getByText('Steps quest'));
+    expect(screen.getByText(/quest workspace/i)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /edit quest/i })).toBeInTheDocument();
+
+    const checkboxes = screen.getAllByRole('checkbox');
+    await user.click(checkboxes[0]);
+
+    await waitFor(() => {
+      expect(xp.updateTask).toHaveBeenCalled();
+    });
+    expect(xp.updateTask.mock.calls[0][0]).toBe('task-steps');
+    expect(xp.updateTask.mock.calls[0][1].details).toContain('"done": true');
+  });
+
   it('asks before discarding unsaved create draft', async () => {
     const user = userEvent.setup();
     render(<HextechAssistant isOpen onClose={vi.fn()} />);
