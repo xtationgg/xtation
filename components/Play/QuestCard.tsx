@@ -2,6 +2,8 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { Check, Pause, Play } from 'lucide-react';
 import { Task, XPSession } from '../XP/xpTypes';
 
+const STEPS_BLOCK_REGEX = /\n?---\s*\n\[xstation_steps_v1\]\s*\n([\s\S]*?)\n---\s*$/;
+
 const formatDuration = (ms: number) => {
   const totalSeconds = Math.max(0, Math.floor(ms / 1000));
   const hours = Math.floor(totalSeconds / 3600);
@@ -16,11 +18,36 @@ const formatClock = (timestamp?: number) => {
   return new Date(timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 };
 
+const getDurationTargetMs = (task: Task) => {
+  const source =
+    (typeof task.countdownMin === 'number' && task.countdownMin > 0 && task.countdownMin) ||
+    (typeof task.estimatedMinutes === 'number' && task.estimatedMinutes > 0 && task.estimatedMinutes) ||
+    (typeof task.estimatedXP === 'number' && task.estimatedXP > 0 && task.estimatedXP);
+  if (!source) return null;
+  return Math.floor(source * 60_000);
+};
+
 const getStatus = (task: Task, isRunning: boolean) => {
   if (isRunning) return 'Running';
   if (task.completedAt || task.status === 'done') return 'Done';
   if (task.scheduledAt && task.scheduledAt > Date.now()) return 'Scheduled';
   return 'Active';
+};
+
+const getStepProgress = (details?: string) => {
+  if (!details) return { total: 0, done: 0 };
+  const match = details.match(STEPS_BLOCK_REGEX);
+  if (!match?.[1]) return { total: 0, done: 0 };
+
+  try {
+    const parsed = JSON.parse(match[1]);
+    const steps = Array.isArray(parsed?.steps) ? parsed.steps : [];
+    const total = steps.filter((step: unknown) => typeof (step as { text?: unknown })?.text === 'string').length;
+    const done = steps.filter((step: unknown) => !!(step as { done?: boolean })?.done).length;
+    return { total, done };
+  } catch {
+    return { total: 0, done: 0 };
+  }
 };
 
 export interface QuestCardProps {
@@ -57,8 +84,17 @@ export const QuestCard: React.FC<QuestCardProps> = ({
     return getSessionDisplayMs(runningSession, tickNow);
   }, [isRunning, runningSession, getSessionDisplayMs, tickNow]);
 
+  const timerLabel = useMemo(() => {
+    if (!isRunning || !runningSession) return null;
+    const targetMs = getDurationTargetMs(task);
+    if (!targetMs) return formatDuration(elapsedMs);
+    return formatDuration(Math.max(0, targetMs - elapsedMs));
+  }, [elapsedMs, isRunning, runningSession, task]);
+
   const status = getStatus(task, isRunning);
   const isCompleted = task.completedAt || task.status === 'done';
+  const stepProgress = useMemo(() => getStepProgress(task.details), [task.details]);
+  const progressPct = stepProgress.total > 0 ? Math.round((stepProgress.done / stepProgress.total) * 100) : 0;
 
   return (
     <article
@@ -84,10 +120,23 @@ export const QuestCard: React.FC<QuestCardProps> = ({
               {isRunning ? (
                 <>
                   <span>•</span>
-                  <span className="font-medium text-[var(--app-accent)]">{formatDuration(elapsedMs)}</span>
+                  <span className="font-medium text-[var(--app-accent)]">{timerLabel}</span>
                 </>
               ) : null}
             </div>
+            {stepProgress.total > 0 ? (
+              <div className="mt-1.5">
+                <div className="text-[9px] uppercase tracking-[0.1em] text-[var(--app-muted)]">
+                  {stepProgress.done} / {stepProgress.total} steps complete
+                </div>
+                <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-[color-mix(in_srgb,var(--app-border)_75%,transparent)]">
+                  <div
+                    className="h-full rounded-full bg-[var(--app-accent)] transition-[width] duration-200"
+                    style={{ width: `${progressPct}%` }}
+                  />
+                </div>
+              </div>
+            ) : null}
           </div>
         </button>
 
@@ -97,7 +146,10 @@ export const QuestCard: React.FC<QuestCardProps> = ({
               type="button"
               aria-label={isRunning ? 'Pause quest' : 'Start quest'}
               disabled={disabled}
-              onClick={onToggleRun}
+              onClick={(event) => {
+                event.stopPropagation();
+                onToggleRun();
+              }}
               className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-[var(--app-border)] bg-[var(--app-panel-2)] text-[var(--app-text)] transition-colors hover:border-[var(--app-accent)] hover:text-[var(--app-accent)] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--app-accent)] disabled:opacity-40"
             >
               {isRunning ? <Pause size={16} /> : <Play size={16} />}
@@ -109,7 +161,10 @@ export const QuestCard: React.FC<QuestCardProps> = ({
               type="button"
               aria-label="Complete quest"
               disabled={disabled}
-              onClick={onComplete}
+              onClick={(event) => {
+                event.stopPropagation();
+                onComplete();
+              }}
               className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-[var(--app-border)] bg-[var(--app-panel-2)] text-[var(--app-text)] transition-colors hover:border-[var(--app-accent)] hover:text-[var(--app-accent)] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--app-accent)] disabled:opacity-40"
             >
               <Check size={16} />

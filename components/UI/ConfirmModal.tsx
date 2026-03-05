@@ -65,12 +65,11 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-[70] flex items-center justify-center p-4">
-      <button
-        type="button"
+    <div className="fixed inset-0 z-[260] flex items-center justify-center p-4">
+      <div
         className="absolute inset-0 bg-black/60 backdrop-blur-[1px]"
-        aria-label="Close confirm dialog"
-        onClick={onCancel}
+        aria-hidden="true"
+        onMouseDown={onCancel}
       />
       <div
         ref={surfaceRef}
@@ -78,6 +77,8 @@ export const ConfirmModal: React.FC<ConfirmModalProps> = ({
         aria-modal="true"
         aria-label={title}
         className="relative w-full max-w-sm rounded-2xl border border-[color-mix(in_srgb,var(--app-text)_14%,transparent)] bg-[color-mix(in_srgb,var(--app-panel)_92%,black)] p-4 shadow-[0_16px_44px_rgba(0,0,0,0.45)]"
+        onMouseDown={(event) => event.stopPropagation()}
+        onClick={(event) => event.stopPropagation()}
       >
         <div className="text-sm uppercase tracking-[0.16em] text-[var(--app-text)]">{title}</div>
         <div className="mt-2 text-xs leading-6 tracking-[0.08em] text-[var(--app-muted)]">{message}</div>

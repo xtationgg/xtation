@@ -309,8 +309,11 @@ function DrumColumn({ values, selected, onSelect, label, min, max, format = v =>
         )}
         <div
           ref={scrollRef}
+          data-testid={`drum-${label.toLowerCase()}`}
           onScroll={onScroll}
           onPointerDown={onPointerDown}
+          onMouseDown={(event) => event.stopPropagation()}
+          onClick={(event) => event.stopPropagation()}
           style={{ position: 'relative', zIndex: 1, height: '100%', overflowY: 'scroll', scrollbarWidth: 'none', paddingTop: ITEM_H * PAD, paddingBottom: ITEM_H * PAD, userSelect: 'none', touchAction: 'none', cursor: 'ns-resize' }}
         >
           {values.map(v => (
@@ -330,9 +333,16 @@ interface DateTimePickerProps {
   onChange: (value: string) => void;
   placeholder?: string;
   className?: string;
+  triggerTestId?: string;
 }
 
-export function DateTimePicker({ value, onChange, placeholder = 'Set schedule...', className }: DateTimePickerProps) {
+export function DateTimePicker({
+  value,
+  onChange,
+  placeholder = 'Set schedule...',
+  className,
+  triggerTestId,
+}: DateTimePickerProps) {
   const now = new Date();
   const parsed = parseValue(value);
 
@@ -474,6 +484,9 @@ export function DateTimePicker({ value, onChange, placeholder = 'Set schedule...
     <div
       ref={dropdownRef}
       data-portal-ignore-outside-click="true"
+      onPointerDown={(event) => event.stopPropagation()}
+      onMouseDown={(event) => event.stopPropagation()}
+      onClick={(event) => event.stopPropagation()}
       style={{
         position: 'fixed',
         ...dropStyle,
@@ -575,6 +588,7 @@ export function DateTimePicker({ value, onChange, placeholder = 'Set schedule...
         ref={triggerRef}
         type="button"
         onClick={handleOpen}
+        data-testid={triggerTestId}
         style={{
           width: '100%',
           background: 'var(--app-panel-2)',
