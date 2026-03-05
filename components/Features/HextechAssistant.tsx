@@ -115,6 +115,35 @@ const FOCUS_MEDIA_LIBRARY: FocusMediaAsset[] = [
   { id: 'character', label: 'Character Portrait', type: 'image', src: '/ui-reference/auth/character.svg' },
 ];
 
+const QUEST_MEDIA_STORAGE_KEY = 'xtation.quest_media_selections.v1';
+const QUEST_SOUND_STORAGE_KEY = 'xtation.quest_sound_selections.v1';
+
+const loadSelectionMap = (storageKey: string): Record<string, string> => {
+  if (typeof window === 'undefined') return {};
+  try {
+    const raw = window.localStorage.getItem(storageKey);
+    if (!raw) return {};
+    const parsed = JSON.parse(raw);
+    if (!parsed || typeof parsed !== 'object') return {};
+    return Object.entries(parsed).reduce<Record<string, string>>((acc, [key, value]) => {
+      if (!key || typeof value !== 'string') return acc;
+      acc[key] = value;
+      return acc;
+    }, {});
+  } catch {
+    return {};
+  }
+};
+
+const persistSelectionMap = (storageKey: string, value: Record<string, string>) => {
+  if (typeof window === 'undefined') return;
+  try {
+    window.localStorage.setItem(storageKey, JSON.stringify(value));
+  } catch {
+    // ignore storage errors
+  }
+};
+
 const getFocusMediaAsset = (assetId: string | null) =>
   FOCUS_MEDIA_LIBRARY.find((asset) => asset.id === assetId) || FOCUS_MEDIA_LIBRARY[0];
 
@@ -132,6 +161,7 @@ const LeftControlStrip: React.FC<{
         type="button"
         disabled={disabled}
         onClick={onOpenMedia}
+        title="Media library"
         className={`inline-flex h-full min-h-[80px] items-center justify-center rounded-[12px] border text-[var(--app-text)] transition-colors ${
           activeMode === 'media'
             ? 'border-[var(--app-accent)] bg-[color-mix(in_srgb,var(--app-accent)_20%,var(--app-panel))]'
@@ -145,6 +175,7 @@ const LeftControlStrip: React.FC<{
         type="button"
         disabled={disabled}
         onClick={onOpenSound}
+        title="Sound library"
         className={`inline-flex h-full min-h-[80px] items-center justify-center rounded-[12px] border text-[var(--app-text)] transition-colors ${
           activeMode === 'sound'
             ? 'border-[var(--app-accent)] bg-[color-mix(in_srgb,var(--app-accent)_20%,var(--app-panel))]'
@@ -449,13 +480,14 @@ const PriorityStrip: React.FC<{
   ];
 
   return (
-    <section className="grid auto-rows-[minmax(64px,88px)] content-center gap-2 overflow-hidden rounded-[12px] border border-[var(--app-border)] bg-[var(--app-panel)] p-2">
+    <section className="grid h-full grid-rows-4 gap-1.5 overflow-hidden rounded-[12px] border border-[var(--app-border)] bg-[var(--app-panel)] p-1.5">
       {priorities.map((priority) => (
         <button
           key={priority.key}
           type="button"
           disabled={disabled}
           onClick={() => onChange(priority.key)}
+          title={`Set ${priority.label} priority`}
           className={`flex h-full w-full items-center justify-center rounded-[10px] border border-[var(--app-border)] text-[11px] font-medium tracking-[0.03em] transition-colors ${
             value === priority.key
               ? 'bg-[color-mix(in_srgb,var(--app-accent)_16%,var(--app-panel))] text-[var(--app-text)]'
@@ -795,6 +827,7 @@ const FocusWorkspace: React.FC<{
   onSaveDraft: (draft: { title: string; details: string; priority: Task['priority']; scheduledAt?: number }) => void;
   onToggleRun: () => void;
   onComplete: () => void;
+  initialMode?: FocusMode;
 }> = ({
   open,
   mode,
@@ -812,9 +845,10 @@ const FocusWorkspace: React.FC<{
   onSaveDraft,
   onToggleRun,
   onComplete,
+  initialMode = 'default',
 }) => {
   const [tickNow, setTickNow] = useState(() => Date.now());
-  const [activeMode, setActiveMode] = useState<FocusMode>('default');
+  const [activeMode, setActiveMode] = useState<FocusMode>(initialMode);
   const isRunning = !!runningSession && runningSession.status === 'running';
   const isCreateMode = mode === 'create';
   const [draftTitle, setDraftTitle] = useState(task.title);
@@ -843,7 +877,7 @@ const FocusWorkspace: React.FC<{
     setDraftPriorityLabel((task.priority as FocusPriority) || 'normal');
     setDraftScheduledAt(task.scheduledAt);
     setDraftScheduleValue(task.scheduledAt ? toLocalDateTimeValue(task.scheduledAt) : toLocalDateTimeValue(roundToFiveMinutes(Date.now())));
-    setActiveMode('default');
+    setActiveMode(mode === 'create' ? initialMode : 'default');
   }, [task.id, task.title, task.details, task.priority, task.scheduledAt, mode]);
 
   useEffect(() => {
@@ -955,7 +989,7 @@ const FocusWorkspace: React.FC<{
   return (
     <div className="pointer-events-none absolute inset-y-3 left-3 right-[calc(clamp(320px,34vw,380px)+12px)] z-[170] max-sm:hidden">
       <div className="flex h-full items-center justify-center">
-      <div className="pointer-events-auto grid h-[clamp(260px,40vh,340px)] w-full max-w-[880px] grid-cols-[44px_minmax(0,1.5fr)_62px_minmax(0,0.95fr)_minmax(170px,0.72fr)] gap-2.5 rounded-[16px] border border-[var(--app-border)] bg-[color-mix(in_srgb,var(--app-panel)_96%,black)] p-2.5">
+      <div className="pointer-events-auto grid h-[clamp(280px,42vh,380px)] w-full max-w-[min(1120px,calc(100vw-clamp(320px,34vw,380px)-48px))] grid-cols-[52px_minmax(0,1.65fr)_54px_minmax(0,1fr)_minmax(190px,0.8fr)] gap-2.5 rounded-[16px] border border-[var(--app-border)] bg-[color-mix(in_srgb,var(--app-panel)_96%,black)] p-2.5">
         <LeftControlStrip
           disabled={mode === 'focus'}
           activeMode={activeMode}
@@ -1154,6 +1188,19 @@ export const HextechAssistant: React.FC<HextechAssistantProps> = ({ isOpen, onCl
   }, [availableTasks, filter, runningTaskId]);
 
   useEffect(() => {
+    setTaskMediaSelections(loadSelectionMap(QUEST_MEDIA_STORAGE_KEY));
+    setTaskSoundSelections(loadSelectionMap(QUEST_SOUND_STORAGE_KEY));
+  }, []);
+
+  useEffect(() => {
+    persistSelectionMap(QUEST_MEDIA_STORAGE_KEY, taskMediaSelections);
+  }, [taskMediaSelections]);
+
+  useEffect(() => {
+    persistSelectionMap(QUEST_SOUND_STORAGE_KEY, taskSoundSelections);
+  }, [taskSoundSelections]);
+
+  useEffect(() => {
     if (isOpen) {
       setFilter('active');
       setRendered(true);
@@ -1258,6 +1305,7 @@ export const HextechAssistant: React.FC<HextechAssistantProps> = ({ isOpen, onCl
     }
 
     if (workspaceMode === 'create') {
+      const draftWorkspaceKey = `draft-${createSeed}`;
       const createdId = addTask({
         title: draft.title,
         details: draft.details,
@@ -1265,6 +1313,22 @@ export const HextechAssistant: React.FC<HextechAssistantProps> = ({ isOpen, onCl
         status: 'todo',
         scheduledAt: draft.scheduledAt,
         icon: 'sword',
+      });
+      setTaskMediaSelections((prev) => {
+        const next = { ...prev };
+        if (next[draftWorkspaceKey]) {
+          next[createdId] = next[draftWorkspaceKey];
+          delete next[draftWorkspaceKey];
+        }
+        return next;
+      });
+      setTaskSoundSelections((prev) => {
+        const next = { ...prev };
+        if (next[draftWorkspaceKey]) {
+          next[createdId] = next[draftWorkspaceKey];
+          delete next[draftWorkspaceKey];
+        }
+        return next;
       });
       setFocusedTaskId(createdId);
       setWorkspaceMode('focus');
@@ -1409,6 +1473,7 @@ export const HextechAssistant: React.FC<HextechAssistantProps> = ({ isOpen, onCl
             onBackToFocus={backToFocus}
             onEditMode={openEditInWorkspace}
             onSaveDraft={handleSaveWorkspace}
+            initialMode={workspaceMode === 'create' ? 'default' : 'default'}
             onToggleRun={() => {
               if (workspaceMode === 'create' || !focusedTask) return;
               handleToggleRun(focusedTask);
