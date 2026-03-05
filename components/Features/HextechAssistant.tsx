@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { CalendarDays, Clapperboard, Pause, Play, Plus, Save, Timer, Volume2, X } from 'lucide-react';
+import { CalendarDays, Pause, Play, Plus, Save, Timer, Volume2, X } from 'lucide-react';
 import { useXP } from '../XP/xpStore';
 import { Task } from '../XP/xpTypes';
 import { ConfirmModal } from '../UI/ConfirmModal';
@@ -162,12 +162,21 @@ const persistSelectionMap = (storageKey: string, value: Record<string, string>) 
   }
 };
 
+const safeDecode = (value: string) => {
+  try {
+    return decodeURIComponent(value);
+  } catch {
+    return value;
+  }
+};
+
 const inferMediaTypeFromUrl = (url: string): FocusMediaAsset['type'] => {
   if (url.startsWith('data:image/')) return 'image';
   if (url.startsWith('data:video/')) return 'video';
   const clean = url.toLowerCase().split('?')[0].split('#')[0];
-  if (/\.(png|jpe?g|webp|gif|avif|svg)$/.test(clean)) return 'image';
-  return 'video';
+  if (/\.(png|jpe?g|webp|gif|avif|svg)$/i.test(clean)) return 'image';
+  if (/\.(mp4|webm|ogg|mov|m4v)$/i.test(clean)) return 'video';
+  return 'image';
 };
 
 const getFocusMediaAsset = (assetId: string | null) =>
@@ -175,8 +184,8 @@ const getFocusMediaAsset = (assetId: string | null) =>
     ? ({
         id: assetId,
         label: 'Custom URL',
-        type: inferMediaTypeFromUrl(decodeURIComponent(assetId.slice(4))),
-        src: decodeURIComponent(assetId.slice(4)),
+        type: inferMediaTypeFromUrl(safeDecode(assetId.slice(4))),
+        src: safeDecode(assetId.slice(4)),
       } satisfies FocusMediaAsset)
     : FOCUS_MEDIA_LIBRARY.find((asset) => asset.id === assetId) || FOCUS_MEDIA_LIBRARY[0];
 
@@ -185,7 +194,7 @@ const getFocusSoundAsset = (assetId: string | null) =>
     ? ({
         id: assetId,
         label: 'Custom Sound',
-        src: decodeURIComponent(assetId.slice('sound-url:'.length)),
+        src: safeDecode(assetId.slice('sound-url:'.length)),
       } satisfies FocusSoundAsset)
     : FOCUS_SOUND_LIBRARY.find((asset) => asset.id === assetId) || null;
 
@@ -194,11 +203,13 @@ type ActiveSession = ReturnType<ReturnType<typeof useXP>['selectors']['getActive
 const LeftControlStrip: React.FC<{
   workspaceMode: WorkspaceMode;
   activeMode: FocusMode;
+  canConfigureAssets: boolean;
   onOpenMedia: () => void;
   onOpenSound: () => void;
 }> = ({
   workspaceMode,
   activeMode,
+  canConfigureAssets,
   onOpenMedia,
   onOpenSound,
 }) => {
@@ -209,25 +220,27 @@ const LeftControlStrip: React.FC<{
       <button
         type="button"
         onClick={onOpenMedia}
-        title={workspaceMode === 'focus' ? 'Media panel' : 'Media library'}
+        disabled={!canConfigureAssets}
+        title={canConfigureAssets ? (workspaceMode === 'focus' ? 'Media panel' : 'Media library') : 'Switch to Edit to change media'}
         className={`inline-flex h-full min-h-[68px] items-center justify-center rounded-[10px] border text-[var(--app-text)] transition-colors ${
           mediaActive
             ? 'border-[var(--app-accent)] bg-[color-mix(in_srgb,var(--app-accent)_20%,var(--app-panel))]'
             : 'border-[var(--app-border)] bg-[color-mix(in_srgb,var(--app-accent)_10%,var(--app-panel))] hover:bg-[color-mix(in_srgb,var(--app-accent)_18%,var(--app-panel))]'
-        }`}
+        } ${!canConfigureAssets ? 'cursor-not-allowed opacity-55 hover:bg-[color-mix(in_srgb,var(--app-accent)_10%,var(--app-panel))]' : ''}`}
         aria-label="Open media library"
       >
-        <Clapperboard size={24} />
+        <Play size={24} />
       </button>
       <button
         type="button"
         onClick={onOpenSound}
-        title={workspaceMode === 'focus' ? 'Sound panel' : 'Sound library'}
+        disabled={!canConfigureAssets}
+        title={canConfigureAssets ? (workspaceMode === 'focus' ? 'Sound panel' : 'Sound library') : 'Switch to Edit to change sound'}
         className={`inline-flex h-full min-h-[68px] items-center justify-center rounded-[10px] border text-[var(--app-text)] transition-colors ${
           soundActive
             ? 'border-[var(--app-accent)] bg-[color-mix(in_srgb,var(--app-accent)_20%,var(--app-panel))]'
             : 'border-[var(--app-border)] bg-[var(--app-panel)] hover:bg-[var(--app-panel-2)]'
-        }`}
+        } ${!canConfigureAssets ? 'cursor-not-allowed opacity-55 hover:bg-[var(--app-panel)]' : ''}`}
         aria-label="Open sound library"
       >
         <Volume2 size={24} />
@@ -247,9 +260,11 @@ const ActiveAreaDefault: React.FC<{
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [videoFailed, setVideoFailed] = useState(false);
+  const [imageFailed, setImageFailed] = useState(false);
 
   useEffect(() => {
     setVideoFailed(false);
+    setImageFailed(false);
   }, [selectedAsset.id]);
 
   useEffect(() => {
@@ -297,8 +312,13 @@ const ActiveAreaDefault: React.FC<{
 
   return (
     <section className="relative flex min-h-0 items-center justify-center overflow-hidden rounded-[12px] border border-[var(--app-border)] bg-[var(--app-panel)]">
-      {selectedAsset.type === 'image' && selectedAsset.src ? (
-        <img src={selectedAsset.src} alt={selectedAsset.label} className="h-full w-full object-cover opacity-90" />
+      {selectedAsset.type === 'image' && selectedAsset.src && !imageFailed ? (
+        <img
+          src={selectedAsset.src}
+          alt={selectedAsset.label}
+          className="h-full w-full object-cover opacity-90"
+          onError={() => setImageFailed(true)}
+        />
       ) : null}
 
       {selectedAsset.type === 'video' && selectedAsset.src && !videoFailed ? (
@@ -321,7 +341,7 @@ const ActiveAreaDefault: React.FC<{
         />
       ) : null}
 
-      {selectedAsset.type === 'animation' || videoFailed ? (
+      {selectedAsset.type === 'animation' || videoFailed || imageFailed ? (
         <div className="pointer-events-none absolute inset-0 flex flex-col items-center justify-center gap-5">
           <div className="relative h-16 w-[72%] rounded-full border border-[color-mix(in_srgb,var(--app-accent)_30%,transparent)]">
             <div className="absolute inset-x-6 top-1/2 h-10 -translate-y-1/2 rounded-full border border-[color-mix(in_srgb,var(--app-accent)_22%,transparent)]" />
@@ -355,18 +375,34 @@ const ActiveAreaDefault: React.FC<{
 const ActiveLibraryView: React.FC<{
   kind: 'media' | 'sound';
   selectedAsset: string | null;
-  onSelect: (assetId: string) => void;
+  onSelect: (assetId: string, closeAfterSelect?: boolean) => void;
 }> = ({ kind, selectedAsset, onSelect }) => {
   const [customUrl, setCustomUrl] = useState('');
+  const [customError, setCustomError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const items = kind === 'media' ? FOCUS_MEDIA_LIBRARY : FOCUS_SOUND_LIBRARY;
   const listHeightClass = 'h-[calc(100%-92px)]';
 
+  const isValidCustomUrl = (url: string) => {
+    if (url.startsWith('data:') || url.startsWith('blob:')) return true;
+    try {
+      const parsed = new URL(url);
+      return parsed.protocol === 'http:' || parsed.protocol === 'https:';
+    } catch {
+      return false;
+    }
+  };
+
   const applyCustomUrl = () => {
     const url = customUrl.trim();
     if (!url) return;
+    if (!isValidCustomUrl(url)) {
+      setCustomError('Invalid URL. Use https://, data:, or blob:');
+      return;
+    }
     const nextId = kind === 'media' ? `url:${encodeURIComponent(url)}` : `sound-url:${encodeURIComponent(url)}`;
-    onSelect(nextId);
+    onSelect(nextId, false);
+    setCustomError(null);
     setCustomUrl('');
   };
 
@@ -381,7 +417,8 @@ const ActiveLibraryView: React.FC<{
     });
     if (!base64) return;
     const nextId = kind === 'media' ? `url:${encodeURIComponent(base64)}` : `sound-url:${encodeURIComponent(base64)}`;
-    onSelect(nextId);
+    onSelect(nextId, false);
+    setCustomError(null);
     event.currentTarget.value = '';
   };
 
@@ -398,7 +435,7 @@ const ActiveLibraryView: React.FC<{
           <button
             key={item.id}
             type="button"
-            onClick={() => onSelect(item.id)}
+            onClick={() => onSelect(item.id, true)}
             className={`flex min-h-[78px] items-center justify-center rounded-[10px] border transition-colors ${
               selectedAsset === item.id
                 ? 'border-[var(--app-accent)] bg-[color-mix(in_srgb,var(--app-accent)_16%,var(--app-panel-2))] text-[var(--app-text)]'
@@ -415,7 +452,10 @@ const ActiveLibraryView: React.FC<{
       <div className="mt-2 flex items-center gap-2">
         <input
           value={customUrl}
-          onChange={(event) => setCustomUrl(event.target.value)}
+          onChange={(event) => {
+            setCustomUrl(event.target.value);
+            if (customError) setCustomError(null);
+          }}
           placeholder={kind === 'media' ? 'Paste media URL' : 'Paste audio URL'}
           className="h-9 min-w-0 flex-1 rounded-md border border-[var(--app-border)] bg-[var(--app-panel-2)] px-2 text-[10px] tracking-[0.06em] text-[var(--app-text)] outline-none focus:border-[var(--app-accent)]"
         />
@@ -441,6 +481,7 @@ const ActiveLibraryView: React.FC<{
           onChange={handleFileSelect}
         />
       </div>
+      {customError ? <div className="mt-1 text-[10px] tracking-[0.03em] text-[#ef6f83]">{customError}</div> : null}
     </section>
   );
 };
@@ -555,14 +596,19 @@ const ActiveScheduleView: React.FC<{
   scheduledAt,
 }) => {
   const WEEKDAY_LABELS = ['MO', 'TU', 'WE', 'TH', 'FR', 'SA', 'SU'];
+  const hourDragRef = useRef<{ startY: number; startHour: number } | null>(null);
+  const minuteDragRef = useRef<{ startY: number; startMinute: number } | null>(null);
+  const hourKeyBufferRef = useRef('');
+  const minuteKeyBufferRef = useRef('');
+  const keyBufferTimerRef = useRef<number | null>(null);
 
-  const handleHourWheel = (event: React.WheelEvent<HTMLInputElement>) => {
+  const handleHourWheel = (event: React.WheelEvent<HTMLElement>) => {
     event.preventDefault();
     const next = hour + (event.deltaY > 0 ? -1 : 1);
     onHourInput(next);
   };
 
-  const handleMinuteWheel = (event: React.WheelEvent<HTMLInputElement>) => {
+  const handleMinuteWheel = (event: React.WheelEvent<HTMLElement>) => {
     event.preventDefault();
     const next = minute + (event.deltaY > 0 ? -1 : 1);
     onMinuteInput(next);
@@ -607,12 +653,84 @@ const ActiveScheduleView: React.FC<{
     setVisibleMonth((prev) => new Date(prev.getFullYear(), prev.getMonth() + offset, 1));
   };
 
-  const handleDateInputChange = (nextDatePart: string) => {
-    onValueChange(composeScheduleValue(nextDatePart));
-    if (!nextDatePart) return;
-    const [year, month] = nextDatePart.split('-').map(Number);
-    if (!year || !month) return;
-    setVisibleMonth(new Date(year, month - 1, 1));
+  useEffect(() => {
+    const releaseDrag = () => {
+      hourDragRef.current = null;
+      minuteDragRef.current = null;
+    };
+    window.addEventListener('pointerup', releaseDrag);
+    return () => window.removeEventListener('pointerup', releaseDrag);
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      if (keyBufferTimerRef.current) {
+        window.clearTimeout(keyBufferTimerRef.current);
+      }
+    };
+  }, []);
+
+  const refreshKeyBufferTimer = () => {
+    if (keyBufferTimerRef.current) {
+      window.clearTimeout(keyBufferTimerRef.current);
+    }
+    keyBufferTimerRef.current = window.setTimeout(() => {
+      hourKeyBufferRef.current = '';
+      minuteKeyBufferRef.current = '';
+      keyBufferTimerRef.current = null;
+    }, 900);
+  };
+
+  const handleHourTyping = (digit: string) => {
+    const nextRaw = (hourKeyBufferRef.current + digit).slice(-2);
+    hourKeyBufferRef.current = nextRaw;
+    const parsed = Number(nextRaw);
+    if (!Number.isFinite(parsed)) return;
+    if (parsed === 0) {
+      onHourInput(12);
+      return;
+    }
+    if (parsed >= 1 && parsed <= 12) {
+      onHourInput(parsed);
+      return;
+    }
+    onHourInput(Number(digit));
+  };
+
+  const handleMinuteTyping = (digit: string) => {
+    const nextRaw = (minuteKeyBufferRef.current + digit).slice(-2);
+    minuteKeyBufferRef.current = nextRaw;
+    const parsed = Number(nextRaw);
+    if (!Number.isFinite(parsed)) return;
+    if (parsed <= 59) {
+      onMinuteInput(parsed);
+      return;
+    }
+    onMinuteInput(Number(digit));
+  };
+
+  const handleHourPointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
+    hourDragRef.current = { startY: event.clientY, startHour: hour };
+    (event.currentTarget as HTMLDivElement).setPointerCapture(event.pointerId);
+  };
+
+  const handleMinutePointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
+    minuteDragRef.current = { startY: event.clientY, startMinute: minute };
+    (event.currentTarget as HTMLDivElement).setPointerCapture(event.pointerId);
+  };
+
+  const handleHourPointerMove = (event: React.PointerEvent<HTMLDivElement>) => {
+    if (!hourDragRef.current) return;
+    const deltaY = hourDragRef.current.startY - event.clientY;
+    const deltaStep = Math.trunc(deltaY / 16);
+    onHourInput(hourDragRef.current.startHour + deltaStep);
+  };
+
+  const handleMinutePointerMove = (event: React.PointerEvent<HTMLDivElement>) => {
+    if (!minuteDragRef.current) return;
+    const deltaY = minuteDragRef.current.startY - event.clientY;
+    const deltaStep = Math.trunc(deltaY / 12);
+    onMinuteInput(minuteDragRef.current.startMinute + deltaStep);
   };
 
   return (
@@ -642,12 +760,9 @@ const ActiveScheduleView: React.FC<{
             </button>
           </div>
         </div>
-        <input
-          type="date"
-          value={datePart}
-          onChange={(event) => handleDateInputChange(event.target.value)}
-          className="h-9 w-full rounded-md border border-[var(--app-border)] bg-[var(--app-panel-2)] px-3 text-[11px] tracking-[0.03em] text-[var(--app-text)] outline-none focus:border-[var(--app-accent)]"
-        />
+        <div className="h-9 rounded-md border border-[var(--app-border)] bg-[var(--app-panel-2)] px-3 text-[11px] font-medium tracking-[0.08em] text-[var(--app-text)] inline-flex items-center">
+          {new Date(`${datePart}T00:00:00`).toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })}
+        </div>
         <div className="grid min-h-0 grid-cols-7 gap-1 rounded-[10px] border border-[var(--app-border)] bg-[var(--app-panel-2)] p-2">
           {WEEKDAY_LABELS.map((label) => (
             <div key={label} className="text-center text-[9px] uppercase tracking-[0.14em] text-[var(--app-muted)]">
@@ -684,30 +799,80 @@ const ActiveScheduleView: React.FC<{
       </div>
       <div className="grid min-h-0 grid-rows-[auto_1fr_auto] gap-2 rounded-[10px] border border-[var(--app-border)] bg-[var(--app-panel-2)] p-2.5">
         <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2 text-center text-[22px] font-semibold text-[var(--app-text)]">
-          <div className="rounded-md bg-[color-mix(in_srgb,var(--app-accent)_24%,var(--app-panel))] px-2 py-1">
-            <input
-              type="number"
-              min={1}
-              max={12}
-              value={hour}
-              onChange={(event) => onHourInput(Number(event.target.value || hour))}
-              onWheel={handleHourWheel}
-              className="w-full bg-transparent text-center text-[22px] font-semibold leading-8 text-[var(--app-text)] outline-none"
-              aria-label="Hour"
-            />
+          <div
+            className="cursor-ns-resize rounded-md bg-[color-mix(in_srgb,var(--app-accent)_24%,var(--app-panel))] px-2 py-1 transition-colors hover:bg-[color-mix(in_srgb,var(--app-accent)_32%,var(--app-panel))]"
+            onPointerDown={handleHourPointerDown}
+            onPointerMove={handleHourPointerMove}
+            onPointerUp={() => {
+              hourDragRef.current = null;
+            }}
+            onWheel={handleHourWheel}
+            tabIndex={0}
+            onKeyDown={(event) => {
+              if (/^\d$/.test(event.key)) {
+                event.preventDefault();
+                handleHourTyping(event.key);
+                refreshKeyBufferTimer();
+                return;
+              }
+              if (event.key === 'ArrowUp') {
+                event.preventDefault();
+                onHourInput(hour + 1);
+                refreshKeyBufferTimer();
+              }
+              if (event.key === 'ArrowDown') {
+                event.preventDefault();
+                onHourInput(hour - 1);
+                refreshKeyBufferTimer();
+              }
+            }}
+            aria-label="Hour"
+            role="spinbutton"
+            aria-valuemin={1}
+            aria-valuemax={12}
+            aria-valuenow={hour}
+          >
+            <div className="w-full select-none text-center text-[22px] font-semibold leading-8 text-[var(--app-text)]">
+              {pad(hour)}
+            </div>
           </div>
           <span className="text-[18px] text-[var(--app-muted)]">:</span>
-          <div className="rounded-md bg-[color-mix(in_srgb,var(--app-accent)_24%,var(--app-panel))] px-2 py-1">
-            <input
-              type="number"
-              min={0}
-              max={59}
-              value={minute}
-              onChange={(event) => onMinuteInput(Number(event.target.value || minute))}
-              onWheel={handleMinuteWheel}
-              className="w-full bg-transparent text-center text-[22px] font-semibold leading-8 text-[var(--app-text)] outline-none"
-              aria-label="Minute"
-            />
+          <div
+            className="cursor-ns-resize rounded-md bg-[color-mix(in_srgb,var(--app-accent)_24%,var(--app-panel))] px-2 py-1 transition-colors hover:bg-[color-mix(in_srgb,var(--app-accent)_32%,var(--app-panel))]"
+            onPointerDown={handleMinutePointerDown}
+            onPointerMove={handleMinutePointerMove}
+            onPointerUp={() => {
+              minuteDragRef.current = null;
+            }}
+            onWheel={handleMinuteWheel}
+            tabIndex={0}
+            onKeyDown={(event) => {
+              if (/^\d$/.test(event.key)) {
+                event.preventDefault();
+                handleMinuteTyping(event.key);
+                refreshKeyBufferTimer();
+                return;
+              }
+              if (event.key === 'ArrowUp') {
+                event.preventDefault();
+                onMinuteInput(minute + 1);
+                refreshKeyBufferTimer();
+              }
+              if (event.key === 'ArrowDown') {
+                event.preventDefault();
+                onMinuteInput(minute - 1);
+                refreshKeyBufferTimer();
+              }
+            }}
+            aria-label="Minute"
+            role="spinbutton"
+            aria-valuemin={0}
+            aria-valuemax={59}
+            aria-valuenow={minute}
+          >
+            <div className="w-full select-none text-center text-[22px] font-semibold leading-8 text-[var(--app-text)]">
+              {pad(minute)}
+            </div>
           </div>
         </div>
         <div className="grid grid-cols-2 gap-2">
@@ -791,12 +956,58 @@ const PriorityStrip: React.FC<{
   );
 };
 
-const CharacterPanel: React.FC = () => (
+const CharacterPanel: React.FC<{
+  timerLabel: string;
+  timerMode: 'timer' | 'countdown';
+  isRunning: boolean;
+  onToggleRun: () => void;
+  onComplete: () => void;
+  onEdit: () => void;
+  showControls: boolean;
+}> = ({ timerLabel, timerMode, isRunning, onToggleRun, onComplete, onEdit, showControls }) => (
   <section className="min-h-0 rounded-[12px] border border-[var(--app-border)] bg-[color-mix(in_srgb,var(--app-accent)_14%,var(--app-panel))] p-3">
     <div className="text-[10px] uppercase tracking-[0.16em] text-[var(--app-muted)]">Character</div>
-    <div className="flex h-[calc(100%-20px)] items-center justify-center">
+    <div className="mt-2 rounded-md border border-[var(--app-border)] bg-[color-mix(in_srgb,var(--app-panel)_92%,black)] px-2 py-1.5 text-center">
+      <div className="text-[9px] uppercase tracking-[0.12em] text-[var(--app-muted)]">{timerMode}</div>
+      <div
+        className={`mt-0.5 font-mono text-[26px] font-semibold leading-none text-[var(--app-text)] drop-shadow-[0_0_10px_rgba(168,130,229,0.28)] ${
+          isRunning ? 'animate-[pulse_2.6s_ease-in-out_infinite]' : ''
+        }`}
+      >
+        {timerLabel}
+      </div>
+    </div>
+    <div className={`flex items-center justify-center ${showControls ? 'h-[calc(100%-168px)]' : 'h-[calc(100%-86px)]'}`}>
       <img src="/ui-reference/auth/character.svg" alt="Character" className="max-h-full w-full object-contain" />
     </div>
+    {showControls ? (
+      <div className="mt-2 grid grid-cols-3 gap-2">
+        <button
+          type="button"
+          aria-label={isRunning ? 'Pause quest' : 'Start quest'}
+          onClick={onToggleRun}
+          className="h-10 rounded-md border border-[var(--app-border)] bg-[var(--app-panel)] text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--app-text)] transition-colors hover:border-[var(--app-accent)]"
+        >
+          {isRunning ? 'Pause' : 'Start'}
+        </button>
+        <button
+          type="button"
+          aria-label="Complete quest"
+          onClick={onComplete}
+          className="h-10 rounded-md border border-[var(--app-accent)] bg-[color-mix(in_srgb,var(--app-accent)_14%,var(--app-panel))] text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--app-text)] transition-colors hover:bg-[color-mix(in_srgb,var(--app-accent)_20%,var(--app-panel))]"
+        >
+          Complete
+        </button>
+        <button
+          type="button"
+          aria-label="Edit quest"
+          onClick={onEdit}
+          className="h-10 rounded-md border border-[var(--app-border)] bg-[var(--app-panel)] text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--app-text)] transition-colors hover:border-[var(--app-accent)]"
+        >
+          Edit
+        </button>
+      </div>
+    ) : null}
   </section>
 );
 
@@ -809,10 +1020,7 @@ const QuestPanel: React.FC<{
   activeMode: FocusMode;
   onToggleSchedule: () => void;
   onToggleCountdown: () => void;
-  onOpenDefault: () => void;
   isRunning: boolean;
-  elapsed: number;
-  countdownMin?: number;
   stepsDone: number;
   stepsTotal: number;
   steps: FocusStep[];
@@ -822,14 +1030,11 @@ const QuestPanel: React.FC<{
   selectedMediaLabel: string;
   selectedSoundLabel: string | null;
   scheduleChipLabel: string;
-  countdownChipLabel: string;
   isDirty: boolean;
-  onClose: () => void;
   onBackToFocus: () => void;
   onEdit: () => void;
   onSave: () => void;
-  onToggleRun: () => void;
-  onComplete: () => void;
+  onCloseWorkspace: () => void;
 }> = ({
   workspaceMode,
   title,
@@ -839,10 +1044,7 @@ const QuestPanel: React.FC<{
   activeMode,
   onToggleSchedule,
   onToggleCountdown,
-  onOpenDefault,
   isRunning,
-  elapsed,
-  countdownMin,
   stepsDone,
   stepsTotal,
   steps,
@@ -852,29 +1054,21 @@ const QuestPanel: React.FC<{
   selectedMediaLabel,
   selectedSoundLabel,
   scheduleChipLabel,
-  countdownChipLabel,
   isDirty,
-  onClose,
   onBackToFocus,
   onEdit,
   onSave,
-  onToggleRun,
-  onComplete,
+  onCloseWorkspace,
 }) => {
   const [stepInput, setStepInput] = useState('');
   const isFocusMode = workspaceMode === 'focus';
   const isCreateMode = workspaceMode === 'create';
   const canEditDraft = workspaceMode === 'create' || workspaceMode === 'edit';
-  const showTimer = workspaceMode === 'focus';
   const showChecklist = true;
   const showChecklistComposer = canEditDraft;
   const modeLabel = isCreateMode ? 'Create quest' : workspaceMode === 'edit' ? 'Edit quest' : 'Quest workspace';
-  const hasCountdown = typeof countdownMin === 'number' && countdownMin > 0;
-  const countdownMs = hasCountdown ? Math.max(0, Math.round(countdownMin * 60_000)) : 0;
-  const timerDisplayMs = hasCountdown ? Math.max(0, countdownMs - elapsed) : elapsed;
 
   const modeOptions: Array<{ key: FocusMode; label: string; icon: React.ReactNode; onClick: () => void }> = [
-    { key: 'default', label: 'Focus', icon: <Play size={13} />, onClick: onOpenDefault },
     { key: 'schedule', label: 'Schedule', icon: <CalendarDays size={14} />, onClick: onToggleSchedule },
     { key: 'countdown', label: 'Countdown', icon: <Timer size={14} />, onClick: onToggleCountdown },
   ];
@@ -887,19 +1081,9 @@ const QuestPanel: React.FC<{
   };
 
   return (
-    <section className="min-h-0 w-full rounded-[12px] border border-[var(--app-border)] bg-[var(--app-panel)] p-3">
+    <section className="min-h-0 w-full overflow-hidden rounded-[12px] border border-[var(--app-border)] bg-[var(--app-panel)] p-3">
       <div className="flex h-full flex-col gap-3">
-        <div className="flex items-center justify-between">
-          <div className="text-[10px] uppercase tracking-[0.14em] text-[var(--app-muted)]">{modeLabel}</div>
-          <button
-            type="button"
-            aria-label="Close focus workspace"
-            onClick={onClose}
-            className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-[var(--app-border)] bg-[var(--app-panel-2)] text-[var(--app-muted)] hover:text-[var(--app-text)]"
-          >
-            <X size={14} />
-          </button>
-        </div>
+        <div className="text-[10px] uppercase tracking-[0.14em] text-[var(--app-muted)]">{modeLabel}</div>
 
         {canEditDraft ? (
           <>
@@ -942,7 +1126,7 @@ const QuestPanel: React.FC<{
         )}
 
         {canEditDraft ? (
-          <div className="grid grid-cols-3 gap-1.5">
+          <div className="grid grid-cols-2 gap-1.5">
             {modeOptions.map((option) => (
               <button
                 key={option.key}
@@ -964,47 +1148,20 @@ const QuestPanel: React.FC<{
         ) : null}
 
         {canEditDraft ? (
-          <div className="flex flex-wrap gap-1.5">
-            <span className="rounded-md border border-[var(--app-border)] bg-[var(--app-panel)] px-2 py-1 text-[9px] uppercase tracking-[0.1em] text-[var(--app-muted)]">
-              Mode: {activeMode}
-            </span>
-            <span className="rounded-md border border-[var(--app-border)] bg-[var(--app-panel)] px-2 py-1 text-[9px] uppercase tracking-[0.1em] text-[var(--app-muted)]">
-              Media: {selectedMediaLabel}
-            </span>
-            <span className="rounded-md border border-[var(--app-border)] bg-[var(--app-panel)] px-2 py-1 text-[9px] uppercase tracking-[0.1em] text-[var(--app-muted)]">
-              Sound: {selectedSoundLabel || 'None'}
-            </span>
-            <span className="rounded-md border border-[var(--app-border)] bg-[var(--app-panel)] px-2 py-1 text-[9px] uppercase tracking-[0.1em] text-[var(--app-muted)]">
-              {scheduleChipLabel}
-            </span>
-            <span className="rounded-md border border-[var(--app-border)] bg-[var(--app-panel)] px-2 py-1 text-[9px] uppercase tracking-[0.1em] text-[var(--app-muted)]">
-              {countdownChipLabel}
-            </span>
-            {isDirty ? (
-              <span className="rounded-md border border-[color-mix(in_srgb,var(--app-accent)_45%,transparent)] bg-[color-mix(in_srgb,var(--app-accent)_14%,var(--app-panel))] px-2 py-1 text-[9px] uppercase tracking-[0.1em] text-[var(--app-text)]">
-                Unsaved
-              </span>
-            ) : null}
-          </div>
-        ) : null}
-
-        {showTimer ? (
-          <div className="rounded-[10px] border border-[var(--app-border)] bg-[var(--app-panel-2)] px-3 py-2">
-            <div className="text-[10px] uppercase tracking-[0.12em] text-[var(--app-muted)]">
-              {hasCountdown ? 'Countdown' : 'Timer'}
-            </div>
-            <div className="mt-1 text-center text-[34px] font-semibold leading-none tracking-[0.04em] text-[var(--app-text)]">
-              {formatTimer(timerDisplayMs)}
-            </div>
+          <div className="flex items-center justify-between gap-2 rounded-[10px] border border-[var(--app-border)] bg-[var(--app-panel-2)] px-2.5 py-2 text-[9px] uppercase tracking-[0.1em] text-[var(--app-muted)]">
+            <span>{selectedMediaLabel}</span>
+            <span>{selectedSoundLabel || 'No sound'}</span>
+            <span>{scheduleChipLabel}</span>
+            {isDirty ? <span className="text-[var(--app-accent)]">Unsaved</span> : null}
           </div>
         ) : null}
 
         {showChecklist ? (
-          <div className="rounded-[10px] border border-[var(--app-border)] bg-[var(--app-panel-2)] px-3 py-2">
+          <div className="flex min-h-0 flex-1 flex-col rounded-[10px] border border-[var(--app-border)] bg-[var(--app-panel-2)] px-3 py-2">
             <div className="mb-2 text-[10px] uppercase tracking-[0.12em] text-[var(--app-muted)]">
               Checklist steps ({stepsDone}/{stepsTotal || 0})
             </div>
-            <div className={`space-y-1.5 overflow-y-auto pr-0.5 ${canEditDraft ? 'max-h-[140px]' : 'max-h-[110px]'}`}>
+            <div className="min-h-0 flex-1 space-y-1.5 overflow-y-auto pr-0.5">
               {steps.length === 0 ? (
                 <div className="text-[10px] uppercase tracking-[0.1em] text-[var(--app-muted)]">
                   {canEditDraft ? 'No checklist steps. Add one below.' : 'No checklist steps.'}
@@ -1064,39 +1221,12 @@ const QuestPanel: React.FC<{
           </div>
         ) : null}
 
-        {isFocusMode ? (
-          <div className="mt-auto grid grid-cols-3 gap-2">
-            <button
-              type="button"
-              aria-label={isRunning ? 'Pause quest' : 'Start quest'}
-              onClick={onToggleRun}
-              className="h-10 rounded-md border border-[var(--app-border)] bg-[var(--app-panel)] text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--app-text)]"
-            >
-              {isRunning ? 'Pause' : 'Start'}
-            </button>
-            <button
-              type="button"
-              aria-label="Complete quest"
-              onClick={onComplete}
-              className="h-10 rounded-md border border-[var(--app-accent)] bg-[color-mix(in_srgb,var(--app-accent)_14%,var(--app-panel))] text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--app-text)]"
-            >
-              Complete
-            </button>
-            <button
-              type="button"
-              aria-label="Edit quest"
-              onClick={onEdit}
-              className="h-10 rounded-md border border-[var(--app-border)] bg-[var(--app-panel)] text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--app-text)]"
-            >
-              Edit
-            </button>
-          </div>
-        ) : (
+        {isFocusMode ? null : (
           <div className="mt-auto grid grid-cols-3 gap-2">
             <button
               type="button"
               aria-label={workspaceMode === 'create' ? 'Cancel create quest' : 'Back to focus'}
-              onClick={workspaceMode === 'create' ? onClose : onBackToFocus}
+              onClick={workspaceMode === 'create' ? onCloseWorkspace : onBackToFocus}
               className="h-10 rounded-md border border-[var(--app-border)] bg-[var(--app-panel)] text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--app-text)]"
             >
               {workspaceMode === 'create' ? 'Cancel' : 'Back'}
@@ -1123,7 +1253,6 @@ const FocusWorkspace: React.FC<{
   mode: WorkspaceMode;
   task: Task;
   runningSession: ActiveSession;
-  getSessionDisplayMs: (session: NonNullable<ActiveSession>, now?: number) => number;
   getTaskTrackedMs: (taskId: string, now?: number) => number;
   selectedMediaAsset: string | null;
   selectedSoundAsset: string | null;
@@ -1150,7 +1279,6 @@ const FocusWorkspace: React.FC<{
   mode,
   task,
   runningSession,
-  getSessionDisplayMs,
   getTaskTrackedMs,
   selectedMediaAsset,
   selectedSoundAsset,
@@ -1183,6 +1311,7 @@ const FocusWorkspace: React.FC<{
   const [draftMediaAsset, setDraftMediaAsset] = useState<string>(selectedMediaAsset || 'focus-animation');
   const [draftSoundAsset, setDraftSoundAsset] = useState<string | null>(selectedSoundAsset || null);
   const [discardIntent, setDiscardIntent] = useState<'close' | 'back' | null>(null);
+  const elapsedCarryRef = useRef(0);
 
   useEffect(() => {
     if (!open || !isRunning || !runningSession) return;
@@ -1205,14 +1334,21 @@ const FocusWorkspace: React.FC<{
   }, [task.id, task.title, task.details, task.priority, task.scheduledAt, mode, initialMode, initialPriorityLabel, selectedMediaAsset, selectedSoundAsset]);
 
   useEffect(() => {
-    if (mode === 'focus' && activeMode !== 'default') {
-      setActiveMode('default');
-    }
-  }, [mode, activeMode]);
+    elapsedCarryRef.current = 0;
+  }, [task.id]);
 
   if (!open) return null;
 
   const elapsed = isCreateMode ? 0 : getTaskTrackedMs(task.id, tickNow);
+  if (elapsed > elapsedCarryRef.current) {
+    elapsedCarryRef.current = elapsed;
+  }
+  const stableElapsed = Math.max(elapsed, elapsedCarryRef.current);
+  const hasCountdown = typeof draftCountdownMin === 'number' && draftCountdownMin > 0;
+  const countdownMs = hasCountdown ? Math.max(0, Math.round(draftCountdownMin * 60_000)) : 0;
+  const timerDisplayMs = hasCountdown
+    ? Math.max(0, countdownMs - stableElapsed)
+    : stableElapsed;
   const stepsDone = draftSteps.filter((step) => step.done).length;
   const scheduleDateCandidate = draftScheduleValue ? new Date(draftScheduleValue) : null;
   const scheduleDate =
@@ -1250,11 +1386,6 @@ const FocusWorkspace: React.FC<{
       : task.scheduledAt
       ? `Schedule: Applied ${formatShortTime(task.scheduledAt)}`
       : 'Schedule: None';
-  const countdownChipLabel =
-    typeof draftCountdownMin === 'number' && draftCountdownMin > 0
-      ? `Countdown: ${Math.round(draftCountdownMin)}m`
-      : 'Countdown: None';
-
   const saveDraft = () => {
     if (!draftTitle.trim() || mode === 'focus') return;
     onSaveDraft({
@@ -1347,19 +1478,34 @@ const FocusWorkspace: React.FC<{
     <>
       <div className="pointer-events-none absolute inset-y-4 left-4 right-[calc(clamp(320px,34vw,380px)+16px)] z-[170] max-sm:hidden">
         <div className="flex h-full items-center justify-center">
-          <div className="pointer-events-auto grid aspect-[3/1] w-full max-w-[min(1240px,calc(100vw-clamp(320px,34vw,380px)-64px))] grid-cols-[48px_minmax(0,1.95fr)_56px_minmax(320px,1.15fr)_minmax(210px,0.95fr)] gap-2.5 rounded-[16px] border border-[var(--app-border)] bg-[color-mix(in_srgb,var(--app-panel)_96%,black)] p-2.5">
+          <div className="pointer-events-auto relative grid aspect-[3/1.5] w-[clamp(940px,72vw,1320px)] max-w-[min(1320px,calc(100vw-clamp(320px,34vw,380px)-48px))] grid-cols-[54px_minmax(0,2.05fr)_70px_minmax(360px,1.1fr)_minmax(220px,0.84fr)] gap-2.5 rounded-[16px] border border-[var(--app-border)] bg-[color-mix(in_srgb,var(--app-panel)_96%,black)] p-2.5">
+            <button
+              type="button"
+              aria-label="Close focus workspace"
+              onClick={() => requestExit('close')}
+              className="absolute -right-2 -top-2 inline-flex h-8 w-8 items-center justify-center rounded-md border border-[var(--app-border)] bg-[var(--app-panel-2)] text-[var(--app-muted)] hover:text-[var(--app-text)]"
+            >
+              <X size={14} />
+            </button>
             <LeftControlStrip
               workspaceMode={mode}
               activeMode={activeMode}
-              onOpenMedia={() => setActiveMode('media')}
-              onOpenSound={() => setActiveMode('sound')}
+              canConfigureAssets={mode !== 'focus'}
+              onOpenMedia={() => {
+                if (mode === 'focus') return;
+                setActiveMode((prev) => (prev === 'media' ? 'default' : 'media'));
+              }}
+              onOpenSound={() => {
+                if (mode === 'focus') return;
+                setActiveMode((prev) => (prev === 'sound' ? 'default' : 'sound'));
+              }}
             />
             <div className="min-h-0">
               {activeMode === 'default' ? (
                 <ActiveAreaDefault
                   selectedAssetId={draftMediaAsset}
                   selectedSoundAsset={draftSoundAsset}
-                  elapsedMs={elapsed}
+                  elapsedMs={stableElapsed}
                   isRunning={isRunning}
                 />
               ) : null}
@@ -1390,9 +1536,9 @@ const FocusWorkspace: React.FC<{
                 <ActiveLibraryView
                   kind="media"
                   selectedAsset={draftMediaAsset}
-                  onSelect={(assetId) => {
+                  onSelect={(assetId, closeAfterSelect = true) => {
                     setDraftMediaAsset(assetId);
-                    setActiveMode('default');
+                    if (closeAfterSelect) setActiveMode('default');
                   }}
                 />
               ) : null}
@@ -1400,9 +1546,9 @@ const FocusWorkspace: React.FC<{
                 <ActiveLibraryView
                   kind="sound"
                   selectedAsset={draftSoundAsset}
-                  onSelect={(assetId) => {
+                  onSelect={(assetId, closeAfterSelect = true) => {
                     setDraftSoundAsset(assetId);
-                    setActiveMode('default');
+                    if (closeAfterSelect) setActiveMode('default');
                   }}
                 />
               ) : null}
@@ -1427,10 +1573,7 @@ const FocusWorkspace: React.FC<{
           activeMode={activeMode}
           onToggleSchedule={() => setActiveMode((prev) => (prev === 'schedule' ? 'default' : 'schedule'))}
           onToggleCountdown={() => setActiveMode((prev) => (prev === 'countdown' ? 'default' : 'countdown'))}
-          onOpenDefault={() => setActiveMode('default')}
           isRunning={isRunning}
-          elapsed={elapsed}
-          countdownMin={draftCountdownMin}
           stepsDone={stepsDone}
           stepsTotal={draftSteps.length}
           steps={draftSteps}
@@ -1450,16 +1593,21 @@ const FocusWorkspace: React.FC<{
           selectedMediaLabel={getFocusMediaAsset(draftMediaAsset).label}
           selectedSoundLabel={getFocusSoundAsset(draftSoundAsset)?.label || null}
           scheduleChipLabel={scheduleChipLabel}
-          countdownChipLabel={countdownChipLabel}
           isDirty={isDirty}
-          onClose={() => requestExit('close')}
           onBackToFocus={() => requestExit('back')}
           onEdit={onEditMode}
           onSave={saveDraft}
-          onToggleRun={onToggleRun}
-          onComplete={onComplete}
+          onCloseWorkspace={() => requestExit('close')}
             />
-            <CharacterPanel />
+            <CharacterPanel
+              timerLabel={formatTimer(timerDisplayMs)}
+              timerMode={hasCountdown ? 'countdown' : 'timer'}
+              isRunning={isRunning}
+              onToggleRun={onToggleRun}
+              onComplete={onComplete}
+              onEdit={onEditMode}
+              showControls={mode === 'focus'}
+            />
           </div>
         </div>
       </div>
@@ -1832,6 +1980,10 @@ export const HextechAssistant: React.FC<HextechAssistantProps> = ({ isOpen, onCl
           type="button"
           aria-label="Close quests drawer"
           onClick={() => {
+            if (workspaceMode === 'focus') {
+              closeFocusPanel();
+              return;
+            }
             if (hasBlockingModal) return;
             requestClose();
           }}
@@ -1846,7 +1998,6 @@ export const HextechAssistant: React.FC<HextechAssistantProps> = ({ isOpen, onCl
             mode={workspaceMode}
             task={workspaceTask}
             runningSession={workspaceMode === 'create' ? null : focusedTaskSession}
-            getSessionDisplayMs={selectors.getSessionDisplayMs}
             getTaskTrackedMs={getTaskTrackedMs}
             selectedMediaAsset={workspaceKey ? taskMediaSelections[workspaceKey] || 'focus-animation' : 'focus-animation'}
             selectedSoundAsset={workspaceKey ? taskSoundSelections[workspaceKey] || null : null}

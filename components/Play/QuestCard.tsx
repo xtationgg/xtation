@@ -119,7 +119,9 @@ export const QuestCard: React.FC<QuestCardProps> = ({
           src={mediaPreviewUrl}
           alt=""
           aria-hidden
-          className="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-[0.12]"
+          className={`pointer-events-none absolute inset-0 h-full w-full object-cover transition-opacity duration-300 ${
+            isFocused || isRunning ? 'opacity-[0.24]' : 'opacity-0 group-hover:opacity-[0.2]'
+          }`}
         />
       ) : null}
       {!mediaPreviewUrl && mediaPreviewType === 'video' ? (
@@ -130,7 +132,7 @@ export const QuestCard: React.FC<QuestCardProps> = ({
         <button
           type="button"
           onClick={onOpen}
-          className="flex min-w-0 flex-1 items-center gap-3 rounded-lg px-1 py-0.5 text-left outline-none focus-visible:ring-1 focus-visible:ring-[var(--app-accent)]"
+          className="flex min-w-0 flex-1 items-center gap-3 rounded-lg px-1 py-0.5 text-left outline-none transition-transform duration-200 focus-visible:ring-1 focus-visible:ring-[var(--app-accent)] group-hover:translate-x-[1px]"
         >
           <div className={`h-10 w-1 rounded-full ${isRunning ? 'bg-[var(--app-accent)]' : 'bg-transparent'}`} />
           <div className="min-w-0 flex-1">

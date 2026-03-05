@@ -362,9 +362,10 @@ describe('Quests drawer filter + running section behavior', () => {
 
     await user.click(screen.getByTestId('schedule-toggle'));
     const panel = screen.getByTestId('schedule-panel');
-    const dateInput = within(panel).getByDisplayValue(/\d{4}-\d{2}-\d{2}/) as HTMLInputElement;
-    await user.clear(dateInput);
-    await user.type(dateInput, '2026-03-06');
+    const dayButtons = within(panel).getAllByRole('button').filter((button) => /^[0-9]{1,2}$/.test(button.textContent || ''));
+    if (dayButtons.length > 0) {
+      await user.click(dayButtons[0]);
+    }
     await user.click(within(panel).getByRole('button', { name: 'Now' }));
     await user.click(screen.getByTestId('schedule-add'));
 
