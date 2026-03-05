@@ -54,7 +54,7 @@ export interface QuestCardProps {
   task: Task;
   isRunning: boolean;
   runningSession: XPSession | null;
-  getSessionDisplayMs: (session: XPSession, now?: number) => number;
+  getTaskTrackedMs: (taskId: string, now?: number) => number;
   onOpen: () => void;
   onToggleRun: () => void;
   onComplete: () => void;
@@ -65,7 +65,7 @@ export const QuestCard: React.FC<QuestCardProps> = ({
   task,
   isRunning,
   runningSession,
-  getSessionDisplayMs,
+  getTaskTrackedMs,
   onOpen,
   onToggleRun,
   onComplete,
@@ -79,10 +79,10 @@ export const QuestCard: React.FC<QuestCardProps> = ({
     return () => window.clearInterval(interval);
   }, [isRunning, runningSession?.id]);
 
-  const elapsedMs = useMemo(() => {
-    if (!isRunning || !runningSession) return 0;
-    return getSessionDisplayMs(runningSession, tickNow);
-  }, [isRunning, runningSession, getSessionDisplayMs, tickNow]);
+  const elapsedMs = useMemo(
+    () => getTaskTrackedMs(task.id, tickNow),
+    [getTaskTrackedMs, task.id, tickNow]
+  );
 
   const timerLabel = useMemo(() => {
     if (!isRunning || !runningSession) return null;

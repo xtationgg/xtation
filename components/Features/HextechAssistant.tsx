@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { CalendarDays, LayoutGrid, Play, Plus, Save, Volume2, X } from 'lucide-react';
+import { CalendarDays, LayoutGrid, Pause, Play, Plus, Save, Volume2, VolumeX, X } from 'lucide-react';
 import { useXP } from '../XP/xpStore';
 import { Task } from '../XP/xpTypes';
 import { ConfirmModal } from '../UI/ConfirmModal';
@@ -151,40 +151,56 @@ const getFocusMediaAsset = (assetId: string | null) =>
 type ActiveSession = ReturnType<ReturnType<typeof useXP>['selectors']['getActiveSession']>;
 
 const LeftControlStrip: React.FC<{
-  disabled?: boolean;
+  workspaceMode: WorkspaceMode;
   activeMode: 'media' | 'sound' | 'default' | 'schedule';
+  isRunning: boolean;
+  isMuted: boolean;
+  onToggleRun: () => void;
+  onToggleMute: () => void;
   onOpenMedia: () => void;
   onOpenSound: () => void;
-}> = ({ disabled = false, activeMode, onOpenMedia, onOpenSound }) => {
+}> = ({
+  workspaceMode,
+  activeMode,
+  isRunning,
+  isMuted,
+  onToggleRun,
+  onToggleMute,
+  onOpenMedia,
+  onOpenSound,
+}) => {
+  const inFocus = workspaceMode === 'focus';
   return (
     <section className="grid h-full grid-rows-[1fr_1fr] gap-3">
       <button
         type="button"
-        disabled={disabled}
-        onClick={onOpenMedia}
-        title="Media library"
+        onClick={inFocus ? onToggleRun : onOpenMedia}
+        title={inFocus ? (isRunning ? 'Pause quest' : 'Start quest') : 'Media library'}
         className={`inline-flex h-full min-h-[80px] items-center justify-center rounded-[12px] border text-[var(--app-text)] transition-colors ${
-          activeMode === 'media'
+          inFocus
+            ? 'border-[var(--app-accent)] bg-[color-mix(in_srgb,var(--app-accent)_16%,var(--app-panel))]'
+            : activeMode === 'media'
             ? 'border-[var(--app-accent)] bg-[color-mix(in_srgb,var(--app-accent)_20%,var(--app-panel))]'
             : 'border-[var(--app-border)] bg-[color-mix(in_srgb,var(--app-accent)_10%,var(--app-panel))] hover:bg-[color-mix(in_srgb,var(--app-accent)_18%,var(--app-panel))]'
-        } ${disabled ? 'cursor-not-allowed opacity-55' : ''}`}
-        aria-label="Open media library"
+        }`}
+        aria-label={inFocus ? (isRunning ? 'Pause quest' : 'Start quest') : 'Open media library'}
       >
-        <Play size={26} />
+        {inFocus && isRunning ? <Pause size={26} /> : <Play size={26} />}
       </button>
       <button
         type="button"
-        disabled={disabled}
-        onClick={onOpenSound}
-        title="Sound library"
+        onClick={inFocus ? onToggleMute : onOpenSound}
+        title={inFocus ? (isMuted ? 'Unmute focus sound' : 'Mute focus sound') : 'Sound library'}
         className={`inline-flex h-full min-h-[80px] items-center justify-center rounded-[12px] border text-[var(--app-text)] transition-colors ${
-          activeMode === 'sound'
+          inFocus
+            ? 'border-[var(--app-accent)] bg-[color-mix(in_srgb,var(--app-accent)_16%,var(--app-panel))]'
+            : activeMode === 'sound'
             ? 'border-[var(--app-accent)] bg-[color-mix(in_srgb,var(--app-accent)_20%,var(--app-panel))]'
             : 'border-[var(--app-border)] bg-[var(--app-panel)] hover:bg-[var(--app-panel-2)]'
-        } ${disabled ? 'cursor-not-allowed opacity-55' : ''}`}
-        aria-label="Open sound library"
+        }`}
+        aria-label={inFocus ? (isMuted ? 'Unmute focus sound' : 'Mute focus sound') : 'Open sound library'}
       >
-        <Volume2 size={24} />
+        {inFocus && isMuted ? <VolumeX size={24} /> : <Volume2 size={24} />}
       </button>
     </section>
   );
@@ -873,6 +889,7 @@ const FocusWorkspace: React.FC<{
 }) => {
   const [tickNow, setTickNow] = useState(() => Date.now());
   const [activeMode, setActiveMode] = useState<FocusMode>(initialMode);
+  const [isSoundMuted, setIsSoundMuted] = useState(false);
   const isRunning = !!runningSession && runningSession.status === 'running';
   const isCreateMode = mode === 'create';
   const [draftTitle, setDraftTitle] = useState(task.title);
@@ -905,6 +922,7 @@ const FocusWorkspace: React.FC<{
     setDraftScheduleValue(task.scheduledAt ? toLocalDateTimeValue(task.scheduledAt) : toLocalDateTimeValue(roundToFiveMinutes(Date.now())));
     setDraftMediaAsset(selectedMediaAsset || 'focus-animation');
     setDraftSoundAsset(selectedSoundAsset || null);
+    setIsSoundMuted(false);
     setActiveMode(mode === 'create' ? initialMode : 'default');
   }, [task.id, task.title, task.details, task.priority, task.scheduledAt, mode, initialMode, initialPriorityLabel, selectedMediaAsset, selectedSoundAsset]);
 
@@ -1026,8 +1044,12 @@ const FocusWorkspace: React.FC<{
       <div className="flex h-full items-center justify-center">
       <div className="pointer-events-auto grid h-[clamp(250px,35vh,330px)] w-full max-w-[min(980px,calc(100vw-clamp(320px,34vw,380px)-56px))] grid-cols-[52px_minmax(0,1.65fr)_54px_minmax(0,1fr)_minmax(170px,0.72fr)] gap-2.5 rounded-[16px] border border-[var(--app-border)] bg-[color-mix(in_srgb,var(--app-panel)_96%,black)] p-2.5">
         <LeftControlStrip
-          disabled={mode === 'focus'}
+          workspaceMode={mode}
           activeMode={activeMode}
+          isRunning={isRunning}
+          isMuted={isSoundMuted}
+          onToggleRun={onToggleRun}
+          onToggleMute={() => setIsSoundMuted((prev) => !prev)}
           onOpenMedia={() => setActiveMode('media')}
           onOpenSound={() => setActiveMode('sound')}
         />
@@ -1035,7 +1057,7 @@ const FocusWorkspace: React.FC<{
           {activeMode === 'default' ? (
             <ActiveAreaDefault
               selectedAssetId={draftMediaAsset}
-              selectedSoundAsset={draftSoundAsset}
+              selectedSoundAsset={isSoundMuted ? null : draftSoundAsset}
               elapsedMs={elapsed}
               isRunning={isRunning}
             />
@@ -1168,10 +1190,19 @@ export const HextechAssistant: React.FC<HextechAssistantProps> = ({ isOpen, onCl
   const runningTaskId = activeSession?.taskId || activeSession?.linkedTaskIds?.[0] || null;
 
   const getTaskTrackedMs = useMemo(
-    () => (taskId: string, now = Date.now()) =>
-      selectors
-        .getTaskSessions(taskId)
-        .reduce((sum, session) => sum + selectors.getSessionDisplayMs(session, now), 0),
+    () => (taskId: string, now = Date.now()) => {
+      if (typeof selectors.getTaskSessions === 'function' && typeof selectors.getSessionDisplayMs === 'function') {
+        return selectors
+          .getTaskSessions(taskId)
+          .reduce((sum, session) => sum + selectors.getSessionDisplayMs(session, now), 0);
+      }
+
+      if (typeof selectors.getTaskTrackedMinutes === 'function') {
+        return Math.max(0, selectors.getTaskTrackedMinutes(taskId)) * 60_000;
+      }
+
+      return 0;
+    },
     [selectors]
   );
 
@@ -1562,7 +1593,7 @@ export const HextechAssistant: React.FC<HextechAssistantProps> = ({ isOpen, onCl
                     task={runningTask}
                     isRunning
                     runningSession={activeSession}
-                    getSessionDisplayMs={selectors.getSessionDisplayMs}
+                    getTaskTrackedMs={getTaskTrackedMs}
                     onOpen={() => openFocusPanel(runningTask.id)}
                     onToggleRun={() => handleToggleRun(runningTask)}
                     onComplete={() => handleComplete(runningTask)}
@@ -1590,7 +1621,7 @@ export const HextechAssistant: React.FC<HextechAssistantProps> = ({ isOpen, onCl
                           task={task}
                           isRunning={isRunning}
                           runningSession={isRunning ? activeSession : null}
-                          getSessionDisplayMs={selectors.getSessionDisplayMs}
+                          getTaskTrackedMs={getTaskTrackedMs}
                           onOpen={() => openFocusPanel(task.id)}
                           onToggleRun={() => handleToggleRun(task)}
                           onComplete={() => handleComplete(task)}
