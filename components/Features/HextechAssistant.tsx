@@ -1478,7 +1478,7 @@ const FocusWorkspace: React.FC<{
     <>
       <div className="pointer-events-none absolute inset-y-4 left-4 right-[calc(clamp(320px,34vw,380px)+16px)] z-[170] max-sm:hidden">
         <div className="flex h-full items-center justify-center">
-          <div className="pointer-events-auto relative grid aspect-[3/1.5] w-[clamp(940px,72vw,1320px)] max-w-[min(1320px,calc(100vw-clamp(320px,34vw,380px)-48px))] grid-cols-[54px_minmax(0,2.05fr)_70px_minmax(360px,1.1fr)_minmax(220px,0.84fr)] gap-2.5 rounded-[16px] border border-[var(--app-border)] bg-[color-mix(in_srgb,var(--app-panel)_96%,black)] p-2.5">
+          <div className="pointer-events-auto relative grid aspect-[3/1.5] w-[clamp(760px,65vw,1200px)] max-w-[min(1200px,calc(100vw-clamp(320px,34vw,380px)-48px))] grid-cols-[54px_minmax(0,2.08fr)_70px_minmax(340px,1.2fr)_minmax(210px,0.86fr)] gap-2.5 rounded-[16px] border border-[var(--app-border)] bg-[color-mix(in_srgb,var(--app-panel)_96%,black)] p-2.5">
             <button
               type="button"
               aria-label="Close focus workspace"
