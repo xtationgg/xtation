@@ -594,7 +594,7 @@ const QuestPanel: React.FC<{
   };
 
   return (
-    <section className="min-h-0 w-full max-w-[460px] rounded-[12px] border border-[var(--app-border)] bg-[var(--app-panel)] p-3">
+    <section className="min-h-0 w-full max-w-[440px] rounded-[12px] border border-[var(--app-border)] bg-[var(--app-panel)] p-3">
       <div className="flex h-full flex-col gap-3">
         <div className="flex items-center justify-between">
           <div className="text-[10px] uppercase tracking-[0.14em] text-[var(--app-muted)]">{modeLabel}</div>
@@ -608,37 +608,45 @@ const QuestPanel: React.FC<{
           </button>
         </div>
 
-        <div className="rounded-[10px] border border-[var(--app-border)] bg-[var(--app-panel-2)] p-2.5">
-          <div className="text-[10px] uppercase tracking-[0.12em] text-[var(--app-muted)]">Quest name</div>
-          <input
-            value={title}
-            readOnly={!canEditDraft}
-            onChange={(event) => {
-              if (!canEditDraft) return;
-              setTitle(event.target.value);
-            }}
-            className={`mt-1 w-full rounded-md border border-transparent bg-transparent px-1 py-1 text-[14px] font-semibold tracking-[0.03em] text-[var(--app-text)] outline-none ${
-              canEditDraft ? 'focus:border-[var(--app-accent)]' : 'cursor-default'
-            }`}
-            placeholder="Quest title"
-          />
-        </div>
+        {canEditDraft ? (
+          <>
+            <div className="rounded-[10px] border border-[var(--app-border)] bg-[var(--app-panel-2)] p-2.5">
+              <div className="text-[10px] uppercase tracking-[0.12em] text-[var(--app-muted)]">Quest name</div>
+              <input
+                value={title}
+                onChange={(event) => setTitle(event.target.value)}
+                className="mt-1 w-full rounded-md border border-transparent bg-transparent px-1 py-1 text-[14px] font-semibold tracking-[0.03em] text-[var(--app-text)] outline-none focus:border-[var(--app-accent)]"
+                placeholder="Quest title"
+              />
+            </div>
 
-        <div className="rounded-[10px] border border-[var(--app-border)] bg-[var(--app-panel-2)] p-2.5">
-          <div className="text-[10px] uppercase tracking-[0.12em] text-[var(--app-muted)]">Details</div>
-          <textarea
-            value={details}
-            readOnly={!canEditDraft}
-            onChange={(event) => {
-              if (!canEditDraft) return;
-              setDetails(event.target.value);
-            }}
-            className={`mt-1 h-24 w-full resize-none rounded-md border border-transparent bg-transparent px-1 py-1 text-[12px] leading-relaxed tracking-[0.03em] text-[var(--app-text)] outline-none ${
-              canEditDraft ? 'focus:border-[var(--app-accent)]' : 'cursor-default'
-            }`}
-            placeholder="Quest notes"
-          />
-        </div>
+            <div className="rounded-[10px] border border-[var(--app-border)] bg-[var(--app-panel-2)] p-2.5">
+              <div className="text-[10px] uppercase tracking-[0.12em] text-[var(--app-muted)]">Details</div>
+              <textarea
+                value={details}
+                onChange={(event) => setDetails(event.target.value)}
+                className="mt-1 h-20 w-full resize-none rounded-md border border-transparent bg-transparent px-1 py-1 text-[12px] leading-relaxed tracking-[0.03em] text-[var(--app-text)] outline-none focus:border-[var(--app-accent)]"
+                placeholder="Quest notes"
+              />
+            </div>
+          </>
+        ) : (
+          <>
+            <div className="rounded-[10px] border border-[var(--app-border)] bg-[var(--app-panel-2)] p-2.5">
+              <div className="text-[10px] uppercase tracking-[0.12em] text-[var(--app-muted)]">Quest name</div>
+              <div className="mt-1 truncate text-[14px] font-semibold tracking-[0.03em] text-[var(--app-text)]">
+                {title || 'Untitled quest'}
+              </div>
+            </div>
+
+            <div className="rounded-[10px] border border-[var(--app-border)] bg-[var(--app-panel-2)] p-2.5">
+              <div className="text-[10px] uppercase tracking-[0.12em] text-[var(--app-muted)]">Details</div>
+              <div className="mt-1 h-16 overflow-y-auto whitespace-pre-wrap text-[12px] leading-relaxed tracking-[0.03em] text-[var(--app-text)]">
+                {details?.trim() || 'No details set'}
+              </div>
+            </div>
+          </>
+        )}
 
         {canEditDraft ? (
           <div className="grid grid-cols-4 gap-1.5">
@@ -684,9 +692,9 @@ const QuestPanel: React.FC<{
           </div>
         ) : (
           <div className="grid grid-cols-1 gap-1.5 rounded-md border border-[var(--app-border)] bg-[var(--app-panel-2)] px-2.5 py-2 text-[9px] uppercase tracking-[0.1em] text-[var(--app-muted)]">
-            <div>Media: {selectedMediaLabel}</div>
-            <div>Sound: {selectedSoundLabel || 'None'}</div>
-            <div>{scheduleChipLabel}</div>
+            <div className="truncate">Media: {selectedMediaLabel}</div>
+            <div className="truncate">Sound: {selectedSoundLabel || 'None'}</div>
+            <div className="truncate">{scheduleChipLabel}</div>
             <div className="text-[color-mix(in_srgb,var(--app-accent)_72%,white)]">Press Edit to change setup</div>
           </div>
         )}
@@ -705,7 +713,7 @@ const QuestPanel: React.FC<{
             <div className="mb-2 text-[10px] uppercase tracking-[0.12em] text-[var(--app-muted)]">
               Checklist steps ({stepsDone}/{stepsTotal || 0})
             </div>
-            <div className="space-y-1.5">
+            <div className="space-y-1.5 max-h-[140px] overflow-y-auto pr-0.5">
               {steps.length === 0 ? (
                 <div className="text-[10px] uppercase tracking-[0.1em] text-[var(--app-muted)]">
                   {canEditDraft ? 'No checklist steps. Add one below.' : 'No checklist steps.'}
@@ -1016,7 +1024,7 @@ const FocusWorkspace: React.FC<{
   return (
     <div className="pointer-events-none absolute inset-y-3 left-3 right-[calc(clamp(320px,34vw,380px)+12px)] z-[170] max-sm:hidden">
       <div className="flex h-full items-center justify-center">
-      <div className="pointer-events-auto grid h-[clamp(280px,42vh,380px)] w-full max-w-[min(1120px,calc(100vw-clamp(320px,34vw,380px)-48px))] grid-cols-[52px_minmax(0,1.65fr)_54px_minmax(0,1fr)_minmax(190px,0.8fr)] gap-2.5 rounded-[16px] border border-[var(--app-border)] bg-[color-mix(in_srgb,var(--app-panel)_96%,black)] p-2.5">
+      <div className="pointer-events-auto grid h-[clamp(250px,35vh,330px)] w-full max-w-[min(980px,calc(100vw-clamp(320px,34vw,380px)-56px))] grid-cols-[52px_minmax(0,1.65fr)_54px_minmax(0,1fr)_minmax(170px,0.72fr)] gap-2.5 rounded-[16px] border border-[var(--app-border)] bg-[color-mix(in_srgb,var(--app-panel)_96%,black)] p-2.5">
         <LeftControlStrip
           disabled={mode === 'focus'}
           activeMode={activeMode}
