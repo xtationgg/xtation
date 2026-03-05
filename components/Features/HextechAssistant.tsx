@@ -4,7 +4,6 @@ import { useXP } from '../XP/xpStore';
 import { Task } from '../XP/xpTypes';
 import { ConfirmModal } from '../UI/ConfirmModal';
 import { QuestCard } from '../Play/QuestCard';
-import { QuestModal } from '../Play/QuestModal';
 import { DateTimePicker } from '../UI/DateTimePicker';
 import { playClickSound, playErrorSound, playSuccessSound } from '../../utils/SoundEffects';
 
@@ -17,6 +16,7 @@ type QuestFilter = 'all' | 'active' | 'completed';
 type FocusPriority = 'normal' | 'high' | 'urgent' | 'extreme';
 type FocusStep = { id: string; text: string; done: boolean };
 type FocusMode = 'default' | 'schedule' | 'media' | 'sound';
+type WorkspaceMode = 'create' | 'focus' | 'edit';
 
 const isCompletedTask = (task: Task) => !!task.completedAt || task.status === 'done';
 const isHiddenTask = (task: Task) => !!task.archivedAt || task.status === 'dropped';
@@ -121,32 +121,35 @@ const getFocusMediaAsset = (assetId: string | null) =>
 type ActiveSession = ReturnType<ReturnType<typeof useXP>['selectors']['getActiveSession']>;
 
 const LeftControlStrip: React.FC<{
+  disabled?: boolean;
   activeMode: 'media' | 'sound' | 'default' | 'schedule';
   onOpenMedia: () => void;
   onOpenSound: () => void;
-}> = ({ activeMode, onOpenMedia, onOpenSound }) => {
+}> = ({ disabled = false, activeMode, onOpenMedia, onOpenSound }) => {
   return (
     <section className="grid h-full grid-rows-[1fr_1fr] gap-3">
       <button
         type="button"
+        disabled={disabled}
         onClick={onOpenMedia}
         className={`inline-flex h-full min-h-[80px] items-center justify-center rounded-[12px] border text-[var(--app-text)] transition-colors ${
           activeMode === 'media'
             ? 'border-[var(--app-accent)] bg-[color-mix(in_srgb,var(--app-accent)_20%,var(--app-panel))]'
             : 'border-[var(--app-border)] bg-[color-mix(in_srgb,var(--app-accent)_10%,var(--app-panel))] hover:bg-[color-mix(in_srgb,var(--app-accent)_18%,var(--app-panel))]'
-        }`}
+        } ${disabled ? 'cursor-not-allowed opacity-55' : ''}`}
         aria-label="Open media library"
       >
         <Play size={26} />
       </button>
       <button
         type="button"
+        disabled={disabled}
         onClick={onOpenSound}
         className={`inline-flex h-full min-h-[80px] items-center justify-center rounded-[12px] border text-[var(--app-text)] transition-colors ${
           activeMode === 'sound'
             ? 'border-[var(--app-accent)] bg-[color-mix(in_srgb,var(--app-accent)_20%,var(--app-panel))]'
             : 'border-[var(--app-border)] bg-[var(--app-panel)] hover:bg-[var(--app-panel-2)]'
-        }`}
+        } ${disabled ? 'cursor-not-allowed opacity-55' : ''}`}
         aria-label="Open sound library"
       >
         <Volume2 size={24} />
@@ -336,7 +339,10 @@ const ActiveScheduleView: React.FC<{
   };
 
   return (
-    <section className="grid min-h-0 grid-cols-[minmax(0,1fr)_214px] gap-3 rounded-[12px] border border-[var(--app-border)] bg-[var(--app-panel)] p-3">
+    <section
+      data-testid="schedule-panel"
+      className="grid min-h-0 grid-cols-[minmax(0,1fr)_214px] gap-3 rounded-[12px] border border-[var(--app-border)] bg-[var(--app-panel)] p-3"
+    >
       <div className="min-h-0">
         <div className="mb-2 text-[10px] uppercase tracking-[0.16em] text-[var(--app-muted)]">March 2026</div>
         <DateTimePicker
@@ -344,6 +350,7 @@ const ActiveScheduleView: React.FC<{
           onChange={onValueChange}
           placeholder="Pick date / time"
           className="h-11 rounded-md border border-[var(--app-border)] bg-[var(--app-panel-2)] px-3 text-[11px] tracking-[0.03em] text-[var(--app-text)]"
+          triggerTestId="schedule-picker-trigger"
         />
         <div className="mt-2 grid grid-cols-2 gap-2">
           <button type="button" onClick={onClear} className="h-8 rounded-md border border-[var(--app-border)] text-[10px] uppercase tracking-[0.12em] text-[var(--app-muted)]">
@@ -413,6 +420,7 @@ const ActiveScheduleView: React.FC<{
           <button
             type="button"
             onClick={onApply}
+            data-testid="schedule-add"
             className="h-10 rounded-md border border-[var(--app-accent)] bg-[color-mix(in_srgb,var(--app-accent)_12%,var(--app-panel))] text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--app-text)]"
           >
             Add Scheduled
@@ -429,9 +437,10 @@ const ActiveScheduleView: React.FC<{
 };
 
 const PriorityStrip: React.FC<{
+  disabled?: boolean;
   value: FocusPriority;
   onChange: (value: FocusPriority) => void;
-}> = ({ value, onChange }) => {
+}> = ({ disabled = false, value, onChange }) => {
   const priorities: Array<{ key: FocusPriority; label: string }> = [
     { key: 'extreme', label: 'Extreme' },
     { key: 'urgent', label: 'Urgent' },
@@ -445,12 +454,13 @@ const PriorityStrip: React.FC<{
         <button
           key={priority.key}
           type="button"
+          disabled={disabled}
           onClick={() => onChange(priority.key)}
           className={`flex h-full w-full items-center justify-center rounded-[10px] border border-[var(--app-border)] text-[11px] font-medium tracking-[0.03em] transition-colors ${
             value === priority.key
               ? 'bg-[color-mix(in_srgb,var(--app-accent)_16%,var(--app-panel))] text-[var(--app-text)]'
               : 'text-[var(--app-muted)] hover:bg-[var(--app-panel-2)]'
-          }`}
+          } ${disabled ? 'cursor-not-allowed opacity-60' : ''}`}
         >
           {priority.label}
         </button>
@@ -469,6 +479,7 @@ const CharacterPanel: React.FC = () => (
 );
 
 const QuestPanel: React.FC<{
+  workspaceMode: WorkspaceMode;
   title: string;
   details: string;
   setTitle: (value: string) => void;
@@ -491,10 +502,13 @@ const QuestPanel: React.FC<{
   scheduleChipLabel: string;
   isDirty: boolean;
   onClose: () => void;
+  onBackToFocus: () => void;
+  onEdit: () => void;
   onSave: () => void;
   onToggleRun: () => void;
   onComplete: () => void;
 }> = ({
+  workspaceMode,
   title,
   details,
   setTitle,
@@ -517,11 +531,17 @@ const QuestPanel: React.FC<{
   scheduleChipLabel,
   isDirty,
   onClose,
+  onBackToFocus,
+  onEdit,
   onSave,
   onToggleRun,
   onComplete,
 }) => {
   const [stepInput, setStepInput] = useState('');
+  const isFocusMode = workspaceMode === 'focus';
+  const isCreateMode = workspaceMode === 'create';
+  const canEditDraft = workspaceMode === 'create' || workspaceMode === 'edit';
+  const modeLabel = isCreateMode ? 'Create quest' : workspaceMode === 'edit' ? 'Edit quest' : 'Quest workspace';
 
   const modeOptions: Array<{ key: FocusMode; label: string; icon: React.ReactNode; onClick: () => void }> = [
     { key: 'default', label: 'Focus', icon: <Play size={13} />, onClick: onOpenDefault },
@@ -541,7 +561,7 @@ const QuestPanel: React.FC<{
     <section className="min-h-0 w-full max-w-[460px] rounded-[12px] border border-[var(--app-border)] bg-[var(--app-panel)] p-3">
       <div className="flex h-full flex-col gap-3">
         <div className="flex items-center justify-between">
-          <div className="text-[10px] uppercase tracking-[0.14em] text-[var(--app-muted)]">Quest workspace</div>
+          <div className="text-[10px] uppercase tracking-[0.14em] text-[var(--app-muted)]">{modeLabel}</div>
           <button
             type="button"
             aria-label="Close focus workspace"
@@ -556,9 +576,15 @@ const QuestPanel: React.FC<{
           <div className="text-[10px] uppercase tracking-[0.12em] text-[var(--app-muted)]">Quest name</div>
           <input
             value={title}
-            onChange={(event) => setTitle(event.target.value)}
-            className="mt-1 w-full rounded-md border border-transparent bg-transparent px-1 py-1 text-[14px] font-semibold tracking-[0.03em] text-[var(--app-text)] outline-none focus:border-[var(--app-accent)]"
-            placeholder="Quest name"
+            readOnly={!canEditDraft}
+            onChange={(event) => {
+              if (!canEditDraft) return;
+              setTitle(event.target.value);
+            }}
+            className={`mt-1 w-full rounded-md border border-transparent bg-transparent px-1 py-1 text-[14px] font-semibold tracking-[0.03em] text-[var(--app-text)] outline-none ${
+              canEditDraft ? 'focus:border-[var(--app-accent)]' : 'cursor-default'
+            }`}
+            placeholder="Quest title"
           />
         </div>
 
@@ -566,50 +592,68 @@ const QuestPanel: React.FC<{
           <div className="text-[10px] uppercase tracking-[0.12em] text-[var(--app-muted)]">Details</div>
           <textarea
             value={details}
-            onChange={(event) => setDetails(event.target.value)}
-            className="mt-1 h-24 w-full resize-none rounded-md border border-transparent bg-transparent px-1 py-1 text-[12px] leading-relaxed tracking-[0.03em] text-[var(--app-text)] outline-none focus:border-[var(--app-accent)]"
-            placeholder="Quest details"
+            readOnly={!canEditDraft}
+            onChange={(event) => {
+              if (!canEditDraft) return;
+              setDetails(event.target.value);
+            }}
+            className={`mt-1 h-24 w-full resize-none rounded-md border border-transparent bg-transparent px-1 py-1 text-[12px] leading-relaxed tracking-[0.03em] text-[var(--app-text)] outline-none ${
+              canEditDraft ? 'focus:border-[var(--app-accent)]' : 'cursor-default'
+            }`}
+            placeholder="Quest notes"
           />
         </div>
 
-        <div className="grid grid-cols-4 gap-1.5">
-          {modeOptions.map((option) => (
-            <button
-              key={option.key}
-              type="button"
-              onClick={option.onClick}
-              className={`inline-flex h-9 items-center justify-center gap-1.5 rounded-md border text-[9px] font-semibold uppercase tracking-[0.1em] ${
-                activeMode === option.key
-                  ? 'border-[var(--app-accent)] bg-[color-mix(in_srgb,var(--app-accent)_14%,var(--app-panel))] text-[var(--app-text)]'
-                  : 'border-[var(--app-border)] text-[var(--app-muted)]'
-              }`}
-              aria-label={`Open ${option.label.toLowerCase()} mode`}
-            >
-              {option.icon}
-              <span>{option.label}</span>
-            </button>
-          ))}
-        </div>
+        {canEditDraft ? (
+          <div className="grid grid-cols-4 gap-1.5">
+            {modeOptions.map((option) => (
+              <button
+                key={option.key}
+                type="button"
+                onClick={option.onClick}
+                data-testid={option.key === 'schedule' ? 'schedule-toggle' : undefined}
+                className={`inline-flex h-9 items-center justify-center gap-1.5 rounded-md border text-[9px] font-semibold uppercase tracking-[0.1em] ${
+                  activeMode === option.key
+                    ? 'border-[var(--app-accent)] bg-[color-mix(in_srgb,var(--app-accent)_14%,var(--app-panel))] text-[var(--app-text)]'
+                    : 'border-[var(--app-border)] text-[var(--app-muted)]'
+                }`}
+                aria-label={`Open ${option.label.toLowerCase()} mode`}
+              >
+                {option.icon}
+                <span>{option.label}</span>
+              </button>
+            ))}
+          </div>
+        ) : null}
 
-        <div className="flex flex-wrap gap-1.5">
-          <span className="rounded-md border border-[var(--app-border)] bg-[var(--app-panel)] px-2 py-1 text-[9px] uppercase tracking-[0.1em] text-[var(--app-muted)]">
-            Mode: {activeMode}
-          </span>
-          <span className="rounded-md border border-[var(--app-border)] bg-[var(--app-panel)] px-2 py-1 text-[9px] uppercase tracking-[0.1em] text-[var(--app-muted)]">
-            Media: {selectedMediaLabel}
-          </span>
-          <span className="rounded-md border border-[var(--app-border)] bg-[var(--app-panel)] px-2 py-1 text-[9px] uppercase tracking-[0.1em] text-[var(--app-muted)]">
-            Sound: {selectedSoundLabel || 'None'}
-          </span>
-          <span className="rounded-md border border-[var(--app-border)] bg-[var(--app-panel)] px-2 py-1 text-[9px] uppercase tracking-[0.1em] text-[var(--app-muted)]">
-            {scheduleChipLabel}
-          </span>
-          {isDirty ? (
-            <span className="rounded-md border border-[color-mix(in_srgb,var(--app-accent)_45%,transparent)] bg-[color-mix(in_srgb,var(--app-accent)_14%,var(--app-panel))] px-2 py-1 text-[9px] uppercase tracking-[0.1em] text-[var(--app-text)]">
-              Unsaved
+        {canEditDraft ? (
+          <div className="flex flex-wrap gap-1.5">
+            <span className="rounded-md border border-[var(--app-border)] bg-[var(--app-panel)] px-2 py-1 text-[9px] uppercase tracking-[0.1em] text-[var(--app-muted)]">
+              Mode: {activeMode}
             </span>
-          ) : null}
-        </div>
+            <span className="rounded-md border border-[var(--app-border)] bg-[var(--app-panel)] px-2 py-1 text-[9px] uppercase tracking-[0.1em] text-[var(--app-muted)]">
+              Media: {selectedMediaLabel}
+            </span>
+            <span className="rounded-md border border-[var(--app-border)] bg-[var(--app-panel)] px-2 py-1 text-[9px] uppercase tracking-[0.1em] text-[var(--app-muted)]">
+              Sound: {selectedSoundLabel || 'None'}
+            </span>
+            <span className="rounded-md border border-[var(--app-border)] bg-[var(--app-panel)] px-2 py-1 text-[9px] uppercase tracking-[0.1em] text-[var(--app-muted)]">
+              {scheduleChipLabel}
+            </span>
+            {isDirty ? (
+              <span className="rounded-md border border-[color-mix(in_srgb,var(--app-accent)_45%,transparent)] bg-[color-mix(in_srgb,var(--app-accent)_14%,var(--app-panel))] px-2 py-1 text-[9px] uppercase tracking-[0.1em] text-[var(--app-text)]">
+                Unsaved
+              </span>
+            ) : null}
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 gap-1.5 rounded-md border border-[var(--app-border)] bg-[var(--app-panel-2)] px-2.5 py-2 text-[9px] uppercase tracking-[0.1em] text-[var(--app-muted)]">
+            <div>Media: {selectedMediaLabel}</div>
+            <div>Sound: {selectedSoundLabel || 'None'}</div>
+            <div>{scheduleChipLabel}</div>
+            <div className="text-[color-mix(in_srgb,var(--app-accent)_72%,white)]">Press Edit to change setup</div>
+          </div>
+        )}
 
         <div className="rounded-[10px] border border-[var(--app-border)] bg-[var(--app-panel-2)] px-3 py-2">
           <div className="text-[10px] uppercase tracking-[0.12em] text-[var(--app-muted)]">Timer</div>
@@ -631,6 +675,9 @@ const QuestPanel: React.FC<{
                   <button
                     type="button"
                     onClick={() => onToggleStep(step.id)}
+                    disabled={!canEditDraft}
+                    role="checkbox"
+                    aria-checked={step.done}
                     className={`h-4 w-4 rounded-sm border ${step.done ? 'border-[var(--app-accent)] bg-[color-mix(in_srgb,var(--app-accent)_30%,var(--app-panel))]' : 'border-[var(--app-border)]'}`}
                     aria-label={step.done ? 'Mark step incomplete' : 'Mark step complete'}
                   />
@@ -640,6 +687,7 @@ const QuestPanel: React.FC<{
                   <button
                     type="button"
                     onClick={() => onDeleteStep(step.id)}
+                    disabled={!canEditDraft}
                     className="text-[10px] uppercase tracking-[0.1em] text-[var(--app-muted)] hover:text-[var(--app-text)]"
                     aria-label="Delete step"
                   >
@@ -655,15 +703,19 @@ const QuestPanel: React.FC<{
                 onKeyDown={(event) => {
                   if (event.key === 'Enter') {
                     event.preventDefault();
+                    if (!canEditDraft) return;
                     submitStep();
                   }
                 }}
+                disabled={!canEditDraft}
                 className="h-8 min-w-0 flex-1 rounded-md border border-[var(--app-border)] bg-[var(--app-panel)] px-2 text-[11px] tracking-[0.03em] text-[var(--app-text)] outline-none focus:border-[var(--app-accent)]"
                 placeholder="Add step"
               />
               <button
                 type="button"
                 onClick={submitStep}
+                disabled={!canEditDraft}
+                aria-label="Add step"
                 className="h-8 rounded-md border border-[var(--app-border)] px-2 text-[9px] uppercase tracking-[0.1em] text-[var(--app-muted)] hover:text-[var(--app-text)]"
               >
                 Add
@@ -672,34 +724,55 @@ const QuestPanel: React.FC<{
           </div>
         </div>
 
-        <div className="mt-auto grid grid-cols-3 gap-2">
-          <button
-            type="button"
-            aria-label={isRunning ? 'Pause quest' : 'Start quest'}
-            onClick={onToggleRun}
-            className="h-10 rounded-md border border-[var(--app-border)] bg-[var(--app-panel)] text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--app-text)]"
-          >
-            {isRunning ? 'Pause' : 'Start'}
-          </button>
-          <button
-            type="button"
-            aria-label="Complete quest"
-            onClick={onComplete}
-            className="h-10 rounded-md border border-[var(--app-accent)] bg-[color-mix(in_srgb,var(--app-accent)_14%,var(--app-panel))] text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--app-text)]"
-          >
-            Complete
-          </button>
-          <button
-            type="button"
-            aria-label="Save quest"
-            onClick={onSave}
-            disabled={!isDirty}
-            className="inline-flex h-10 items-center justify-center gap-1 rounded-md border border-[var(--app-border)] bg-[var(--app-panel)] text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--app-muted)] hover:text-[var(--app-text)] disabled:opacity-50"
-          >
-            <Save size={12} />
-            Save
-          </button>
-        </div>
+        {isFocusMode ? (
+          <div className="mt-auto grid grid-cols-3 gap-2">
+            <button
+              type="button"
+              aria-label={isRunning ? 'Pause quest' : 'Start quest'}
+              onClick={onToggleRun}
+              className="h-10 rounded-md border border-[var(--app-border)] bg-[var(--app-panel)] text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--app-text)]"
+            >
+              {isRunning ? 'Pause' : 'Start'}
+            </button>
+            <button
+              type="button"
+              aria-label="Complete quest"
+              onClick={onComplete}
+              className="h-10 rounded-md border border-[var(--app-accent)] bg-[color-mix(in_srgb,var(--app-accent)_14%,var(--app-panel))] text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--app-text)]"
+            >
+              Complete
+            </button>
+            <button
+              type="button"
+              aria-label="Edit quest"
+              onClick={onEdit}
+              className="h-10 rounded-md border border-[var(--app-border)] bg-[var(--app-panel)] text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--app-text)]"
+            >
+              Edit
+            </button>
+          </div>
+        ) : (
+          <div className="mt-auto grid grid-cols-3 gap-2">
+            <button
+              type="button"
+              aria-label={workspaceMode === 'create' ? 'Cancel create quest' : 'Back to focus'}
+              onClick={workspaceMode === 'create' ? onClose : onBackToFocus}
+              className="h-10 rounded-md border border-[var(--app-border)] bg-[var(--app-panel)] text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--app-text)]"
+            >
+              {workspaceMode === 'create' ? 'Cancel' : 'Back'}
+            </button>
+            <button
+              type="button"
+              aria-label="Save"
+              onClick={onSave}
+              disabled={!isDirty}
+              className="col-span-2 inline-flex h-10 items-center justify-center gap-1 rounded-md border border-[var(--app-accent)] bg-[color-mix(in_srgb,var(--app-accent)_14%,var(--app-panel))] text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--app-text)] disabled:opacity-50"
+            >
+              <Save size={12} />
+              Save
+            </button>
+          </div>
+        )}
       </div>
     </section>
   );
@@ -707,6 +780,7 @@ const QuestPanel: React.FC<{
 
 const FocusWorkspace: React.FC<{
   open: boolean;
+  mode: WorkspaceMode;
   task: Task;
   runningSession: ActiveSession;
   getSessionDisplayMs: (session: NonNullable<ActiveSession>, now?: number) => number;
@@ -716,11 +790,14 @@ const FocusWorkspace: React.FC<{
   onSelectMediaAsset: (assetId: string) => void;
   onSelectSoundAsset: (assetId: string) => void;
   onClose: () => void;
+  onBackToFocus: () => void;
+  onEditMode: () => void;
   onSaveDraft: (draft: { title: string; details: string; priority: Task['priority']; scheduledAt?: number }) => void;
   onToggleRun: () => void;
   onComplete: () => void;
 }> = ({
   open,
+  mode,
   task,
   runningSession,
   getSessionDisplayMs,
@@ -730,6 +807,8 @@ const FocusWorkspace: React.FC<{
   onSelectMediaAsset,
   onSelectSoundAsset,
   onClose,
+  onBackToFocus,
+  onEditMode,
   onSaveDraft,
   onToggleRun,
   onComplete,
@@ -737,6 +816,7 @@ const FocusWorkspace: React.FC<{
   const [tickNow, setTickNow] = useState(() => Date.now());
   const [activeMode, setActiveMode] = useState<FocusMode>('default');
   const isRunning = !!runningSession && runningSession.status === 'running';
+  const isCreateMode = mode === 'create';
   const [draftTitle, setDraftTitle] = useState(task.title);
   const [draftDetails, setDraftDetails] = useState(stripStepsFromDetails(task.details));
   const [draftSteps, setDraftSteps] = useState<FocusStep[]>(parseQuestStepsForEditor(task.details));
@@ -764,11 +844,17 @@ const FocusWorkspace: React.FC<{
     setDraftScheduledAt(task.scheduledAt);
     setDraftScheduleValue(task.scheduledAt ? toLocalDateTimeValue(task.scheduledAt) : toLocalDateTimeValue(roundToFiveMinutes(Date.now())));
     setActiveMode('default');
-  }, [task.id, task.title, task.details, task.priority, task.scheduledAt]);
+  }, [task.id, task.title, task.details, task.priority, task.scheduledAt, mode]);
+
+  useEffect(() => {
+    if (mode === 'focus' && activeMode !== 'default') {
+      setActiveMode('default');
+    }
+  }, [mode, activeMode]);
 
   if (!open) return null;
 
-  const elapsed = getTaskTrackedMs(task.id, tickNow);
+  const elapsed = isCreateMode ? 0 : getTaskTrackedMs(task.id, tickNow);
   const stepsDone = draftSteps.filter((step) => step.done).length;
   const scheduleDate = draftScheduleValue ? new Date(draftScheduleValue) : new Date(roundToFiveMinutes(Date.now()));
   const scheduleHour24 = scheduleDate.getHours();
@@ -799,7 +885,7 @@ const FocusWorkspace: React.FC<{
       : 'Schedule: None';
 
   const saveDraft = () => {
-    if (!draftTitle.trim()) return;
+    if (!draftTitle.trim() || mode === 'focus') return;
     onSaveDraft({
       title: draftTitle.trim(),
       details: buildDetailsWithSteps(draftDetails, draftSteps),
@@ -859,18 +945,19 @@ const FocusWorkspace: React.FC<{
     const handleKeyDown = (event: KeyboardEvent) => {
       if (!(event.metaKey || event.ctrlKey) || event.key !== 'Enter') return;
       event.preventDefault();
-      if (!isDirty || !draftTitle.trim()) return;
+      if (mode === 'focus' || !isDirty || !draftTitle.trim()) return;
       saveDraft();
     };
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [isDirty, draftTitle, draftDetails, draftPriority, draftScheduledAt, draftSteps]);
+  }, [mode, isDirty, draftTitle, draftDetails, draftPriority, draftScheduledAt, draftSteps]);
 
   return (
     <div className="pointer-events-none absolute inset-y-3 left-3 right-[calc(clamp(320px,34vw,380px)+12px)] z-[170] max-sm:hidden">
       <div className="flex h-full items-center justify-center">
-      <div className="pointer-events-auto grid h-[clamp(320px,58vh,460px)] w-full max-w-[1120px] grid-cols-[54px_minmax(0,1.6fr)_72px_minmax(0,0.95fr)_minmax(200px,0.75fr)] gap-3 rounded-[16px] border border-[var(--app-border)] bg-[color-mix(in_srgb,var(--app-panel)_96%,black)] p-3">
+      <div className="pointer-events-auto grid h-[clamp(260px,40vh,340px)] w-full max-w-[880px] grid-cols-[44px_minmax(0,1.5fr)_62px_minmax(0,0.95fr)_minmax(170px,0.72fr)] gap-2.5 rounded-[16px] border border-[var(--app-border)] bg-[color-mix(in_srgb,var(--app-panel)_96%,black)] p-2.5">
         <LeftControlStrip
+          disabled={mode === 'focus'}
           activeMode={activeMode}
           onOpenMedia={() => setActiveMode('media')}
           onOpenSound={() => setActiveMode('sound')}
@@ -930,6 +1017,7 @@ const FocusWorkspace: React.FC<{
           ) : null}
         </div>
         <PriorityStrip
+          disabled={mode === 'focus'}
           value={draftPriorityLabel}
           onChange={(nextPriority) => {
             setDraftPriorityLabel(nextPriority);
@@ -937,6 +1025,7 @@ const FocusWorkspace: React.FC<{
           }}
         />
         <QuestPanel
+          workspaceMode={mode}
           title={draftTitle}
           details={draftDetails}
           setTitle={setDraftTitle}
@@ -963,6 +1052,8 @@ const FocusWorkspace: React.FC<{
           scheduleChipLabel={scheduleChipLabel}
           isDirty={isDirty}
           onClose={onClose}
+          onBackToFocus={onBackToFocus}
+          onEdit={onEditMode}
           onSave={saveDraft}
           onToggleRun={onToggleRun}
           onComplete={onComplete}
@@ -981,7 +1072,6 @@ export const HextechAssistant: React.FC<HextechAssistantProps> = ({ isOpen, onCl
     selectors,
     addTask,
     updateTask,
-    removeTask,
     startSession,
     pauseSession,
     completeTask,
@@ -989,10 +1079,10 @@ export const HextechAssistant: React.FC<HextechAssistantProps> = ({ isOpen, onCl
 
   const [filter, setFilter] = useState<QuestFilter>('active');
   const [toastMessage, setToastMessage] = useState<string | null>(null);
-  const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
-  const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [confirmCompleteTaskId, setConfirmCompleteTaskId] = useState<string | null>(null);
+  const [workspaceMode, setWorkspaceMode] = useState<WorkspaceMode | null>(null);
   const [focusedTaskId, setFocusedTaskId] = useState<string | null>(null);
+  const [createSeed, setCreateSeed] = useState(0);
   const [taskMediaSelections, setTaskMediaSelections] = useState<Record<string, string>>({});
   const [taskSoundSelections, setTaskSoundSelections] = useState<Record<string, string>>({});
   const [, setUiRevision] = useState(0);
@@ -1045,11 +1135,12 @@ export const HextechAssistant: React.FC<HextechAssistantProps> = ({ isOpen, onCl
   }, [activeSession, focusedTask]);
 
   useEffect(() => {
-    if (!focusedTaskId) return;
+    if (!focusedTaskId || workspaceMode === 'create') return;
     if (!focusedTask) {
+      setWorkspaceMode(null);
       setFocusedTaskId(null);
     }
-  }, [focusedTaskId, focusedTask]);
+  }, [focusedTaskId, focusedTask, workspaceMode]);
 
   const filteredTasks = useMemo(() => {
     const byFilter = availableTasks.filter((task) => {
@@ -1092,14 +1183,14 @@ export const HextechAssistant: React.FC<HextechAssistantProps> = ({ isOpen, onCl
 
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key !== 'Escape') return;
-      if (isCreateOpen || editingTaskId || confirmCompleteTaskId) return;
+      if (workspaceMode === 'edit' || workspaceMode === 'create' || confirmCompleteTaskId) return;
       event.preventDefault();
       requestClose();
     };
 
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [rendered, isCreateOpen, editingTaskId, confirmCompleteTaskId]);
+  }, [rendered, workspaceMode, confirmCompleteTaskId]);
 
   const runGuarded = (fn: () => void) => {
     if (actionLockedRef.current) return;
@@ -1128,41 +1219,34 @@ export const HextechAssistant: React.FC<HextechAssistantProps> = ({ isOpen, onCl
 
   const requestClose = () => {
     playClickSound();
-    setIsCreateOpen(false);
-    setEditingTaskId(null);
+    setWorkspaceMode(null);
     setConfirmCompleteTaskId(null);
     setFocusedTaskId(null);
     onClose();
   };
 
-  const openCreateModal = () => {
+  const openCreateWorkspace = () => {
     playClickSound();
-    setEditingTaskId(null);
     setFocusedTaskId(null);
-    setIsCreateOpen(true);
-  };
-
-  const openEditModal = (taskId: string) => {
-    playClickSound();
-    setIsCreateOpen(false);
-    setFocusedTaskId(null);
-    setEditingTaskId(taskId);
+    setCreateSeed((prev) => prev + 1);
+    setWorkspaceMode('create');
   };
 
   const openFocusPanel = (taskId: string) => {
+    playClickSound();
     setFocusedTaskId(taskId);
+    setWorkspaceMode('focus');
   };
 
   const closeFocusPanel = () => {
+    setWorkspaceMode(null);
     setFocusedTaskId(null);
   };
 
-  const closeQuestModal = () => {
-    setIsCreateOpen(false);
-    setEditingTaskId(null);
-  };
+  const openEditInWorkspace = () => setWorkspaceMode('edit');
+  const backToFocus = () => setWorkspaceMode('focus');
 
-  const handleSaveQuest = (draft: {
+  const handleSaveWorkspace = (draft: {
     title: string;
     details: string;
     priority: Task['priority'];
@@ -1173,15 +1257,8 @@ export const HextechAssistant: React.FC<HextechAssistantProps> = ({ isOpen, onCl
       return;
     }
 
-    if (editingTaskId) {
-      updateTask(editingTaskId, {
-        title: draft.title,
-        details: draft.details,
-        priority: draft.priority,
-        scheduledAt: draft.scheduledAt,
-      });
-    } else {
-      addTask({
+    if (workspaceMode === 'create') {
+      const createdId = addTask({
         title: draft.title,
         details: draft.details,
         priority: draft.priority,
@@ -1189,16 +1266,19 @@ export const HextechAssistant: React.FC<HextechAssistantProps> = ({ isOpen, onCl
         scheduledAt: draft.scheduledAt,
         icon: 'sword',
       });
+      setFocusedTaskId(createdId);
+      setWorkspaceMode('focus');
+    } else if (focusedTaskId) {
+      updateTask(focusedTaskId, {
+        title: draft.title,
+        details: draft.details,
+        priority: draft.priority,
+        scheduledAt: draft.scheduledAt,
+      });
+      setWorkspaceMode('focus');
     }
 
     playSuccessSound();
-    closeQuestModal();
-  };
-
-  const handleDeleteQuest = () => {
-    if (!editingTaskId) return;
-    removeTask(editingTaskId);
-    closeQuestModal();
   };
 
   const handleToggleRun = (task: Task) => {
@@ -1255,11 +1335,28 @@ export const HextechAssistant: React.FC<HextechAssistantProps> = ({ isOpen, onCl
     return { all: availableTasks.length, active, completed };
   }, [availableTasks]);
 
-  const modalTask = editingTaskId ? availableTasks.find((task) => task.id === editingTaskId) || null : null;
   const completeTarget = confirmCompleteTaskId
     ? availableTasks.find((task) => task.id === confirmCompleteTaskId) || null
     : null;
-  const hasBlockingModal = isCreateOpen || !!editingTaskId || !!completeTarget;
+  const hasBlockingModal = workspaceMode === 'create' || workspaceMode === 'edit' || !!completeTarget;
+  const workspaceTask = useMemo<Task | null>(() => {
+    if (workspaceMode === 'create') {
+      const now = Date.now();
+      return {
+        id: `draft-${createSeed}`,
+        title: '',
+        details: '',
+        priority: 'normal',
+        status: 'todo',
+        linkedSessionIds: [],
+        icon: 'sword',
+        createdAt: now,
+        updatedAt: now,
+      };
+    }
+    return focusedTask;
+  }, [workspaceMode, createSeed, focusedTask]);
+  const workspaceKey = workspaceTask?.id || null;
 
   if (!rendered) return null;
 
@@ -1278,38 +1375,48 @@ export const HextechAssistant: React.FC<HextechAssistantProps> = ({ isOpen, onCl
           }`}
         />
 
-        {focusedTask ? (
+        {workspaceMode && workspaceTask ? (
           <FocusWorkspace
-            open={!!focusedTask}
-            task={focusedTask}
-            runningSession={focusedTaskSession}
+            open={!!workspaceMode}
+            mode={workspaceMode}
+            task={workspaceTask}
+            runningSession={workspaceMode === 'create' ? null : focusedTaskSession}
             getSessionDisplayMs={selectors.getSessionDisplayMs}
             getTaskTrackedMs={getTaskTrackedMs}
-            selectedMediaAsset={taskMediaSelections[focusedTask.id] || 'focus-animation'}
-            selectedSoundAsset={taskSoundSelections[focusedTask.id] || null}
+            selectedMediaAsset={workspaceKey ? taskMediaSelections[workspaceKey] || 'focus-animation' : 'focus-animation'}
+            selectedSoundAsset={workspaceKey ? taskSoundSelections[workspaceKey] || null : null}
             onSelectMediaAsset={(assetId) =>
-              setTaskMediaSelections((prev) => ({
-                ...prev,
-                [focusedTask.id]: assetId,
-              }))
+              setTaskMediaSelections((prev) =>
+                workspaceKey
+                  ? {
+                      ...prev,
+                      [workspaceKey]: assetId,
+                    }
+                  : prev
+              )
             }
             onSelectSoundAsset={(assetId) =>
-              setTaskSoundSelections((prev) => ({
-                ...prev,
-                [focusedTask.id]: assetId,
-              }))
+              setTaskSoundSelections((prev) =>
+                workspaceKey
+                  ? {
+                      ...prev,
+                      [workspaceKey]: assetId,
+                    }
+                  : prev
+              )
             }
             onClose={closeFocusPanel}
-            onSaveDraft={(draft) => {
-              updateTask(focusedTask.id, {
-                title: draft.title,
-                details: draft.details,
-                priority: draft.priority,
-                scheduledAt: draft.scheduledAt,
-              });
+            onBackToFocus={backToFocus}
+            onEditMode={openEditInWorkspace}
+            onSaveDraft={handleSaveWorkspace}
+            onToggleRun={() => {
+              if (workspaceMode === 'create' || !focusedTask) return;
+              handleToggleRun(focusedTask);
             }}
-            onToggleRun={() => handleToggleRun(focusedTask)}
-            onComplete={() => handleComplete(focusedTask)}
+            onComplete={() => {
+              if (workspaceMode === 'create' || !focusedTask) return;
+              handleComplete(focusedTask);
+            }}
           />
         ) : null}
 
@@ -1335,7 +1442,7 @@ export const HextechAssistant: React.FC<HextechAssistantProps> = ({ isOpen, onCl
             <div className="border-b border-[var(--app-border)] p-4">
               <button
                 type="button"
-                onClick={openCreateModal}
+                onClick={openCreateWorkspace}
                 className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl border border-[var(--app-accent)] bg-[color-mix(in_srgb,var(--app-accent)_12%,var(--app-panel-2))] text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--app-text)]"
               >
                 <Plus size={16} />
@@ -1424,14 +1531,6 @@ export const HextechAssistant: React.FC<HextechAssistantProps> = ({ isOpen, onCl
           </div>
         ) : null}
       </div>
-
-      <QuestModal
-        open={isCreateOpen || !!editingTaskId}
-        task={modalTask}
-        onClose={closeQuestModal}
-        onSave={handleSaveQuest}
-        onDelete={editingTaskId ? handleDeleteQuest : undefined}
-      />
 
       <ConfirmModal
         open={!!completeTarget}
