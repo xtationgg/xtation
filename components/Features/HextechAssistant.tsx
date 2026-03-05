@@ -171,12 +171,12 @@ const LeftControlStrip: React.FC<{
 }) => {
   const inFocus = workspaceMode === 'focus';
   return (
-    <section className="grid h-full grid-rows-[1fr_1fr] gap-3">
+    <section className="grid h-full grid-rows-[1fr_1fr] gap-2">
       <button
         type="button"
         onClick={inFocus ? onToggleRun : onOpenMedia}
         title={inFocus ? (isRunning ? 'Pause quest' : 'Start quest') : 'Media library'}
-        className={`inline-flex h-full min-h-[80px] items-center justify-center rounded-[12px] border text-[var(--app-text)] transition-colors ${
+        className={`inline-flex h-full min-h-[68px] items-center justify-center rounded-[10px] border text-[var(--app-text)] transition-colors ${
           inFocus
             ? 'border-[var(--app-accent)] bg-[color-mix(in_srgb,var(--app-accent)_16%,var(--app-panel))]'
             : activeMode === 'media'
@@ -191,7 +191,7 @@ const LeftControlStrip: React.FC<{
         type="button"
         onClick={inFocus ? onToggleMute : onOpenSound}
         title={inFocus ? (isMuted ? 'Unmute focus sound' : 'Mute focus sound') : 'Sound library'}
-        className={`inline-flex h-full min-h-[80px] items-center justify-center rounded-[12px] border text-[var(--app-text)] transition-colors ${
+        className={`inline-flex h-full min-h-[68px] items-center justify-center rounded-[10px] border text-[var(--app-text)] transition-colors ${
           inFocus
             ? 'border-[var(--app-accent)] bg-[color-mix(in_srgb,var(--app-accent)_16%,var(--app-panel))]'
             : activeMode === 'sound'
@@ -283,7 +283,7 @@ const ActiveAreaDefault: React.FC<{
           <div className="text-center text-[11px] uppercase tracking-[0.16em] text-[var(--app-muted)]">
             active empty space
             <div className="mt-2 text-[9px] text-[var(--app-text)]">
-              {isRunning ? 'syncing to quest timer' : 'paused state'}
+              {isRunning ? 'synced with quest timer' : 'ready'}
               {selectedSoundAsset ? ` • ${selectedSoundAsset}` : ''}
             </div>
           </div>
@@ -610,7 +610,7 @@ const QuestPanel: React.FC<{
   };
 
   return (
-    <section className="min-h-0 w-full max-w-[440px] rounded-[12px] border border-[var(--app-border)] bg-[var(--app-panel)] p-3">
+    <section className="min-h-0 w-full max-w-[390px] rounded-[12px] border border-[var(--app-border)] bg-[var(--app-panel)] p-3">
       <div className="flex h-full flex-col gap-3">
         <div className="flex items-center justify-between">
           <div className="text-[10px] uppercase tracking-[0.14em] text-[var(--app-muted)]">{modeLabel}</div>
@@ -711,7 +711,6 @@ const QuestPanel: React.FC<{
             <div className="truncate">Media: {selectedMediaLabel}</div>
             <div className="truncate">Sound: {selectedSoundLabel || 'None'}</div>
             <div className="truncate">{scheduleChipLabel}</div>
-            <div className="text-[color-mix(in_srgb,var(--app-accent)_72%,white)]">Press Edit to change setup</div>
           </div>
         )}
 
@@ -1058,9 +1057,9 @@ const FocusWorkspace: React.FC<{
 
   return (
     <>
-      <div className="pointer-events-none absolute inset-y-3 left-3 right-[calc(clamp(320px,34vw,380px)+12px)] z-[170] max-sm:hidden">
+      <div className="pointer-events-none absolute inset-y-4 left-4 right-[calc(clamp(320px,34vw,380px)+16px)] z-[170] max-sm:hidden">
         <div className="flex h-full items-center justify-center">
-          <div className="pointer-events-auto grid h-[clamp(250px,35vh,330px)] w-full max-w-[min(980px,calc(100vw-clamp(320px,34vw,380px)-56px))] grid-cols-[52px_minmax(0,1.65fr)_54px_minmax(0,1fr)_minmax(170px,0.72fr)] gap-2.5 rounded-[16px] border border-[var(--app-border)] bg-[color-mix(in_srgb,var(--app-panel)_96%,black)] p-2.5">
+          <div className="pointer-events-auto grid min-h-[clamp(280px,42vh,420px)] w-full max-w-[min(1120px,calc(100vw-clamp(320px,34vw,380px)-72px))] grid-cols-[48px_minmax(0,1.85fr)_56px_minmax(0,0.9fr)_minmax(172px,0.78fr)] gap-2.5 rounded-[16px] border border-[var(--app-border)] bg-[color-mix(in_srgb,var(--app-panel)_96%,black)] p-2.5">
             <LeftControlStrip
           workspaceMode={mode}
           activeMode={activeMode}
