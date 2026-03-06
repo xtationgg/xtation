@@ -2171,3 +2171,31 @@ a {
 [data-motion="reduced"] .stage-active-dot {
   animation-duration: 0.01ms !important;
 }
+
+/* Quests drawer micro-motion polish */
+@keyframes quest-card-enter {
+  0% { opacity: 0; transform: translateY(6px) scale(0.995); }
+  100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes quest-priority-rise {
+  0%, 100% { transform: translateY(0); opacity: 0.72; }
+  50% { transform: translateY(-1px); opacity: 1; }
+}
+
+.quest-card-shell {
+  animation: quest-card-enter 170ms ease-out both;
+}
+
+.quest-priority-arrow {
+  transition: color 160ms ease;
+}
+
+.quest-priority-arrow--active {
+  animation: quest-priority-rise 900ms ease-in-out infinite;
+}
+
+[data-motion="reduced"] .quest-card-shell,
+[data-motion="reduced"] .quest-priority-arrow--active {
+  animation-duration: 0.01ms !important;
+}

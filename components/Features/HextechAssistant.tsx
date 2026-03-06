@@ -239,20 +239,6 @@ const getYouTubeThumbnailUrl = (url: string) => {
   return `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
 };
 
-const fileToDataUrl = (file: File) =>
-  new Promise<string>((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => {
-      if (typeof reader.result === 'string') {
-        resolve(reader.result);
-        return;
-      }
-      reject(new Error('Failed to read file'));
-    };
-    reader.onerror = () => reject(reader.error || new Error('Failed to read file'));
-    reader.readAsDataURL(file);
-  });
-
 const getFocusMediaAsset = (assetId: string | null) => {
   const serialized = parseCustomAsset<SerializedMediaAsset>(assetId, 'media-custom:');
   if (serialized?.src) {
@@ -529,9 +515,11 @@ const ActiveLibraryView: React.FC<{
   }, [currentSource]);
 
   useEffect(() => {
-    if (!currentSource) return;
-    if (currentSource.startsWith('data:') || currentSource.startsWith('blob:')) return;
-    setCustomUrl((prev) => (prev ? prev : currentSource));
+    if (!currentSource) {
+      setCustomUrl('');
+      return;
+    }
+    setCustomUrl((prev) => (prev === currentSource ? prev : currentSource));
   }, [currentSource]);
 
   const applyCustomUrl = () => {
@@ -562,7 +550,12 @@ const ActiveLibraryView: React.FC<{
     if (!file) return;
     setUploading(true);
     try {
-      const src = await fileToDataUrl(file);
+      const isMediaFile = file.type.startsWith('image/') || file.type.startsWith('video/');
+      const isAudioFile = file.type.startsWith('audio/');
+      if ((kind === 'media' && !isMediaFile) || (kind === 'sound' && !isAudioFile)) {
+        throw new Error('unsupported-file');
+      }
+      const src = URL.createObjectURL(file);
       const nextId =
         kind === 'media'
           ? serializeCustomAsset<SerializedMediaAsset>('media-custom:', {
@@ -576,9 +569,13 @@ const ActiveLibraryView: React.FC<{
             });
       onSelect(nextId, true);
       setCustomError(null);
-      setCustomUrl(file.name || '');
+      setCustomUrl(src);
     } catch {
-      setCustomError('Could not load this file. Try a smaller file or direct URL.');
+      setCustomError(
+        kind === 'media'
+          ? 'Use an image/video file. Unsupported media type.'
+          : 'Use an audio file. Unsupported sound type.'
+      );
     } finally {
       setUploading(false);
       event.currentTarget.value = '';
@@ -1266,7 +1263,13 @@ type CharacterVisual = 'default' | 'schedule' | 'countdown';
 
 const CharacterPanel: React.FC<{
   visual: CharacterVisual;
-}> = ({ visual }) => {
+  showRuntime: boolean;
+  timerLabel: string;
+  isRunningSession: boolean;
+  onToggleRun: () => void;
+  onComplete: () => void;
+  onEdit: () => void;
+}> = ({ visual, showRuntime, timerLabel, isRunningSession, onToggleRun, onComplete, onEdit }) => {
   const visualConfig =
     visual === 'schedule'
       ? {
@@ -1287,8 +1290,44 @@ const CharacterPanel: React.FC<{
         };
 
   return (
-    <section className={`min-h-0 rounded-[12px] border border-[var(--app-border)] p-3 ${visualConfig.bg}`}>
-      <div className="flex h-full items-center justify-center">
+    <section className={`flex min-h-0 flex-col rounded-[12px] border border-[var(--app-border)] p-3 ${visualConfig.bg}`}>
+      {showRuntime ? (
+        <div className="mb-3 flex flex-col items-center gap-2">
+          <div className="font-mono text-[44px] font-semibold leading-none tracking-[0.06em] text-[var(--app-text)]">
+            {timerLabel}
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              aria-label={isRunningSession ? 'Pause quest' : 'Start quest'}
+              title={isRunningSession ? 'Pause quest' : 'Start quest'}
+              onClick={onToggleRun}
+              className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-[var(--app-border)] bg-[var(--app-panel)] text-[var(--app-text)] transition-colors hover:border-[var(--app-accent)]"
+            >
+              {isRunningSession ? <Pause size={16} /> : <Play size={16} />}
+            </button>
+            <button
+              type="button"
+              aria-label="Complete quest"
+              title="Complete quest"
+              onClick={onComplete}
+              className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-[var(--app-accent)] bg-[color-mix(in_srgb,var(--app-accent)_14%,var(--app-panel))] text-[var(--app-text)] transition-colors hover:bg-[color-mix(in_srgb,var(--app-accent)_22%,var(--app-panel))]"
+            >
+              <Check size={16} />
+            </button>
+            <button
+              type="button"
+              aria-label="Edit quest"
+              title="Edit quest"
+              onClick={onEdit}
+              className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-[var(--app-border)] bg-[var(--app-panel)] text-[var(--app-text)] transition-colors hover:border-[var(--app-accent)]"
+            >
+              <Pencil size={16} />
+            </button>
+          </div>
+        </div>
+      ) : null}
+      <div className="flex min-h-0 flex-1 items-center justify-center">
         <img src={visualConfig.src} alt={visualConfig.alt} className="max-h-full w-full object-contain" />
       </div>
     </section>
@@ -1304,7 +1343,6 @@ const QuestPanel: React.FC<{
   activeMode: FocusMode;
   onToggleSchedule: () => void;
   onToggleCountdown: () => void;
-  isRunning: boolean;
   stepsDone: number;
   stepsTotal: number;
   steps: FocusStep[];
@@ -1314,13 +1352,8 @@ const QuestPanel: React.FC<{
   scheduleChipLabel: string;
   isDirty: boolean;
   onBackToFocus: () => void;
-  onEdit: () => void;
   onSave: () => void;
   onCloseWorkspace: () => void;
-  timerLabel: string;
-  isRunningSession: boolean;
-  onToggleRun: () => void;
-  onComplete: () => void;
 }> = ({
   workspaceMode,
   title,
@@ -1330,7 +1363,6 @@ const QuestPanel: React.FC<{
   activeMode,
   onToggleSchedule,
   onToggleCountdown,
-  isRunning,
   stepsDone,
   stepsTotal,
   steps,
@@ -1340,13 +1372,8 @@ const QuestPanel: React.FC<{
   scheduleChipLabel,
   isDirty,
   onBackToFocus,
-  onEdit,
   onSave,
   onCloseWorkspace,
-  timerLabel,
-  isRunningSession,
-  onToggleRun,
-  onComplete,
 }) => {
   const [stepInput, setStepInput] = useState('');
   const isFocusMode = workspaceMode === 'focus';
@@ -1520,42 +1547,6 @@ const QuestPanel: React.FC<{
             </button>
           </div>
         )}
-        {isFocusMode ? (
-          <div className="mt-auto rounded-[10px] border border-[var(--app-border)] bg-[var(--app-panel-2)] px-2.5 py-2">
-            <div className="mb-2 font-mono text-center text-[30px] font-semibold leading-none tracking-[0.06em] text-[var(--app-text)]">
-              {timerLabel}
-            </div>
-            <div className="grid grid-cols-3 gap-2">
-              <button
-                type="button"
-                aria-label={isRunningSession ? 'Pause quest' : 'Start quest'}
-                title={isRunningSession ? 'Pause quest' : 'Start quest'}
-                onClick={onToggleRun}
-                className="inline-flex h-10 items-center justify-center rounded-md border border-[var(--app-border)] bg-[var(--app-panel)] text-[var(--app-text)] transition-colors hover:border-[var(--app-accent)]"
-              >
-                {isRunningSession ? <Pause size={16} /> : <Play size={16} />}
-              </button>
-              <button
-                type="button"
-                aria-label="Complete quest"
-                title="Complete quest"
-                onClick={onComplete}
-                className="inline-flex h-10 items-center justify-center rounded-md border border-[var(--app-accent)] bg-[color-mix(in_srgb,var(--app-accent)_14%,var(--app-panel))] text-[var(--app-text)] transition-colors hover:bg-[color-mix(in_srgb,var(--app-accent)_22%,var(--app-panel))]"
-              >
-                <Check size={16} />
-              </button>
-              <button
-                type="button"
-                aria-label="Edit quest"
-                title="Edit quest"
-                onClick={onEdit}
-                className="inline-flex h-10 items-center justify-center rounded-md border border-[var(--app-border)] bg-[var(--app-panel)] text-[var(--app-text)] transition-colors hover:border-[var(--app-accent)]"
-              >
-                <Pencil size={16} />
-              </button>
-            </div>
-          </div>
-        ) : null}
       </div>
     </section>
   );
@@ -1892,7 +1883,6 @@ const FocusWorkspace: React.FC<{
           activeMode={activeMode}
           onToggleSchedule={() => setActiveMode((prev) => (prev === 'schedule' ? 'default' : 'schedule'))}
           onToggleCountdown={() => setActiveMode((prev) => (prev === 'countdown' ? 'default' : 'countdown'))}
-          isRunning={isRunning}
           stepsDone={stepsDone}
           stepsTotal={draftSteps.length}
           steps={draftSteps}
@@ -1912,15 +1902,18 @@ const FocusWorkspace: React.FC<{
           scheduleChipLabel={scheduleChipLabel}
           isDirty={isDirty}
           onBackToFocus={() => requestExit('back')}
-          onEdit={onEditMode}
           onSave={saveDraft}
           onCloseWorkspace={() => requestExit('close')}
-          timerLabel={formatTimer(timerDisplayMs)}
-          isRunningSession={isRunning}
-          onToggleRun={onToggleRun}
-          onComplete={onComplete}
             />
-            <CharacterPanel visual={characterVisual} />
+            <CharacterPanel
+              visual={characterVisual}
+              showRuntime={mode === 'focus'}
+              timerLabel={formatTimer(timerDisplayMs)}
+              isRunningSession={isRunning}
+              onToggleRun={onToggleRun}
+              onComplete={onComplete}
+              onEdit={onEditMode}
+            />
           </div>
         </div>
       </div>

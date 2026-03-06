@@ -14,7 +14,7 @@ const formatDuration = (ms: number) => {
 };
 
 const formatClock = (timestamp?: number) => {
-  if (!timestamp) return '--:--';
+  if (!timestamp) return null;
   return new Date(timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 };
 
@@ -133,7 +133,7 @@ export const QuestCard: React.FC<QuestCardProps> = ({
     if (status === 'Scheduled') return 'bg-[#55a3ff]/22 text-[#95c4ff]';
     return null;
   }, [status]);
-  const rightTimeLabel = timerLabel || formatClock(task.scheduledAt);
+  const rightTimeLabel = timerLabel || formatClock(task.scheduledAt) || null;
   const isTimedQuest = !!targetMs || !!task.scheduledAt || isRunning;
   const effectiveProgress = timedProgress ?? schedulePulse;
   const hasActiveTiming = isRunning || !!targetMs || (!!task.scheduledAt && task.scheduledAt > Date.now());
@@ -149,7 +149,7 @@ export const QuestCard: React.FC<QuestCardProps> = ({
           onOpen();
         }
       }}
-      className={`group relative w-full overflow-hidden rounded-[12px] border text-left transition-colors ${
+      className={`quest-card-shell group relative w-full overflow-hidden rounded-[12px] border text-left transition-colors ${
         isRunning
           ? 'border-[color-mix(in_srgb,var(--app-accent)_58%,transparent)] bg-[color-mix(in_srgb,var(--app-accent)_12%,var(--app-panel))] shadow-[0_0_0_1px_color-mix(in_srgb,var(--app-accent)_30%,transparent)]'
           : isFocused
@@ -194,8 +194,8 @@ export const QuestCard: React.FC<QuestCardProps> = ({
                 size={11}
                 className={
                   priorityLevel >= level
-                    ? 'text-[var(--app-text)]'
-                    : 'text-[color-mix(in_srgb,var(--app-muted)_45%,transparent)]'
+                    ? `quest-priority-arrow text-[var(--app-text)] ${isRunning || isFocused ? 'quest-priority-arrow--active' : ''}`
+                    : 'quest-priority-arrow text-[color-mix(in_srgb,var(--app-muted)_45%,transparent)]'
                 }
                 strokeWidth={2.3}
               />
@@ -220,36 +220,19 @@ export const QuestCard: React.FC<QuestCardProps> = ({
           </div>
         </div>
 
-        <div className="flex w-[112px] shrink-0 flex-col items-end gap-1.5 pr-0.5">
-          {statusTone ? (
-            <div className={`rounded-md px-2 py-0.5 text-[9px] font-semibold uppercase tracking-[0.1em] ${statusTone}`}>
-              {status}
-            </div>
-          ) : (
-            <div className="h-5" />
-          )}
-          <div className="text-[14px] font-semibold tracking-[0.06em] text-[var(--app-text)]">{rightTimeLabel}</div>
+        <div className="flex w-[132px] shrink-0 flex-col items-end gap-1.5 pr-0.5">
+          <div className="flex w-full items-center justify-end gap-1.5">
+            {statusTone ? (
+              <div className={`rounded-md px-2 py-0.5 text-[9px] font-semibold uppercase tracking-[0.1em] ${statusTone}`}>
+                {status}
+              </div>
+            ) : null}
+            {rightTimeLabel ? (
+              <div className="text-[13px] font-semibold tracking-[0.06em] text-[var(--app-text)]">{rightTimeLabel}</div>
+            ) : null}
+          </div>
           {!isCompleted ? (
-            <div className="mt-0.5 grid w-full grid-cols-1 gap-1.5">
-              {onTogglePreviewPin ? (
-                <button
-                  type="button"
-                  aria-label={isPreviewPinned ? 'Unpin media preview' : 'Pin media preview'}
-                  disabled={disabled}
-                  onClick={(event) => {
-                    event.stopPropagation();
-                    event.preventDefault();
-                    onTogglePreviewPin();
-                  }}
-                  className={`inline-flex h-7 w-full items-center justify-center rounded-lg border text-[var(--app-text)] transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--app-accent)] disabled:opacity-40 ${
-                    isPreviewPinned
-                      ? 'border-[var(--app-accent)] bg-[color-mix(in_srgb,var(--app-accent)_18%,var(--app-panel-2))]'
-                      : 'border-[var(--app-border)] bg-[var(--app-panel-2)] hover:border-[var(--app-accent)]'
-                  }`}
-                >
-                  <Pin size={15} />
-                </button>
-              ) : null}
+            <div className="mt-0.5 flex w-full items-center justify-end gap-1.5">
               <button
                 type="button"
                 aria-label={isRunning ? 'Pause quest' : 'Start quest'}
@@ -259,7 +242,7 @@ export const QuestCard: React.FC<QuestCardProps> = ({
                   event.preventDefault();
                   onToggleRun();
                 }}
-                className="inline-flex h-7 w-full items-center justify-center rounded-lg border border-[var(--app-border)] bg-[var(--app-panel-2)] text-[var(--app-text)] transition-colors hover:border-[var(--app-accent)] hover:text-[var(--app-accent)] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--app-accent)] disabled:opacity-40"
+                className="inline-flex h-7 w-8 shrink-0 items-center justify-center rounded-lg border border-[var(--app-border)] bg-[var(--app-panel-2)] text-[var(--app-text)] transition-colors hover:border-[var(--app-accent)] hover:text-[var(--app-accent)] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--app-accent)] disabled:opacity-40"
               >
                 {isRunning ? <Pause size={16} /> : <Play size={16} />}
               </button>
@@ -273,10 +256,30 @@ export const QuestCard: React.FC<QuestCardProps> = ({
                   event.preventDefault();
                   onComplete();
                 }}
-                className="inline-flex h-7 w-full items-center justify-center rounded-lg border border-[var(--app-border)] bg-[var(--app-panel-2)] text-[var(--app-text)] transition-colors hover:border-[var(--app-accent)] hover:text-[var(--app-accent)] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--app-accent)] disabled:opacity-40"
+                className="inline-flex h-7 w-8 shrink-0 items-center justify-center rounded-lg border border-[var(--app-border)] bg-[var(--app-panel-2)] text-[var(--app-text)] transition-colors hover:border-[var(--app-accent)] hover:text-[var(--app-accent)] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--app-accent)] disabled:opacity-40"
               >
                 <Check size={16} />
               </button>
+              {onTogglePreviewPin && mediaPreviewUrl ? (
+                <button
+                  type="button"
+                  aria-label={isPreviewPinned ? 'Unpin media preview' : 'Pin media preview'}
+                  title={isPreviewPinned ? 'Unpin media preview' : 'Keep media preview visible'}
+                  disabled={disabled}
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    event.preventDefault();
+                    onTogglePreviewPin();
+                  }}
+                  className={`inline-flex h-7 w-8 shrink-0 items-center justify-center rounded-lg border text-[var(--app-text)] transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--app-accent)] disabled:opacity-40 ${
+                    isPreviewPinned
+                      ? 'border-[var(--app-accent)] bg-[color-mix(in_srgb,var(--app-accent)_18%,var(--app-panel-2))]'
+                      : 'border-[var(--app-border)] bg-[var(--app-panel-2)] hover:border-[var(--app-accent)]'
+                  }`}
+                >
+                  <Pin size={15} />
+                </button>
+              ) : null}
             </div>
           ) : null}
         </div>
