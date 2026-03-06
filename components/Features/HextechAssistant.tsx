@@ -386,7 +386,8 @@ const ActiveAreaDefault: React.FC<{
   selectedSoundAsset: string | null;
   elapsedMs: number;
   isRunning: boolean;
-}> = ({ selectedAssetId, selectedSoundAsset, elapsedMs, isRunning }) => {
+  allowAudioPlayback?: boolean;
+}> = ({ selectedAssetId, selectedSoundAsset, elapsedMs, isRunning, allowAudioPlayback = true }) => {
   const selectedAsset = getFocusMediaAsset(selectedAssetId);
   const selectedSound = getFocusSoundAsset(selectedSoundAsset);
   const videoRef = useRef<HTMLVideoElement | null>(null);
@@ -468,7 +469,7 @@ const ActiveAreaDefault: React.FC<{
     const audio = audioRef.current;
     if (!audio) return;
 
-    if (!selectedSound || !isRunning) {
+    if (!allowAudioPlayback || !selectedSound || !isRunning) {
       fadeOutAudio(true);
       return;
     }
@@ -482,7 +483,7 @@ const ActiveAreaDefault: React.FC<{
     return () => {
       fadeOutAudio(false);
     };
-  }, [selectedSound?.id, selectedSound?.src, isRunning]);
+  }, [selectedSound?.id, selectedSound?.src, isRunning, allowAudioPlayback]);
 
   useEffect(() => {
     return () => {
@@ -2021,7 +2022,13 @@ const FocusWorkspace: React.FC<{
     <>
       <div className="pointer-events-none absolute inset-y-3 left-3 right-[calc(clamp(320px,34vw,380px)+10px)] z-[170] max-sm:hidden">
         <div className="flex h-full items-center justify-center">
-          <div className="pointer-events-auto relative grid h-[clamp(360px,54vh,560px)] max-h-[calc(100dvh-30px)] w-[min(1060px,calc(100vw-clamp(320px,34vw,380px)-24px))] min-w-[560px] grid-cols-[48px_minmax(0,1.72fr)_58px_minmax(270px,1.08fr)_minmax(180px,0.82fr)] gap-2 overflow-hidden rounded-[16px] border border-[var(--app-border)] bg-[color-mix(in_srgb,var(--app-panel)_96%,black)] p-2">
+          <div
+            className={`pointer-events-auto relative grid max-h-[calc(100dvh-30px)] w-[min(1140px,calc(100vw-clamp(320px,34vw,380px)-24px))] min-w-[560px] gap-2 overflow-hidden rounded-[16px] border border-[var(--app-border)] bg-[color-mix(in_srgb,var(--app-panel)_96%,black)] p-2 ${
+              mode === 'focus'
+                ? 'h-[clamp(360px,56vh,600px)] grid-cols-[minmax(0,1.95fr)_minmax(300px,1.06fr)_minmax(180px,0.82fr)]'
+                : 'h-[clamp(360px,54vh,560px)] grid-cols-[48px_minmax(0,1.72fr)_58px_minmax(270px,1.08fr)_minmax(180px,0.82fr)]'
+            }`}
+          >
             <button
               type="button"
               aria-label="Close focus workspace"
@@ -2030,19 +2037,21 @@ const FocusWorkspace: React.FC<{
             >
               <X size={14} />
             </button>
-            <LeftControlStrip
-              workspaceMode={mode}
-              activeMode={activeMode}
-              canConfigureAssets={mode !== 'focus'}
-              onOpenMedia={() => {
-                if (mode === 'focus') return;
-                setActiveMode((prev) => (prev === 'media' ? 'default' : 'media'));
-              }}
-              onOpenSound={() => {
-                if (mode === 'focus') return;
-                setActiveMode((prev) => (prev === 'sound' ? 'default' : 'sound'));
-              }}
-            />
+            {mode !== 'focus' ? (
+              <LeftControlStrip
+                workspaceMode={mode}
+                activeMode={activeMode}
+                canConfigureAssets={mode !== 'focus'}
+                onOpenMedia={() => {
+                  if (mode === 'focus') return;
+                  setActiveMode((prev) => (prev === 'media' ? 'default' : 'media'));
+                }}
+                onOpenSound={() => {
+                  if (mode === 'focus') return;
+                  setActiveMode((prev) => (prev === 'sound' ? 'default' : 'sound'));
+                }}
+              />
+            ) : null}
             <div className="h-full min-h-0 overflow-hidden">
               {activeMode === 'default' ? (
                 <ActiveAreaDefault
@@ -2050,6 +2059,7 @@ const FocusWorkspace: React.FC<{
                   selectedSoundAsset={draftSoundAsset}
                   elapsedMs={stableElapsed}
                   isRunning={isRunning}
+                  allowAudioPlayback={mode === 'focus'}
                 />
               ) : null}
               {activeMode === 'schedule' ? (
@@ -2101,14 +2111,16 @@ const FocusWorkspace: React.FC<{
                 <ActiveCountdownView countdownMin={draftCountdownMin} onChange={setDraftCountdownMin} />
               ) : null}
             </div>
-            <PriorityStrip
-          disabled={mode === 'focus'}
-          value={draftPriorityLabel}
-          onChange={(nextPriority) => {
-            setDraftPriorityLabel(nextPriority);
-            setDraftPriority(nextPriority === 'extreme' ? 'urgent' : nextPriority);
-          }}
-            />
+            {mode !== 'focus' ? (
+              <PriorityStrip
+                disabled={mode === 'focus'}
+                value={draftPriorityLabel}
+                onChange={(nextPriority) => {
+                  setDraftPriorityLabel(nextPriority);
+                  setDraftPriority(nextPriority === 'extreme' ? 'urgent' : nextPriority);
+                }}
+              />
+            ) : null}
             <QuestPanel
           workspaceMode={mode}
           title={draftTitle}

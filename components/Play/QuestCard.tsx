@@ -26,13 +26,9 @@ const formatScheduleLabel = (timestamp?: number) => {
   return `${weekday} ${date.getDate()}/${month}`;
 };
 
-const getDurationTargetMs = (task: Task) => {
-  const source =
-    (typeof task.countdownMin === 'number' && task.countdownMin > 0 && task.countdownMin) ||
-    (typeof task.estimatedMinutes === 'number' && task.estimatedMinutes > 0 && task.estimatedMinutes) ||
-    (typeof task.estimatedXP === 'number' && task.estimatedXP > 0 && task.estimatedXP);
-  if (!source) return null;
-  return Math.floor(source * 60_000);
+const getCountdownTargetMs = (task: Task) => {
+  if (typeof task.countdownMin !== 'number' || task.countdownMin <= 0) return null;
+  return Math.floor(task.countdownMin * 60_000);
 };
 
 const getPriorityLevel = (priorityVisual: 'normal' | 'high' | 'urgent' | 'extreme') => {
@@ -101,23 +97,23 @@ export const QuestCard: React.FC<QuestCardProps> = ({
     [getTaskTrackedMs, task.id, tickNow]
   );
 
-  const targetMs = useMemo(() => getDurationTargetMs(task), [task]);
-  const isCountdownFinished = !!(targetMs && elapsedMs >= targetMs);
+  const countdownTargetMs = useMemo(() => getCountdownTargetMs(task), [task]);
+  const isCountdownFinished = !!(countdownTargetMs && elapsedMs >= countdownTargetMs);
   const timerLabel = useMemo(() => {
     if (!isRunning || !runningSession) return null;
-    if (!targetMs) return formatDuration(elapsedMs);
-    return formatDuration(Math.max(0, targetMs - elapsedMs));
-  }, [elapsedMs, isRunning, runningSession, targetMs]);
+    if (!countdownTargetMs) return formatDuration(elapsedMs);
+    return formatDuration(Math.max(0, countdownTargetMs - elapsedMs));
+  }, [elapsedMs, isRunning, runningSession, countdownTargetMs]);
 
   const isCompleted = task.completedAt || task.status === 'done';
   const stepProgress = useMemo(() => getStepProgress(task.details), [task.details]);
   const progressPct = stepProgress.total > 0 ? Math.round((stepProgress.done / stepProgress.total) * 100) : 0;
   const priorityLevel = useMemo(() => getPriorityLevel(priorityVisual), [priorityVisual]);
   const timedProgress = useMemo(() => {
-    if (!targetMs || targetMs <= 0) return null;
-    const ratio = Math.max(0, Math.min(1, elapsedMs / targetMs));
+    if (!countdownTargetMs || countdownTargetMs <= 0) return null;
+    const ratio = Math.max(0, Math.min(1, elapsedMs / countdownTargetMs));
     return ratio;
-  }, [elapsedMs, targetMs]);
+  }, [elapsedMs, countdownTargetMs]);
   const schedulePulse = useMemo(() => {
     if (!task.scheduledAt || task.scheduledAt <= Date.now()) return null;
     const until = task.scheduledAt - Date.now();
@@ -125,13 +121,6 @@ export const QuestCard: React.FC<QuestCardProps> = ({
     const ratio = 1 - Math.max(0, Math.min(1, until / totalWindow));
     return ratio;
   }, [task.scheduledAt, tickNow]);
-  const stateToneClass = useMemo(() => {
-    if (isCountdownFinished) return 'bg-[#f4c664] shadow-[0_0_10px_rgba(244,198,100,0.45)]';
-    if (isCompleted) return 'bg-[var(--app-accent)] shadow-[0_0_10px_color-mix(in_srgb,var(--app-accent)_45%,transparent)]';
-    if (isScheduledFuture) return 'bg-[#55a3ff] shadow-[0_0_10px_rgba(85,163,255,0.45)]';
-    if (isRunning) return 'bg-[var(--app-accent)] shadow-[0_0_10px_color-mix(in_srgb,var(--app-accent)_40%,transparent)]';
-    return 'bg-[color-mix(in_srgb,var(--app-muted)_80%,transparent)]';
-  }, [isCountdownFinished, isCompleted, isScheduledFuture, isRunning]);
   const scheduleShort = useMemo(() => formatScheduleLabel(task.scheduledAt), [task.scheduledAt]);
   const scheduleRemaining = useMemo(() => {
     if (!task.scheduledAt || task.scheduledAt <= Date.now()) return null;
@@ -158,11 +147,19 @@ export const QuestCard: React.FC<QuestCardProps> = ({
     const minuteOnly = Math.max(0, minutes - hourOnly * 60);
     return `${hourOnly}H ${minuteOnly}M`;
   }, [task.scheduledAt, tickNow]);
-  const rightTimeLabel = timerLabel || scheduleShort || formatClock(task.scheduledAt) || null;
-  const isTimedQuest = !!targetMs || !!task.scheduledAt || isRunning;
+  const completedClock = formatClock(task.completedAt);
+  const completedShort = formatScheduleLabel(task.completedAt);
+  const trackedLabel = elapsedMs > 0 ? formatDuration(elapsedMs) : null;
+  const rightTimeLabel =
+    timerLabel ||
+    (isCompleted ? completedClock : null) ||
+    scheduleShort ||
+    trackedLabel ||
+    null;
   const effectiveProgress = timedProgress ?? schedulePulse;
-  const hasActiveTiming = isRunning || !!targetMs || (!!task.scheduledAt && task.scheduledAt > Date.now());
-  const runLabel = isCountdownFinished ? 'Countdown finished' : isRunning ? 'Pause quest' : 'Start quest';
+  const hasActiveTiming = isRunning || !!countdownTargetMs || (!!task.scheduledAt && task.scheduledAt > Date.now());
+  const showProgressBar = !!countdownTargetMs || (!!task.scheduledAt && task.scheduledAt > Date.now());
+  const runLabel = isRunning ? 'Pause quest' : 'Start quest';
 
   return (
     <article
@@ -222,7 +219,7 @@ export const QuestCard: React.FC<QuestCardProps> = ({
                 size={11}
                 className={
                   priorityLevel >= level
-                    ? `quest-priority-arrow text-[var(--app-text)] ${isRunning || isFocused ? 'quest-priority-arrow--active' : ''}`
+                    ? `quest-priority-arrow text-[var(--app-text)] ${!isCompleted && (isRunning || isFocused) ? 'quest-priority-arrow--active' : ''}`
                     : 'quest-priority-arrow text-[color-mix(in_srgb,var(--app-muted)_45%,transparent)]'
                 }
                 strokeWidth={2.3}
@@ -249,30 +246,34 @@ export const QuestCard: React.FC<QuestCardProps> = ({
         </div>
 
         <div className="flex w-[176px] shrink-0 items-center justify-end gap-1.5 pr-0.5">
-          <span className={`inline-flex h-2.5 w-2.5 rounded-full ${stateToneClass}`} aria-hidden="true" />
           {rightTimeLabel ? (
             <div className="min-w-[72px] text-right text-[13px] font-semibold tracking-[0.06em] text-[var(--app-text)]">
               <span className={scheduleRemaining && !isRunning ? 'group-hover:hidden' : ''}>{rightTimeLabel}</span>
               {scheduleRemaining && !isRunning ? (
                 <span className="hidden group-hover:inline">{scheduleRemaining}</span>
               ) : null}
+              {isCompleted && completedShort ? (
+                <div className="mt-0.5 text-[9px] font-medium tracking-[0.06em] text-[var(--app-muted)]">{completedShort}</div>
+              ) : null}
             </div>
           ) : null}
           {!isCompleted ? (
             <>
-              <button
-                type="button"
-                aria-label={runLabel}
-                disabled={disabled}
-                onClick={(event) => {
-                  event.stopPropagation();
-                  event.preventDefault();
-                  onToggleRun();
-                }}
-                className="inline-flex h-8 w-9 shrink-0 items-center justify-center rounded-lg border border-[var(--app-border)] bg-[var(--app-panel-2)] text-[var(--app-text)] transition-colors hover:border-[var(--app-accent)] hover:text-[var(--app-accent)] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--app-accent)] disabled:opacity-40"
-              >
-                {isCountdownFinished ? <Check size={16} /> : isRunning ? <Pause size={16} /> : <Play size={16} />}
-              </button>
+              {!isCountdownFinished ? (
+                <button
+                  type="button"
+                  aria-label={runLabel}
+                  disabled={disabled}
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    event.preventDefault();
+                    onToggleRun();
+                  }}
+                  className="inline-flex h-8 w-9 shrink-0 items-center justify-center rounded-lg border border-[var(--app-border)] bg-[var(--app-panel-2)] text-[var(--app-text)] transition-colors hover:border-[var(--app-accent)] hover:text-[var(--app-accent)] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--app-accent)] disabled:opacity-40"
+                >
+                  {isRunning ? <Pause size={16} /> : <Play size={16} />}
+                </button>
+              ) : null}
 
               <button
                 type="button"
@@ -291,7 +292,7 @@ export const QuestCard: React.FC<QuestCardProps> = ({
           ) : null}
         </div>
       </div>
-      {isTimedQuest ? (
+      {showProgressBar ? (
         <div className="relative z-[1] px-3 pb-3">
           <div className="h-1.5 overflow-hidden rounded-full bg-[color-mix(in_srgb,var(--app-border)_70%,transparent)]">
             <div
