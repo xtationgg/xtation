@@ -315,10 +315,7 @@ describe('Quests drawer filter + running section behavior', () => {
 
     await user.click(screen.getByText('Steps quest'));
     expect(screen.getByText(/quest workspace/i)).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /edit quest/i })).toBeInTheDocument();
-
-    const checkboxes = screen.getAllByRole('checkbox');
-    await user.click(checkboxes[0]);
+    await user.click(screen.getByRole('button', { name: /step a/i }));
 
     await waitFor(() => {
       expect(xp.updateTask).toHaveBeenCalled();
@@ -358,7 +355,7 @@ describe('Quests drawer filter + running section behavior', () => {
     await user.type(screen.getByPlaceholderText('Quest notes'), 'Primary notes');
     await user.type(screen.getByPlaceholderText('Add step'), 'First step');
     await user.click(screen.getByRole('button', { name: /add step/i }));
-    await user.click(screen.getByRole('checkbox'));
+    await user.click(screen.getByRole('button', { name: /first step/i }));
 
     await user.click(screen.getByTestId('schedule-toggle'));
     const panel = screen.getByTestId('schedule-panel');

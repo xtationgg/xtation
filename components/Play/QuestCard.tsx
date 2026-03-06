@@ -18,6 +18,14 @@ const formatClock = (timestamp?: number) => {
   return new Date(timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 };
 
+const formatScheduleLabel = (timestamp?: number) => {
+  if (!timestamp) return null;
+  const date = new Date(timestamp);
+  const weekday = date.toLocaleDateString([], { weekday: 'short' });
+  const month = date.toLocaleDateString([], { month: 'short' });
+  return `${weekday} ${date.getDate()}/${month}`;
+};
+
 const getDurationTargetMs = (task: Task) => {
   const source =
     (typeof task.countdownMin === 'number' && task.countdownMin > 0 && task.countdownMin) ||
@@ -25,13 +33,6 @@ const getDurationTargetMs = (task: Task) => {
     (typeof task.estimatedXP === 'number' && task.estimatedXP > 0 && task.estimatedXP);
   if (!source) return null;
   return Math.floor(source * 60_000);
-};
-
-const getStatus = (task: Task, isRunning: boolean) => {
-  if (isRunning) return 'Running';
-  if (task.completedAt || task.status === 'done') return 'Done';
-  if (task.scheduledAt && task.scheduledAt > Date.now()) return 'Scheduled';
-  return 'Active';
 };
 
 const getPriorityLevel = (priorityVisual: 'normal' | 'high' | 'urgent' | 'extreme') => {
@@ -91,31 +92,31 @@ export const QuestCard: React.FC<QuestCardProps> = ({
   disabled = false,
 }) => {
   const [tickNow, setTickNow] = useState(() => Date.now());
+  const isScheduledFuture = !!task.scheduledAt && task.scheduledAt > Date.now();
 
   useEffect(() => {
-    if (!isRunning || !runningSession) return;
+    if (!isRunning && !isScheduledFuture) return;
     const interval = window.setInterval(() => setTickNow(Date.now()), 1000);
     return () => window.clearInterval(interval);
-  }, [isRunning, runningSession?.id]);
+  }, [isRunning, isScheduledFuture, runningSession?.id]);
 
   const elapsedMs = useMemo(
     () => getTaskTrackedMs(task.id, tickNow),
     [getTaskTrackedMs, task.id, tickNow]
   );
 
+  const targetMs = useMemo(() => getDurationTargetMs(task), [task]);
+  const isCountdownFinished = !!(targetMs && elapsedMs >= targetMs);
   const timerLabel = useMemo(() => {
     if (!isRunning || !runningSession) return null;
-    const targetMs = getDurationTargetMs(task);
     if (!targetMs) return formatDuration(elapsedMs);
     return formatDuration(Math.max(0, targetMs - elapsedMs));
-  }, [elapsedMs, isRunning, runningSession, task]);
+  }, [elapsedMs, isRunning, runningSession, targetMs]);
 
-  const status = getStatus(task, isRunning);
   const isCompleted = task.completedAt || task.status === 'done';
   const stepProgress = useMemo(() => getStepProgress(task.details), [task.details]);
   const progressPct = stepProgress.total > 0 ? Math.round((stepProgress.done / stepProgress.total) * 100) : 0;
   const priorityLevel = useMemo(() => getPriorityLevel(priorityVisual), [priorityVisual]);
-  const targetMs = useMemo(() => getDurationTargetMs(task), [task]);
   const timedProgress = useMemo(() => {
     if (!targetMs || targetMs <= 0) return null;
     const ratio = Math.max(0, Math.min(1, elapsedMs / targetMs));
@@ -128,15 +129,44 @@ export const QuestCard: React.FC<QuestCardProps> = ({
     const ratio = 1 - Math.max(0, Math.min(1, until / totalWindow));
     return ratio;
   }, [task.scheduledAt, tickNow]);
-  const statusTone = useMemo(() => {
-    if (status === 'Done') return 'bg-[#3fcf8e]/20 text-[#8de5bb]';
-    if (status === 'Scheduled') return 'bg-[#55a3ff]/22 text-[#95c4ff]';
-    return null;
-  }, [status]);
-  const rightTimeLabel = timerLabel || formatClock(task.scheduledAt) || null;
+  const stateToneClass = useMemo(() => {
+    if (isCountdownFinished) return 'bg-[#f4c664] shadow-[0_0_10px_rgba(244,198,100,0.45)]';
+    if (isCompleted) return 'bg-[var(--app-accent)] shadow-[0_0_10px_color-mix(in_srgb,var(--app-accent)_45%,transparent)]';
+    if (isScheduledFuture) return 'bg-[#55a3ff] shadow-[0_0_10px_rgba(85,163,255,0.45)]';
+    if (isRunning) return 'bg-[var(--app-accent)] shadow-[0_0_10px_color-mix(in_srgb,var(--app-accent)_40%,transparent)]';
+    return 'bg-[color-mix(in_srgb,var(--app-muted)_80%,transparent)]';
+  }, [isCountdownFinished, isCompleted, isScheduledFuture, isRunning]);
+  const scheduleShort = useMemo(() => formatScheduleLabel(task.scheduledAt), [task.scheduledAt]);
+  const scheduleRemaining = useMemo(() => {
+    if (!task.scheduledAt || task.scheduledAt <= Date.now()) return null;
+    let remaining = task.scheduledAt - Date.now();
+    const minutes = Math.floor(remaining / 60_000);
+    const hours = Math.floor(remaining / 3_600_000);
+    const days = Math.floor(remaining / 86_400_000);
+    const months = Math.floor(days / 30);
+
+    if (months > 0) {
+      const monthDays = days - months * 30;
+      const hourRemainder = Math.max(0, Math.floor((remaining - days * 86_400_000) / 3_600_000));
+      return `${months}M ${monthDays}D ${hourRemainder}H`;
+    }
+    if (days > 0) {
+      const hourRemainder = Math.max(0, Math.floor((remaining - days * 86_400_000) / 3_600_000));
+      const minuteRemainder = Math.max(
+        0,
+        Math.floor((remaining - days * 86_400_000 - hourRemainder * 3_600_000) / 60_000)
+      );
+      return `${days}D ${hourRemainder}H ${minuteRemainder}M`;
+    }
+    const hourOnly = Math.floor(minutes / 60);
+    const minuteOnly = Math.max(0, minutes - hourOnly * 60);
+    return `${hourOnly}H ${minuteOnly}M`;
+  }, [task.scheduledAt, tickNow]);
+  const rightTimeLabel = timerLabel || scheduleShort || formatClock(task.scheduledAt) || null;
   const isTimedQuest = !!targetMs || !!task.scheduledAt || isRunning;
   const effectiveProgress = timedProgress ?? schedulePulse;
   const hasActiveTiming = isRunning || !!targetMs || (!!task.scheduledAt && task.scheduledAt > Date.now());
+  const runLabel = isCountdownFinished ? 'Countdown finished' : isRunning ? 'Pause quest' : 'Start quest';
 
   return (
     <article
@@ -152,12 +182,14 @@ export const QuestCard: React.FC<QuestCardProps> = ({
       className={`quest-card-shell group relative w-full overflow-hidden rounded-[12px] border text-left transition-colors ${
         isRunning
           ? 'border-[color-mix(in_srgb,var(--app-accent)_58%,transparent)] bg-[color-mix(in_srgb,var(--app-accent)_12%,var(--app-panel))] shadow-[0_0_0_1px_color-mix(in_srgb,var(--app-accent)_30%,transparent)]'
+          : isCompleted
+          ? 'border-[color-mix(in_srgb,var(--app-accent)_42%,transparent)] bg-[color-mix(in_srgb,var(--app-accent)_18%,var(--app-panel))]'
           : isFocused
           ? 'border-[color-mix(in_srgb,var(--app-accent)_34%,transparent)] bg-[color-mix(in_srgb,var(--app-accent)_8%,var(--app-panel))]'
           : hasActiveTiming
           ? 'border-[color-mix(in_srgb,var(--app-accent)_28%,transparent)] bg-[color-mix(in_srgb,var(--app-accent)_6%,var(--app-panel))]'
           : 'border-[var(--app-border)] bg-[var(--app-panel)] hover:bg-[color-mix(in_srgb,var(--app-accent)_7%,var(--app-panel))]'
-      } ${isCompleted ? 'opacity-70' : ''}`}
+      }`}
     >
       {mediaPreviewUrl && mediaPreviewType === 'image' ? (
         <img
@@ -165,7 +197,7 @@ export const QuestCard: React.FC<QuestCardProps> = ({
           alt=""
           aria-hidden
           className={`pointer-events-none absolute inset-0 h-full w-full object-cover transition-opacity duration-300 ${
-            isFocused || isRunning || isPreviewPinned ? 'opacity-[0.38]' : 'opacity-0 group-hover:opacity-[0.28]'
+            isFocused || isRunning || isPreviewPinned ? 'opacity-[0.46]' : 'opacity-0 group-hover:opacity-[0.34]'
           }`}
         />
       ) : null}
@@ -177,7 +209,7 @@ export const QuestCard: React.FC<QuestCardProps> = ({
           autoPlay
           playsInline
           className={`pointer-events-none absolute inset-0 h-full w-full object-cover transition-opacity duration-300 ${
-            isFocused || isRunning || isPreviewPinned ? 'opacity-[0.38]' : 'opacity-0 group-hover:opacity-[0.28]'
+            isFocused || isRunning || isPreviewPinned ? 'opacity-[0.46]' : 'opacity-0 group-hover:opacity-[0.34]'
           }`}
         />
       ) : null}
@@ -220,31 +252,30 @@ export const QuestCard: React.FC<QuestCardProps> = ({
           </div>
         </div>
 
-        <div className="flex w-[132px] shrink-0 flex-col items-end gap-1.5 pr-0.5">
-          <div className="flex w-full items-center justify-end gap-1.5">
-            {statusTone ? (
-              <div className={`rounded-md px-2 py-0.5 text-[9px] font-semibold uppercase tracking-[0.1em] ${statusTone}`}>
-                {status}
-              </div>
-            ) : null}
-            {rightTimeLabel ? (
-              <div className="text-[13px] font-semibold tracking-[0.06em] text-[var(--app-text)]">{rightTimeLabel}</div>
-            ) : null}
-          </div>
+        <div className="flex w-[176px] shrink-0 items-center justify-end gap-1.5 pr-0.5">
+          <span className={`inline-flex h-2.5 w-2.5 rounded-full ${stateToneClass}`} aria-hidden="true" />
+          {rightTimeLabel ? (
+            <div className="min-w-[72px] text-right text-[13px] font-semibold tracking-[0.06em] text-[var(--app-text)]">
+              <span className={scheduleRemaining && !isRunning ? 'group-hover:hidden' : ''}>{rightTimeLabel}</span>
+              {scheduleRemaining && !isRunning ? (
+                <span className="hidden group-hover:inline">{scheduleRemaining}</span>
+              ) : null}
+            </div>
+          ) : null}
           {!isCompleted ? (
-            <div className="mt-0.5 flex w-full items-center justify-end gap-1.5">
+            <>
               <button
                 type="button"
-                aria-label={isRunning ? 'Pause quest' : 'Start quest'}
+                aria-label={runLabel}
                 disabled={disabled}
                 onClick={(event) => {
                   event.stopPropagation();
                   event.preventDefault();
                   onToggleRun();
                 }}
-                className="inline-flex h-7 w-8 shrink-0 items-center justify-center rounded-lg border border-[var(--app-border)] bg-[var(--app-panel-2)] text-[var(--app-text)] transition-colors hover:border-[var(--app-accent)] hover:text-[var(--app-accent)] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--app-accent)] disabled:opacity-40"
+                className="inline-flex h-8 w-9 shrink-0 items-center justify-center rounded-lg border border-[var(--app-border)] bg-[var(--app-panel-2)] text-[var(--app-text)] transition-colors hover:border-[var(--app-accent)] hover:text-[var(--app-accent)] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--app-accent)] disabled:opacity-40"
               >
-                {isRunning ? <Pause size={16} /> : <Play size={16} />}
+                {isCountdownFinished ? <Check size={16} /> : isRunning ? <Pause size={16} /> : <Play size={16} />}
               </button>
 
               <button
@@ -256,31 +287,30 @@ export const QuestCard: React.FC<QuestCardProps> = ({
                   event.preventDefault();
                   onComplete();
                 }}
-                className="inline-flex h-7 w-8 shrink-0 items-center justify-center rounded-lg border border-[var(--app-border)] bg-[var(--app-panel-2)] text-[var(--app-text)] transition-colors hover:border-[var(--app-accent)] hover:text-[var(--app-accent)] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--app-accent)] disabled:opacity-40"
+                className="inline-flex h-8 w-9 shrink-0 items-center justify-center rounded-lg border border-[var(--app-border)] bg-[var(--app-panel-2)] text-[var(--app-text)] transition-colors hover:border-[var(--app-accent)] hover:text-[var(--app-accent)] focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--app-accent)] disabled:opacity-40"
               >
                 <Check size={16} />
               </button>
-              {onTogglePreviewPin && mediaPreviewUrl ? (
-                <button
-                  type="button"
-                  aria-label={isPreviewPinned ? 'Unpin media preview' : 'Pin media preview'}
-                  title={isPreviewPinned ? 'Unpin media preview' : 'Keep media preview visible'}
-                  disabled={disabled}
-                  onClick={(event) => {
-                    event.stopPropagation();
-                    event.preventDefault();
-                    onTogglePreviewPin();
-                  }}
-                  className={`inline-flex h-7 w-8 shrink-0 items-center justify-center rounded-lg border text-[var(--app-text)] transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[var(--app-accent)] disabled:opacity-40 ${
-                    isPreviewPinned
-                      ? 'border-[var(--app-accent)] bg-[color-mix(in_srgb,var(--app-accent)_18%,var(--app-panel-2))]'
-                      : 'border-[var(--app-border)] bg-[var(--app-panel-2)] hover:border-[var(--app-accent)]'
-                  }`}
-                >
-                  <Pin size={15} />
-                </button>
-              ) : null}
-            </div>
+            </>
+          ) : null}
+          {mediaPreviewUrl && onTogglePreviewPin ? (
+            <button
+              type="button"
+              aria-label={isPreviewPinned ? 'Unpin quest preview' : 'Pin quest preview'}
+              title={isPreviewPinned ? 'Unpin preview' : 'Pin preview in list'}
+              onClick={(event) => {
+                event.stopPropagation();
+                event.preventDefault();
+                onTogglePreviewPin();
+              }}
+              className={`inline-flex h-7 w-7 items-center justify-center rounded-md border transition-colors ${
+                isPreviewPinned
+                  ? 'border-transparent bg-[color-mix(in_srgb,var(--app-accent)_28%,var(--app-panel))] text-[var(--app-text)]'
+                  : 'border-[var(--app-border)] bg-[var(--app-panel-2)] text-[var(--app-muted)] hover:text-[var(--app-text)]'
+              }`}
+            >
+              <Pin size={12} />
+            </button>
           ) : null}
         </div>
       </div>
@@ -291,7 +321,7 @@ export const QuestCard: React.FC<QuestCardProps> = ({
               className={`h-full rounded-full transition-[width] duration-500 ${
                 isRunning
                   ? 'bg-[color-mix(in_srgb,var(--app-accent)_80%,#ffffff)]'
-                  : status === 'Scheduled'
+                  : isScheduledFuture
                   ? 'bg-[#55a3ff]'
                   : 'bg-[var(--app-accent)]'
               }`}

@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { CalendarDays, Check, ChevronUp, Pause, Pencil, Play, Plus, Save, Timer, Video, Volume2, X } from 'lucide-react';
+import { CalendarDays, Check, ChevronUp, Pause, Pencil, Pin, Play, Plus, Save, Timer, Video, Volume2, X } from 'lucide-react';
 import { useXP } from '../XP/xpStore';
 import { Task } from '../XP/xpTypes';
 import { ConfirmModal } from '../UI/ConfirmModal';
@@ -208,6 +208,20 @@ const inferMediaTypeFromUrl = (url: string): FocusMediaAsset['type'] => {
   return 'image';
 };
 
+const readFileAsDataUrl = (file: File) =>
+  new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (typeof reader.result === 'string') {
+        resolve(reader.result);
+      } else {
+        reject(new Error('invalid-data-url'));
+      }
+    };
+    reader.onerror = () => reject(new Error('read-failed'));
+    reader.readAsDataURL(file);
+  });
+
 const extractYouTubeVideoId = (url: string) => {
   try {
     const parsed = new URL(url);
@@ -230,7 +244,8 @@ const getYouTubeEmbedUrl = (url: string, startSeconds = 0) => {
   const videoId = extractYouTubeVideoId(url);
   if (!videoId) return null;
   const start = Math.max(0, Math.floor(startSeconds));
-  return `https://www.youtube.com/embed/${videoId}?rel=0&modestbranding=1&controls=1&autoplay=1&mute=1&start=${start}`;
+  const end = start + 60;
+  return `https://www.youtube.com/embed/${videoId}?rel=0&modestbranding=1&controls=1&autoplay=1&mute=1&playsinline=1&loop=1&playlist=${videoId}&start=${start}&end=${end}`;
 };
 
 const getYouTubeThumbnailUrl = (url: string) => {
@@ -280,6 +295,14 @@ const getFocusSoundAsset = (assetId: string | null) => {
   return FOCUS_SOUND_LIBRARY.find((asset) => asset.id === assetId) || null;
 };
 
+const shouldPersistAssetId = (assetId: string) => {
+  const mediaCustom = parseCustomAsset<SerializedMediaAsset>(assetId, 'media-custom:');
+  if (mediaCustom?.src?.startsWith('blob:')) return false;
+  const soundCustom = parseCustomAsset<SerializedSoundAsset>(assetId, 'sound-custom:');
+  if (soundCustom?.src?.startsWith('blob:')) return false;
+  return true;
+};
+
 type ActiveSession = ReturnType<ReturnType<typeof useXP>['selectors']['getActiveSession']>;
 
 const LeftControlStrip: React.FC<{
@@ -295,6 +318,15 @@ const LeftControlStrip: React.FC<{
   onOpenMedia,
   onOpenSound,
 }) => {
+  if (!canConfigureAssets) {
+    return (
+      <section className="grid h-full grid-rows-[1fr_1fr] gap-2">
+        <div className="h-full rounded-[10px] border border-[var(--app-border)] bg-[var(--app-panel)]/40" />
+        <div className="h-full rounded-[10px] border border-[var(--app-border)] bg-[var(--app-panel)]/40" />
+      </section>
+    );
+  }
+
   const mediaActive = activeMode === 'media';
   const soundActive = activeMode === 'sound';
   return (
@@ -341,19 +373,22 @@ const ActiveAreaDefault: React.FC<{
   const selectedSound = getFocusSoundAsset(selectedSoundAsset);
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const audioFadeRef = useRef<number | null>(null);
   const [videoFailed, setVideoFailed] = useState(false);
   const [imageFailed, setImageFailed] = useState(false);
+  const [youtubeStart, setYoutubeStart] = useState(() => Math.max(0, Math.floor(elapsedMs / 1000)));
   const youtubeEmbedUrl = useMemo(
     () =>
       selectedAsset.type === 'video' && selectedAsset.src
-        ? getYouTubeEmbedUrl(selectedAsset.src, elapsedMs / 1000)
+        ? getYouTubeEmbedUrl(selectedAsset.src, youtubeStart)
         : null,
-    [selectedAsset.type, selectedAsset.src, elapsedMs]
+    [selectedAsset.type, selectedAsset.src, youtubeStart]
   );
 
   useEffect(() => {
     setVideoFailed(false);
     setImageFailed(false);
+    setYoutubeStart(Math.max(0, Math.floor(elapsedMs / 1000)));
   }, [selectedAsset.id]);
 
   useEffect(() => {
@@ -364,8 +399,9 @@ const ActiveAreaDefault: React.FC<{
     const syncVideo = () => {
       const duration = Number.isFinite(video.duration) ? video.duration : 0;
       if (duration <= 0) return;
-      const target = (elapsedMs / 1000) % duration;
-      if (Math.abs(video.currentTime - target) > 0.75) {
+      const loopWindow = Math.max(1, Math.min(duration, 60));
+      const target = (elapsedMs / 1000) % loopWindow;
+      if (Math.abs(video.currentTime - target) > 1.25) {
         video.currentTime = target;
       }
       if (isRunning) {
@@ -381,10 +417,41 @@ const ActiveAreaDefault: React.FC<{
   useEffect(() => {
     const audio = audioRef.current;
     if (!audio) return;
+    if (audioFadeRef.current) {
+      window.clearInterval(audioFadeRef.current);
+      audioFadeRef.current = null;
+    }
+    audio.volume = 0.6;
+  }, [selectedSound?.id]);
+
+  const fadeOutAudio = (reset = false) => {
+    const audio = audioRef.current;
+    if (!audio) return;
+    const targetVolume = audio.volume || 0.6;
+    if (audioFadeRef.current) {
+      window.clearInterval(audioFadeRef.current);
+    }
+    audioFadeRef.current = window.setInterval(() => {
+      const next = Math.max(0, audio.volume - 0.1);
+      audio.volume = next;
+      if (next <= 0.01) {
+        audio.pause();
+        if (reset) audio.currentTime = 0;
+        audio.volume = targetVolume;
+        if (audioFadeRef.current) {
+          window.clearInterval(audioFadeRef.current);
+          audioFadeRef.current = null;
+        }
+      }
+    }, 30);
+  };
+
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio) return;
 
     if (!selectedSound || !isRunning) {
-      audio.pause();
-      audio.currentTime = 0;
+      fadeOutAudio(true);
       return;
     }
 
@@ -392,9 +459,22 @@ const ActiveAreaDefault: React.FC<{
       audio.src = selectedSound.src;
     }
     audio.loop = true;
-    audio.volume = 0.5;
+    audio.volume = 0.6;
     void audio.play().catch(() => {});
+    return () => {
+      fadeOutAudio(false);
+    };
   }, [selectedSound?.id, selectedSound?.src, isRunning]);
+
+  useEffect(() => {
+    return () => {
+      fadeOutAudio(true);
+      if (audioFadeRef.current) {
+        window.clearInterval(audioFadeRef.current);
+        audioFadeRef.current = null;
+      }
+    };
+  }, []);
 
   const animationProgress = ((elapsedMs / 1000) % 120) / 120;
   const orbLeft = `${18 + animationProgress * 64}%`;
@@ -434,7 +514,8 @@ const ActiveAreaDefault: React.FC<{
             if (!video) return;
             const duration = Number.isFinite(video.duration) ? video.duration : 0;
             if (duration > 0) {
-              video.currentTime = (elapsedMs / 1000) % duration;
+              const loopWindow = Math.max(1, Math.min(duration, 60));
+              video.currentTime = (elapsedMs / 1000) % loopWindow;
             }
           }}
         />
@@ -468,7 +549,9 @@ const ActiveLibraryView: React.FC<{
   kind: 'media' | 'sound';
   selectedAsset: string | null;
   onSelect: (assetId: string, closeAfterSelect?: boolean) => void;
-}> = ({ kind, selectedAsset, onSelect }) => {
+  isPinned?: boolean;
+  onTogglePinned?: () => void;
+}> = ({ kind, selectedAsset, onSelect, isPinned = false, onTogglePinned }) => {
   const [customUrl, setCustomUrl] = useState('');
   const [customError, setCustomError] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
@@ -519,6 +602,11 @@ const ActiveLibraryView: React.FC<{
       setCustomUrl('');
       return;
     }
+    // Keep large local data/blob sources out of the input to avoid UI glitches.
+    if (currentSource.startsWith('data:') || currentSource.startsWith('blob:')) {
+      setCustomUrl('');
+      return;
+    }
     setCustomUrl((prev) => (prev === currentSource ? prev : currentSource));
   }, [currentSource]);
 
@@ -540,7 +628,7 @@ const ActiveLibraryView: React.FC<{
             src: url,
             label: 'Custom URL',
           });
-    onSelect(nextId, true);
+    onSelect(nextId, false);
     setCustomError(null);
     setCustomUrl(url);
   };
@@ -555,7 +643,10 @@ const ActiveLibraryView: React.FC<{
       if ((kind === 'media' && !isMediaFile) || (kind === 'sound' && !isAudioFile)) {
         throw new Error('unsupported-file');
       }
-      const src = URL.createObjectURL(file);
+      const src =
+        kind === 'media' && file.type.startsWith('video/')
+          ? URL.createObjectURL(file)
+          : await readFileAsDataUrl(file);
       const nextId =
         kind === 'media'
           ? serializeCustomAsset<SerializedMediaAsset>('media-custom:', {
@@ -567,9 +658,9 @@ const ActiveLibraryView: React.FC<{
               src,
               label: file.name || 'Uploaded audio',
             });
-      onSelect(nextId, true);
+      onSelect(nextId, false);
       setCustomError(null);
-      setCustomUrl(src);
+      setCustomUrl('');
     } catch {
       setCustomError(
         kind === 'media'
@@ -608,34 +699,83 @@ const ActiveLibraryView: React.FC<{
         </div>
         <div className="text-[9px] uppercase tracking-[0.1em] text-[var(--app-muted)]">Pick one</div>
       </div>
+      {kind === 'media' && selectedMedia?.src ? (
+        <div className="mb-2 overflow-hidden rounded-[10px] border border-[var(--app-border)] bg-[var(--app-panel-2)]">
+          <div className="relative h-[88px] w-full">
+            {selectedMedia.type === 'image' ? (
+              <img src={selectedMedia.src} alt={selectedMedia.label} className="h-full w-full object-cover" />
+            ) : selectedMedia.type === 'video' ? (
+              <video src={selectedMedia.src} className="h-full w-full object-cover" muted autoPlay loop playsInline />
+            ) : (
+              <div className="flex h-full w-full items-center justify-center text-[10px] uppercase tracking-[0.12em] text-[var(--app-muted)]">
+                Focus animation
+              </div>
+            )}
+            {onTogglePinned ? (
+              <button
+                type="button"
+                onClick={onTogglePinned}
+                className={`absolute right-2 top-2 inline-flex h-7 w-7 items-center justify-center rounded-md border transition-colors ${
+                  isPinned
+                    ? 'border-[var(--app-accent)] bg-[color-mix(in_srgb,var(--app-accent)_24%,var(--app-panel))] text-[var(--app-text)]'
+                    : 'border-[var(--app-border)] bg-[var(--app-panel-2)] text-[var(--app-muted)] hover:text-[var(--app-text)]'
+                }`}
+                aria-label={isPinned ? 'Unpin media preview' : 'Pin selected media preview'}
+                title={isPinned ? 'Unpin preview' : 'Pin selected media preview'}
+              >
+                <Pin size={13} />
+              </button>
+            ) : null}
+          </div>
+        </div>
+      ) : null}
       <div className={`grid ${listHeightClass} grid-cols-3 gap-2 overflow-y-auto pr-1`}>
         {items.map((item) => (
-          <button
-            key={item.id}
-            type="button"
-            onClick={() => onSelect(item.id, true)}
-            onPointerEnter={() => {
-              if (kind === 'sound') queueHoverPreview(item as FocusSoundAsset);
-            }}
-            onFocus={() => {
-              if (kind === 'sound') queueHoverPreview(item as FocusSoundAsset);
-            }}
-            onPointerLeave={stopHoverPreview}
-            onBlur={stopHoverPreview}
-            className={`flex min-h-[78px] items-center justify-center rounded-[10px] border transition-colors ${
-              selectedAsset === item.id
-                ? 'border-[var(--app-accent)] bg-[color-mix(in_srgb,var(--app-accent)_16%,var(--app-panel-2))] text-[var(--app-text)]'
-                : 'border-[var(--app-border)] bg-[var(--app-panel-2)] text-[var(--app-muted)] hover:text-[var(--app-text)]'
-            }`}
-          >
-            <div className="flex flex-col items-center gap-1">
-              {kind === 'media' ? <Play size={18} /> : <Volume2 size={18} />}
-              <span className="text-[9px] uppercase tracking-[0.1em]">{item.label}</span>
-              {kind === 'sound' && hoverSoundId === item.id ? (
-                <span className="text-[8px] uppercase tracking-[0.12em] text-[var(--app-accent)]">Preview</span>
-              ) : null}
-            </div>
-          </button>
+          <div key={item.id} className="relative">
+            <button
+              type="button"
+              onClick={() => onSelect(item.id, false)}
+              onPointerEnter={() => {
+                if (kind === 'sound') queueHoverPreview(item as FocusSoundAsset);
+              }}
+              onFocus={() => {
+                if (kind === 'sound') queueHoverPreview(item as FocusSoundAsset);
+              }}
+              onPointerLeave={stopHoverPreview}
+              onBlur={stopHoverPreview}
+              className={`flex min-h-[78px] w-full items-center justify-center rounded-[10px] border transition-colors ${
+                selectedAsset === item.id
+                  ? 'border-[var(--app-accent)] bg-[color-mix(in_srgb,var(--app-accent)_16%,var(--app-panel-2))] text-[var(--app-text)]'
+                  : 'border-[var(--app-border)] bg-[var(--app-panel-2)] text-[var(--app-muted)] hover:text-[var(--app-text)]'
+              }`}
+            >
+              <div className="flex flex-col items-center gap-1">
+                {kind === 'media' ? <Video size={18} /> : <Volume2 size={18} />}
+                <span className="text-[9px] uppercase tracking-[0.1em]">{item.label}</span>
+                {kind === 'sound' && hoverSoundId === item.id ? (
+                  <span className="text-[8px] uppercase tracking-[0.12em] text-[var(--app-accent)]">Preview</span>
+                ) : null}
+              </div>
+            </button>
+            {kind === 'media' && selectedAsset === item.id && onTogglePinned ? (
+              <button
+                type="button"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  onTogglePinned();
+                }}
+                className={`absolute right-1.5 top-1.5 inline-flex h-6 w-6 items-center justify-center rounded-md border transition-colors ${
+                  isPinned
+                    ? 'border-[var(--app-accent)] bg-[color-mix(in_srgb,var(--app-accent)_24%,var(--app-panel))] text-[var(--app-text)]'
+                    : 'border-[var(--app-border)] bg-[var(--app-panel-2)] text-[var(--app-muted)] hover:text-[var(--app-text)]'
+                }`}
+                aria-label={isPinned ? 'Unpin media preview' : 'Pin media preview'}
+                title={isPinned ? 'Unpin media preview' : 'Pin selected media preview'}
+              >
+                <Pin size={12} />
+              </button>
+            ) : null}
+          </div>
         ))}
       </div>
       <div className="mt-2 flex items-center gap-2">
@@ -736,12 +876,12 @@ const ActiveCountdownView: React.FC<{
   };
 
   const dialClass =
-    'cursor-ns-resize rounded-md bg-[color-mix(in_srgb,var(--app-accent)_22%,var(--app-panel))] px-2 py-1 transition-colors hover:bg-[color-mix(in_srgb,var(--app-accent)_30%,var(--app-panel))]';
+    'cursor-ns-resize rounded-md bg-[color-mix(in_srgb,var(--app-accent)_24%,var(--app-panel))] px-2 py-2 transition-colors hover:bg-[color-mix(in_srgb,var(--app-accent)_32%,var(--app-panel))]';
 
   return (
     <section className="min-h-0 rounded-[12px] border border-[var(--app-border)] bg-[var(--app-panel)] p-3">
       <div className="mb-2 text-[10px] uppercase tracking-[0.16em] text-[var(--app-muted)]">Countdown</div>
-      <div className="grid grid-cols-3 gap-2 text-center">
+      <div className="grid grid-cols-3 gap-2.5 text-center">
         <div className="text-[9px] uppercase tracking-[0.1em] text-[var(--app-muted)]">
           H
           <div
@@ -771,7 +911,7 @@ const ActiveCountdownView: React.FC<{
               }
             }}
           >
-            <div className="w-full select-none text-center text-[22px] font-semibold leading-8 text-[var(--app-text)]">
+            <div className="w-full select-none text-center text-[50px] font-semibold leading-[1.02] text-[var(--app-text)]">
               {pad(hours)}
             </div>
           </div>
@@ -806,7 +946,7 @@ const ActiveCountdownView: React.FC<{
               }
             }}
           >
-            <div className="w-full select-none text-center text-[22px] font-semibold leading-8 text-[var(--app-text)]">
+            <div className="w-full select-none text-center text-[50px] font-semibold leading-[1.02] text-[var(--app-text)]">
               {pad(minutes)}
             </div>
           </div>
@@ -841,7 +981,7 @@ const ActiveCountdownView: React.FC<{
               }
             }}
           >
-            <div className="w-full select-none text-center text-[22px] font-semibold leading-8 text-[var(--app-text)]">
+            <div className="w-full select-none text-center text-[50px] font-semibold leading-[1.02] text-[var(--app-text)]">
               {pad(seconds)}
             </div>
           </div>
@@ -1043,7 +1183,7 @@ const ActiveScheduleView: React.FC<{
       className="grid min-h-0 grid-rows-[auto_1fr_auto] gap-2 rounded-[12px] border border-[var(--app-border)] bg-[var(--app-panel)] p-3"
     >
       <div className="flex items-center justify-between">
-        <div className="text-[10px] uppercase tracking-[0.16em] text-[var(--app-muted)]">{monthLabel}</div>
+        <div className="text-[12px] uppercase tracking-[0.16em] text-[var(--app-text)]">{monthLabel}</div>
         <div className="flex items-center gap-1">
           <button
             type="button"
@@ -1063,12 +1203,12 @@ const ActiveScheduleView: React.FC<{
           </button>
         </div>
       </div>
-      <div className="h-9 rounded-md border border-[var(--app-border)] bg-[var(--app-panel-2)] px-3 text-[11px] font-medium tracking-[0.08em] text-[var(--app-text)] inline-flex items-center">
+      <div className="inline-flex h-11 items-center rounded-md border border-[var(--app-border)] bg-[var(--app-panel-2)] px-3 text-[15px] font-medium tracking-[0.05em] text-[var(--app-text)]">
         {new Date(`${datePart}T00:00:00`).toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' })}
       </div>
       <div className="grid min-h-0 grid-cols-7 gap-1 rounded-[10px] border border-[var(--app-border)] bg-[var(--app-panel-2)] p-2">
         {WEEKDAY_LABELS.map((label) => (
-          <div key={label} className="text-center text-[9px] uppercase tracking-[0.14em] text-[var(--app-muted)]">
+          <div key={label} className="text-center text-[13px] uppercase tracking-[0.11em] text-[var(--app-muted)]">
             {label}
           </div>
         ))}
@@ -1078,11 +1218,11 @@ const ActiveScheduleView: React.FC<{
               key={cell.dateKey}
               type="button"
               onClick={() => onValueChange(composeScheduleValue(cell.dateKey))}
-              className={`h-7 rounded-md border text-[10px] font-medium transition-colors ${
-                cell.dateKey === selectedDateKey
-                  ? 'border-transparent bg-[color-mix(in_srgb,var(--app-accent)_20%,var(--app-panel))] text-[var(--app-text)]'
-                  : 'border-transparent text-[var(--app-muted)] hover:border-[var(--app-border)] hover:text-[var(--app-text)]'
-              }`}
+                className={`h-10 rounded-md border text-[14px] font-medium transition-colors ${
+                  cell.dateKey === selectedDateKey
+                    ? 'border-transparent bg-[color-mix(in_srgb,var(--app-accent)_20%,var(--app-panel))] text-[var(--app-text)]'
+                    : 'border-transparent text-[var(--app-muted)] hover:border-[var(--app-border)] hover:text-[var(--app-text)]'
+                }`}
             >
               {cell.day}
             </button>
@@ -1091,7 +1231,7 @@ const ActiveScheduleView: React.FC<{
           )
         )}
       </div>
-      <div className="grid grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)] gap-2 rounded-[10px] border border-[var(--app-border)] bg-[var(--app-panel-2)] p-2.5">
+      <div className="grid grid-cols-[minmax(0,1.5fr)_minmax(0,1fr)] gap-2 rounded-[10px] border border-[var(--app-border)] bg-[var(--app-panel-2)] p-2.5">
         <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2 text-center text-[22px] font-semibold text-[var(--app-text)]">
           <div
             className="cursor-ns-resize rounded-md bg-[color-mix(in_srgb,var(--app-accent)_24%,var(--app-panel))] px-2 py-1 transition-colors hover:bg-[color-mix(in_srgb,var(--app-accent)_32%,var(--app-panel))]"
@@ -1126,7 +1266,7 @@ const ActiveScheduleView: React.FC<{
             aria-valuemax={12}
             aria-valuenow={hour}
           >
-            <div className="w-full select-none text-center text-[22px] font-semibold leading-8 text-[var(--app-text)]">
+            <div className="w-full select-none text-center text-[24px] font-semibold leading-8 text-[var(--app-text)]">
               {pad(hour)}
             </div>
           </div>
@@ -1164,7 +1304,7 @@ const ActiveScheduleView: React.FC<{
             aria-valuemax={59}
             aria-valuenow={minute}
           >
-            <div className="w-full select-none text-center text-[22px] font-semibold leading-8 text-[var(--app-text)]">
+            <div className="w-full select-none text-center text-[24px] font-semibold leading-8 text-[var(--app-text)]">
               {pad(minute)}
             </div>
           </div>
@@ -1266,10 +1406,11 @@ const CharacterPanel: React.FC<{
   showRuntime: boolean;
   timerLabel: string;
   isRunningSession: boolean;
+  isCountdownFinished: boolean;
   onToggleRun: () => void;
   onComplete: () => void;
   onEdit: () => void;
-}> = ({ visual, showRuntime, timerLabel, isRunningSession, onToggleRun, onComplete, onEdit }) => {
+}> = ({ visual, showRuntime, timerLabel, isRunningSession, isCountdownFinished, onToggleRun, onComplete, onEdit }) => {
   const visualConfig =
     visual === 'schedule'
       ? {
@@ -1292,37 +1433,38 @@ const CharacterPanel: React.FC<{
   return (
     <section className={`flex min-h-0 flex-col rounded-[12px] border border-[var(--app-border)] p-3 ${visualConfig.bg}`}>
       {showRuntime ? (
-        <div className="mb-3 flex flex-col items-center gap-2">
-          <div className="font-mono text-[44px] font-semibold leading-none tracking-[0.06em] text-[var(--app-text)]">
+        <div className="mb-5 flex flex-col items-center gap-4.5">
+          <div className="font-mono text-[52px] font-semibold leading-none tracking-[0.07em] text-[var(--app-text)]">
             {timerLabel}
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-4">
             <button
               type="button"
-              aria-label={isRunningSession ? 'Pause quest' : 'Start quest'}
-              title={isRunningSession ? 'Pause quest' : 'Start quest'}
+              aria-label={isCountdownFinished ? 'Countdown finished' : isRunningSession ? 'Pause quest' : 'Start quest'}
+              title={isCountdownFinished ? 'Countdown finished' : isRunningSession ? 'Pause quest' : 'Start quest'}
               onClick={onToggleRun}
-              className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-[var(--app-border)] bg-[var(--app-panel)] text-[var(--app-text)] transition-colors hover:border-[var(--app-accent)]"
+              disabled={isCountdownFinished}
+              className="inline-flex h-11 w-14 items-center justify-center rounded-md border border-[var(--app-border)] bg-[var(--app-panel)] text-[var(--app-text)] transition-colors hover:border-[var(--app-accent)] disabled:cursor-not-allowed disabled:opacity-60"
             >
-              {isRunningSession ? <Pause size={16} /> : <Play size={16} />}
+              {isCountdownFinished ? <Check size={18} /> : isRunningSession ? <Pause size={18} /> : <Play size={18} />}
             </button>
             <button
               type="button"
               aria-label="Complete quest"
               title="Complete quest"
               onClick={onComplete}
-              className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-[var(--app-accent)] bg-[color-mix(in_srgb,var(--app-accent)_14%,var(--app-panel))] text-[var(--app-text)] transition-colors hover:bg-[color-mix(in_srgb,var(--app-accent)_22%,var(--app-panel))]"
+              className="inline-flex h-11 w-14 items-center justify-center rounded-md border border-[var(--app-accent)] bg-[color-mix(in_srgb,var(--app-accent)_14%,var(--app-panel))] text-[var(--app-text)] transition-colors hover:bg-[color-mix(in_srgb,var(--app-accent)_22%,var(--app-panel))]"
             >
-              <Check size={16} />
+              <Check size={18} />
             </button>
             <button
               type="button"
               aria-label="Edit quest"
               title="Edit quest"
               onClick={onEdit}
-              className="inline-flex h-9 w-9 items-center justify-center rounded-md border border-[var(--app-border)] bg-[var(--app-panel)] text-[var(--app-text)] transition-colors hover:border-[var(--app-accent)]"
+              className="inline-flex h-11 w-14 items-center justify-center rounded-md border border-[var(--app-border)] bg-[var(--app-panel)] text-[var(--app-text)] transition-colors hover:border-[var(--app-accent)]"
             >
-              <Pencil size={16} />
+              <Pencil size={18} />
             </button>
           </div>
         </div>
@@ -1351,6 +1493,12 @@ const QuestPanel: React.FC<{
   onAddStep: (text: string) => void;
   scheduleChipLabel: string;
   isDirty: boolean;
+  timerLabel: string;
+  isRunningSession: boolean;
+  isCountdownFinished: boolean;
+  onToggleRun: () => void;
+  onComplete: () => void;
+  onEditMode: () => void;
   onBackToFocus: () => void;
   onSave: () => void;
   onCloseWorkspace: () => void;
@@ -1371,6 +1519,12 @@ const QuestPanel: React.FC<{
   onAddStep,
   scheduleChipLabel,
   isDirty,
+  timerLabel,
+  isRunningSession,
+  isCountdownFinished,
+  onToggleRun,
+  onComplete,
+  onEditMode,
   onBackToFocus,
   onSave,
   onCloseWorkspace,
@@ -1454,41 +1608,121 @@ const QuestPanel: React.FC<{
           </div>
         ) : null}
 
+        {isFocusMode ? (
+          <>
+            <div className="rounded-[10px] border border-[var(--app-border)] bg-[var(--app-panel-2)] px-3 py-2 text-center">
+              <div className="text-[10px] uppercase tracking-[0.12em] text-[var(--app-muted)]">Timer</div>
+              <div className="font-mono text-[38px] font-semibold leading-[1.05] tracking-[0.06em] text-[var(--app-text)]">
+                {timerLabel}
+              </div>
+            </div>
+            <div className="grid grid-cols-3 gap-1.5">
+              <button
+                type="button"
+                aria-label={isCountdownFinished ? 'Countdown finished' : isRunningSession ? 'Pause quest' : 'Start quest'}
+                title={isCountdownFinished ? 'Countdown finished' : isRunningSession ? 'Pause quest' : 'Start quest'}
+                onClick={onToggleRun}
+                disabled={isCountdownFinished}
+                className="inline-flex h-9 items-center justify-center rounded-md border border-[var(--app-border)] bg-[var(--app-panel)] text-[var(--app-text)] transition-colors hover:border-[var(--app-accent)] disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {isCountdownFinished ? <Check size={16} /> : isRunningSession ? <Pause size={16} /> : <Play size={16} />}
+              </button>
+              <button
+                type="button"
+                aria-label="Complete quest"
+                title="Complete quest"
+                onClick={onComplete}
+                className="inline-flex h-9 items-center justify-center rounded-md border border-[var(--app-accent)] bg-[color-mix(in_srgb,var(--app-accent)_14%,var(--app-panel))] text-[var(--app-text)] transition-colors hover:bg-[color-mix(in_srgb,var(--app-accent)_22%,var(--app-panel))]"
+              >
+                <Check size={16} />
+              </button>
+              <button
+                type="button"
+                aria-label="Edit quest"
+                title="Edit quest"
+                onClick={onEditMode}
+                className="inline-flex h-9 items-center justify-center rounded-md border border-[var(--app-border)] bg-[var(--app-panel)] text-[var(--app-text)] transition-colors hover:border-[var(--app-accent)]"
+              >
+                <Pencil size={16} />
+              </button>
+            </div>
+          </>
+        ) : null}
+
         {showChecklist ? (
           <div className="flex min-h-0 flex-1 flex-col rounded-[10px] border border-[var(--app-border)] bg-[var(--app-panel-2)] px-3 py-2">
             <div className="mb-2 text-[10px] uppercase tracking-[0.12em] text-[var(--app-muted)]">
               Checklist steps ({stepsDone}/{stepsTotal || 0})
             </div>
+            {showChecklistComposer ? (
+              <div className="mb-2 flex items-center gap-2">
+                <input
+                  value={stepInput}
+                  onChange={(event) => setStepInput(event.target.value)}
+                  onKeyDown={(event) => {
+                    if (event.key === 'Enter') {
+                      event.preventDefault();
+                      submitStep();
+                    }
+                  }}
+                  className="h-8 min-w-0 flex-1 rounded-md border border-[var(--app-border)] bg-[var(--app-panel)] px-2 text-[11px] tracking-[0.03em] text-[var(--app-text)] outline-none focus:border-[var(--app-accent)]"
+                  placeholder="Add step"
+                />
+                <button
+                  type="button"
+                  onClick={submitStep}
+                  aria-label="Add step"
+                  className="h-8 rounded-md border border-[var(--app-border)] px-2 text-[9px] uppercase tracking-[0.1em] text-[var(--app-muted)] transition-colors hover:text-[var(--app-text)]"
+                >
+                  Add
+                </button>
+              </div>
+            ) : null}
             <div className="min-h-0 flex-1 space-y-1.5 overflow-y-auto pr-0.5">
               {steps.length === 0 ? (
                 <div className="text-[10px] uppercase tracking-[0.1em] text-[var(--app-muted)]">
-                  {canEditDraft ? 'No checklist steps. Add one below.' : 'No checklist steps.'}
+                  {canEditDraft ? 'No checklist steps yet.' : 'No checklist steps.'}
                 </div>
               ) : (
                 steps.map((step) => (
-                  <div key={step.id} className="flex items-center gap-2 rounded-md border border-[var(--app-border)] bg-[var(--app-panel)] px-2 py-1">
-                    <button
-                      type="button"
-                      onClick={() => onToggleStep(step.id)}
-                      role="checkbox"
-                      aria-checked={step.done}
-                      className={`inline-flex h-4 w-4 items-center justify-center rounded-full border ${
+                  <div
+                    key={step.id}
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => onToggleStep(step.id)}
+                    onKeyDown={(event) => {
+                      if (event.key === 'Enter' || event.key === ' ') {
+                        event.preventDefault();
+                        onToggleStep(step.id);
+                      }
+                    }}
+                    className="flex cursor-pointer items-center gap-2 rounded-md border border-[var(--app-border)] bg-[var(--app-panel)] px-2 py-1 transition-all duration-150 hover:border-[color-mix(in_srgb,var(--app-accent)_35%,var(--app-border))] hover:bg-[color-mix(in_srgb,var(--app-accent)_10%,var(--app-panel))] active:scale-[0.996]"
+                  >
+                    <span
+                      className={`inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-full border transition-all duration-150 ${
                         step.done
-                          ? 'border-white bg-white text-[var(--app-panel)]'
-                          : 'border-[color-mix(in_srgb,var(--app-muted)_80%,transparent)] bg-transparent'
+                          ? 'border-[color-mix(in_srgb,var(--app-text)_72%,transparent)] bg-[var(--app-text)] text-[var(--app-panel)]'
+                          : 'border-[color-mix(in_srgb,var(--app-muted)_65%,transparent)] bg-[color-mix(in_srgb,var(--app-muted)_24%,var(--app-panel))] text-transparent'
                       }`}
-                      aria-label={step.done ? 'Mark step incomplete' : 'Mark step complete'}
+                      aria-hidden="true"
                     >
-                      {step.done ? <Check size={10} strokeWidth={3} /> : null}
-                    </button>
-                    <span className={`min-w-0 flex-1 truncate text-[11px] tracking-[0.03em] ${step.done ? 'text-[var(--app-muted)] line-through' : 'text-[var(--app-text)]'}`}>
+                      <Check size={10} strokeWidth={3.1} />
+                    </span>
+                    <span
+                      className={`min-w-0 flex-1 truncate text-[11px] tracking-[0.03em] ${
+                        step.done ? 'text-[var(--app-muted)] line-through' : 'text-[var(--app-text)]'
+                      }`}
+                    >
                       {step.text}
                     </span>
                     {canEditDraft ? (
                       <button
                         type="button"
-                        onClick={() => onDeleteStep(step.id)}
-                        className="text-[10px] uppercase tracking-[0.1em] text-[var(--app-muted)] hover:text-[var(--app-text)]"
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          onDeleteStep(step.id);
+                        }}
+                        className="text-[10px] uppercase tracking-[0.1em] text-[var(--app-muted)] transition-colors hover:text-[var(--app-text)]"
                         aria-label="Delete step"
                       >
                         Del
@@ -1497,30 +1731,6 @@ const QuestPanel: React.FC<{
                   </div>
                 ))
               )}
-              {showChecklistComposer ? (
-                <div className="flex items-center gap-2">
-                  <input
-                    value={stepInput}
-                    onChange={(event) => setStepInput(event.target.value)}
-                    onKeyDown={(event) => {
-                      if (event.key === 'Enter') {
-                        event.preventDefault();
-                        submitStep();
-                      }
-                    }}
-                    className="h-8 min-w-0 flex-1 rounded-md border border-[var(--app-border)] bg-[var(--app-panel)] px-2 text-[11px] tracking-[0.03em] text-[var(--app-text)] outline-none focus:border-[var(--app-accent)]"
-                    placeholder="Add step"
-                  />
-                  <button
-                    type="button"
-                    onClick={submitStep}
-                    aria-label="Add step"
-                    className="h-8 rounded-md border border-[var(--app-border)] px-2 text-[9px] uppercase tracking-[0.1em] text-[var(--app-muted)] hover:text-[var(--app-text)]"
-                  >
-                    Add
-                  </button>
-                </div>
-              ) : null}
             </div>
           </div>
         ) : null}
@@ -1560,6 +1770,7 @@ const FocusWorkspace: React.FC<{
   getTaskTrackedMs: (taskId: string, now?: number) => number;
   selectedMediaAsset: string | null;
   selectedSoundAsset: string | null;
+  isMediaPinned: boolean;
   onClose: () => void;
   onBackToFocus: () => void;
   onEditMode: () => void;
@@ -1575,6 +1786,7 @@ const FocusWorkspace: React.FC<{
     soundAssetId: string | null;
   }) => void;
   onPersistSteps: (taskId: string, nextDetails: string) => void;
+  onToggleMediaPinned: () => void;
   onToggleRun: () => void;
   onComplete: () => void;
   initialMode?: FocusMode;
@@ -1586,12 +1798,14 @@ const FocusWorkspace: React.FC<{
   getTaskTrackedMs,
   selectedMediaAsset,
   selectedSoundAsset,
+  isMediaPinned,
   onClose,
   onBackToFocus,
   onEditMode,
   initialPriorityLabel,
   onSaveDraft,
   onPersistSteps,
+  onToggleMediaPinned,
   onToggleRun,
   onComplete,
   initialMode = 'default',
@@ -1650,6 +1864,7 @@ const FocusWorkspace: React.FC<{
   const stableElapsed = Math.max(elapsed, elapsedCarryRef.current);
   const hasCountdown = typeof draftCountdownMin === 'number' && draftCountdownMin > 0;
   const countdownMs = hasCountdown ? Math.max(0, Math.round(draftCountdownMin * 60_000)) : 0;
+  const isCountdownFinished = hasCountdown && stableElapsed >= countdownMs;
   const timerDisplayMs = hasCountdown
     ? Math.max(0, countdownMs - stableElapsed)
     : stableElapsed;
@@ -1788,7 +2003,7 @@ const FocusWorkspace: React.FC<{
     <>
       <div className="pointer-events-none absolute inset-y-4 left-4 right-[calc(clamp(320px,34vw,380px)+16px)] z-[170] max-sm:hidden">
         <div className="flex h-full items-center justify-center">
-          <div className="pointer-events-auto relative grid aspect-[3.5/1.5] w-[clamp(820px,72vw,1320px)] max-w-[min(1320px,calc(100vw-clamp(320px,34vw,380px)-40px))] grid-cols-[56px_minmax(0,2.15fr)_72px_minmax(360px,1.18fr)_minmax(230px,0.88fr)] gap-2.5 rounded-[16px] border border-[var(--app-border)] bg-[color-mix(in_srgb,var(--app-panel)_96%,black)] p-2.5">
+          <div className="pointer-events-auto relative grid aspect-[3.5/1.5] w-[clamp(700px,58vw,1000px)] max-w-[min(1000px,calc(100vw-clamp(320px,34vw,380px)-40px))] grid-cols-[56px_minmax(0,2fr)_72px_minmax(340px,1.2fr)_minmax(210px,0.88fr)] gap-2.5 rounded-[16px] border border-[var(--app-border)] bg-[color-mix(in_srgb,var(--app-panel)_96%,black)] p-2.5">
             <button
               type="button"
               aria-label="Close focus workspace"
@@ -1846,6 +2061,8 @@ const FocusWorkspace: React.FC<{
                 <ActiveLibraryView
                   kind="media"
                   selectedAsset={draftMediaAsset}
+                  isPinned={isMediaPinned}
+                  onTogglePinned={onToggleMediaPinned}
                   onSelect={(assetId, closeAfterSelect = true) => {
                     setDraftMediaAsset(assetId);
                     if (closeAfterSelect) setActiveMode('default');
@@ -1901,15 +2118,22 @@ const FocusWorkspace: React.FC<{
           }
           scheduleChipLabel={scheduleChipLabel}
           isDirty={isDirty}
+          timerLabel={formatTimer(timerDisplayMs)}
+          isRunningSession={isRunning}
+          isCountdownFinished={isCountdownFinished}
+          onToggleRun={onToggleRun}
+          onComplete={onComplete}
+          onEditMode={onEditMode}
           onBackToFocus={() => requestExit('back')}
           onSave={saveDraft}
           onCloseWorkspace={() => requestExit('close')}
             />
             <CharacterPanel
               visual={characterVisual}
-              showRuntime={mode === 'focus'}
+              showRuntime={false}
               timerLabel={formatTimer(timerDisplayMs)}
               isRunningSession={isRunning}
+              isCountdownFinished={isCountdownFinished}
               onToggleRun={onToggleRun}
               onComplete={onComplete}
               onEdit={onEditMode}
@@ -1958,6 +2182,7 @@ export const HextechAssistant: React.FC<HextechAssistantProps> = ({ isOpen, onCl
   const [taskPriorityVisuals, setTaskPriorityVisuals] = useState<Record<string, string>>({});
   const [taskMediaPinned, setTaskMediaPinned] = useState<Record<string, string>>({});
   const [, setUiRevision] = useState(0);
+  const [runtimeTick, setRuntimeTick] = useState(() => Date.now());
 
   const [rendered, setRendered] = useState(isOpen);
   const [visible, setVisible] = useState(isOpen);
@@ -1965,6 +2190,7 @@ export const HextechAssistant: React.FC<HextechAssistantProps> = ({ isOpen, onCl
   const closeTimerRef = useRef<number | null>(null);
   const toastTimerRef = useRef<number | null>(null);
   const actionLockedRef = useRef(false);
+  const countdownOpenRef = useRef<string | null>(null);
 
   const activeSession = selectors.getActiveSession();
   const runningTaskId = activeSession?.taskId || activeSession?.linkedTaskIds?.[0] || null;
@@ -2002,6 +2228,12 @@ export const HextechAssistant: React.FC<HextechAssistantProps> = ({ isOpen, onCl
     [availableTasks, runningTaskId]
   );
 
+  useEffect(() => {
+    if (!runningTaskId) return;
+    const timer = window.setInterval(() => setRuntimeTick(Date.now()), 1000);
+    return () => window.clearInterval(timer);
+  }, [runningTaskId]);
+
   const focusedTask = useMemo(
     () => (focusedTaskId ? availableTasks.find((task) => task.id === focusedTaskId) || null : null),
     [availableTasks, focusedTaskId]
@@ -2014,6 +2246,24 @@ export const HextechAssistant: React.FC<HextechAssistantProps> = ({ isOpen, onCl
       (activeSession.taskId === focusedTask.id || (activeSession.linkedTaskIds || []).includes(focusedTask.id));
     return isFocusedRunning ? activeSession : null;
   }, [activeSession, focusedTask]);
+
+  useEffect(() => {
+    if (!runningTask || !runningTask.countdownMin || runningTask.countdownMin <= 0) {
+      countdownOpenRef.current = null;
+      return;
+    }
+    const targetMs = runningTask.countdownMin * 60_000;
+    const elapsedMs = getTaskTrackedMs(runningTask.id, runtimeTick);
+    if (elapsedMs < targetMs) {
+      if (countdownOpenRef.current === runningTask.id) countdownOpenRef.current = null;
+      return;
+    }
+    if (countdownOpenRef.current === runningTask.id) return;
+    countdownOpenRef.current = runningTask.id;
+    setFocusedTaskId(runningTask.id);
+    setWorkspaceMode('focus');
+    pushToast(`Countdown finished: ${runningTask.title}`);
+  }, [runningTask?.id, runningTask?.countdownMin, runtimeTick, getTaskTrackedMs]);
 
   useEffect(() => {
     if (!focusedTaskId || workspaceMode === 'create') return;
@@ -2059,11 +2309,21 @@ export const HextechAssistant: React.FC<HextechAssistantProps> = ({ isOpen, onCl
   }, []);
 
   useEffect(() => {
-    persistSelectionMap(QUEST_MEDIA_STORAGE_KEY, taskMediaSelections);
+    const serializable = Object.entries(taskMediaSelections).reduce<Record<string, string>>((acc, [taskId, assetId]) => {
+      if (!assetId || !shouldPersistAssetId(assetId)) return acc;
+      acc[taskId] = assetId;
+      return acc;
+    }, {});
+    persistSelectionMap(QUEST_MEDIA_STORAGE_KEY, serializable);
   }, [taskMediaSelections]);
 
   useEffect(() => {
-    persistSelectionMap(QUEST_SOUND_STORAGE_KEY, taskSoundSelections);
+    const serializable = Object.entries(taskSoundSelections).reduce<Record<string, string>>((acc, [taskId, assetId]) => {
+      if (!assetId || !shouldPersistAssetId(assetId)) return acc;
+      acc[taskId] = assetId;
+      return acc;
+    }, {});
+    persistSelectionMap(QUEST_SOUND_STORAGE_KEY, serializable);
   }, [taskSoundSelections]);
 
   useEffect(() => {
@@ -2321,6 +2581,7 @@ export const HextechAssistant: React.FC<HextechAssistantProps> = ({ isOpen, onCl
             getTaskTrackedMs={getTaskTrackedMs}
             selectedMediaAsset={workspaceKey ? taskMediaSelections[workspaceKey] || 'focus-animation' : 'focus-animation'}
             selectedSoundAsset={workspaceKey ? taskSoundSelections[workspaceKey] || null : null}
+            isMediaPinned={workspaceKey ? taskMediaPinned[workspaceKey] === '1' : false}
             onClose={closeFocusPanel}
             onBackToFocus={backToFocus}
             onEditMode={openEditInWorkspace}
@@ -2328,6 +2589,13 @@ export const HextechAssistant: React.FC<HextechAssistantProps> = ({ isOpen, onCl
             onSaveDraft={handleSaveWorkspace}
             onPersistSteps={(taskId, nextDetails) => {
               updateTask(taskId, { details: nextDetails });
+            }}
+            onToggleMediaPinned={() => {
+              if (!workspaceKey) return;
+              setTaskMediaPinned((prev) => ({
+                ...prev,
+                [workspaceKey]: prev[workspaceKey] === '1' ? '0' : '1',
+              }));
             }}
             initialMode={workspaceMode === 'create' ? 'default' : 'default'}
             onToggleRun={() => {
@@ -2413,15 +2681,15 @@ export const HextechAssistant: React.FC<HextechAssistantProps> = ({ isOpen, onCl
                     mediaPreviewType={preview.type}
                     priorityVisual={(taskPriorityVisuals[runningTask.id] as FocusPriority | undefined) || (runningTask.priority as FocusPriority) || 'normal'}
                     isPreviewPinned={taskMediaPinned[runningTask.id] === '1'}
+                    onOpen={() => openFocusPanel(runningTask.id)}
+                    onToggleRun={() => handleToggleRun(runningTask)}
+                    onComplete={() => handleComplete(runningTask)}
                     onTogglePreviewPin={() =>
                       setTaskMediaPinned((prev) => ({
                         ...prev,
                         [runningTask.id]: prev[runningTask.id] === '1' ? '0' : '1',
                       }))
                     }
-                    onOpen={() => openFocusPanel(runningTask.id)}
-                    onToggleRun={() => handleToggleRun(runningTask)}
-                    onComplete={() => handleComplete(runningTask)}
                   />
                     );
                   })()}
@@ -2455,15 +2723,15 @@ export const HextechAssistant: React.FC<HextechAssistantProps> = ({ isOpen, onCl
                           mediaPreviewType={preview.type}
                           priorityVisual={(taskPriorityVisuals[task.id] as FocusPriority | undefined) || (task.priority as FocusPriority) || 'normal'}
                           isPreviewPinned={taskMediaPinned[task.id] === '1'}
+                          onOpen={() => openFocusPanel(task.id)}
+                          onToggleRun={() => handleToggleRun(task)}
+                          onComplete={() => handleComplete(task)}
                           onTogglePreviewPin={() =>
                             setTaskMediaPinned((prev) => ({
                               ...prev,
                               [task.id]: prev[task.id] === '1' ? '0' : '1',
                             }))
                           }
-                          onOpen={() => openFocusPanel(task.id)}
-                          onToggleRun={() => handleToggleRun(task)}
-                          onComplete={() => handleComplete(task)}
                         />
                       );
                     })
