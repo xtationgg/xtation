@@ -197,15 +197,26 @@ const parseCustomAsset = <T,>(assetId: string | null, prefix: string): T | null 
 };
 
 const inferMediaTypeFromUrl = (url: string): FocusMediaAsset['type'] => {
-  const lower = url.toLowerCase();
+  const normalized = url.trim();
+  const lower = normalized.toLowerCase();
   if (lower.includes('youtube.com') || lower.includes('youtu.be')) return 'video';
+  if (lower.includes('vimeo.com')) return 'video';
   if (url.startsWith('data:image/')) return 'image';
   if (url.startsWith('data:video/')) return 'video';
   if (url.startsWith('blob:')) return 'video';
-  const clean = url.toLowerCase().split('?')[0].split('#')[0];
-  if (/\.(png|jpe?g|webp|gif|avif|svg)$/i.test(clean)) return 'image';
-  if (/\.(mp4|webm|ogg|mov|m4v)$/i.test(clean)) return 'video';
-  return 'image';
+  try {
+    const parsed = new URL(normalized);
+    const cleanPath = parsed.pathname.toLowerCase();
+    if (/\.(png|jpe?g|webp|gif|avif|svg)$/i.test(cleanPath)) return 'image';
+    if (/\.(mp4|webm|ogg|mov|m4v)$/i.test(cleanPath)) return 'video';
+    if (cleanPath.includes('/video') || cleanPath.includes('/stream') || cleanPath.includes('/watch')) return 'video';
+    if (cleanPath.includes('/image') || cleanPath.includes('/photo') || cleanPath.includes('/thumbnail')) return 'image';
+  } catch {
+    const clean = lower.split('?')[0].split('#')[0];
+    if (/\.(png|jpe?g|webp|gif|avif|svg)$/i.test(clean)) return 'image';
+    if (/\.(mp4|webm|ogg|mov|m4v)$/i.test(clean)) return 'video';
+  }
+  return 'video';
 };
 
 const readFileAsDataUrl = (file: File) =>
@@ -225,14 +236,21 @@ const readFileAsDataUrl = (file: File) =>
 const extractYouTubeVideoId = (url: string) => {
   try {
     const parsed = new URL(url);
-    if (parsed.hostname.includes('youtu.be')) {
-      return parsed.pathname.replace('/', '') || null;
+    const hostname = parsed.hostname.replace('www.', '');
+    if (hostname.includes('youtu.be')) {
+      return parsed.pathname.split('/').filter(Boolean)[0] || null;
     }
-    if (parsed.hostname.includes('youtube.com')) {
+    if (hostname.includes('youtube.com') || hostname.includes('youtube-nocookie.com')) {
       if (parsed.pathname.startsWith('/shorts/')) {
-        return parsed.pathname.split('/shorts/')[1] || null;
+        return parsed.pathname.split('/shorts/')[1]?.split('/')[0] || null;
       }
-      return parsed.searchParams.get('v');
+      if (parsed.pathname.startsWith('/embed/')) {
+        return parsed.pathname.split('/embed/')[1]?.split('/')[0] || null;
+      }
+      if (parsed.pathname.startsWith('/live/')) {
+        return parsed.pathname.split('/live/')[1]?.split('/')[0] || null;
+      }
+      return parsed.searchParams.get('v') || parsed.searchParams.get('vi');
     }
   } catch {
     return null;
@@ -2680,16 +2698,9 @@ export const HextechAssistant: React.FC<HextechAssistantProps> = ({ isOpen, onCl
                     mediaPreviewUrl={preview.url}
                     mediaPreviewType={preview.type}
                     priorityVisual={(taskPriorityVisuals[runningTask.id] as FocusPriority | undefined) || (runningTask.priority as FocusPriority) || 'normal'}
-                    isPreviewPinned={taskMediaPinned[runningTask.id] === '1'}
                     onOpen={() => openFocusPanel(runningTask.id)}
                     onToggleRun={() => handleToggleRun(runningTask)}
                     onComplete={() => handleComplete(runningTask)}
-                    onTogglePreviewPin={() =>
-                      setTaskMediaPinned((prev) => ({
-                        ...prev,
-                        [runningTask.id]: prev[runningTask.id] === '1' ? '0' : '1',
-                      }))
-                    }
                   />
                     );
                   })()}
@@ -2722,16 +2733,9 @@ export const HextechAssistant: React.FC<HextechAssistantProps> = ({ isOpen, onCl
                           mediaPreviewUrl={preview.url}
                           mediaPreviewType={preview.type}
                           priorityVisual={(taskPriorityVisuals[task.id] as FocusPriority | undefined) || (task.priority as FocusPriority) || 'normal'}
-                          isPreviewPinned={taskMediaPinned[task.id] === '1'}
                           onOpen={() => openFocusPanel(task.id)}
                           onToggleRun={() => handleToggleRun(task)}
                           onComplete={() => handleComplete(task)}
-                          onTogglePreviewPin={() =>
-                            setTaskMediaPinned((prev) => ({
-                              ...prev,
-                              [task.id]: prev[task.id] === '1' ? '0' : '1',
-                            }))
-                          }
                         />
                       );
                     })

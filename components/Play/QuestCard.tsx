@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Check, ChevronUp, Pause, Pin, Play } from 'lucide-react';
+import { Check, ChevronUp, Pause, Play } from 'lucide-react';
 import { Task, XPSession } from '../XP/xpTypes';
 
 const STEPS_BLOCK_REGEX = /\n?---\s*\n\[xstation_steps_v1\]\s*\n([\s\S]*?)\n---\s*$/;
@@ -67,11 +67,9 @@ export interface QuestCardProps {
   mediaPreviewUrl?: string | null;
   mediaPreviewType?: 'animation' | 'image' | 'video';
   priorityVisual?: 'normal' | 'high' | 'urgent' | 'extreme';
-  isPreviewPinned?: boolean;
   onOpen: () => void;
   onToggleRun: () => void;
   onComplete: () => void;
-  onTogglePreviewPin?: () => void;
   disabled?: boolean;
 }
 
@@ -84,11 +82,9 @@ export const QuestCard: React.FC<QuestCardProps> = ({
   mediaPreviewUrl = null,
   mediaPreviewType = 'animation',
   priorityVisual = 'normal',
-  isPreviewPinned = false,
   onOpen,
   onToggleRun,
   onComplete,
-  onTogglePreviewPin,
   disabled = false,
 }) => {
   const [tickNow, setTickNow] = useState(() => Date.now());
@@ -197,7 +193,7 @@ export const QuestCard: React.FC<QuestCardProps> = ({
           alt=""
           aria-hidden
           className={`pointer-events-none absolute inset-0 h-full w-full object-cover transition-opacity duration-300 ${
-            isFocused || isRunning || isPreviewPinned ? 'opacity-[0.46]' : 'opacity-0 group-hover:opacity-[0.34]'
+            isFocused || isRunning ? 'opacity-[0.46]' : 'opacity-0 group-hover:opacity-[0.34]'
           }`}
         />
       ) : null}
@@ -209,7 +205,7 @@ export const QuestCard: React.FC<QuestCardProps> = ({
           autoPlay
           playsInline
           className={`pointer-events-none absolute inset-0 h-full w-full object-cover transition-opacity duration-300 ${
-            isFocused || isRunning || isPreviewPinned ? 'opacity-[0.46]' : 'opacity-0 group-hover:opacity-[0.34]'
+            isFocused || isRunning ? 'opacity-[0.46]' : 'opacity-0 group-hover:opacity-[0.34]'
           }`}
         />
       ) : null}
@@ -292,25 +288,6 @@ export const QuestCard: React.FC<QuestCardProps> = ({
                 <Check size={16} />
               </button>
             </>
-          ) : null}
-          {mediaPreviewUrl && onTogglePreviewPin ? (
-            <button
-              type="button"
-              aria-label={isPreviewPinned ? 'Unpin quest preview' : 'Pin quest preview'}
-              title={isPreviewPinned ? 'Unpin preview' : 'Pin preview in list'}
-              onClick={(event) => {
-                event.stopPropagation();
-                event.preventDefault();
-                onTogglePreviewPin();
-              }}
-              className={`inline-flex h-7 w-7 items-center justify-center rounded-md border transition-colors ${
-                isPreviewPinned
-                  ? 'border-transparent bg-[color-mix(in_srgb,var(--app-accent)_28%,var(--app-panel))] text-[var(--app-text)]'
-                  : 'border-[var(--app-border)] bg-[var(--app-panel-2)] text-[var(--app-muted)] hover:text-[var(--app-text)]'
-              }`}
-            >
-              <Pin size={12} />
-            </button>
           ) : null}
         </div>
       </div>
