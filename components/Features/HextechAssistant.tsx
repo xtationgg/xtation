@@ -1198,7 +1198,7 @@ const ActiveScheduleView: React.FC<{
   return (
     <section
       data-testid="schedule-panel"
-      className="grid min-h-0 grid-rows-[auto_1fr_auto] gap-2 rounded-[12px] border border-[var(--app-border)] bg-[var(--app-panel)] p-3"
+      className="flex h-full min-h-0 flex-col gap-2 overflow-y-auto overscroll-contain rounded-[12px] border border-[var(--app-border)] bg-[var(--app-panel)] p-3"
     >
       <div className="flex items-center justify-between">
         <div className="text-[12px] uppercase tracking-[0.16em] text-[var(--app-text)]">{monthLabel}</div>
@@ -1232,11 +1232,11 @@ const ActiveScheduleView: React.FC<{
         ))}
         {dayCells.map((cell, index) =>
           cell ? (
-            <button
+              <button
               key={cell.dateKey}
               type="button"
               onClick={() => onValueChange(composeScheduleValue(cell.dateKey))}
-                className={`h-10 rounded-md border text-[14px] font-medium transition-colors ${
+                className={`h-9 rounded-md border text-[13px] font-medium transition-colors ${
                   cell.dateKey === selectedDateKey
                     ? 'border-transparent bg-[color-mix(in_srgb,var(--app-accent)_20%,var(--app-panel))] text-[var(--app-text)]'
                     : 'border-transparent text-[var(--app-muted)] hover:border-[var(--app-border)] hover:text-[var(--app-text)]'
@@ -2019,9 +2019,9 @@ const FocusWorkspace: React.FC<{
 
   return (
     <>
-      <div className="pointer-events-none absolute inset-y-4 left-4 right-[calc(clamp(320px,34vw,380px)+16px)] z-[170] max-sm:hidden">
+      <div className="pointer-events-none absolute inset-y-3 left-3 right-[calc(clamp(320px,34vw,380px)+10px)] z-[170] max-sm:hidden">
         <div className="flex h-full items-center justify-center">
-          <div className="pointer-events-auto relative grid aspect-[3.5/1.5] w-[clamp(700px,58vw,1000px)] max-w-[min(1000px,calc(100vw-clamp(320px,34vw,380px)-40px))] grid-cols-[56px_minmax(0,2fr)_72px_minmax(340px,1.2fr)_minmax(210px,0.88fr)] gap-2.5 rounded-[16px] border border-[var(--app-border)] bg-[color-mix(in_srgb,var(--app-panel)_96%,black)] p-2.5">
+          <div className="pointer-events-auto relative grid h-[clamp(360px,54vh,560px)] max-h-[calc(100dvh-30px)] w-[min(1060px,calc(100vw-clamp(320px,34vw,380px)-24px))] min-w-[560px] grid-cols-[48px_minmax(0,1.72fr)_58px_minmax(270px,1.08fr)_minmax(180px,0.82fr)] gap-2 overflow-hidden rounded-[16px] border border-[var(--app-border)] bg-[color-mix(in_srgb,var(--app-panel)_96%,black)] p-2">
             <button
               type="button"
               aria-label="Close focus workspace"
@@ -2043,7 +2043,7 @@ const FocusWorkspace: React.FC<{
                 setActiveMode((prev) => (prev === 'sound' ? 'default' : 'sound'));
               }}
             />
-            <div className="min-h-0">
+            <div className="h-full min-h-0 overflow-hidden">
               {activeMode === 'default' ? (
                 <ActiveAreaDefault
                   selectedAssetId={draftMediaAsset}

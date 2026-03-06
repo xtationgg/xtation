@@ -12,6 +12,7 @@
   --ui-space-4: 16px;
   --ui-space-5: 20px;
   --ui-space-6: 24px;
+  --xt-ui-scale: 1;
 
   /* Canonical theme tokens (default = Dusk) */
   --app-bg: #0e1014;
@@ -1582,6 +1583,7 @@ body {
   background-image: var(--ui-bg-overlay) !important;
   color: var(--dc-text) !important;
   letter-spacing: var(--ui-body-letter-spacing);
+  overflow-x: hidden;
 }
 
 body::before {
@@ -1602,6 +1604,37 @@ body::before {
   background-color: var(--dc-bg);
   background-image: var(--ui-bg-overlay);
   color: var(--dc-text);
+}
+
+/* ── Settings Hub: resolution scale ─────────────────────────────────── */
+[data-resolution='auto'] {
+  --xt-ui-scale: var(--xt-auto-scale, 1);
+}
+
+[data-resolution='hd_720'] {
+  --xt-ui-scale: 1.08;
+}
+
+[data-resolution='hd_1080'] {
+  --xt-ui-scale: 1;
+}
+
+[data-resolution='qhd_1440'] {
+  --xt-ui-scale: 0.92;
+}
+
+[data-resolution='uhd_2160'] {
+  --xt-ui-scale: 0.84;
+}
+
+@media (min-width: 1024px) {
+  #root {
+    max-width: none;
+    width: calc(100% / var(--xt-ui-scale));
+    min-height: calc(100dvh / var(--xt-ui-scale));
+    transform: scale(var(--xt-ui-scale));
+    transform-origin: top left;
+  }
 }
 
 p,

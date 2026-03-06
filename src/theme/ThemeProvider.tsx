@@ -2,6 +2,7 @@ import React, { createContext, useCallback, useContext, useEffect, useMemo, useS
 
 export const XTATION_THEME_STORAGE_KEY = 'xtation_theme_pack';
 export const XTATION_ACCENT_STORAGE_KEY = 'xtation_accent_pack';
+export const XTATION_RESOLUTION_STORAGE_KEY = 'xtation_resolution_mode';
 const LEGACY_THEME_STORAGE_KEY = 'xtation_theme';
 
 export type XtationTheme =
@@ -27,6 +28,13 @@ export interface XtationAccentOption {
   label: string;
 }
 
+export type XtationResolutionMode = 'auto' | 'hd_720' | 'hd_1080' | 'qhd_1440' | 'uhd_2160';
+
+export interface XtationResolutionOption {
+  value: XtationResolutionMode;
+  label: string;
+}
+
 export const XTATION_THEME_OPTIONS: XtationThemeOption[] = [
   { value: 'dusk', label: 'Dusk' },
   { value: 'dusk_soft', label: 'Dusk • No Outline' },
@@ -49,13 +57,25 @@ export const XTATION_ACCENT_OPTIONS: XtationAccentOption[] = [
   { value: 'lime', label: 'Lime' },
 ];
 
+export const XTATION_RESOLUTION_OPTIONS: XtationResolutionOption[] = [
+  { value: 'auto', label: 'Auto' },
+  { value: 'hd_720', label: '1280 × 720' },
+  { value: 'hd_1080', label: '1920 × 1080' },
+  { value: 'qhd_1440', label: '2560 × 1440' },
+  { value: 'uhd_2160', label: '3840 × 2160' },
+];
+
 const DEFAULT_THEME: XtationTheme = 'dusk';
 const DEFAULT_ACCENT: XtationAccent = 'purple';
+const DEFAULT_RESOLUTION: XtationResolutionMode = 'auto';
 const VALID_THEMES = new Set<XtationTheme>(XTATION_THEME_OPTIONS.map((option) => option.value));
 const VALID_ACCENTS = new Set<XtationAccent>(XTATION_ACCENT_OPTIONS.map((option) => option.value));
+const VALID_RESOLUTIONS = new Set<XtationResolutionMode>(XTATION_RESOLUTION_OPTIONS.map((option) => option.value));
 
 const isTheme = (value: string): value is XtationTheme => VALID_THEMES.has(value as XtationTheme);
 const isAccent = (value: string): value is XtationAccent => VALID_ACCENTS.has(value as XtationAccent);
+const isResolution = (value: string): value is XtationResolutionMode =>
+  VALID_RESOLUTIONS.has(value as XtationResolutionMode);
 
 const normalizeTheme = (value: string | null): XtationTheme | null => {
   if (!value) return null;
@@ -82,6 +102,13 @@ const readStoredAccent = (): XtationAccent => {
   return DEFAULT_ACCENT;
 };
 
+const readStoredResolution = (): XtationResolutionMode => {
+  if (typeof window === 'undefined') return DEFAULT_RESOLUTION;
+  const stored = window.localStorage.getItem(XTATION_RESOLUTION_STORAGE_KEY);
+  if (stored && isResolution(stored)) return stored;
+  return DEFAULT_RESOLUTION;
+};
+
 const applyThemeToDom = (theme: XtationTheme) => {
   if (typeof document === 'undefined') return;
   document.documentElement.dataset.theme = theme;
@@ -92,11 +119,27 @@ const applyAccentToDom = (accent: XtationAccent) => {
   document.documentElement.dataset.accent = accent;
 };
 
+const applyResolutionToDom = (resolution: XtationResolutionMode) => {
+  if (typeof document === 'undefined') return;
+  document.documentElement.dataset.resolution = resolution;
+};
+
+const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
+
+const computeAutoResolutionScale = () => {
+  if (typeof window === 'undefined') return 1;
+  const widthScale = window.innerWidth / 1920;
+  const heightScale = window.innerHeight / 1080;
+  return clamp(Math.min(widthScale, heightScale), 0.78, 1);
+};
+
 export const initializeThemeFromStorage = (): XtationTheme => {
   const theme = readStoredTheme();
   const accent = readStoredAccent();
+  const resolution = readStoredResolution();
   applyThemeToDom(theme);
   applyAccentToDom(accent);
+  applyResolutionToDom(resolution);
   return theme;
 };
 
@@ -107,6 +150,9 @@ interface ThemeContextValue {
   accent: XtationAccent;
   setAccent: (accent: XtationAccent) => void;
   accentOptions: XtationAccentOption[];
+  resolution: XtationResolutionMode;
+  setResolution: (resolution: XtationResolutionMode) => void;
+  resolutionOptions: XtationResolutionOption[];
 }
 
 const ThemeContext = createContext<ThemeContextValue | null>(null);
@@ -114,6 +160,7 @@ const ThemeContext = createContext<ThemeContextValue | null>(null);
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [theme, setThemeState] = useState<XtationTheme>(() => initializeThemeFromStorage());
   const [accent, setAccentState] = useState<XtationAccent>(() => readStoredAccent());
+  const [resolution, setResolutionState] = useState<XtationResolutionMode>(() => readStoredResolution());
 
   const setTheme = useCallback((nextTheme: XtationTheme) => {
     if (!isTheme(nextTheme)) return;
@@ -123,6 +170,11 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const setAccent = useCallback((nextAccent: XtationAccent) => {
     if (!isAccent(nextAccent)) return;
     setAccentState(nextAccent);
+  }, []);
+
+  const setResolution = useCallback((nextResolution: XtationResolutionMode) => {
+    if (!isResolution(nextResolution)) return;
+    setResolutionState(nextResolution);
   }, []);
 
   useEffect(() => {
@@ -140,6 +192,30 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     }
   }, [accent]);
 
+  useEffect(() => {
+    applyResolutionToDom(resolution);
+    if (typeof window !== 'undefined') {
+      window.localStorage.setItem(XTATION_RESOLUTION_STORAGE_KEY, resolution);
+    }
+  }, [resolution]);
+
+  useEffect(() => {
+    if (typeof document === 'undefined') return;
+
+    const applyAutoScale = () => {
+      const root = document.documentElement;
+      if (resolution !== 'auto') {
+        root.style.removeProperty('--xt-auto-scale');
+        return;
+      }
+      root.style.setProperty('--xt-auto-scale', computeAutoResolutionScale().toFixed(4));
+    };
+
+    applyAutoScale();
+    window.addEventListener('resize', applyAutoScale);
+    return () => window.removeEventListener('resize', applyAutoScale);
+  }, [resolution]);
+
   const value = useMemo<ThemeContextValue>(
     () => ({
       theme,
@@ -148,8 +224,11 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       accent,
       setAccent,
       accentOptions: XTATION_ACCENT_OPTIONS,
+      resolution,
+      setResolution,
+      resolutionOptions: XTATION_RESOLUTION_OPTIONS,
     }),
-    [theme, setTheme, accent, setAccent]
+    [theme, setTheme, accent, setAccent, resolution, setResolution]
   );
 
   return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
