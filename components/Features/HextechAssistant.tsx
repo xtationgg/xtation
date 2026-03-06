@@ -272,6 +272,19 @@ const getYouTubeThumbnailUrl = (url: string) => {
   return `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
 };
 
+const isDirectVideoSource = (src?: string | null) => {
+  if (!src) return false;
+  if (src.startsWith('blob:') || src.startsWith('data:video/')) return true;
+  try {
+    const parsed = new URL(src);
+    const clean = parsed.pathname.toLowerCase();
+    return /\.(mp4|webm|ogg|mov|m4v)$/i.test(clean);
+  } catch {
+    const clean = src.toLowerCase().split('?')[0].split('#')[0];
+    return /\.(mp4|webm|ogg|mov|m4v)$/i.test(clean);
+  }
+};
+
 const getFocusMediaAsset = (assetId: string | null) => {
   const serialized = parseCustomAsset<SerializedMediaAsset>(assetId, 'media-custom:');
   if (serialized?.src) {
@@ -607,6 +620,18 @@ const ActiveLibraryView: React.FC<{
 
   const selectedMedia = kind === 'media' ? getFocusMediaAsset(selectedAsset) : null;
   const selectedSound = kind === 'sound' ? getFocusSoundAsset(selectedAsset) : null;
+  const selectedMediaEmbedUrl = useMemo(() => {
+    if (kind !== 'media' || selectedMedia?.type !== 'video' || !selectedMedia.src) return null;
+    return getYouTubeEmbedUrl(selectedMedia.src, 0);
+  }, [kind, selectedMedia?.type, selectedMedia?.src]);
+  const selectedMediaThumbnail = useMemo(() => {
+    if (kind !== 'media' || selectedMedia?.type !== 'video' || !selectedMedia.src) return null;
+    return getYouTubeThumbnailUrl(selectedMedia.src);
+  }, [kind, selectedMedia?.type, selectedMedia?.src]);
+  const selectedMediaDirectVideo = useMemo(() => {
+    if (kind !== 'media' || selectedMedia?.type !== 'video') return false;
+    return isDirectVideoSource(selectedMedia.src);
+  }, [kind, selectedMedia?.type, selectedMedia?.src]);
   const currentSource = kind === 'media' ? selectedMedia?.src : selectedSound?.src;
   const selectedLabel = kind === 'media' ? selectedMedia?.label || 'Focus Animation' : selectedSound?.label || 'None';
   const currentSourceLabel = useMemo(() => {
@@ -724,7 +749,24 @@ const ActiveLibraryView: React.FC<{
             {selectedMedia.type === 'image' ? (
               <img src={selectedMedia.src} alt={selectedMedia.label} className="h-full w-full object-cover" />
             ) : selectedMedia.type === 'video' ? (
-              <video src={selectedMedia.src} className="h-full w-full object-cover" muted autoPlay loop playsInline />
+              selectedMediaDirectVideo ? (
+                <video src={selectedMedia.src} className="h-full w-full object-cover" muted autoPlay loop playsInline />
+              ) : selectedMediaEmbedUrl ? (
+                <iframe
+                  src={selectedMediaEmbedUrl}
+                  title={selectedMedia.label}
+                  className="h-full w-full"
+                  allow="autoplay; encrypted-media; picture-in-picture"
+                  referrerPolicy="strict-origin-when-cross-origin"
+                  allowFullScreen
+                />
+              ) : selectedMediaThumbnail ? (
+                <img src={selectedMediaThumbnail} alt={selectedMedia.label} className="h-full w-full object-cover" />
+              ) : (
+                <div className="flex h-full w-full items-center justify-center text-[10px] uppercase tracking-[0.12em] text-[var(--app-muted)]">
+                  Video selected
+                </div>
+              )
             ) : (
               <div className="flex h-full w-full items-center justify-center text-[10px] uppercase tracking-[0.12em] text-[var(--app-muted)]">
                 Focus animation
@@ -2020,20 +2062,28 @@ const FocusWorkspace: React.FC<{
 
   return (
     <>
-      <div className="pointer-events-none absolute inset-y-3 left-3 right-[calc(clamp(320px,34vw,380px)+10px)] z-[170] max-sm:hidden">
+      <div
+        className="absolute inset-y-3 left-3 right-[calc(clamp(320px,34vw,380px)+10px)] z-[170] max-sm:hidden"
+        onMouseDown={(event) => {
+          if (event.target === event.currentTarget) {
+            requestExit('close');
+          }
+        }}
+      >
         <div className="flex h-full items-center justify-center">
           <div
-            className={`pointer-events-auto relative grid max-h-[calc(100dvh-30px)] w-[min(1140px,calc(100vw-clamp(320px,34vw,380px)-24px))] min-w-[560px] gap-2 overflow-hidden rounded-[16px] border border-[var(--app-border)] bg-[color-mix(in_srgb,var(--app-panel)_96%,black)] p-2 ${
+            className={`relative grid max-h-[calc(100dvh-24px)] w-[min(1500px,calc(100vw-clamp(320px,34vw,380px)-18px))] min-w-[640px] gap-2 overflow-hidden rounded-[16px] border border-[var(--app-border)] bg-[color-mix(in_srgb,var(--app-panel)_96%,black)] p-2 ${
               mode === 'focus'
-                ? 'h-[clamp(360px,56vh,600px)] grid-cols-[minmax(0,1.95fr)_minmax(300px,1.06fr)_minmax(180px,0.82fr)]'
-                : 'h-[clamp(360px,54vh,560px)] grid-cols-[48px_minmax(0,1.72fr)_58px_minmax(270px,1.08fr)_minmax(180px,0.82fr)]'
+                ? 'h-[clamp(460px,68vh,760px)] grid-cols-[minmax(0,2.05fr)_minmax(320px,1.08fr)_minmax(200px,0.82fr)]'
+                : 'h-[clamp(420px,62vh,700px)] grid-cols-[52px_minmax(0,1.84fr)_64px_minmax(310px,1.08fr)_minmax(200px,0.82fr)]'
             }`}
+            onMouseDown={(event) => event.stopPropagation()}
           >
             <button
               type="button"
               aria-label="Close focus workspace"
               onClick={() => requestExit('close')}
-              className="absolute -right-12 top-1 inline-flex h-8 w-8 items-center justify-center rounded-md border border-[var(--app-border)] bg-[var(--app-panel-2)] text-[var(--app-muted)] hover:text-[var(--app-text)]"
+              className="absolute -right-11 -top-2 inline-flex h-8 w-8 items-center justify-center rounded-md border border-[var(--app-border)] bg-[var(--app-panel-2)] text-[var(--app-muted)] hover:text-[var(--app-text)]"
             >
               <X size={14} />
             </button>

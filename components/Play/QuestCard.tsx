@@ -54,6 +54,48 @@ const getStepProgress = (details?: string) => {
   }
 };
 
+const extractYouTubeVideoId = (url?: string | null) => {
+  if (!url) return null;
+  try {
+    const parsed = new URL(url);
+    const hostname = parsed.hostname.replace('www.', '');
+    if (hostname.includes('youtu.be')) {
+      return parsed.pathname.split('/').filter(Boolean)[0] || null;
+    }
+    if (hostname.includes('youtube.com') || hostname.includes('youtube-nocookie.com')) {
+      if (parsed.pathname.startsWith('/shorts/')) {
+        return parsed.pathname.split('/shorts/')[1]?.split('/')[0] || null;
+      }
+      if (parsed.pathname.startsWith('/embed/')) {
+        return parsed.pathname.split('/embed/')[1]?.split('/')[0] || null;
+      }
+      return parsed.searchParams.get('v') || parsed.searchParams.get('vi');
+    }
+  } catch {
+    return null;
+  }
+  return null;
+};
+
+const getYouTubeThumbnailUrl = (url?: string | null) => {
+  const videoId = extractYouTubeVideoId(url);
+  if (!videoId) return null;
+  return `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
+};
+
+const isDirectVideoSource = (src?: string | null) => {
+  if (!src) return false;
+  if (src.startsWith('blob:') || src.startsWith('data:video/')) return true;
+  try {
+    const parsed = new URL(src);
+    const clean = parsed.pathname.toLowerCase();
+    return /\.(mp4|webm|ogg|mov|m4v)$/i.test(clean);
+  } catch {
+    const clean = src.toLowerCase().split('?')[0].split('#')[0];
+    return /\.(mp4|webm|ogg|mov|m4v)$/i.test(clean);
+  }
+};
+
 export interface QuestCardProps {
   task: Task;
   isRunning: boolean;
@@ -160,6 +202,9 @@ export const QuestCard: React.FC<QuestCardProps> = ({
   const hasActiveTiming = isRunning || !!countdownTargetMs || (!!task.scheduledAt && task.scheduledAt > Date.now());
   const showProgressBar = !!countdownTargetMs || (!!task.scheduledAt && task.scheduledAt > Date.now());
   const runLabel = isRunning ? 'Pause quest' : 'Start quest';
+  const mediaPreviewImageSrc =
+    mediaPreviewType === 'video' ? getYouTubeThumbnailUrl(mediaPreviewUrl) : mediaPreviewUrl;
+  const canRenderDirectVideo = mediaPreviewType === 'video' && isDirectVideoSource(mediaPreviewUrl);
 
   return (
     <article
@@ -184,9 +229,9 @@ export const QuestCard: React.FC<QuestCardProps> = ({
           : 'border-[var(--app-border)] bg-[var(--app-panel)] hover:bg-[color-mix(in_srgb,var(--app-accent)_7%,var(--app-panel))]'
       }`}
     >
-      {mediaPreviewUrl && mediaPreviewType === 'image' ? (
+      {mediaPreviewImageSrc && (mediaPreviewType === 'image' || (mediaPreviewType === 'video' && !canRenderDirectVideo)) ? (
         <img
-          src={mediaPreviewUrl}
+          src={mediaPreviewImageSrc}
           alt=""
           aria-hidden
           className={`pointer-events-none absolute inset-0 h-full w-full object-cover transition-opacity duration-300 ${
@@ -194,7 +239,7 @@ export const QuestCard: React.FC<QuestCardProps> = ({
           }`}
         />
       ) : null}
-      {mediaPreviewUrl && mediaPreviewType === 'video' ? (
+      {mediaPreviewUrl && canRenderDirectVideo ? (
         <video
           src={mediaPreviewUrl}
           muted
