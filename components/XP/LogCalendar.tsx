@@ -1573,18 +1573,26 @@ export const LogCalendar: React.FC = () => {
   const renderTimelineChart = (mobile = false) => {
     const chartInnerTop = 24;
     const chartInnerBottom = 78;
-    const baselineTop = computedBaselineY;
+    // For mobile the ref is not attached, so compute baseline from fixed height
+    const MOBILE_CHART_H = 380;
+    const baselineTop = mobile && timelineChartHeight === 0
+      ? Math.round(MOBILE_CHART_H * 0.70)
+      : computedBaselineY;
 
     // Duration (span) mode — greedy lane assignment to avoid bar overlap
-    const BAR_H = 8;
-    const LANE_STEP = 12;
-    const MIN_BAR_PCT = 0.5;
+    const BAR_H = 10;
+    const LANE_STEP = 14;
+    const MIN_BAR_PCT = 3; // ~9 px minimum on a typical 300 px chart
     const barsWithLanes = timelineStyle === 'span' ? (() => {
       const laneEnds: number[] = [];
       return [...filteredByModeDots]
         .sort((a, b) => a.xPct - b.xPct)
         .map((dot) => {
-          const rawW = (dot.durationMin / 1440) * 100;
+          // For running sessions with no recorded minutes yet, infer live duration
+          const effectiveDuration = dot.durationMin === 0 && dot.status === 'active'
+            ? Math.max(1, Math.floor((now - dot.time) / 60000))
+            : dot.durationMin;
+          const rawW = (effectiveDuration / 1440) * 100;
           const wPct = Math.min(100 - dot.xPct, Math.max(MIN_BAR_PCT, rawW));
           const endPct = dot.xPct + wPct;
           let lane = laneEnds.findIndex((e) => dot.xPct >= e + 0.1);
@@ -1751,7 +1759,8 @@ export const LogCalendar: React.FC = () => {
               }`}
               style={{
                 left: `${dot.xPct}%`,
-                top: `${dot.laneDotTop}px`,
+                // Remap laneDotTop when mobile baseline differs from computedBaselineY
+                top: `${mobile && timelineChartHeight === 0 ? Math.max(24, baselineTop - dot.stackIndex * 24) : dot.laneDotTop}px`,
                 transform: 'translateX(-50%)',
                 backgroundColor:
                   dot.status === 'todo' || dot.status === 'scheduled' || dot.inferred
