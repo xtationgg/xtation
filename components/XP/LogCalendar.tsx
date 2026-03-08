@@ -1708,25 +1708,45 @@ export const LogCalendar: React.FC = () => {
               </span>
             </div>
           ) : null}
-          {timelineStyle === 'span' ? barsWithLanes.map((bar) => (
+          {timelineStyle === 'span' ? barsWithLanes.map((bar) => {
+            const isHovered = hoveredDotId === bar.id;
+            const isSiblingHovered = !isHovered && !!bar.rowTaskId && bar.rowTaskId === hoveredTaskId;
+            const isExpanded = expandedId === bar.rowKey;
+            const isActive = bar.status === 'active';
+            const isDimmed = !isHovered && !isSiblingHovered && !isExpanded;
+            const stateColor = dotColorByQuestState(bar.status);
+            // Wider bars get an inline label
+            const showLabel = bar.wPct > 6;
+            return (
             <button
               key={`timeline-bar-${mobile ? 'mob-' : ''}${bar.id}`}
               type="button"
               onClick={() => handleTimelineDotClick(bar.rowKey)}
-              className={`absolute rounded-sm transition-opacity duration-150 ${
-                hoveredDotId === bar.id ? 'opacity-100' : bar.rowTaskId && bar.rowTaskId === hoveredTaskId ? 'opacity-90' : 'opacity-60 hover:opacity-100'
-              } ${expandedId === bar.rowKey || (bar.rowTaskId && bar.rowTaskId === hoveredTaskId) ? 'ring-1 ring-[color-mix(in_srgb,var(--app-accent)_50%,transparent)]' : ''}`}
+              className={`absolute overflow-hidden transition-all duration-150 flex items-center ${
+                isDimmed ? 'opacity-80 hover:opacity-100' : 'opacity-100'
+              }`}
               style={{
                 left: `${bar.xPct}%`,
                 width: `${bar.wPct}%`,
                 top: bar.barTop,
                 height: BAR_H,
+                borderRadius: 4,
                 backgroundColor:
-                  bar.status === 'todo' || bar.status === 'scheduled' || bar.inferred
-                    ? 'color-mix(in_srgb,var(--app-panel-2) 90%,transparent)'
-                    : `color-mix(in_srgb,${dotColorByQuestState(bar.status)} 55%,transparent)`,
-                borderTop: `2px ${bar.inferred ? 'dashed' : 'solid'} ${dotBorderByQuestState(bar.status)}`,
-                borderRadius: 3,
+                  bar.status === 'todo' || bar.status === 'scheduled'
+                    ? `color-mix(in_srgb,${stateColor} 22%,var(--app-panel-2))`
+                    : bar.inferred
+                    ? `color-mix(in_srgb,${stateColor} 30%,var(--app-panel-2))`
+                    : `color-mix(in_srgb,${stateColor} 68%,var(--app-panel-2))`,
+                border: `1.5px ${bar.inferred ? 'dashed' : 'solid'} color-mix(in_srgb,${stateColor} ${bar.status === 'todo' || bar.status === 'scheduled' ? '45' : '85'}%,transparent)`,
+                boxShadow: isActive && !bar.inferred
+                  ? `0 0 6px color-mix(in_srgb,${stateColor} 55%,transparent), inset 0 0 8px color-mix(in_srgb,${stateColor} 20%,transparent)`
+                  : isHovered || isExpanded
+                  ? `0 0 5px color-mix(in_srgb,${stateColor} 40%,transparent)`
+                  : undefined,
+                outline: isExpanded || isSiblingHovered
+                  ? `1.5px solid color-mix(in_srgb,var(--app-accent) 60%,transparent)`
+                  : undefined,
+                outlineOffset: 1,
               }}
               onMouseEnter={() => { setHoveredDotId(bar.id); setHighlightedPanelKey(bar.rowKey); setHoveredTaskId(bar.rowTaskId || null); }}
               onMouseLeave={() => {
@@ -1742,8 +1762,25 @@ export const LogCalendar: React.FC = () => {
               }}
               title={`${bar.title} · ${toQuestStateBadge(bar.status)} · ${formatTime(bar.time)}${bar.inferred ? ' · inferred' : ''}`}
               aria-label={`${bar.title} ${toQuestStateBadge(bar.status)} ${formatTime(bar.time)}${bar.inferred ? ' inferred' : ''}`}
-            />
-          )) : clampedDots.map((dot) => (
+            >
+              {showLabel && (
+                <span
+                  className="pointer-events-none truncate px-1.5 leading-none"
+                  style={{
+                    fontSize: 7,
+                    fontWeight: 600,
+                    letterSpacing: '0.06em',
+                    textTransform: 'uppercase',
+                    color: `color-mix(in_srgb,${stateColor} 90%,#fff)`,
+                    opacity: 0.9,
+                  }}
+                >
+                  {bar.title}
+                </span>
+              )}
+            </button>
+            );
+          }) : clampedDots.map((dot) => (
             <button
               key={`timeline-dot-${mobile ? 'mobile-' : ''}${dot.id}`}
               type="button"
