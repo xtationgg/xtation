@@ -2051,6 +2051,11 @@ const FocusWorkspace: React.FC<{
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        requestExit('close');
+        return;
+      }
       if (!(event.metaKey || event.ctrlKey) || event.key !== 'Enter') return;
       event.preventDefault();
       if (mode === 'focus' || !isDirty || !draftTitle.trim()) return;
@@ -2083,7 +2088,7 @@ const FocusWorkspace: React.FC<{
               type="button"
               aria-label="Close focus workspace"
               onClick={() => requestExit('close')}
-              className="absolute -right-11 -top-2 inline-flex h-8 w-8 items-center justify-center rounded-md border border-[var(--app-border)] bg-[var(--app-panel-2)] text-[var(--app-muted)] hover:text-[var(--app-text)]"
+              className="absolute -top-3 -right-3 z-10 inline-flex h-7 w-7 items-center justify-center rounded-full border border-[var(--app-border)] bg-[var(--app-panel)] text-[var(--app-muted)] shadow-md hover:text-[var(--app-text)] transition-colors"
             >
               <X size={14} />
             </button>
