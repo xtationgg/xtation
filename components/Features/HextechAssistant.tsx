@@ -2076,14 +2076,7 @@ const FocusWorkspace: React.FC<{
         }}
       >
         <div className="flex h-full items-center justify-center">
-          <div
-            className={`relative grid max-h-[calc(100dvh-24px)] w-[min(1500px,calc(100vw-clamp(320px,34vw,380px)-18px))] min-w-[640px] gap-2 overflow-hidden rounded-[16px] border border-[var(--app-border)] bg-[color-mix(in_srgb,var(--app-panel)_96%,black)] p-2 ${
-              mode === 'focus'
-                ? 'h-[clamp(460px,68vh,760px)] grid-cols-[minmax(0,2.05fr)_minmax(320px,1.08fr)_minmax(200px,0.82fr)]'
-                : 'h-[clamp(420px,62vh,700px)] grid-cols-[52px_minmax(0,1.84fr)_64px_minmax(310px,1.08fr)_minmax(200px,0.82fr)]'
-            }`}
-            onMouseDown={(event) => event.stopPropagation()}
-          >
+          <div className="relative">
             <button
               type="button"
               aria-label="Close focus workspace"
@@ -2092,6 +2085,14 @@ const FocusWorkspace: React.FC<{
             >
               <X size={14} />
             </button>
+          <div
+            className={`relative grid max-h-[calc(100dvh-24px)] w-[min(1500px,calc(100vw-clamp(320px,34vw,380px)-18px))] min-w-[640px] gap-2 overflow-hidden rounded-[16px] border border-[var(--app-border)] bg-[color-mix(in_srgb,var(--app-panel)_96%,black)] p-2 ${
+              mode === 'focus'
+                ? 'h-[clamp(460px,68vh,760px)] grid-cols-[minmax(0,2.05fr)_minmax(320px,1.08fr)_minmax(200px,0.82fr)]'
+                : 'h-[clamp(420px,62vh,700px)] grid-cols-[52px_minmax(0,1.84fr)_64px_minmax(310px,1.08fr)_minmax(200px,0.82fr)]'
+            }`}
+            onMouseDown={(event) => event.stopPropagation()}
+          >
             {mode !== 'focus' ? (
               <LeftControlStrip
                 workspaceMode={mode}
@@ -2223,6 +2224,7 @@ const FocusWorkspace: React.FC<{
               onComplete={onComplete}
               onEdit={onEditMode}
             />
+          </div>
           </div>
         </div>
       </div>
