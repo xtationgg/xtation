@@ -16,6 +16,9 @@ const priorityOrder: Record<TaskPriority, number> = {
 
 const STEPS_BLOCK_REGEX = /\n?---\s*\n\[xstation_steps_v1\]\s*\n([\s\S]*?)\n---\s*$/;
 
+const stripStepsBlock = (details?: string): string =>
+  details ? details.replace(STEPS_BLOCK_REGEX, '').trim() : '';
+
 const getStepCounts = (details?: string): { total: number; done: number } | null => {
   if (!details) return null;
   const match = details.match(STEPS_BLOCK_REGEX);
@@ -189,8 +192,13 @@ export const QuestsItem: React.FC<QuestsItemProps> = ({ tasks }) => {
                       </div>
                     </div>
                     <div className="flex items-center justify-between text-[9px] uppercase tracking-[0.24em] text-[#8b847a]">
-                      <span>{mission.details || 'No details'}</span>
-                      <span className="text-[#f3f0e8]">Day {formatElapsed(totalElapsedSeconds)}</span>
+                      {(() => {
+                        const notes = stripStepsBlock(mission.details);
+                        return notes ? <span className="truncate max-w-[120px]">{notes}</span> : null;
+                      })()}
+                      {totalElapsedSeconds > 0 && (
+                        <span className="text-[#f3f0e8]">{formatElapsed(totalElapsedSeconds)} today</span>
+                      )}
                       {isRunning && <span className="text-[#f46a2e]">Live {formatElapsed(runningSeconds)}</span>}
                       {!isRunning && mission.scheduledAt && mission.scheduledAt > now ? (
                         <span>{`IN ${formatCountdown(mission.scheduledAt - now)}`}</span>
@@ -202,9 +210,7 @@ export const QuestsItem: React.FC<QuestsItemProps> = ({ tasks }) => {
                         >
                           Start
                         </button>
-                      ) : !isRunning ? (
-                        <span>NO SCHEDULE</span>
-                      ) : (
+                      ) : !isRunning ? null : (
                         <span className="text-[#f46a2e]">ACTIVE</span>
                       )}
                     </div>

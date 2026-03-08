@@ -1454,7 +1454,9 @@ export const LogCalendar: React.FC = () => {
                         const rowTask = row.taskId ? taskByIdMap.get(row.taskId) : undefined;
                         const steps = rowTask ? parseRowStepCounts(rowTask.details) : null;
                         const rowMin = row.items.reduce((acc, item) => acc + Math.max(0, item.durationMin || 0), 0);
-                        if (steps) return <span className="text-[9px] tracking-[0.06em] text-[var(--app-muted)]">{steps.done}/{steps.total} steps</span>;
+                        if (steps) return steps.done > 0
+                          ? <span className="text-[9px] tracking-[0.06em] text-[var(--app-muted)]">{steps.done}/{steps.total} steps</span>
+                          : <span className="text-[9px] tracking-[0.06em] text-[var(--app-muted)]">{steps.total} steps</span>;
                         if (row.state === 'scheduled' && row.primaryTime) return <span className="text-[9px] tracking-[0.06em] text-[var(--app-muted)]">Scheduled {formatTime(row.primaryTime)}</span>;
                         if (rowMin > 0) return <span className="text-[9px] tracking-[0.06em] text-[var(--app-muted)]">{formatMinutes(rowMin)} tracked</span>;
                         return null;
@@ -1538,7 +1540,7 @@ export const LogCalendar: React.FC = () => {
                     return (
                       <div className="flex items-center gap-3 pb-1 text-[9px] text-[var(--app-muted)] uppercase tracking-[0.1em]">
                         {rowTotalMin > 0 && <span>{formatMinutes(rowTotalMin)} tracked</span>}
-                        {rowSteps && (
+                        {rowSteps && rowSteps.done > 0 && (
                           <span className={rowSteps.done === rowSteps.total ? 'text-[#43d39e]' : ''}>
                             {rowSteps.done}/{rowSteps.total} steps
                           </span>
@@ -2633,7 +2635,7 @@ export const LogCalendar: React.FC = () => {
                         {cellTopTasks.map((t, i) => (
                           <p key={i} className={`text-[9px] truncate leading-snug ${i === 0 ? 'text-[color-mix(in_srgb,var(--app-text)_70%,var(--app-muted))]' : 'text-[var(--app-muted)]'}`}>{t.title}</p>
                         ))}
-                        {info.activityCount > cellTopTasks.length && cellTopTasks.length > 0 && (
+                        {info.activityCount > cellTopTasks.length && info.activityCount > 0 && (
                           <p className="text-[8px] text-[var(--app-muted)] opacity-60 leading-snug">+{info.activityCount - cellTopTasks.length} more</p>
                         )}
                       </div>

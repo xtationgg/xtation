@@ -22,10 +22,10 @@ const formatDateShort = (ts: number): string =>
   new Date(ts).toLocaleDateString([], { weekday: 'short', month: 'short', day: 'numeric' });
 
 const LEVEL_LABELS: Record<QuestLevel, string> = {
-  1: 'Basic',
-  2: 'Standard',
-  3: 'Advanced',
-  4: 'Elite',
+  1: 'Standard',
+  2: 'Focused',
+  3: 'Priority',
+  4: 'Critical',
 };
 
 const LEVEL_XP_TARGETS: Record<QuestLevel, number> = {
@@ -39,6 +39,20 @@ const IMPACT_LABEL: Record<XPSession['impactRating'], string> = {
   normal: 'Normal',
   medium: 'Medium',
   hard: 'Hard',
+};
+
+const STATUS_LABEL: Record<string, string> = {
+  todo: 'To Do',
+  active: 'Active',
+  paused: 'Paused',
+  done: 'Completed',
+  dropped: 'Dropped',
+};
+
+const QUEST_TYPE_LABEL: Record<string, string> = {
+  session: 'Session',
+  instant: 'Instant',
+  scheduled: 'Countdown',
 };
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
@@ -219,10 +233,10 @@ export const QuestDetailPanel: React.FC<QuestDetailPanelProps> = ({ taskId, onCl
                 border: `1px solid ${isCompleted ? '#43d39e44' : task.status === 'active' ? '#e3b34a44' : 'var(--app-border)'}`,
               }}
             >
-              {task.status}
+              {STATUS_LABEL[task.status] ?? task.status}
             </span>
             <span className="rounded px-2 py-0.5 text-[9px] uppercase tracking-[0.12em] text-[var(--app-muted)] ring-1 ring-inset ring-[var(--app-border)]">
-              {task.questType ?? 'session'}
+              {QUEST_TYPE_LABEL[task.questType ?? 'session'] ?? task.questType}
             </span>
             <span className="rounded px-2 py-0.5 text-[9px] font-semibold uppercase tracking-[0.12em] text-[var(--app-accent)] ring-1 ring-inset ring-[color-mix(in_srgb,var(--app-accent)_40%,transparent)]">
               L{level} · {LEVEL_LABELS[level]}
@@ -256,28 +270,24 @@ export const QuestDetailPanel: React.FC<QuestDetailPanelProps> = ({ taskId, onCl
             </div>
           ) : null}
 
-          {/* Metadata pills — self tree, estimated (scheduled moved to badge row) */}
-          <div className="flex flex-wrap gap-1.5">
-            {task.selfTreePrimary ? (
-              <div className="flex items-center gap-1 rounded bg-[var(--app-panel-2)] px-2 py-1 text-[9px] text-[var(--app-muted)]">
-                <Layers size={10} />
-                <span>{task.selfTreePrimary}</span>
-                {task.selfTreeSecondary ? <span className="opacity-55">· {task.selfTreeSecondary}</span> : null}
-              </div>
-            ) : null}
-            {task.scheduledAt ? (
-              <div className="flex items-center gap-1 rounded bg-[var(--app-panel-2)] px-2 py-1 text-[9px] text-[var(--app-muted)]">
-                <Calendar size={10} />
-                <span>{formatDateShort(task.scheduledAt)} {formatTime(task.scheduledAt)}</span>
-              </div>
-            ) : null}
-            {task.estimatedMinutes ? (
-              <div className="flex items-center gap-1 rounded bg-[var(--app-panel-2)] px-2 py-1 text-[9px] text-[var(--app-muted)]">
-                <Clock size={10} />
-                <span>Est. {task.estimatedMinutes}m</span>
-              </div>
-            ) : null}
-          </div>
+          {/* Metadata pills — self tree, estimated */}
+          {(task.selfTreePrimary || task.estimatedMinutes) ? (
+            <div className="flex flex-wrap gap-1.5">
+              {task.selfTreePrimary ? (
+                <div className="flex items-center gap-1 rounded bg-[var(--app-panel-2)] px-2 py-1 text-[9px] text-[var(--app-muted)]">
+                  <Layers size={10} />
+                  <span>{task.selfTreePrimary}</span>
+                  {task.selfTreeSecondary ? <span className="opacity-55">· {task.selfTreeSecondary}</span> : null}
+                </div>
+              ) : null}
+              {task.estimatedMinutes ? (
+                <div className="flex items-center gap-1 rounded bg-[var(--app-panel-2)] px-2 py-1 text-[9px] text-[var(--app-muted)]">
+                  <Clock size={10} />
+                  <span>Est. {task.estimatedMinutes}m</span>
+                </div>
+              ) : null}
+            </div>
+          ) : null}
 
           {/* Timestamps — smallest, lowest weight */}
           <div className="mt-2.5 flex flex-wrap gap-x-3 gap-y-0.5 text-[8px] text-[var(--app-muted)] opacity-70">
