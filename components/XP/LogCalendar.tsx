@@ -1731,20 +1731,19 @@ export const LogCalendar: React.FC = () => {
                 top: bar.barTop,
                 height: BAR_H,
                 borderRadius: 4,
-                backgroundColor:
-                  bar.status === 'todo' || bar.status === 'scheduled'
-                    ? `color-mix(in_srgb,${stateColor} 22%,var(--app-panel-2))`
-                    : bar.inferred
-                    ? `color-mix(in_srgb,${stateColor} 30%,var(--app-panel-2))`
-                    : `color-mix(in_srgb,${stateColor} 68%,var(--app-panel-2))`,
-                border: `1.5px ${bar.inferred ? 'dashed' : 'solid'} color-mix(in_srgb,${stateColor} ${bar.status === 'todo' || bar.status === 'scheduled' ? '45' : '85'}%,transparent)`,
+                // Use the status color directly — color-mix with CSS vars is unreliable
+                backgroundColor: bar.status === 'todo' || bar.status === 'scheduled'
+                  ? 'rgba(255,255,255,0.08)'
+                  : stateColor,
+                opacity: isDimmed ? (bar.status === 'todo' || bar.status === 'scheduled' ? 0.7 : 0.65) : 1,
+                border: `1.5px ${bar.inferred ? 'dashed' : 'solid'} ${stateColor}`,
                 boxShadow: isActive && !bar.inferred
-                  ? `0 0 6px color-mix(in_srgb,${stateColor} 55%,transparent), inset 0 0 8px color-mix(in_srgb,${stateColor} 20%,transparent)`
+                  ? `0 0 8px ${stateColor}`
                   : isHovered || isExpanded
-                  ? `0 0 5px color-mix(in_srgb,${stateColor} 40%,transparent)`
+                  ? `0 0 5px ${stateColor}`
                   : undefined,
                 outline: isExpanded || isSiblingHovered
-                  ? `1.5px solid color-mix(in_srgb,var(--app-accent) 60%,transparent)`
+                  ? '1.5px solid var(--app-accent)'
                   : undefined,
                 outlineOffset: 1,
               }}
@@ -1771,7 +1770,7 @@ export const LogCalendar: React.FC = () => {
                     fontWeight: 600,
                     letterSpacing: '0.06em',
                     textTransform: 'uppercase',
-                    color: `color-mix(in_srgb,${stateColor} 90%,#fff)`,
+                    color: bar.status === 'todo' || bar.status === 'scheduled' ? stateColor : '#000',
                     opacity: 0.9,
                   }}
                 >
