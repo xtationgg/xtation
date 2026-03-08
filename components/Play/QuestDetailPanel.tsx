@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef } from 'react';
-import { X, Zap, Layers, Calendar, Clock } from 'lucide-react';
+import { X, Zap, Layers, Calendar, Clock, FolderOpen } from 'lucide-react';
 import { useXP } from '../XP/xpStore';
 import type { QuestLevel, XPSession } from '../XP/xpTypes';
 
@@ -270,9 +270,15 @@ export const QuestDetailPanel: React.FC<QuestDetailPanelProps> = ({ taskId, onCl
             </div>
           ) : null}
 
-          {/* Metadata pills — self tree, estimated */}
-          {(task.selfTreePrimary || task.estimatedMinutes) ? (
+          {/* Metadata pills — project, self tree, estimated */}
+          {(linkedProject || task.selfTreePrimary || task.estimatedMinutes) ? (
             <div className="flex flex-wrap gap-1.5">
+              {linkedProject ? (
+                <div className="flex items-center gap-1 rounded bg-[color-mix(in_srgb,var(--app-accent)_12%,var(--app-panel-2))] px-2 py-1 text-[9px] text-[var(--app-accent)]">
+                  <FolderOpen size={10} />
+                  <span className="font-medium">{linkedProject.title}</span>
+                </div>
+              ) : null}
               {task.selfTreePrimary ? (
                 <div className="flex items-center gap-1 rounded bg-[var(--app-panel-2)] px-2 py-1 text-[9px] text-[var(--app-muted)]">
                   <Layers size={10} />
@@ -340,6 +346,17 @@ export const QuestDetailPanel: React.FC<QuestDetailPanelProps> = ({ taskId, onCl
           {/* ── XP Progress — primary feedback zone, highlighted container ── */}
           <div className="px-5 pt-5 pb-6">
             <div className="rounded-xl border border-[color-mix(in_srgb,var(--app-accent)_18%,transparent)] bg-[color-mix(in_srgb,var(--app-accent)_7%,var(--app-panel-2))] px-4 py-4">
+              {totalXP === 0 && sessions.length === 0 ? (
+                /* Empty state — no sessions yet */
+                <div className="flex flex-col items-center gap-2 py-3 text-center">
+                  <Zap size={22} className="text-[var(--app-accent)] opacity-40" />
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--app-muted)]">No XP yet</p>
+                  <p className="text-[10px] text-[var(--app-muted)] opacity-60 leading-snug">
+                    Start a session to begin earning XP for this quest.
+                  </p>
+                </div>
+              ) : (
+                <>
               {/* Total XP — dominant number */}
               <div className="mb-0.5 flex items-baseline gap-2">
                 <Zap size={15} className="shrink-0 text-[var(--app-accent)]" />
@@ -383,6 +400,8 @@ export const QuestDetailPanel: React.FC<QuestDetailPanelProps> = ({ taskId, onCl
               ) : sessions.length > 0 ? (
                 <XPRow label="Session XP so far" value={sessionXPTotal} />
               ) : null}
+                </>
+              )}
             </div>
           </div>
 
