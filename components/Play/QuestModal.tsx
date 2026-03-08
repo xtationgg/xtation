@@ -340,23 +340,23 @@ export const QuestModal: React.FC<QuestModalProps> = ({ open, task, onClose, onS
           onClick={(event) => event.stopPropagation()}
           onMouseDown={(event) => event.stopPropagation()}
         >
-          <div className="mb-4 flex items-start justify-between gap-4">
-            <div>
-              <h2 className="text-[12px] font-semibold uppercase tracking-[0.18em] text-[var(--app-text)]">
-                {task ? 'Edit Quest' : 'Add Quest'}
-              </h2>
-              <p className="mt-1 text-[10px] leading-4 tracking-[0.08em] text-[var(--app-muted)]">
-                Stable schedule panel + persistent checklist
-              </p>
-            </div>
-            <button
-              type="button"
-              onClick={attemptClose}
-              className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-[var(--app-border)] bg-[var(--app-panel-2)] text-[var(--app-muted)] hover:text-[var(--app-text)]"
-              aria-label="Close"
-            >
-              <X size={16} />
-            </button>
+          {/* Floating close button — outside layout */}
+          <button
+            type="button"
+            onClick={attemptClose}
+            className="absolute -top-3 -right-3 z-10 inline-flex h-7 w-7 items-center justify-center rounded-full border border-[var(--app-border)] bg-[var(--app-panel)] text-[var(--app-muted)] shadow-md hover:text-[var(--app-text)] transition-colors"
+            aria-label="Close"
+          >
+            <X size={14} />
+          </button>
+
+          <div className="mb-4">
+            <h2 className="text-[12px] font-semibold uppercase tracking-[0.18em] text-[var(--app-text)]">
+              {task ? 'Edit Quest' : 'Add Quest'}
+            </h2>
+            <p className="mt-1 text-[10px] leading-4 tracking-[0.08em] text-[var(--app-muted)]">
+              Stable schedule panel + persistent checklist
+            </p>
           </div>
 
           <div className="space-y-3.5">
