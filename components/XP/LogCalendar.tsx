@@ -3,7 +3,8 @@ import { useXP } from './xpStore';
 import type { XPDayActivityItem, XPDayActivityGroup, Task } from './xpTypes';
 import { ConfirmModal } from '../UI/ConfirmModal';
 import { DayTimeOrb } from './DayTimeOrb';
-import { Check, ChevronLeft, ChevronRight, Pause, Pencil, Play, Plus, Trash2, Undo2 } from 'lucide-react';
+import { QuestDetailPanel } from '../Play/QuestDetailPanel';
+import { Check, ChevronLeft, ChevronRight, Info, Pause, Pencil, Play, Plus, Trash2, Undo2 } from 'lucide-react';
 
 const DAY_NAMES = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 const RANGE_OPTIONS = [
@@ -95,6 +96,8 @@ const EMPTY_DAY_SUMMARY = {
 
 type RangeMode = (typeof RANGE_OPTIONS)[number]['value'];
 type SidePanelTab = (typeof SIDE_PANEL_TABS)[number]['value'];
+type TimelineStyle = 'pulse' | 'span';
+type TimelineFilter = 'all' | 'active' | 'completed' | 'scheduled';
 
 type NormalizedLogItemStatus =
   | 'todo'
@@ -162,43 +165,43 @@ type QuestStateMeta = {
 const QUEST_STATE_META: Record<QuestRowState, QuestStateMeta> = {
   active: {
     label: 'Active',
-    dotFill: '#e3b34a',
-    dotBorder: '#e3b34a',
-    chipBg: 'color-mix(in_srgb,#e3b34a 22%, var(--app-panel-2))',
-    chipBorder: 'color-mix(in_srgb,#e3b34a 38%, transparent)',
-    chipText: '#e3b34a',
+    dotFill: 'var(--state-active)',
+    dotBorder: 'var(--state-active)',
+    chipBg: 'color-mix(in_srgb,var(--state-active) 22%, var(--app-panel-2))',
+    chipBorder: 'color-mix(in_srgb,var(--state-active) 38%, transparent)',
+    chipText: 'var(--state-active)',
   },
   done: {
     label: 'Completed',
-    dotFill: '#43d39e',
-    dotBorder: '#43d39e',
-    chipBg: 'color-mix(in_srgb,#43d39e 20%, var(--app-panel-2))',
-    chipBorder: 'color-mix(in_srgb,#43d39e 36%, transparent)',
-    chipText: '#43d39e',
+    dotFill: 'var(--state-done)',
+    dotBorder: 'var(--state-done)',
+    chipBg: 'color-mix(in_srgb,var(--state-done) 20%, var(--app-panel-2))',
+    chipBorder: 'color-mix(in_srgb,var(--state-done) 36%, transparent)',
+    chipText: 'var(--state-done)',
   },
   todo: {
     label: 'Unfinished',
-    dotFill: '#8f88ab',
-    dotBorder: '#8f88ab',
-    chipBg: 'color-mix(in_srgb,#8f88ab 18%, var(--app-panel-2))',
-    chipBorder: 'color-mix(in_srgb,#8f88ab 34%, transparent)',
-    chipText: '#cdc7e8',
+    dotFill: 'var(--state-todo)',
+    dotBorder: 'var(--state-todo)',
+    chipBg: 'color-mix(in_srgb,var(--state-todo) 18%, var(--app-panel-2))',
+    chipBorder: 'color-mix(in_srgb,var(--state-todo) 34%, transparent)',
+    chipText: 'var(--state-todo-text)',
   },
   scheduled: {
     label: 'Scheduled',
-    dotFill: '#5f9dff',
-    dotBorder: '#5f9dff',
-    chipBg: 'color-mix(in_srgb,#5f9dff 18%, var(--app-panel-2))',
-    chipBorder: 'color-mix(in_srgb,#5f9dff 34%, transparent)',
-    chipText: '#8db8ff',
+    dotFill: 'var(--state-scheduled)',
+    dotBorder: 'var(--state-scheduled)',
+    chipBg: 'color-mix(in_srgb,var(--state-scheduled) 18%, var(--app-panel-2))',
+    chipBorder: 'color-mix(in_srgb,var(--state-scheduled) 34%, transparent)',
+    chipText: 'var(--state-scheduled-text)',
   },
   failed: {
     label: 'Failed',
-    dotFill: '#ff5a6a',
-    dotBorder: '#ff5a6a',
-    chipBg: 'color-mix(in_srgb,#ff5a6a 18%, var(--app-panel-2))',
-    chipBorder: 'color-mix(in_srgb,#ff5a6a 34%, transparent)',
-    chipText: '#ff7d88',
+    dotFill: 'var(--state-failed)',
+    dotBorder: 'var(--state-failed)',
+    chipBg: 'color-mix(in_srgb,var(--state-failed) 18%, var(--app-panel-2))',
+    chipBorder: 'color-mix(in_srgb,var(--state-failed) 34%, transparent)',
+    chipText: 'var(--state-failed-text)',
   },
 };
 
@@ -271,13 +274,14 @@ const mapCompletedItems = (selectedActivityGroups: XPDayActivityGroup[]): Normal
 
 const mapScheduledItems = (
   dateKey: string,
-  todayKey: string,
-  now: number,
   selectedScheduledTasks: Task[]
 ): NormalizedLogItem[] => {
-  const selectedDayIsToday = dateKey === todayKey;
+  const { start, end } = getDateBounds(dateKey);
   return selectedScheduledTasks
-    .filter((task) => !selectedDayIsToday || (task.scheduledAt || 0) >= now)
+    .filter((task) => {
+      const at = task.scheduledAt || 0;
+      return at >= start && at < end;
+    })
     .map<NormalizedLogItem>((task) => {
       const startAt =
         toSafeTimestamp(task.scheduledAt) || toSafeTimestamp(task.updatedAt) || toSafeTimestamp(task.createdAt);
@@ -339,11 +343,11 @@ const normalizeDayItems = (params: {
   selectedActivityGroups: XPDayActivityGroup[];
   selectedScheduledTasks: Task[];
 }): NormalizedLogItem[] => {
-  const { dateKey, now, todayKey, tasks, selectedActivity, selectedActivityGroups, selectedScheduledTasks } = params;
+  const { dateKey, now, tasks, selectedActivity, selectedActivityGroups, selectedScheduledTasks } = params;
   return [
     ...mapTimelineEvents(selectedActivity, now),
     ...mapCompletedItems(selectedActivityGroups),
-    ...mapScheduledItems(dateKey, todayKey, now, selectedScheduledTasks),
+    ...mapScheduledItems(dateKey, selectedScheduledTasks),
     ...mapUnfinishedItems(tasks, selectedScheduledTasks, selectedActivityGroups),
   ];
 };
@@ -504,6 +508,27 @@ const toPanelSubtitle = (item: NormalizedLogItem) => {
 
 const clampTimelineX = (xPct: number) => Math.max(7, Math.min(93, xPct));
 
+const formatMinutes = (m: number): string => {
+  if (m <= 0) return '—';
+  const h = Math.floor(m / 60);
+  const rem = m % 60;
+  if (h > 0 && rem > 0) return `${h}h ${rem}m`;
+  if (h > 0) return `${h}h`;
+  return `${rem}m`;
+};
+
+const STEPS_BLOCK_RE = /\n?---\s*\n\[xstation_steps_v1\]\s*\n([\s\S]*?)\n---\s*$/;
+const parseRowStepCounts = (details?: string): { total: number; done: number } | null => {
+  if (!details) return null;
+  const m = details.match(STEPS_BLOCK_RE);
+  if (!m) return null;
+  try {
+    const steps = JSON.parse(m[1]?.trim())?.steps;
+    if (!Array.isArray(steps) || !steps.length) return null;
+    return { total: steps.length, done: steps.filter((s: { done?: boolean }) => s.done).length };
+  } catch { return null; }
+};
+
 const formatShortDate = (dateKey: string) => {
   const d = fromDateKey(dateKey);
   return d.toLocaleDateString(undefined, { month: 'short', day: '2-digit' });
@@ -579,6 +604,7 @@ const getChallengeInit = (): { list: ChallengeItem[]; completions: ChallengeComp
 
 export const LogCalendar: React.FC = () => {
   const {
+    now,
     tasks,
     deleteTaskCompletely,
     startSession,
@@ -593,7 +619,6 @@ export const LogCalendar: React.FC = () => {
   const [selectedKey, setSelectedKey] = useState(() => activeLogDateKey || toDateKey(new Date()));
   const [rangeMode, setRangeMode] = useState<RangeMode>('month');
   const [sidePanelTab, setSidePanelTab] = useState<SidePanelTab>('timeline');
-  const [now, setNow] = useState(() => Date.now());
   const [expandedGroupKey, setExpandedGroupKey] = useState<string | null>(null);
   const [highlightedGroupKey, setHighlightedGroupKey] = useState<string | null>(null);
   const [detailItem, setDetailItem] = useState<NormalizedLogItem | null>(null);
@@ -605,7 +630,11 @@ export const LogCalendar: React.FC = () => {
   const [historyModalOpen, setHistoryModalOpen] = useState(false);
   const [deleteConfirmState, setDeleteConfirmState] = useState<DeleteConfirmState | null>(null);
   const [hoveredDotId, setHoveredDotId] = useState<string | null>(null);
+  const [hoveredTaskId, setHoveredTaskId] = useState<string | null>(null);
   const [legendFilterStates, setLegendFilterStates] = useState<QuestRowState[]>([]);
+  const [timelineStyle, setTimelineStyle] = useState<TimelineStyle>('pulse');
+  const [timelineFilter, setTimelineFilter] = useState<TimelineFilter>('all');
+  const [detailTaskId, setDetailTaskId] = useState<string | null>(null);
   const [challengePickerOpen, setChallengePickerOpen] = useState(false);
   const [pickerEditId, setPickerEditId] = useState<string | null>(null);
   const [challengeList, setChallengeList] = useState<ChallengeItem[]>(() => getChallengeInit().list);
@@ -642,7 +671,6 @@ export const LogCalendar: React.FC = () => {
 
   const todayKey = toDateKey(new Date(now));
   const selectedDate = fromDateKey(selectedKey);
-  const hasRunning = useMemo(() => !!selectors.getActiveSession(), [selectors]);
   const activeSession = useMemo(() => selectors.getActiveSession(), [selectors]);
 
   useEffect(() => {
@@ -650,12 +678,6 @@ export const LogCalendar: React.FC = () => {
       setSelectedKey(activeLogDateKey);
     }
   }, [activeLogDateKey, selectedKey]);
-
-  useEffect(() => {
-    if (!hasRunning) return;
-    const id = window.setInterval(() => setNow(Date.now()), 1000);
-    return () => window.clearInterval(id);
-  }, [hasRunning]);
 
   useEffect(() => {
     if (rangeMode !== 'today') return;
@@ -942,6 +964,8 @@ export const LogCalendar: React.FC = () => {
     return counts;
   }, [timelineRows]);
 
+  const taskByIdMap = useMemo(() => new Map(tasks.map((t) => [t.id, t])), [tasks]);
+
   const computedBaselineY =
     timelineChartHeight > 0 ? Math.round(timelineChartHeight * 0.70) : TIMELINE_BASELINE_Y;
 
@@ -958,6 +982,7 @@ export const LogCalendar: React.FC = () => {
       const stackIndex = stackByHour.get(hour) || 0;
       stackByHour.set(hour, stackIndex + 1);
       const laneDotTop = Math.max(24, computedBaselineY - stackIndex * 24);
+      const durationMin = row.items.reduce((acc, item) => acc + Math.max(0, item.durationMin || 0), 0);
       return {
         id: row.key,
         title: row.title,
@@ -969,6 +994,7 @@ export const LogCalendar: React.FC = () => {
         laneDotTop,
         stackIndex,
         inferred: row.inferredTime,
+        durationMin,
       };
     });
   }, [timelineRows, selectedKey, computedBaselineY]);
@@ -979,16 +1005,30 @@ export const LogCalendar: React.FC = () => {
         : timelineDots.filter((dot) => legendFilterStates.includes(dot.status)),
     [timelineDots, legendFilterStates]
   );
+
+  // Timeline mode filter — applied after legend filter, before clamping
+  const TIMELINE_FILTER_STATES: Record<TimelineFilter, QuestRowState | null> = {
+    all: null,
+    active: 'active',
+    completed: 'done',
+    scheduled: 'scheduled',
+  };
+  const filteredByModeDots = useMemo(() => {
+    const targetState = TIMELINE_FILTER_STATES[timelineFilter];
+    if (!targetState) return visibleTimelineDots;
+    return visibleTimelineDots.filter((dot) => dot.status === targetState);
+  }, [visibleTimelineDots, timelineFilter]);
+
   const firstDotByRowKey = useMemo(() => {
     const map = new Map<string, string>();
-    visibleTimelineDots.forEach((dot) => {
+    filteredByModeDots.forEach((dot) => {
       if (!map.has(dot.rowKey)) map.set(dot.rowKey, dot.id);
     });
     return map;
-  }, [visibleTimelineDots]);
+  }, [filteredByModeDots]);
   const hoveredDot = useMemo(
-    () => (hoveredDotId ? visibleTimelineDots.find((dot) => dot.id === hoveredDotId) || null : null),
-    [visibleTimelineDots, hoveredDotId]
+    () => (hoveredDotId ? filteredByModeDots.find((dot) => dot.id === hoveredDotId) || null : null),
+    [filteredByModeDots, hoveredDotId]
   );
   const nowMarkerX = useMemo(() => {
     if (selectedKey !== todayKey) return null;
@@ -999,14 +1039,14 @@ export const LogCalendar: React.FC = () => {
 
   const MAX_DOTS_PER_HOUR = 6;
   const { clampedDots, overflowBadges } = useMemo(() => {
-    const hourBuckets = new Map<number, (typeof visibleTimelineDots)[number][]>();
-    for (const dot of visibleTimelineDots) {
+    const hourBuckets = new Map<number, (typeof filteredByModeDots)[number][]>();
+    for (const dot of filteredByModeDots) {
       const hour = Math.min(23, Math.floor((dot.xPct / 100) * 24));
       const bucket = hourBuckets.get(hour) ?? [];
       bucket.push(dot);
       hourBuckets.set(hour, bucket);
     }
-    const clamped: typeof visibleTimelineDots = [];
+    const clamped: typeof filteredByModeDots = [];
     const badges: Array<{ hour: number; count: number; xPct: number; topY: number }> = [];
     for (const [hour, dots] of hourBuckets) {
       if (dots.length <= MAX_DOTS_PER_HOUR) {
@@ -1023,7 +1063,7 @@ export const LogCalendar: React.FC = () => {
       }
     }
     return { clampedDots: clamped, overflowBadges: badges };
-  }, [visibleTimelineDots]);
+  }, [filteredByModeDots]);
 
   const rangeLabel = useMemo(
     () => RANGE_OPTIONS.find((option) => option.value === rangeMode)?.label ?? rangeMode,
@@ -1352,7 +1392,7 @@ export const LogCalendar: React.FC = () => {
                 rowRefs.current[row.key] = node;
               }}
               className={`rounded-lg border overflow-hidden transition-all duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] ${
-                highlightedPanelKey === row.key || isSelected
+                highlightedPanelKey === row.key || isSelected || (row.taskId && row.taskId === hoveredTaskId)
                   ? 'border-[color-mix(in_srgb,var(--app-accent)_60%,transparent)] bg-[color-mix(in_srgb,var(--app-accent)_12%,var(--app-panel))]'
                   : 'border-[color-mix(in_srgb,var(--app-text)_6%,transparent)] bg-[var(--app-panel)]'
               }`}
@@ -1365,6 +1405,7 @@ export const LogCalendar: React.FC = () => {
                   }}
                   onMouseEnter={() => {
                     setHighlightedPanelKey(row.key);
+                    setHoveredTaskId(row.taskId || null);
                     const dotId = firstDotByRowKey.get(row.key);
                     if (dotId) setHoveredDotId(dotId);
                   }}
@@ -1375,9 +1416,11 @@ export const LogCalendar: React.FC = () => {
                       return prev === dotId ? null : prev;
                     });
                     setHighlightedPanelKey((prev) => (prev === row.key ? null : prev));
+                    setHoveredTaskId((prev) => (prev === (row.taskId || null) ? null : prev));
                   }}
                   onFocus={() => {
                     setHighlightedPanelKey(row.key);
+                    setHoveredTaskId(row.taskId || null);
                     const dotId = firstDotByRowKey.get(row.key);
                     if (dotId) setHoveredDotId(dotId);
                   }}
@@ -1388,6 +1431,7 @@ export const LogCalendar: React.FC = () => {
                       return prev === dotId ? null : prev;
                     });
                     setHighlightedPanelKey((prev) => (prev === row.key ? null : prev));
+                    setHoveredTaskId((prev) => (prev === (row.taskId || null) ? null : prev));
                   }}
                   onKeyDown={(event) => {
                     if (event.key === 'ArrowDown') {
@@ -1405,7 +1449,16 @@ export const LogCalendar: React.FC = () => {
                 >
                   <div className="flex items-center gap-2">
                     <div className="min-w-0 flex-1">
-                      <div className="text-xs uppercase tracking-[0.12em] text-[var(--app-text)] truncate">{displayTitle}</div>
+                      <div className="text-xs tracking-[0.04em] font-medium text-[var(--app-text)] truncate leading-snug">{displayTitle}</div>
+                      {(() => {
+                        const rowTask = row.taskId ? taskByIdMap.get(row.taskId) : undefined;
+                        const steps = rowTask ? parseRowStepCounts(rowTask.details) : null;
+                        const rowMin = row.items.reduce((acc, item) => acc + Math.max(0, item.durationMin || 0), 0);
+                        if (steps) return <span className="text-[9px] tracking-[0.06em] text-[var(--app-muted)]">{steps.done}/{steps.total} steps</span>;
+                        if (row.state === 'scheduled' && row.primaryTime) return <span className="text-[9px] tracking-[0.06em] text-[var(--app-muted)]">Scheduled {formatTime(row.primaryTime)}</span>;
+                        if (rowMin > 0) return <span className="text-[9px] tracking-[0.06em] text-[var(--app-muted)]">{formatMinutes(rowMin)} tracked</span>;
+                        return null;
+                      })()}
                     </div>
                     <span
                       className="inline-flex justify-center rounded px-1.5 py-0.5 text-[9px] uppercase tracking-[0.14em] shrink-0"
@@ -1447,6 +1500,17 @@ export const LogCalendar: React.FC = () => {
                   {row.taskId ? (
                     <button
                       type="button"
+                      onClick={(e) => { e.stopPropagation(); setDetailTaskId(row.taskId!); }}
+                      className="inline-flex h-7 w-7 items-center justify-center rounded border border-[color-mix(in_srgb,var(--app-accent)_45%,transparent)] text-[var(--app-accent)] hover:border-[var(--app-accent)]"
+                      title="Quest details"
+                      aria-label="Quest details"
+                    >
+                      <Info className="h-3.5 w-3.5" />
+                    </button>
+                  ) : null}
+                  {row.taskId ? (
+                    <button
+                      type="button"
                       onClick={() => {
                         openDeleteConfirm({
                           taskId: row.taskId,
@@ -1466,6 +1530,22 @@ export const LogCalendar: React.FC = () => {
               </div>
               {isSelected && row.items.length > 0 ? (
                 <div className="border-t border-[color-mix(in_srgb,var(--app-text)_8%,transparent)] px-3 pb-2 pt-1.5 space-y-0.5">
+                  {(() => {
+                    const rowTotalMin = row.items.reduce((acc, item) => acc + Math.max(0, item.durationMin || 0), 0);
+                    const rowTask = row.taskId ? taskByIdMap.get(row.taskId) : undefined;
+                    const rowSteps = rowTask ? parseRowStepCounts(rowTask.details) : null;
+                    if (!rowTotalMin && !rowSteps) return null;
+                    return (
+                      <div className="flex items-center gap-3 pb-1 text-[9px] text-[var(--app-muted)] uppercase tracking-[0.1em]">
+                        {rowTotalMin > 0 && <span>{formatMinutes(rowTotalMin)} tracked</span>}
+                        {rowSteps && (
+                          <span className={rowSteps.done === rowSteps.total ? 'text-[#43d39e]' : ''}>
+                            {rowSteps.done}/{rowSteps.total} steps
+                          </span>
+                        )}
+                      </div>
+                    );
+                  })()}
                   {row.items.map((entry) => (
                     <div
                       key={`${row.key}-signal-${entry.id}`}
@@ -1492,8 +1572,54 @@ export const LogCalendar: React.FC = () => {
     const chartInnerTop = 24;
     const chartInnerBottom = 78;
     const baselineTop = computedBaselineY;
+
+    // Duration (span) mode — greedy lane assignment to avoid bar overlap
+    const BAR_H = 8;
+    const LANE_STEP = 12;
+    const MIN_BAR_PCT = 0.5;
+    const barsWithLanes = timelineStyle === 'span' ? (() => {
+      const laneEnds: number[] = [];
+      return [...filteredByModeDots]
+        .sort((a, b) => a.xPct - b.xPct)
+        .map((dot) => {
+          const rawW = (dot.durationMin / 1440) * 100;
+          const wPct = Math.min(100 - dot.xPct, Math.max(MIN_BAR_PCT, rawW));
+          const endPct = dot.xPct + wPct;
+          let lane = laneEnds.findIndex((e) => dot.xPct >= e + 0.1);
+          if (lane === -1) lane = laneEnds.length;
+          laneEnds[lane] = endPct;
+          const barTop = Math.max(chartInnerTop + 4, baselineTop - BAR_H / 2 - lane * LANE_STEP);
+          return { ...dot, wPct, barTop };
+        });
+    })() : [];
+    const hoveredBarTop = timelineStyle === 'span'
+      ? (barsWithLanes.find((b) => b.id === hoveredDotId)?.barTop ?? hoveredDot?.laneDotTop ?? 0)
+      : (hoveredDot?.laneDotTop ?? 0);
+
     return (
       <div ref={mobile ? undefined : timelineChartRef} className={`rounded-xl bg-[color-mix(in_srgb,var(--app-panel-2)_55%,var(--app-panel))] px-2 py-2 relative overflow-hidden`} style={{ height: mobile ? 380 : 'clamp(320px, 45vh, 520px)' }}>
+        {/* Instrument panel — anchored to chart top-right */}
+        <div className="absolute top-2 right-2 z-10 flex items-center">
+          <div className="flex rounded border border-[color-mix(in_srgb,var(--app-text)_14%,transparent)] bg-[color-mix(in_srgb,var(--app-panel-2)_85%,transparent)] p-0.5 gap-0.5">
+            {(['pulse', 'duration'] as const).map((label) => {
+              const styleVal = label === 'duration' ? 'span' : label;
+              return (
+                <button
+                  key={label}
+                  type="button"
+                  onClick={() => setTimelineStyle(styleVal as TimelineStyle)}
+                  className={`inline-flex items-center rounded px-2 py-0.5 text-[9px] uppercase tracking-[0.14em] transition-all duration-150 ${
+                    timelineStyle === styleVal
+                      ? 'bg-[var(--app-panel)] text-[var(--app-text)] shadow-sm ring-1 ring-[color-mix(in_srgb,var(--app-text)_10%,transparent)]'
+                      : 'text-[var(--app-muted)] hover:text-[var(--app-text)]'
+                  }`}
+                >
+                  {label}
+                </button>
+              );
+            })}
+          </div>
+        </div>
         <div className="absolute inset-x-4" style={{ top: chartInnerTop, bottom: chartInnerBottom }}>
           <div
             className="absolute inset-x-0 h-[2px] bg-[color-mix(in_srgb,var(--app-text)_18%,transparent)]"
@@ -1572,13 +1698,54 @@ export const LogCalendar: React.FC = () => {
               </span>
             </div>
           ) : null}
-          {clampedDots.map((dot) => (
+          {timelineStyle === 'span' ? barsWithLanes.map((bar) => (
+            <button
+              key={`timeline-bar-${mobile ? 'mob-' : ''}${bar.id}`}
+              type="button"
+              onClick={() => handleTimelineDotClick(bar.rowKey)}
+              className={`absolute rounded-sm transition-opacity duration-150 ${
+                hoveredDotId === bar.id ? 'opacity-100' : bar.rowTaskId && bar.rowTaskId === hoveredTaskId ? 'opacity-90' : 'opacity-60 hover:opacity-100'
+              } ${expandedId === bar.rowKey || (bar.rowTaskId && bar.rowTaskId === hoveredTaskId) ? 'ring-1 ring-[color-mix(in_srgb,var(--app-accent)_50%,transparent)]' : ''}`}
+              style={{
+                left: `${bar.xPct}%`,
+                width: `${bar.wPct}%`,
+                top: bar.barTop,
+                height: BAR_H,
+                backgroundColor:
+                  bar.status === 'todo' || bar.status === 'scheduled' || bar.inferred
+                    ? 'color-mix(in_srgb,var(--app-panel-2) 90%,transparent)'
+                    : `color-mix(in_srgb,${dotColorByQuestState(bar.status)} 55%,transparent)`,
+                borderTop: `2px ${bar.inferred ? 'dashed' : 'solid'} ${dotBorderByQuestState(bar.status)}`,
+                borderRadius: 3,
+              }}
+              onMouseEnter={() => { setHoveredDotId(bar.id); setHighlightedPanelKey(bar.rowKey); setHoveredTaskId(bar.rowTaskId || null); }}
+              onMouseLeave={() => {
+                setHoveredDotId((prev) => (prev === bar.id ? null : prev));
+                setHighlightedPanelKey((prev) => prev === bar.rowKey && expandedId !== bar.rowKey ? null : prev);
+                setHoveredTaskId((prev) => (prev === (bar.rowTaskId || null) ? null : prev));
+              }}
+              onFocus={() => { setHoveredDotId(bar.id); setHighlightedPanelKey(bar.rowKey); setHoveredTaskId(bar.rowTaskId || null); }}
+              onBlur={() => {
+                setHoveredDotId((prev) => (prev === bar.id ? null : prev));
+                setHighlightedPanelKey((prev) => prev === bar.rowKey && expandedId !== bar.rowKey ? null : prev);
+                setHoveredTaskId((prev) => (prev === (bar.rowTaskId || null) ? null : prev));
+              }}
+              title={`${bar.title} · ${toQuestStateBadge(bar.status)} · ${formatTime(bar.time)}${bar.inferred ? ' · inferred' : ''}`}
+              aria-label={`${bar.title} ${toQuestStateBadge(bar.status)} ${formatTime(bar.time)}${bar.inferred ? ' inferred' : ''}`}
+            />
+          )) : clampedDots.map((dot) => (
             <button
               key={`timeline-dot-${mobile ? 'mobile-' : ''}${dot.id}`}
               type="button"
               onClick={() => handleTimelineDotClick(dot.rowKey)}
               className={`absolute h-4 w-4 rounded-full border transition-all duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] hover:scale-110 hover:shadow-[0_0_0_4px_color-mix(in_srgb,var(--app-accent)_12%,transparent)] ${
-                hoveredDotId === dot.id ? 'scale-125' : expandedId === dot.rowKey ? 'scale-110' : ''
+                hoveredDotId === dot.id
+                  ? 'scale-125'
+                  : dot.rowTaskId && dot.rowTaskId === hoveredTaskId
+                  ? 'scale-110 ring-1 ring-[color-mix(in_srgb,var(--app-accent)_45%,transparent)]'
+                  : expandedId === dot.rowKey
+                  ? 'scale-110'
+                  : ''
               }`}
               style={{
                 left: `${dot.xPct}%`,
@@ -1598,28 +1765,32 @@ export const LogCalendar: React.FC = () => {
               onMouseEnter={() => {
                 setHoveredDotId(dot.id);
                 setHighlightedPanelKey(dot.rowKey);
+                setHoveredTaskId(dot.rowTaskId || null);
               }}
               onMouseLeave={() => {
                 setHoveredDotId((prev) => (prev === dot.id ? null : prev));
                 setHighlightedPanelKey((prev) =>
                   prev === dot.rowKey && expandedId !== dot.rowKey ? null : prev
                 );
+                setHoveredTaskId((prev) => (prev === (dot.rowTaskId || null) ? null : prev));
               }}
               onFocus={() => {
                 setHoveredDotId(dot.id);
                 setHighlightedPanelKey(dot.rowKey);
+                setHoveredTaskId(dot.rowTaskId || null);
               }}
               onBlur={() => {
                 setHoveredDotId((prev) => (prev === dot.id ? null : prev));
                 setHighlightedPanelKey((prev) =>
                   prev === dot.rowKey && expandedId !== dot.rowKey ? null : prev
                 );
+                setHoveredTaskId((prev) => (prev === (dot.rowTaskId || null) ? null : prev));
               }}
               title={`${dot.title} · ${toQuestStateBadge(dot.status)} · ${formatTime(dot.time)}${dot.inferred ? ' · inferred' : ''}`}
               aria-label={`${dot.title} ${toQuestStateBadge(dot.status)} ${formatTime(dot.time)}${dot.inferred ? ' inferred' : ''}`}
             />
           ))}
-          {overflowBadges.map((badge) => (
+          {timelineStyle === 'pulse' && overflowBadges.map((badge) => (
             <div
               key={`overflow-badge-${mobile ? 'mob-' : ''}${badge.hour}`}
               className="pointer-events-none absolute flex items-center justify-center rounded-full font-mono text-[var(--app-accent)]"
@@ -1638,24 +1809,43 @@ export const LogCalendar: React.FC = () => {
               +{badge.count}
             </div>
           ))}
-          {visibleTimelineDots.length === 0 && legendFilterStates.length > 0 ? (
+          {filteredByModeDots.length === 0 && (legendFilterStates.length > 0 || timelineFilter !== 'all' || timelineStyle !== 'pulse') ? (
             <div className="absolute inset-0 grid place-items-center text-[10px] uppercase tracking-[0.14em] text-[var(--app-muted)]">
-              No dots for active legend filter.
+              No items for active filter.
             </div>
           ) : null}
-          {hoveredDot ? (
-            <div
-              className="pointer-events-none absolute z-10 rounded-md border border-[color-mix(in_srgb,var(--app-text)_20%,transparent)] bg-[var(--app-panel)] px-2 py-1 text-[10px] uppercase tracking-[0.12em] text-[var(--app-text)]"
-              style={{
-                left: `${clampTimelineX(hoveredDot.xPct)}%`,
-                top: `${Math.max(6, hoveredDot.laneDotTop - 30)}px`,
-                transform: 'translateX(-50%)',
-              }}
-            >
-              {hoveredDot.title} • {formatTime(hoveredDot.time)} • {toQuestStateBadge(hoveredDot.status)}
-              {hoveredDot.inferred ? ' • inferred time' : ''}
-            </div>
-          ) : null}
+          {hoveredDot ? (() => {
+            const hoveredRow = timelineRows.find((r) => r.key === hoveredDot.rowKey);
+            const totalMin = hoveredRow?.items.reduce((acc, item) => acc + (item.durationMin || 0), 0) ?? 0;
+            const stateMeta = getQuestStateMeta(hoveredDot.status);
+            return (
+              <div
+                className="pointer-events-none absolute z-10 rounded-lg border border-[color-mix(in_srgb,var(--app-text)_16%,transparent)] bg-[var(--app-panel)] shadow-[0_8px_24px_rgba(0,0,0,0.45)] px-3 py-2 flex flex-col gap-1 min-w-[140px] max-w-[220px]"
+                style={{
+                  left: `${clampTimelineX(hoveredDot.xPct)}%`,
+                  top: `${Math.max(6, hoveredBarTop - 72)}px`,
+                  transform: 'translateX(-50%)',
+                }}
+              >
+                <div className="text-[10px] font-semibold text-[var(--app-text)] truncate leading-tight">
+                  {hoveredDot.title}
+                </div>
+                <div className="flex items-center gap-2 text-[9px] uppercase tracking-[0.12em] text-[var(--app-muted)]">
+                  <span
+                    className="shrink-0 inline-flex items-center rounded px-1 py-0.5 text-[8px] tracking-[0.14em]"
+                    style={{ background: stateMeta.chipBg, color: stateMeta.chipText, border: `1px solid ${stateMeta.chipBorder}` }}
+                  >
+                    {stateMeta.label}
+                  </span>
+                  <span>{formatTime(hoveredDot.time)}</span>
+                  {totalMin > 0 && <span>{formatMinutes(totalMin)}</span>}
+                </div>
+                {hoveredDot.inferred && (
+                  <div className="text-[8px] uppercase tracking-[0.1em] text-[var(--app-muted)] opacity-60">inferred time</div>
+                )}
+              </div>
+            );
+          })() : null}
         </div>
         <div className="absolute inset-x-4 bottom-6 text-[8px] uppercase tracking-[0.02em] text-[var(--app-muted)] tabular-nums font-mono">
           {(mobile ? TIMELINE_LABELS_SPARSE : visibleHourLabels).filter((hour) => hour < 24).map((hour) => (
@@ -1684,6 +1874,25 @@ export const LogCalendar: React.FC = () => {
               <div className="text-[10px] uppercase tracking-[0.26em] text-[var(--app-muted)]">Day Console</div>
             </div>
             <div className="text-[10px] uppercase tracking-[0.12em] text-[var(--app-muted)] mt-0.5">{selectedDateLabel}</div>
+            <div className="mt-2 flex items-center gap-3">
+              <span className="text-[9px] uppercase tracking-[0.18em] text-[var(--app-muted)]">
+                {formatMinutes(selectedDaySummary.minutesTracked)} tracked
+              </span>
+              <span className="text-[9px] uppercase tracking-[0.18em] text-[var(--app-muted)]">
+                {selectedDaySummary.completedCount} done
+              </span>
+              {sidePanelTabCounts.scheduled > 0 && (
+                <span className="text-[9px] uppercase tracking-[0.18em] text-[var(--app-muted)]">
+                  {sidePanelTabCounts.scheduled} scheduled
+                </span>
+              )}
+              {selectedDaySummary.runningCount > 0 && (
+                <span className="flex items-center gap-1 text-[9px] uppercase tracking-[0.18em] text-[var(--state-active)]">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[var(--state-active)] animate-pulse" />
+                  Live
+                </span>
+              )}
+            </div>
           </div>
           <button
             type="button"
@@ -1719,32 +1928,32 @@ export const LogCalendar: React.FC = () => {
       <div className="p-3">
         <div className="hidden lg:block space-y-3">
           <div className="px-1 py-1">
-            <div className="mb-2 flex items-center justify-between gap-2">
+            <div className="mb-1 flex items-center justify-between">
               <div className="text-[10px] uppercase tracking-[0.16em] text-[var(--app-muted)]">{activeTabLabel} • 24h timeline</div>
               <button
                 type="button"
                 onClick={() => setTimelineExpanded(true)}
-                className="px-2 py-1 rounded border border-[color-mix(in_srgb,var(--app-text)_20%,transparent)] text-[10px] uppercase tracking-[0.14em] text-[var(--app-muted)] hover:text-[var(--app-text)]"
+                className="inline-flex items-center rounded px-1.5 py-0.5 text-[9px] uppercase tracking-[0.12em] text-[var(--app-muted)] hover:text-[var(--app-text)] transition-colors"
               >
                 Expand
               </button>
             </div>
             {renderTimelineChart()}
-            <div className="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-[10px] uppercase tracking-[0.12em] text-[var(--app-muted)]">
+            <div className="mt-2 flex flex-wrap gap-1.5">
               {QUEST_STATE_LEGEND.map((entry) => (
                 <button
                   key={`legend-desktop-${entry.state}`}
                   type="button"
                   onClick={() => toggleLegendState(entry.state)}
-                  className={`inline-flex items-center gap-1.5 rounded px-1.5 py-0.5 transition-colors ${
+                  className={`inline-flex items-center gap-1.5 rounded px-1.5 py-0.5 text-[9px] uppercase tracking-[0.12em] border transition-all duration-150 ${
                     legendFilterStates.includes(entry.state)
-                      ? 'bg-[color-mix(in_srgb,var(--app-accent)_14%,var(--app-panel))] text-[var(--app-text)]'
-                      : ''
+                      ? 'border-[color-mix(in_srgb,var(--app-accent)_45%,transparent)] bg-[color-mix(in_srgb,var(--app-accent)_12%,var(--app-panel))] text-[var(--app-text)]'
+                      : 'border-[color-mix(in_srgb,var(--app-text)_7%,transparent)] text-[var(--app-muted)] hover:border-[color-mix(in_srgb,var(--app-accent)_30%,transparent)] hover:text-[var(--app-text)]'
                   }`}
                   title={entry.note ? `${entry.label} (${entry.note})` : entry.label}
                 >
                   <span
-                    className="h-2.5 w-2.5 rounded-full border"
+                    className="h-2 w-2 rounded-full border shrink-0"
                     style={{
                       backgroundColor:
                         entry.state === 'todo' || entry.state === 'scheduled'
@@ -1753,16 +1962,19 @@ export const LogCalendar: React.FC = () => {
                       borderColor: dotBorderByQuestState(entry.state),
                     }}
                   />
-                  {entry.label} ({stateCountByLegend[entry.state]})
+                  {entry.label}
+                  <span className="tabular-nums opacity-60">({stateCountByLegend[entry.state]})</span>
                 </button>
               ))}
-              <button
-                type="button"
-                onClick={() => setLegendFilterStates([])}
-                className="inline-flex items-center gap-1 text-[9px] uppercase tracking-[0.16em] text-[var(--app-muted)] hover:text-[var(--app-text)]"
-              >
-                Clear
-              </button>
+              {legendFilterStates.length > 0 && (
+                <button
+                  type="button"
+                  onClick={() => setLegendFilterStates([])}
+                  className="inline-flex items-center gap-1 rounded px-2 py-1 text-[9px] uppercase tracking-[0.12em] border border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] text-[var(--app-muted)] hover:text-[var(--app-text)] transition-colors"
+                >
+                  Clear
+                </button>
+              )}
             </div>
           </div>
           <div className="relative z-10 p-0.5">
@@ -1772,12 +1984,12 @@ export const LogCalendar: React.FC = () => {
 
         <div className="lg:hidden space-y-2">
           <div className="p-1.5">
-            <div className="mb-2 flex items-center justify-between gap-2">
+            <div className="mb-1 flex items-center justify-between">
               <div className="text-[10px] uppercase tracking-[0.16em] text-[var(--app-muted)]">{activeTabLabel} • 24h timeline</div>
               <button
                 type="button"
                 onClick={() => setTimelineExpanded(true)}
-                className="px-2 py-1 rounded border border-[color-mix(in_srgb,var(--app-text)_20%,transparent)] text-[10px] uppercase tracking-[0.14em] text-[var(--app-muted)]"
+                className="inline-flex items-center rounded px-1.5 py-0.5 text-[9px] uppercase tracking-[0.12em] text-[var(--app-muted)] hover:text-[var(--app-text)] transition-colors"
               >
                 Expand
               </button>
@@ -2241,7 +2453,7 @@ export const LogCalendar: React.FC = () => {
                         {/* Top task lines */}
                         <div className="relative z-[1] flex-1 min-w-0 space-y-0.5 mt-1">
                           {wkTopTasks.map((t, i) => (
-                            <p key={i} className="text-[9px] text-[var(--app-muted)] truncate leading-snug">▸ {t.title}</p>
+                            <p key={i} className={`text-[9px] truncate leading-snug ${i === 0 ? 'text-[color-mix(in_srgb,var(--app-text)_70%,var(--app-muted))]' : 'text-[var(--app-muted)]'}`}>{t.title}</p>
                           ))}
                         </div>
                         {/* Minutes + challenge dot */}
@@ -2419,8 +2631,11 @@ export const LogCalendar: React.FC = () => {
                       {/* Top task lines */}
                       <div className="relative z-[1] flex-1 min-w-0 space-y-0.5">
                         {cellTopTasks.map((t, i) => (
-                          <p key={i} className="text-[9px] text-[var(--app-muted)] truncate leading-snug">▸ {t.title}</p>
+                          <p key={i} className={`text-[9px] truncate leading-snug ${i === 0 ? 'text-[color-mix(in_srgb,var(--app-text)_70%,var(--app-muted))]' : 'text-[var(--app-muted)]'}`}>{t.title}</p>
                         ))}
+                        {info.activityCount > cellTopTasks.length && cellTopTasks.length > 0 && (
+                          <p className="text-[8px] text-[var(--app-muted)] opacity-60 leading-snug">+{info.activityCount - cellTopTasks.length} more</p>
+                        )}
                       </div>
 
                       {/* Bottom bar: XP bar + minutes + challenge dot */}
@@ -2651,7 +2866,7 @@ export const LogCalendar: React.FC = () => {
                 <div className="px-4 py-2 border-b border-[color-mix(in_srgb,var(--app-text)_8%,transparent)] space-y-1">
                   {qTopTasks.map((t) => (
                     <div key={t.taskId} className="flex items-center gap-2 text-[11px]">
-                      <span className="text-[var(--app-muted)] truncate flex-1">▸ {t.title}</span>
+                      <span className="text-[var(--app-muted)] truncate flex-1">{t.title}</span>
                       {t.minutes > 0 && <span className="shrink-0 text-[var(--app-muted)] tabular-nums">{Math.round(t.minutes)}m</span>}
                       {t.running && <span className="shrink-0 text-[var(--app-accent)] text-[9px] uppercase tracking-[0.14em]">running</span>}
                       {t.doneToday && !t.running && <span className="shrink-0 text-[#43d39e] text-[9px]">✓</span>}
@@ -3464,6 +3679,9 @@ export const LogCalendar: React.FC = () => {
         onCancel={() => setDeleteConfirmState(null)}
         onConfirm={confirmDeleteTask}
       />
+      {detailTaskId ? (
+        <QuestDetailPanel taskId={detailTaskId} onClose={() => setDetailTaskId(null)} />
+      ) : null}
       </div>
     </div>
   );

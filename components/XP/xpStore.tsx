@@ -18,6 +18,14 @@ import {
   XPSessionSource,
   XPStats,
   XPTaskEvent,
+  Project,
+  Milestone,
+  SelfTreeNode,
+  QuestLevel,
+  XPBreakdown,
+  MomentumState,
+  InventoryCategory,
+  InventorySlot,
 } from './xpTypes';
 import { xpRepository } from './xpRepository';
 import { useAuth } from '../../src/auth/AuthProvider';
@@ -108,6 +116,229 @@ const getSessionDisplayMs = (session: XPSession, now = Date.now()) => {
 
 const toXPMinutes = (durationMs: number) => Math.max(0, Math.floor(durationMs / 60000));
 
+// ─── Xtation XP Engine ────────────────────────────────────────────────────────
+
+const SESSION_MIN_MINUTES = 3;
+
+const LEVEL_MULTIPLIER: Record<QuestLevel, number> = {
+  1: 1.00,
+  2: 1.10,
+  3: 1.25,
+  4: 1.45,
+};
+
+const INSTANT_BASE_XP: Record<QuestLevel, number> = {
+  1: 5,
+  2: 10,
+  3: 15,
+  4: 20,
+};
+
+const STEP_XP_PER_STEP: Record<QuestLevel, number> = { 1: 1, 2: 2, 3: 3, 4: 4 };
+const STEP_XP_MAX: Record<QuestLevel, number> = { 1: 5, 2: 10, 3: 15, 4: 20 };
+
+/** Deep session bonus based on session duration in minutes. */
+const getDeepSessionBonus = (minutes: number): number => {
+  if (minutes >= 120) return 60;
+  if (minutes >= 90) return 40;
+  if (minutes >= 60) return 25;
+  if (minutes >= 30) return 10;
+  return 0;
+};
+
+/**
+ * XP for a session contribution.
+ * - Sessions under 3 minutes yield 0 XP.
+ * - Sessions 30+ minutes earn a deep focus bonus.
+ * @param overlapMinutes - Minutes attributed to a specific day or the full session.
+ */
+const calculateSessionXP = (overlapMinutes: number): number => {
+  if (overlapMinutes < SESSION_MIN_MINUTES) return 0;
+  return overlapMinutes + getDeepSessionBonus(overlapMinutes);
+};
+
+/** Parse step completion state from the embedded steps block in task.details. */
+const STEPS_XP_REGEX = /\n?---\s*\n\[xstation_steps_v1\]\s*\n([\s\S]*?)\n---\s*$/;
+const parseStepsFromDetails = (details?: string): { total: number; done: number } => {
+  if (!details) return { total: 0, done: 0 };
+  const match = details.match(STEPS_XP_REGEX);
+  if (!match?.[1]) return { total: 0, done: 0 };
+  try {
+    const parsed = JSON.parse(match[1]);
+    const steps = Array.isArray(parsed?.steps) ? parsed.steps : [];
+    return {
+      total: steps.filter((s: unknown) => typeof (s as { text?: unknown })?.text === 'string').length,
+      done: steps.filter((s: unknown) => !!(s as { done?: boolean })?.done).length,
+    };
+  } catch {
+    return { total: 0, done: 0 };
+  }
+};
+
+/**
+ * Schedule bonus XP.
+ * +10 if completed on time, +5 if within 15 minutes late, +0 otherwise.
+ */
+const getScheduleBonus = (task: Task): number => {
+  if (!task.scheduledAt || !task.completedAt) return 0;
+  const diff = task.completedAt - task.scheduledAt;
+  if (diff <= 0) return 10;
+  if (diff <= 15 * 60 * 1000) return 5;
+  return 0;
+};
+
+/** Full XP breakdown for a completed quest. */
+const calculateQuestCompletionXP = (task: Task): XPBreakdown => {
+  const level = (task.level ?? 1) as QuestLevel;
+  const questType = task.questType ?? 'session';
+  const multiplier = LEVEL_MULTIPLIER[level];
+
+  const instantBaseXP = questType === 'instant' ? INSTANT_BASE_XP[level] : 0;
+
+  const { done: doneSteps } = parseStepsFromDetails(task.details);
+  const stepXP = Math.min(doneSteps * STEP_XP_PER_STEP[level], STEP_XP_MAX[level]);
+
+  const completionBonus = Math.floor(10 * multiplier);
+  const scheduleBonus = getScheduleBonus(task);
+
+  return {
+    sessionXP: 0,
+    deepBonus: 0,
+    instantBaseXP,
+    stepXP,
+    completionBonus,
+    scheduleBonus,
+    total: instantBaseXP + stepXP + completionBonus + scheduleBonus,
+  };
+};
+
+/**
+ * Permanent player level derived from total XP.
+ * Level curve: xpForLevel(N) = 100 × N^1.35
+ * Returns the highest N where xpForLevel(N) ≤ totalXP, minimum 0.
+ */
+const getPlayerLevel = (totalXP: number): number => {
+  if (totalXP < 100) return 0;
+  let level = 1;
+  while (Math.round(100 * Math.pow(level + 1, 1.35)) <= totalXP) {
+    level++;
+  }
+  return level;
+};
+
+// ─── Phase 5: Momentum / Streak System ────────────────────────────────────────
+
+const STREAK_THRESHOLDS: Array<[number, number]> = [
+  [30, 1.15],
+  [14, 1.12],
+  [7, 1.08],
+  [3, 1.05],
+  [1, 1.02],
+];
+
+const getStreakMultiplier = (streak: number): number => {
+  for (const [threshold, mult] of STREAK_THRESHOLDS) {
+    if (streak >= threshold) return mult;
+  }
+  return 1.0;
+};
+
+const getWeeklyBonus = (activeDaysInWeek: number): number => {
+  if (activeDaysInWeek >= 7) return 35;
+  if (activeDaysInWeek >= 5) return 20;
+  if (activeDaysInWeek >= 3) return 10;
+  return 0;
+};
+
+const getISOWeekKey = (dateKey: string): string => {
+  const [y, m, d] = dateKey.split('-').map(Number);
+  const date = new Date(y, m - 1, d);
+  const dayOfWeek = date.getDay() || 7;
+  const thursday = new Date(date);
+  thursday.setDate(date.getDate() + 4 - dayOfWeek);
+  const yearStart = new Date(thursday.getFullYear(), 0, 1);
+  const weekNum = Math.ceil(((thursday.getTime() - yearStart.getTime()) / 86400000 + 1) / 7);
+  return `${thursday.getFullYear()}-W${String(weekNum).padStart(2, '0')}`;
+};
+
+const getActiveDayKeys = (state: XPLedgerState): Set<string> => {
+  const days = new Set<string>();
+  state.sessions
+    .filter((s) => s.status !== 'canceled' && toXPMinutes(getSessionDisplayMs(s)) >= SESSION_MIN_MINUTES)
+    .forEach((s) => {
+      const dk = /^\d{4}-\d{2}-\d{2}$/.test(s.tag) ? s.tag : getDateKey(new Date(s.startAt));
+      days.add(dk);
+    });
+  state.completions.forEach((c) => days.add(c.dateKey));
+  state.manualLogs.filter((l) => l.minutes > 0).forEach((l) => days.add(l.dateKey));
+  return days;
+};
+
+const computeCurrentStreak = (activeDays: Set<string>, todayKey: string): number => {
+  let streak = 0;
+  let check = todayKey;
+  for (let i = 0; i < 400; i++) {
+    if (!activeDays.has(check)) break;
+    streak++;
+    const [y, m, d] = check.split('-').map(Number);
+    check = getDateKey(new Date(y, m - 1, d - 1));
+  }
+  return streak;
+};
+
+const computeLongestStreak = (activeDays: Set<string>): number => {
+  if (!activeDays.size) return 0;
+  const sorted = [...activeDays].sort();
+  let longest = 1;
+  let current = 1;
+  for (let i = 1; i < sorted.length; i++) {
+    const [py, pm, pd] = sorted[i - 1].split('-').map(Number);
+    const [cy, cm, cd] = sorted[i].split('-').map(Number);
+    const diff = Math.round(
+      (new Date(cy, cm - 1, cd).getTime() - new Date(py, pm - 1, pd).getTime()) / 86400000
+    );
+    if (diff === 1) {
+      current++;
+      if (current > longest) longest = current;
+    } else {
+      current = 1;
+    }
+  }
+  return longest;
+};
+
+const computeTotalWeeklyBonusXP = (activeDays: Set<string>): number => {
+  if (!activeDays.size) return 0;
+  const weekCounts = new Map<string, number>();
+  for (const dk of activeDays) {
+    const wk = getISOWeekKey(dk);
+    weekCounts.set(wk, (weekCounts.get(wk) || 0) + 1);
+  }
+  let total = 0;
+  for (const count of weekCounts.values()) {
+    total += getWeeklyBonus(count);
+  }
+  return total;
+};
+
+const computeMomentum = (state: XPLedgerState, todayKey: string): MomentumState => {
+  const activeDays = getActiveDayKeys(state);
+  const currentStreak = computeCurrentStreak(activeDays, todayKey);
+  const longestStreak = computeLongestStreak(activeDays);
+  const weekKey = getISOWeekKey(todayKey);
+  const weeklyActiveDays = [...activeDays].filter((dk) => getISOWeekKey(dk) === weekKey).length;
+  const sortedDays = [...activeDays].sort();
+  return {
+    currentStreak,
+    longestStreak,
+    lastActiveDateKey: sortedDays.at(-1) ?? '',
+    weeklyActiveDays,
+    weekKey,
+    streakMultiplier: getStreakMultiplier(currentStreak),
+    weeklyBonus: getWeeklyBonus(weeklyActiveDays),
+  };
+};
+
 const syncSessionDurations = (session: XPSession): XPSession => {
   const durationMs = Math.max(0, Math.floor(session.durationMs ?? getSessionStoredMs(session)));
   const accumulatedMs =
@@ -168,6 +399,10 @@ const getLedgerSyncSignature = (ledger: XPLedgerState): string => {
     sessions: ledger.sessions,
     taskEvents: ledger.taskEvents,
     dayConfigs: ledger.dayConfigs,
+    projects: ledger.projects,
+    milestones: ledger.milestones,
+    selfTreeNodes: ledger.selfTreeNodes,
+    inventorySlots: ledger.inventorySlots,
   });
 };
 
@@ -255,8 +490,15 @@ export const XPSelectors = {
       .filter((session) => session.status === 'completed' && isSessionInDate(session, dateKey))
       .sort((a, b) => b.startAt - a.startAt);
   },
-  getTodayXP(state: XPDomainState, dateKey: string): number {
-    return this.getTrackedMinutesForDay(state, dateKey);
+  getTodayXP(state: XPDomainState, dateKey: string, now = Date.now()): number {
+    // Uses the Xtation XP Engine formula: base minutes + deep session bonuses,
+    // with a 3-minute minimum. Separate from getTrackedMinutesForDay which
+    // always returns raw minutes for time-display purposes.
+    const xp = this.getTodaySessions(state, dateKey).reduce((sum, session) => {
+      const overlapMinutes = getSessionOverlapMinutesForDay(session, dateKey, now);
+      return sum + calculateSessionXP(overlapMinutes);
+    }, 0);
+    return Math.max(0, xp);
   },
   getTargetXP(state: XPDomainState, dateKey: string): number {
     const dayConfig = state.dayConfigs[dateKey];
@@ -298,7 +540,7 @@ export const XPSelectors = {
       .filter((task) => {
         if (task.archivedAt || task.completedAt) return false;
         if (task.status === 'dropped' || task.status === 'done') return runningTaskIds.has(task.id);
-        return task.status === 'todo' || task.status === 'active' || runningTaskIds.has(task.id);
+        return task.status === 'todo' || task.status === 'active' || task.status === 'paused' || runningTaskIds.has(task.id);
       })
       .sort((a, b) => (b.updatedAt || b.createdAt) - (a.updatedAt || a.createdAt));
   },
@@ -551,11 +793,13 @@ export const XPSelectors = {
       ].filter((taskId): taskId is string => !!taskId)
     );
 
+    // Only include running task IDs for today — a running session cannot belong to past/future days
+    const todayKey = getDateKey();
     const candidateTaskIds = new Set<string>([
       ...sessionMinutesByTask.keys(),
       ...doneTaskIds.values(),
       ...scheduledTaskIds.values(),
-      ...runningTaskIds.values(),
+      ...(dateKey === todayKey ? runningTaskIds.values() : []),
     ]);
 
     return [...candidateTaskIds]
@@ -653,6 +897,7 @@ interface StartPayload {
 }
 
 interface XPContextValue {
+  now: number;
   dateKey: string;
   activeLogDateKey: string;
   currentAuthUserId: string | null;
@@ -710,6 +955,12 @@ interface XPContextValue {
     ) => XPCategoryBreakdownRow[];
     getLastNDays: (n?: number) => string[];
     getWeekRangeLabel: (dateKeys: string[]) => string;
+    /** Full XP breakdown for a quest on completion. Returns null if task not found. */
+    getQuestCompletionXP: (taskId: string) => XPBreakdown | null;
+    /** Session XP for a given overlap in minutes using the engine formula. */
+    getSessionXP: (overlapMinutes: number) => number;
+    /** Current momentum / streak state derived from ledger data. */
+    getMomentum: () => MomentumState;
   };
   activeSessionId: string | null;
   elapsedSeconds: number;
@@ -758,6 +1009,27 @@ interface XPContextValue {
     privacy: ChallengePrivacy;
   }) => Challenge;
   updateChallenge: (id: string, patch: Partial<Challenge>) => void;
+  // ─── Phase 2: Projects ────────────────────────────────────────────────────
+  projects: Project[];
+  addProject: (payload: Omit<Project, 'id' | 'createdAt' | 'updatedAt'>) => string;
+  updateProject: (id: string, patch: Partial<Project>) => void;
+  deleteProject: (id: string) => void;
+  // ─── Phase 2: Milestones ──────────────────────────────────────────────────
+  milestones: Milestone[];
+  addMilestone: (payload: Omit<Milestone, 'id' | 'createdAt' | 'updatedAt'>) => string;
+  updateMilestone: (id: string, patch: Partial<Milestone>) => void;
+  deleteMilestone: (id: string) => void;
+  completeMilestone: (id: string) => void;
+  // ─── Phase 2: Self Tree ───────────────────────────────────────────────────
+  selfTreeNodes: SelfTreeNode[];
+  addSelfTreeNode: (payload: Omit<SelfTreeNode, 'id' | 'createdAt' | 'updatedAt'>) => string;
+  updateSelfTreeNode: (id: string, patch: Partial<SelfTreeNode>) => void;
+  deleteSelfTreeNode: (id: string) => void;
+  // ─── Phase 8: Inventory Data Model ────────────────────────────────────────
+  inventorySlots: InventorySlot[];
+  addInventorySlot: (payload: Omit<InventorySlot, 'id' | 'createdAt' | 'updatedAt'>) => string;
+  updateInventorySlot: (id: string, patch: Partial<InventorySlot>) => void;
+  deleteInventorySlot: (id: string) => void;
   resetToday: () => void;
   setActiveLogDateKey: (key: string) => void;
   getLedgerSnapshot: () => XPStateSnapshot;
@@ -969,16 +1241,12 @@ export const XPProvider: React.FC<{ children: React.ReactNode }> = ({ children }
   }, [ledger.sessions, activeSessionId]);
 
   useEffect(() => {
-    if (!activeSessionId) {
-      if (timerRef.current) window.clearInterval(timerRef.current);
-      return;
-    }
     if (timerRef.current) window.clearInterval(timerRef.current);
     timerRef.current = window.setInterval(() => setTimerNow(Date.now()), 1000);
     return () => {
       if (timerRef.current) window.clearInterval(timerRef.current);
     };
-  }, [activeSessionId]);
+  }, []);
 
   useEffect(() => {
     if (!ledger.dayConfigs[dateKey]) {
@@ -1012,26 +1280,44 @@ export const XPProvider: React.FC<{ children: React.ReactNode }> = ({ children }
     const todayCompletedSessions = XPSelectors.getTodayCompletedSessions(ledger, dateKey);
     const todayEarnedXP = XPSelectors.getTodayXP(ledger, dateKey);
     const todayTargetXP = XPSelectors.getTargetXP(ledger, dateKey);
-    const todayPercent = XPSelectors.getProgressPct(ledger, dateKey);
-    const totalEarnedMs = ledger.sessions
+    // Session XP: apply new engine formula (3-min minimum + deep bonuses).
+    const totalSessionXP = ledger.sessions
       .filter((session) => session.status === 'completed')
-      .reduce((sum, session) => sum + getSessionDisplayMs(session), 0);
+      .reduce((sum, session) => sum + calculateSessionXP(toXPMinutes(getSessionDisplayMs(session))), 0);
+    // Completion XP: step XP + completion bonus + schedule bonus for every done quest.
+    const totalCompletionXP = ledger.tasks
+      .filter((task) => task.status === 'done')
+      .reduce((sum, task) => sum + calculateQuestCompletionXP(task).total, 0);
     const totalEarnedXP =
-      toXPMinutes(totalEarnedMs) + ledger.manualLogs.reduce((sum, entry) => sum + Math.max(0, entry.minutes), 0);
+      totalSessionXP +
+      ledger.manualLogs.reduce((sum, entry) => sum + Math.max(0, entry.minutes), 0) +
+      totalCompletionXP;
+    const momentum = computeMomentum(ledger, dateKey);
+    // Apply streak multiplier to today's XP for display.
+    const todayEarnedXPWithMomentum = Math.round(todayEarnedXP * momentum.streakMultiplier);
+    // Total weekly bonuses across all past and current weeks.
+    const totalWeeklyBonusXP = computeTotalWeeklyBonusXP(getActiveDayKeys(ledger));
+    const totalEarnedXPWithBonuses = totalEarnedXP + totalWeeklyBonusXP;
+    const todayPercent = todayTargetXP > 0
+      ? Math.round((todayEarnedXPWithMomentum / todayTargetXP) * 100)
+      : 0;
     const evaluationLabel = getEvaluationLabel(todayPercent);
     const impactLabel = getImpactLabel(todayCompletedSessions);
+    const playerLevel = getPlayerLevel(totalEarnedXPWithBonuses);
     return {
-      todayEarnedXP,
+      todayEarnedXP: todayEarnedXPWithMomentum,
       todayTargetXP,
       todayRawXP: todayEarnedXP,
-      todayRemainingXP: Math.max(0, todayTargetXP - todayEarnedXP),
+      todayRemainingXP: Math.max(0, todayTargetXP - todayEarnedXPWithMomentum),
       todayPercent,
       overcapPercent: Math.max(0, todayPercent - 100),
       evaluationLabel,
       progressPct: todayPercent,
       rankTier: XPSelectors.getRankTier(ledger, dateKey),
-      totalEarnedXP,
-      dailyEvaluation: `${evaluationLabel} · ${todayEarnedXP} XP (${todayPercent}%) · ${impactLabel}`,
+      totalEarnedXP: totalEarnedXPWithBonuses,
+      dailyEvaluation: `${evaluationLabel} · ${todayEarnedXPWithMomentum} XP (${todayPercent}%) · ${impactLabel}`,
+      playerLevel,
+      momentum,
     };
   }, [ledger, dateKey]);
 
@@ -1098,6 +1384,10 @@ export const XPProvider: React.FC<{ children: React.ReactNode }> = ({ children }
     ledger.sessions,
     ledger.taskEvents,
     ledger.dayConfigs,
+    ledger.projects,
+    ledger.milestones,
+    ledger.selfTreeNodes,
+    ledger.inventorySlots,
     stats.totalEarnedXP,
   ]);
 
@@ -1149,6 +1439,13 @@ export const XPProvider: React.FC<{ children: React.ReactNode }> = ({ children }
         XPSelectors.getCategoryBreakdownForRange(ledger, startDateKey, endDateKey, now),
       getLastNDays: (n = 7) => XPSelectors.getLastNDays(ledger, n),
       getWeekRangeLabel: (dateKeys: string[]) => XPSelectors.getWeekRangeLabel(ledger, dateKeys),
+      getQuestCompletionXP: (taskId: string) => {
+        const task = XPSelectors.getTaskById(ledger, taskId);
+        if (!task) return null;
+        return calculateQuestCompletionXP(task);
+      },
+      getSessionXP: (overlapMinutes: number) => calculateSessionXP(overlapMinutes),
+      getMomentum: () => computeMomentum(ledger, dateKey),
     }),
     [ledger, dateKey]
   );
@@ -1205,6 +1502,12 @@ export const XPProvider: React.FC<{ children: React.ReactNode }> = ({ children }
       notes: task.notes,
       createdAt: now,
       updatedAt: now,
+      questType: task.questType,
+      level: task.level,
+      selfTreePrimary: task.selfTreePrimary,
+      selfTreeSecondary: task.selfTreeSecondary,
+      projectId: task.projectId,
+      startedAt: task.startedAt,
     };
     const createdEvent = buildTaskEvent(newTask.id, 'created', now, createdDateKey, { source: 'system' });
     const scheduledEvent =
@@ -2106,6 +2409,142 @@ export const XPProvider: React.FC<{ children: React.ReactNode }> = ({ children }
     }));
   };
 
+  // ─── Phase 2: Project CRUD ─────────────────────────────────────────────────
+  const addProject: XPContextValue['addProject'] = (payload) => {
+    const now = Date.now();
+    const newProject: Project = {
+      ...payload,
+      id: `project-${now}-${Math.random().toString(36).slice(2, 6)}`,
+      createdAt: now,
+      updatedAt: now,
+    };
+    setLedger((prev) => ({ ...prev, projects: [newProject, ...prev.projects] }));
+    return newProject.id;
+  };
+
+  const updateProject: XPContextValue['updateProject'] = (id, patch) => {
+    setLedger((prev) => ({
+      ...prev,
+      projects: prev.projects.map((p) =>
+        p.id === id ? { ...p, ...patch, updatedAt: Date.now() } : p
+      ),
+    }));
+  };
+
+  const deleteProject: XPContextValue['deleteProject'] = (id) => {
+    setLedger((prev) => ({
+      ...prev,
+      projects: prev.projects.filter((p) => p.id !== id),
+      // Orphan quests by clearing their projectId
+      tasks: prev.tasks.map((t) =>
+        t.projectId === id ? { ...t, projectId: undefined, updatedAt: Date.now() } : t
+      ),
+    }));
+  };
+
+  // ─── Phase 2: Milestone CRUD ───────────────────────────────────────────────
+  const addMilestone: XPContextValue['addMilestone'] = (payload) => {
+    const now = Date.now();
+    const newMilestone: Milestone = {
+      ...payload,
+      id: `milestone-${now}-${Math.random().toString(36).slice(2, 6)}`,
+      createdAt: now,
+      updatedAt: now,
+    };
+    setLedger((prev) => ({ ...prev, milestones: [...prev.milestones, newMilestone] }));
+    return newMilestone.id;
+  };
+
+  const updateMilestone: XPContextValue['updateMilestone'] = (id, patch) => {
+    setLedger((prev) => ({
+      ...prev,
+      milestones: prev.milestones.map((m) =>
+        m.id === id ? { ...m, ...patch, updatedAt: Date.now() } : m
+      ),
+    }));
+  };
+
+  const deleteMilestone: XPContextValue['deleteMilestone'] = (id) => {
+    setLedger((prev) => ({
+      ...prev,
+      milestones: prev.milestones.filter((m) => m.id !== id),
+    }));
+  };
+
+  const completeMilestone: XPContextValue['completeMilestone'] = (id) => {
+    const now = Date.now();
+    setLedger((prev) => ({
+      ...prev,
+      milestones: prev.milestones.map((m) =>
+        m.id === id
+          ? { ...m, isCompleted: true, completedAt: m.completedAt ?? now, updatedAt: now }
+          : m
+      ),
+    }));
+  };
+
+  // ─── Phase 2: Self Tree CRUD ───────────────────────────────────────────────
+  const addSelfTreeNode: XPContextValue['addSelfTreeNode'] = (payload) => {
+    const now = Date.now();
+    const newNode: SelfTreeNode = {
+      ...payload,
+      id: `stn-${now}-${Math.random().toString(36).slice(2, 6)}`,
+      createdAt: now,
+      updatedAt: now,
+    };
+    setLedger((prev) => ({ ...prev, selfTreeNodes: [...prev.selfTreeNodes, newNode] }));
+    return newNode.id;
+  };
+
+  const updateSelfTreeNode: XPContextValue['updateSelfTreeNode'] = (id, patch) => {
+    setLedger((prev) => ({
+      ...prev,
+      selfTreeNodes: prev.selfTreeNodes.map((n) =>
+        n.id === id ? { ...n, ...patch, updatedAt: Date.now() } : n
+      ),
+    }));
+  };
+
+  const deleteSelfTreeNode: XPContextValue['deleteSelfTreeNode'] = (id) => {
+    setLedger((prev) => ({
+      ...prev,
+      // Also orphan children by clearing their parentId
+      selfTreeNodes: prev.selfTreeNodes
+        .filter((n) => n.id !== id)
+        .map((n) => n.parentId === id ? { ...n, parentId: undefined, updatedAt: Date.now() } : n),
+    }));
+  };
+
+  // ─── Phase 8: Inventory Data Model ──────────────────────────────────────────
+
+  const addInventorySlot: XPContextValue['addInventorySlot'] = (payload) => {
+    const now = Date.now();
+    const newSlot: InventorySlot = {
+      ...payload,
+      id: `inv-${now}-${Math.random().toString(36).slice(2, 6)}`,
+      createdAt: now,
+      updatedAt: now,
+    };
+    setLedger((prev) => ({ ...prev, inventorySlots: [...prev.inventorySlots, newSlot] }));
+    return newSlot.id;
+  };
+
+  const updateInventorySlot: XPContextValue['updateInventorySlot'] = (id, patch) => {
+    setLedger((prev) => ({
+      ...prev,
+      inventorySlots: prev.inventorySlots.map((s) =>
+        s.id === id ? { ...s, ...patch, updatedAt: Date.now() } : s
+      ),
+    }));
+  };
+
+  const deleteInventorySlot: XPContextValue['deleteInventorySlot'] = (id) => {
+    setLedger((prev) => ({
+      ...prev,
+      inventorySlots: prev.inventorySlots.filter((s) => s.id !== id),
+    }));
+  };
+
   const resetToday = () => {
     const { start: todayStart, end: todayEnd } = getDayBounds(dateKey);
     const active = activeSessionId ? ledger.sessions.find((session) => session.id === activeSessionId) : null;
@@ -2339,6 +2778,7 @@ export const XPProvider: React.FC<{ children: React.ReactNode }> = ({ children }
   };
 
   const value: XPContextValue = {
+    now: timerNow,
     dateKey,
     activeLogDateKey,
     currentAuthUserId,
@@ -2390,6 +2830,23 @@ export const XPProvider: React.FC<{ children: React.ReactNode }> = ({ children }
     deleteDayActivity,
     createChallenge,
     updateChallenge,
+    projects: ledger.projects,
+    addProject,
+    updateProject,
+    deleteProject,
+    milestones: ledger.milestones,
+    addMilestone,
+    updateMilestone,
+    deleteMilestone,
+    completeMilestone,
+    selfTreeNodes: ledger.selfTreeNodes,
+    addSelfTreeNode,
+    updateSelfTreeNode,
+    deleteSelfTreeNode,
+    inventorySlots: ledger.inventorySlots,
+    addInventorySlot,
+    updateInventorySlot,
+    deleteInventorySlot,
     resetToday,
     setActiveLogDateKey,
     getLedgerSnapshot,

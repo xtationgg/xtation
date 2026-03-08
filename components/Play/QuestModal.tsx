@@ -2,13 +2,17 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Plus, Trash2, X } from 'lucide-react';
 import { DateTimePicker } from '../UI/DateTimePicker';
 import { ConfirmModal } from '../UI/ConfirmModal';
-import { Task, TaskPriority } from '../XP/xpTypes';
+import { Task, TaskPriority, QuestType, QuestLevel } from '../XP/xpTypes';
+import { useXP } from '../XP/xpStore';
 
 interface QuestDraft {
   title: string;
   details: string;
   priority: TaskPriority;
   scheduledAt?: number;
+  questType: QuestType;
+  level: QuestLevel;
+  projectId?: string;
 }
 
 interface StepDraft {
@@ -21,7 +25,15 @@ interface QuestModalProps {
   open: boolean;
   task: Task | null;
   onClose: () => void;
-  onSave: (draft: { title: string; details: string; priority: TaskPriority; scheduledAt?: number }) => void;
+  onSave: (draft: {
+    title: string;
+    details: string;
+    priority: TaskPriority;
+    scheduledAt?: number;
+    questType: QuestType;
+    level: QuestLevel;
+    projectId?: string;
+  }) => void;
   onDelete?: () => void;
 }
 
@@ -35,6 +47,9 @@ const defaultDraft: QuestDraft = {
   details: '',
   priority: 'high',
   scheduledAt: undefined,
+  questType: 'session',
+  level: 1,
+  projectId: undefined,
 };
 
 const createStepId = () => `step-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
@@ -118,6 +133,9 @@ const serializeSnapshot = (draft: QuestDraft, steps: StepDraft[], scheduleSeed: 
     priority: draft.priority,
     scheduledAt: draft.scheduledAt || null,
     scheduleSeed,
+    questType: draft.questType,
+    level: draft.level,
+    projectId: draft.projectId || null,
     steps: steps.map((step) => ({ text: step.text, done: step.done })),
   });
 
@@ -141,6 +159,8 @@ const formatScheduledPreview = (timestamp?: number) => {
 };
 
 export const QuestModal: React.FC<QuestModalProps> = ({ open, task, onClose, onSave, onDelete }) => {
+  const { projects } = useXP();
+  const activeProjects = projects.filter((p) => p.status !== 'Archived');
   const [draft, setDraft] = useState<QuestDraft>(defaultDraft);
   const [steps, setSteps] = useState<StepDraft[]>([]);
   const [newStepText, setNewStepText] = useState('');
@@ -165,6 +185,9 @@ export const QuestModal: React.FC<QuestModalProps> = ({ open, task, onClose, onS
           details: parsed.notes,
           priority: task.priority || 'high',
           scheduledAt: task.scheduledAt,
+          questType: task.questType ?? 'session',
+          level: task.level ?? 1,
+          projectId: task.projectId,
         }
       : {
           ...defaultDraft,
@@ -242,15 +265,23 @@ export const QuestModal: React.FC<QuestModalProps> = ({ open, task, onClose, onS
     };
   }, [open, attemptClose]);
 
+  const saveDisabled =
+    !draft.title.trim() ||
+    (draft.questType === 'scheduled' && scheduleOpen && !draft.scheduledAt);
+
   const handleSave = () => {
     const title = draft.title.trim();
     if (!title) return;
+    if (saveDisabled) return;
 
     onSave({
       title,
       details: encodeNotesWithSteps(draft.details, steps),
       priority: draft.priority,
       scheduledAt: draft.scheduledAt,
+      questType: draft.questType,
+      level: draft.level,
+      projectId: draft.projectId || undefined,
     });
   };
 
@@ -349,6 +380,59 @@ export const QuestModal: React.FC<QuestModalProps> = ({ open, task, onClose, onS
                 placeholder="Quest notes"
               />
             </div>
+
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div className="space-y-1.5">
+                <label className="text-[10px] uppercase tracking-[0.14em] text-[var(--app-muted)]">Type</label>
+                <select
+                  value={draft.questType}
+                  onChange={(event) =>
+                    setDraft((prev) => ({ ...prev, questType: event.target.value as QuestType }))
+                  }
+                  className="w-full rounded-xl border border-[var(--app-border)] bg-[var(--app-panel-2)] px-3 py-2 text-[13px] leading-5 text-[var(--app-text)] outline-none focus:border-[var(--app-accent)]"
+                >
+                  <option value="session">Session</option>
+                  <option value="instant">Instant</option>
+                  <option value="scheduled">Countdown</option>
+                </select>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-[10px] uppercase tracking-[0.14em] text-[var(--app-muted)]">Level</label>
+                <select
+                  value={draft.level}
+                  onChange={(event) =>
+                    setDraft((prev) => ({ ...prev, level: Number(event.target.value) as QuestLevel }))
+                  }
+                  className="w-full rounded-xl border border-[var(--app-border)] bg-[var(--app-panel-2)] px-3 py-2 text-[13px] leading-5 text-[var(--app-text)] outline-none focus:border-[var(--app-accent)]"
+                >
+                  <option value={1}>L1 — Standard</option>
+                  <option value={2}>L2 — Focused</option>
+                  <option value={3}>L3 — Priority</option>
+                  <option value={4}>L4 — Critical</option>
+                </select>
+              </div>
+            </div>
+
+            {activeProjects.length > 0 ? (
+              <div className="space-y-1.5">
+                <label className="text-[10px] uppercase tracking-[0.14em] text-[var(--app-muted)]">Project</label>
+                <select
+                  value={draft.projectId ?? ''}
+                  onChange={(e) =>
+                    setDraft((prev) => ({ ...prev, projectId: e.target.value || undefined }))
+                  }
+                  className="w-full rounded-xl border border-[var(--app-border)] bg-[var(--app-panel-2)] px-3 py-2 text-[13px] leading-5 text-[var(--app-text)] outline-none focus:border-[var(--app-accent)]"
+                >
+                  <option value="">No project</option>
+                  {activeProjects.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.title}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            ) : null}
 
             <div className="grid gap-3 sm:grid-cols-2">
               <div className="space-y-1.5">
@@ -531,7 +615,7 @@ export const QuestModal: React.FC<QuestModalProps> = ({ open, task, onClose, onS
               <button
                 type="button"
                 onClick={handleSave}
-                disabled={!draft.title.trim()}
+                disabled={saveDisabled}
                 className="rounded-lg border border-[var(--app-accent)] bg-[color-mix(in_srgb,var(--app-accent)_16%,var(--app-panel))] px-4 py-2 text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--app-text)] disabled:opacity-40"
               >
                 Save

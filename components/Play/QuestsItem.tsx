@@ -1,7 +1,8 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Task, TaskPriority } from '../XP/xpTypes';
 import { useXP } from '../XP/xpStore';
-import { Flag, Shield, Star, Sword, Zap, Clock } from 'lucide-react';
+import { Flag, Shield, Star, Sword, Zap, Clock, Info } from 'lucide-react';
+import { QuestDetailPanel } from './QuestDetailPanel';
 
 interface QuestsItemProps {
   tasks: Task[];
@@ -11,6 +12,22 @@ const priorityOrder: Record<TaskPriority, number> = {
   urgent: 0,
   high: 1,
   normal: 2
+};
+
+const STEPS_BLOCK_REGEX = /\n?---\s*\n\[xstation_steps_v1\]\s*\n([\s\S]*?)\n---\s*$/;
+
+const getStepCounts = (details?: string): { total: number; done: number } | null => {
+  if (!details) return null;
+  const match = details.match(STEPS_BLOCK_REGEX);
+  if (!match) return null;
+  try {
+    const parsed = JSON.parse(match[1]?.trim());
+    const steps = Array.isArray(parsed?.steps) ? parsed.steps : [];
+    if (steps.length === 0) return null;
+    return { total: steps.length, done: steps.filter((s: { done?: boolean }) => s.done).length };
+  } catch {
+    return null;
+  }
 };
 
 const iconMap: Record<Task['icon'], React.ReactNode> = {
@@ -23,15 +40,10 @@ const iconMap: Record<Task['icon'], React.ReactNode> = {
 
 export const QuestsItem: React.FC<QuestsItemProps> = ({ tasks }) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [now, setNow] = useState(() => Date.now());
-  const { selectors, dateKey } = useXP();
+  const [detailTaskId, setDetailTaskId] = useState<string | null>(null);
+  const { now, selectors, dateKey, resumeTaskSession } = useXP();
   const activeSession = selectors.getActiveSession();
   const selectedDayKey = dateKey;
-
-  useEffect(() => {
-    const tick = window.setInterval(() => setNow(Date.now()), 1000);
-    return () => window.clearInterval(tick);
-  }, []);
 
   const formatElapsed = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -76,6 +88,17 @@ export const QuestsItem: React.FC<QuestsItemProps> = ({ tasks }) => {
       });
   }, [tasks, selectors, selectedDayKey, now, activeSession]);
 
+  const runningMission = useMemo(() => {
+    if (!activeSession) return null;
+    return activeMissions.find(
+      (m) => activeSession.taskId === m.id || (activeSession.linkedTaskIds || []).includes(m.id)
+    ) ?? null;
+  }, [activeMissions, activeSession]);
+
+  const liveSessionSeconds = activeSession
+    ? Math.max(0, Math.floor(selectors.getSessionDisplayMs(activeSession, now) / 1000))
+    : 0;
+
   return (
     <div className="w-full rounded-xl border border-white/10 bg-gradient-to-b from-[#242427] to-[#1a1a1c] shadow-[0_10px_24px_rgba(0,0,0,0.45)] overflow-hidden transition-all duration-300">
       <button
@@ -95,6 +118,20 @@ export const QuestsItem: React.FC<QuestsItemProps> = ({ tasks }) => {
           </span>
         </span>
       </button>
+
+      {activeSession && (
+        <div className="px-4 py-2 flex items-center justify-between border-t border-[#f46a2e]/20 bg-[#f46a2e]/[0.06]">
+          <div className="flex items-center gap-2 min-w-0">
+            <span className="shrink-0 w-1.5 h-1.5 rounded-full bg-[#f46a2e] animate-pulse" />
+            <span className="text-[10px] uppercase tracking-[0.2em] text-[#f3f0e8] truncate">
+              {runningMission?.title || activeSession.title || 'Active Session'}
+            </span>
+          </div>
+          <span className="shrink-0 ml-3 font-mono text-[11px] tracking-[0.12em] text-[#f46a2e]">
+            {formatElapsed(liveSessionSeconds)}
+          </span>
+        </div>
+      )}
 
       <div
         className={`transition-all duration-300 overflow-hidden ${
@@ -134,20 +171,37 @@ export const QuestsItem: React.FC<QuestsItemProps> = ({ tasks }) => {
                           {mission.title}
                         </span>
                       </div>
-                      <span className="text-[9px] uppercase tracking-[0.28em] text-[#f46a2e]">
-                        {mission.priority}
-                      </span>
+                      <div className="flex items-center gap-2">
+                        {(() => { const s = getStepCounts(mission.details); return s ? (
+                          <span className="text-[9px] tracking-[0.18em] text-[#8b847a]">{s.done}/{s.total}</span>
+                        ) : null; })()}
+                        <span className="text-[9px] uppercase tracking-[0.28em] text-[#f46a2e]">
+                          {mission.priority}
+                        </span>
+                        <button
+                          type="button"
+                          aria-label={`View details for ${mission.title}`}
+                          onClick={(e) => { e.stopPropagation(); setDetailTaskId(mission.id); }}
+                          className="inline-flex h-5 w-5 items-center justify-center rounded text-[#8b847a] hover:text-[#f3f0e8] transition-colors"
+                        >
+                          <Info size={12} />
+                        </button>
+                      </div>
                     </div>
                     <div className="flex items-center justify-between text-[9px] uppercase tracking-[0.24em] text-[#8b847a]">
                       <span>{mission.details || 'No details'}</span>
                       <span className="text-[#f3f0e8]">Day {formatElapsed(totalElapsedSeconds)}</span>
                       {isRunning && <span className="text-[#f46a2e]">Live {formatElapsed(runningSeconds)}</span>}
-                      {!isRunning && mission.scheduledAt ? (
-                        <span>
-                          {mission.scheduledAt > now
-                            ? `IN ${formatCountdown(mission.scheduledAt - now)}`
-                            : 'READY TO START'}
-                        </span>
+                      {!isRunning && mission.scheduledAt && mission.scheduledAt > now ? (
+                        <span>{`IN ${formatCountdown(mission.scheduledAt - now)}`}</span>
+                      ) : !isRunning && mission.scheduledAt && mission.scheduledAt <= now ? (
+                        <button
+                          type="button"
+                          onClick={(e) => { e.stopPropagation(); resumeTaskSession(mission.id); }}
+                          className="rounded px-1.5 py-0.5 text-[9px] uppercase tracking-[0.24em] font-semibold border border-[#f46a2e]/50 text-[#f46a2e] hover:bg-[#f46a2e]/10 transition-colors"
+                        >
+                          Start
+                        </button>
                       ) : !isRunning ? (
                         <span>NO SCHEDULE</span>
                       ) : (
@@ -172,6 +226,9 @@ export const QuestsItem: React.FC<QuestsItemProps> = ({ tasks }) => {
           )}
         </div>
       </div>
+      {detailTaskId ? (
+        <QuestDetailPanel taskId={detailTaskId} onClose={() => setDetailTaskId(null)} />
+      ) : null}
     </div>
   );
 };
