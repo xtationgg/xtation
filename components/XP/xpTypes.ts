@@ -1,5 +1,16 @@
 export type XPMode = 'Easy' | 'Medium' | 'Hard' | 'Extreme';
 
+// ─── Xtation Core Engine types ────────────────────────────────────────────────
+export type QuestType = 'instant' | 'session' | 'scheduled';
+export type QuestLevel = 1 | 2 | 3 | 4;
+export type SelfTreeBranch =
+  | 'Knowledge'
+  | 'Creation'
+  | 'Systems'
+  | 'Communication'
+  | 'Physical'
+  | 'Inner';
+
 export type XPSessionStatus = 'running' | 'completed' | 'canceled';
 export type XPSessionImpact = 'normal' | 'medium' | 'hard';
 export type XPSessionSource = 'timer' | 'manual' | 'challenge' | 'import';
@@ -38,7 +49,50 @@ export interface XPSession {
 }
 
 export type TaskPriority = 'normal' | 'high' | 'urgent';
-export type TaskStatus = 'todo' | 'active' | 'done' | 'dropped';
+export type TaskStatus = 'todo' | 'active' | 'paused' | 'done' | 'dropped';
+
+// ─── Project ──────────────────────────────────────────────────────────────────
+export type ProjectType = 'Learning' | 'Build' | 'Business' | 'Health' | 'Personal';
+export type ProjectStatus = 'Draft' | 'Active' | 'OnHold' | 'Completed' | 'Archived';
+
+export interface Project {
+  id: string;
+  title: string;
+  description?: string;
+  type: ProjectType;
+  level: QuestLevel;
+  status: ProjectStatus;
+  dueDate?: number;
+  selfTreePrimary: SelfTreeBranch;
+  selfTreeSecondary?: SelfTreeBranch;
+  createdAt: number;
+  updatedAt: number;
+}
+
+// ─── Milestone ────────────────────────────────────────────────────────────────
+export interface Milestone {
+  id: string;
+  projectId: string;
+  title: string;
+  description?: string;
+  order: number;
+  rewardXP?: number;
+  isCompleted: boolean;
+  completedAt?: number;
+  createdAt: number;
+  updatedAt: number;
+}
+
+// ─── Self Tree ────────────────────────────────────────────────────────────────
+export interface SelfTreeNode {
+  id: string;
+  parentId?: string;
+  rootBranch: SelfTreeBranch;
+  title: string;
+  description?: string;
+  createdAt: number;
+  updatedAt: number;
+}
 
 export interface Task {
   id: string;
@@ -64,6 +118,19 @@ export interface Task {
   circleIds?: string[];
   createdAt: number;
   updatedAt: number;
+  // ─── Xtation Core Engine fields ───────────────────────────────────────────
+  /** Execution style: instant task, timed session, or pre-scheduled slot. */
+  questType?: QuestType;
+  /** Importance/complexity level (L1–L4). Influences XP multiplier. */
+  level?: QuestLevel;
+  /** Primary Self Tree branch this quest develops. */
+  selfTreePrimary?: SelfTreeBranch;
+  /** Optional secondary Self Tree branch. */
+  selfTreeSecondary?: SelfTreeBranch;
+  /** Parent project this quest belongs to (optional). */
+  projectId?: string;
+  /** Timestamp when the quest was first activated. */
+  startedAt?: number;
 }
 
 export interface XPCompletion {
@@ -176,6 +243,63 @@ export interface XPLedgerState {
   dayConfigs: Record<string, XPDayConfig>;
   settings: XPSettings;
   legacyXP: number;
+  // ─── Phase 2: Xtation Core Engine foundations ────────────────────────────
+  projects: Project[];
+  milestones: Milestone[];
+  selfTreeNodes: SelfTreeNode[];
+  // ─── Phase 8: Inventory Data Model ───────────────────────────────────────
+  inventorySlots: InventorySlot[];
+}
+
+/** Detailed XP breakdown for a completed quest. */
+export interface XPBreakdown {
+  /** Minutes-based XP from linked sessions (session quests). */
+  sessionXP: number;
+  /** Bonus XP earned from deep focus sessions. */
+  deepBonus: number;
+  /** Base XP for instant quest completion (0 for session quests). */
+  instantBaseXP: number;
+  /** XP from completed steps, capped by quest level. */
+  stepXP: number;
+  /** Flat completion bonus scaled by level multiplier. */
+  completionBonus: number;
+  /** Bonus for completing on or near schedule. */
+  scheduleBonus: number;
+  /** Sum of all components. */
+  total: number;
+}
+
+// ─── Phase 5: Momentum / Streak System ───────────────────────────────────────
+export interface MomentumState {
+  /** Consecutive active days ending at today. */
+  currentStreak: number;
+  /** All-time longest streak. */
+  longestStreak: number;
+  /** Most recent day with any XP activity (dateKey). */
+  lastActiveDateKey: string;
+  /** Active days in the current ISO week (Mon–Sun). */
+  weeklyActiveDays: number;
+  /** Current ISO week identifier, e.g. '2026-W10'. */
+  weekKey: string;
+  /** Multiplier applied to today's XP based on streak. */
+  streakMultiplier: number;
+  /** Flat weekly bonus XP for the current week (earned at 3/5/7 active days). */
+  weeklyBonus: number;
+}
+
+// ─── Phase 8: Inventory Data Model ────────────────────────────────────────────
+export type InventoryCategory = 'OUTFIT' | 'GEAR' | 'VEHICLE' | 'TOOLS';
+
+export interface InventorySlot {
+  id: string;
+  category: InventoryCategory;
+  name: string;
+  details?: string;
+  importance?: 'low' | 'medium' | 'high' | 'critical';
+  /** Reference to a Supabase user_files row (optional). */
+  fileId?: string;
+  createdAt: number;
+  updatedAt: number;
 }
 
 export interface XPStats {
@@ -190,4 +314,8 @@ export interface XPStats {
   rankTier: 'Bronze' | 'Silver' | 'Gold' | 'Platinum' | 'Diamond';
   totalEarnedXP: number;
   dailyEvaluation: string;
+  /** Permanent player level derived from totalEarnedXP using curve 100 × N^1.35. */
+  playerLevel: number;
+  /** Momentum / streak state derived from ledger data. */
+  momentum: MomentumState;
 }

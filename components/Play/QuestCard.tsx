@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { Check, ChevronUp, Pause, Play } from 'lucide-react';
-import { Task, XPSession } from '../XP/xpTypes';
+import { Task, XPSession, QuestType, QuestLevel } from '../XP/xpTypes';
 
 const STEPS_BLOCK_REGEX = /\n?---\s*\n\[xstation_steps_v1\]\s*\n([\s\S]*?)\n---\s*$/;
 
@@ -105,6 +105,10 @@ export interface QuestCardProps {
   mediaPreviewUrl?: string | null;
   mediaPreviewType?: 'animation' | 'image' | 'video';
   priorityVisual?: 'normal' | 'high' | 'urgent' | 'extreme';
+  /** Quest type from the Xtation Core Engine. Falls back to task.questType if not provided. */
+  questType?: QuestType;
+  /** Quest level (L1–L4). Falls back to task.level if not provided. */
+  level?: QuestLevel;
   onOpen: () => void;
   onToggleRun: () => void;
   onComplete: () => void;
@@ -120,13 +124,18 @@ export const QuestCard: React.FC<QuestCardProps> = ({
   mediaPreviewUrl = null,
   mediaPreviewType = 'animation',
   priorityVisual = 'normal',
+  questType: questTypeProp,
+  level: levelProp,
   onOpen,
   onToggleRun,
   onComplete,
   disabled = false,
 }) => {
+  // Props take precedence; fall back to values stored on the task itself.
+  const resolvedQuestType: QuestType = questTypeProp ?? task.questType ?? 'session';
+  const resolvedLevel: QuestLevel = levelProp ?? task.level ?? 1;
   const [tickNow, setTickNow] = useState(() => Date.now());
-  const isScheduledFuture = !!task.scheduledAt && task.scheduledAt > Date.now();
+  const isScheduledFuture = !!task.scheduledAt && task.scheduledAt > tickNow;
 
   useEffect(() => {
     if (!isRunning && !isScheduledFuture) return;
@@ -156,13 +165,6 @@ export const QuestCard: React.FC<QuestCardProps> = ({
     const ratio = Math.max(0, Math.min(1, elapsedMs / countdownTargetMs));
     return ratio;
   }, [elapsedMs, countdownTargetMs]);
-  const schedulePulse = useMemo(() => {
-    if (!task.scheduledAt || task.scheduledAt <= Date.now()) return null;
-    const until = task.scheduledAt - Date.now();
-    const totalWindow = 1000 * 60 * 60 * 24;
-    const ratio = 1 - Math.max(0, Math.min(1, until / totalWindow));
-    return ratio;
-  }, [task.scheduledAt, tickNow]);
   const scheduleShort = useMemo(() => formatScheduleLabel(task.scheduledAt), [task.scheduledAt]);
   const scheduleRemaining = useMemo(() => {
     if (!task.scheduledAt || task.scheduledAt <= Date.now()) return null;
@@ -198,9 +200,9 @@ export const QuestCard: React.FC<QuestCardProps> = ({
     scheduleShort ||
     trackedLabel ||
     null;
-  const effectiveProgress = timedProgress ?? schedulePulse;
-  const hasActiveTiming = isRunning || !!countdownTargetMs || (!!task.scheduledAt && task.scheduledAt > Date.now());
-  const showProgressBar = !!countdownTargetMs || (!!task.scheduledAt && task.scheduledAt > Date.now());
+  const effectiveProgress = timedProgress;
+  const hasActiveTiming = isRunning || !!countdownTargetMs || !!isScheduledFuture;
+  const showProgressBar = !!countdownTargetMs;
   const runLabel = isRunning ? 'Pause quest' : 'Start quest';
   const mediaPreviewImageSrc =
     mediaPreviewType === 'video' ? getYouTubeThumbnailUrl(mediaPreviewUrl) : mediaPreviewUrl;
@@ -274,6 +276,16 @@ export const QuestCard: React.FC<QuestCardProps> = ({
           <div className={`h-10 w-1 rounded-full ${isRunning ? 'bg-[var(--app-accent)]' : 'bg-transparent'}`} />
           <div className="min-w-0 flex-1">
             <div className="truncate text-[12px] font-semibold leading-5 tracking-[0.04em] text-[var(--app-text)]">{task.title}</div>
+            <div className="mt-1 flex items-center gap-1.5">
+              <span className="rounded px-1 py-px text-[8px] font-semibold uppercase tracking-[0.14em] text-[var(--app-muted)] ring-1 ring-inset ring-[var(--app-border)]">
+                {resolvedQuestType}
+              </span>
+              {resolvedLevel > 1 ? (
+                <span className="rounded px-1 py-px text-[8px] font-semibold uppercase tracking-[0.14em] text-[var(--app-accent)] ring-1 ring-inset ring-[color-mix(in_srgb,var(--app-accent)_40%,transparent)]">
+                  L{resolvedLevel}
+                </span>
+              ) : null}
+            </div>
             {stepProgress.total > 0 ? (
               <div className="mt-1.5">
                 <div className="text-[9px] uppercase tracking-[0.1em] text-[var(--app-muted)]">
@@ -290,20 +302,20 @@ export const QuestCard: React.FC<QuestCardProps> = ({
           </div>
         </div>
 
-        <div className="flex w-[176px] shrink-0 items-center justify-end gap-1.5 pr-0.5">
+        <div className="flex w-[168px] shrink-0 items-center justify-end gap-2 pr-0.5">
           {rightTimeLabel ? (
             <div className="min-w-[72px] text-right text-[13px] font-semibold tracking-[0.06em] text-[var(--app-text)]">
-              <span className={scheduleRemaining && !isRunning ? 'group-hover:hidden' : ''}>{rightTimeLabel}</span>
-              {scheduleRemaining && !isRunning ? (
-                <span className="hidden group-hover:inline">{scheduleRemaining}</span>
-              ) : null}
+              <span>{rightTimeLabel}</span>
               {isCompleted && completedShort ? (
                 <div className="mt-0.5 text-[9px] font-medium tracking-[0.06em] text-[var(--app-muted)]">{completedShort}</div>
+              ) : null}
+              {scheduleRemaining && !isRunning && !isCompleted ? (
+                <div className="mt-0.5 text-[9px] font-medium tracking-[0.06em] text-[var(--app-muted)]">{scheduleRemaining}</div>
               ) : null}
             </div>
           ) : null}
           {!isCompleted ? (
-            <>
+            <div className="flex flex-col gap-1">
               {!isCountdownFinished ? (
                 <button
                   type="button"
@@ -333,7 +345,7 @@ export const QuestCard: React.FC<QuestCardProps> = ({
               >
                 <Check size={16} />
               </button>
-            </>
+            </div>
           ) : null}
         </div>
       </div>

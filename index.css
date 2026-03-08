@@ -26,6 +26,16 @@
   --app-focus-ring: color-mix(in srgb, var(--app-accent) 38%, transparent);
   --app-danger: #e55d65;
 
+  /* Quest / task state semantic colors */
+  --state-active: #e3b34a;
+  --state-done: #43d39e;
+  --state-todo: #8f88ab;
+  --state-todo-text: #cdc7e8;
+  --state-scheduled: #5f9dff;
+  --state-scheduled-text: #8db8ff;
+  --state-failed: #ff5a6a;
+  --state-failed-text: #ff7d88;
+
   --app-radius-sm: 8px;
   --app-radius-md: 12px;
   --app-radius-lg: 18px;

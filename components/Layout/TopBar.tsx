@@ -28,7 +28,7 @@ export const TopBar: React.FC<TopBarProps> = ({
   activeTasksCount,
   onOpenPalette,
 }) => {
-  const { selectors, dateKey, authStatus } = useXP();
+  const { selectors, dateKey, authStatus, stats } = useXP();
   const { user, loading, error, signInWithGoogle, signUpWithPassword, signInWithPassword, requestPasswordReset, signOut } = useAuth();
   const userLabel = user?.name || user?.email || 'Signed in';
   const userInitial = (user?.name || user?.email || 'U').charAt(0).toUpperCase();
@@ -249,7 +249,13 @@ export const TopBar: React.FC<TopBarProps> = ({
 
         {/* System Icons */}
         <div className="hidden sm:flex items-center gap-1 text-[var(--app-muted)]">
-            <button onMouseEnter={playHoverSound} onClick={playClickSound} className="hover:text-[var(--app-text)] p-1.5 md:p-2 transition-colors"><Trophy size={15} /></button>
+            <div
+              className="flex items-center gap-1 px-1.5 py-0.5 border border-[var(--app-border)] text-[var(--app-accent)]"
+              title={`Player Level (${stats.totalEarnedXP} total XP)`}
+            >
+              <Trophy size={11} />
+              <span className="font-mono text-[9px] font-bold tracking-widest uppercase">LV {stats.playerLevel}</span>
+            </div>
             <button onMouseEnter={playHoverSound} onClick={playClickSound} className="hover:text-[var(--app-text)] p-1.5 md:p-2 transition-colors"><Bell size={15} /></button>
             <button onMouseEnter={playHoverSound} onClick={() => onChangeView(ClientView.SETTINGS)} className="hover:text-[var(--app-text)] p-1.5 md:p-2 transition-colors"><Settings size={15} /></button>
         </div>

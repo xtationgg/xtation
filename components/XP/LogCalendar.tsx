@@ -4,7 +4,40 @@ import type { XPDayActivityItem, XPDayActivityGroup, Task } from './xpTypes';
 import { ConfirmModal } from '../UI/ConfirmModal';
 import { DayTimeOrb } from './DayTimeOrb';
 import { QuestDetailPanel } from '../Play/QuestDetailPanel';
-import { Check, ChevronLeft, ChevronRight, Info, Pause, Pencil, Play, Plus, Trash2, Undo2 } from 'lucide-react';
+import { Check, ChevronLeft, ChevronRight, ChevronDown, ChevronUp, Flag, Info, Pause, Pencil, Play, Plus, Shield, Star, Sword, Trash2, Undo2, Zap } from 'lucide-react';
+
+const CATEGORY_COLORS: Record<string, string> = {
+  work: '#f46a2e',
+  personal: '#7c6fcd',
+  health: '#43d39e',
+  learning: '#e3b34a',
+  default: '#6b6560',
+};
+
+const TASK_ICON_MAP: Record<string, React.ElementType> = {
+  sword: Sword,
+  shield: Shield,
+  star: Star,
+  zap: Zap,
+  flag: Flag,
+};
+
+const getCategoryColor = (category?: string): string => {
+  if (!category) return CATEGORY_COLORS.default;
+  const key = category.toLowerCase().trim();
+  return CATEGORY_COLORS[key] ?? CATEGORY_COLORS.default;
+};
+
+const PULSE_RIGHT_KEYFRAMES = `
+@keyframes pulse-right-border {
+  0%, 100% { opacity: 1; box-shadow: 2px 0 8px currentColor; }
+  50% { opacity: 0.4; box-shadow: 2px 0 2px currentColor; }
+}
+@keyframes xp-popup-float {
+  0% { opacity: 1; transform: translateY(0); }
+  100% { opacity: 0; transform: translateY(-48px); }
+}
+`;
 
 const DAY_NAMES = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 const RANGE_OPTIONS = [
@@ -610,6 +643,7 @@ export const LogCalendar: React.FC = () => {
     startSession,
     stopSession,
     addManualSession,
+    updateTask,
     selectors,
     activeLogDateKey,
     setActiveLogDateKey,
@@ -656,6 +690,28 @@ export const LogCalendar: React.FC = () => {
   const pickerDragStartKeyRef = useRef<string | null>(null);
   const pickerDragMovedRef = useRef(false);
   const pickerNavCooldownRef = useRef(false);
+
+  // Phase 3A: dayMeta — per-day notes, tags, colors, photos
+  const [dayMeta, setDayMeta] = useState<Record<string, { note?: string; tag?: string; color?: string; photo?: string }>>(() => {
+    try { return JSON.parse(localStorage.getItem('xtation.dayMeta.v1') || '{}'); } catch { return {}; }
+  });
+
+  // Phase 5A: XP popups
+  type XPPopup = { id: string; xp: number; ts: number };
+  const [xpPopups, setXpPopups] = useState<XPPopup[]>([]);
+  const lastSessionCountRef = useRef<number>(-1);
+
+  // Phase 3B: Week card hover state
+  const [hoveredWeekCard, setHoveredWeekCard] = useState<string | null>(null);
+  const [weekCardNoteEdit, setWeekCardNoteEdit] = useState<string | null>(null);
+  const [weekCardNoteValue, setWeekCardNoteValue] = useState('');
+
+  // Phase 5B: session focus bar
+  const [focusBarExpanded, setFocusBarExpanded] = useState(false);
+
+  // Phase 4: drag state
+  const dragStateRef = useRef<{ taskId: string; fromDateKey: string } | null>(null);
+  const [dragOverCell, setDragOverCell] = useState<string | null>(null);
   const dayConsoleListRef = useRef<HTMLDivElement | null>(null);
   const rowRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const hudContainerRef = useRef<HTMLDivElement | null>(null);
@@ -706,6 +762,31 @@ export const LogCalendar: React.FC = () => {
   useEffect(() => {
     localStorage.setItem('xtation.challenge.completions.v2', JSON.stringify(challengeCompletions));
   }, [challengeCompletions]);
+
+  // Persist dayMeta
+  useEffect(() => {
+    localStorage.setItem('xtation.dayMeta.v1', JSON.stringify(dayMeta));
+  }, [dayMeta]);
+
+  // Phase 5A: watch for new completed sessions to trigger XP popup
+  const todayCompletedSessions = useMemo(() => selectors.getTodayCompletedSessions(todayKey), [selectors, todayKey, now]);
+  const sessionCount = todayCompletedSessions.length;
+  useEffect(() => {
+    if (lastSessionCountRef.current === -1) {
+      lastSessionCountRef.current = sessionCount;
+      return;
+    }
+    if (sessionCount > lastSessionCountRef.current) {
+      const newest = todayCompletedSessions[0] ?? null;
+      const xp = newest ? Math.round((newest.durationMinutes || 0) * 0.8) : 0;
+      if (xp > 0) {
+        const popupId = `xp-${Date.now()}`;
+        setXpPopups(prev => [...prev, { id: popupId, xp, ts: Date.now() }]);
+        setTimeout(() => setXpPopups(prev => prev.filter(p => p.id !== popupId)), 1800);
+      }
+    }
+    lastSessionCountRef.current = sessionCount;
+  }, [sessionCount]);
 
   useEffect(() => {
     if (!highlightedChallengeId) return;
@@ -1384,6 +1465,21 @@ export const LogCalendar: React.FC = () => {
           const displayTitle = isThisRowRunning
             ? (row.title?.trim() || activeSession?.title?.trim() || 'Active session')
             : (row.title || 'Untitled');
+          // Phase 2C: quest age indicator
+          const rowTask = row.taskId ? taskByIdMap.get(row.taskId) : undefined;
+          const rowTaskLastUpdate = rowTask?.updatedAt ?? rowTask?.createdAt;
+          const daysSinceUpdate = rowTaskLastUpdate ? Math.floor((now - rowTaskLastUpdate) / 86400000) : 0;
+          const ageBorderColor = daysSinceUpdate >= 14
+            ? 'rgba(230,140,60,0.8)'
+            : daysSinceUpdate >= 7
+            ? 'rgba(227,179,74,0.7)'
+            : daysSinceUpdate >= 3
+            ? 'rgba(227,179,74,0.4)'
+            : 'var(--app-border, color-mix(in srgb, var(--app-text) 8%, transparent))';
+          const RowIconEl = rowTask?.icon ? TASK_ICON_MAP[rowTask.icon] : null;
+          const rowPriorityColor = rowTask?.priority === 'urgent' ? '#e3b34a' : rowTask?.priority === 'high' ? '#c47a40' : null;
+          const rowActualMin = row.items.reduce((acc, it) => acc + Math.max(0, it.durationMin || 0), 0);
+
           return (
             <div
               key={row.key}
@@ -1396,6 +1492,7 @@ export const LogCalendar: React.FC = () => {
                   ? 'border-[color-mix(in_srgb,var(--app-accent)_60%,transparent)] bg-[color-mix(in_srgb,var(--app-accent)_12%,var(--app-panel))]'
                   : 'border-[color-mix(in_srgb,var(--app-text)_6%,transparent)] bg-[var(--app-panel)]'
               }`}
+              style={{ borderLeft: `2px solid ${ageBorderColor}` }}
             >
               <div className="flex items-center gap-2 px-3 py-2.5">
                 <button
@@ -1448,16 +1545,30 @@ export const LogCalendar: React.FC = () => {
                   className="min-w-0 flex-1 pointer-events-auto cursor-pointer text-left transition-all duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] hover:text-[var(--app-text)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color-mix(in_srgb,var(--app-accent)_55%,transparent)] rounded"
                 >
                   <div className="flex items-center gap-2">
+                    {/* Phase 2C: icon + priority dot */}
+                    {rowPriorityColor && (
+                      <span style={{ width: 6, height: 6, borderRadius: '50%', backgroundColor: rowPriorityColor, flexShrink: 0 }} />
+                    )}
+                    {RowIconEl && <RowIconEl size={11} style={{ flexShrink: 0, color: stateMeta.dotFill, opacity: 0.75 }} />}
                     <div className="min-w-0 flex-1">
-                      <div className="text-xs tracking-[0.04em] font-medium text-[var(--app-text)] truncate leading-snug">{displayTitle}</div>
+                      <div className="flex items-center gap-1.5">
+                        <div className="text-xs tracking-[0.04em] font-medium text-[var(--app-text)] truncate leading-snug">{displayTitle}</div>
+                        {/* Level badge */}
+                        {rowTask?.level && (
+                          <span style={{ fontSize: 7, padding: '1px 3px', borderRadius: 2, background: 'color-mix(in srgb, var(--app-accent) 16%, var(--app-panel))', color: 'var(--app-accent)', flexShrink: 0, letterSpacing: '0.08em', fontFamily: 'monospace' }}>
+                            L{rowTask.level}
+                          </span>
+                        )}
+                      </div>
                       {(() => {
-                        const rowTask = row.taskId ? taskByIdMap.get(row.taskId) : undefined;
                         const steps = rowTask ? parseRowStepCounts(rowTask.details) : null;
-                        const rowMin = row.items.reduce((acc, item) => acc + Math.max(0, item.durationMin || 0), 0);
+                        const rowMin = rowActualMin;
+                        const estMin = rowTask?.estimatedMinutes;
                         if (steps) return steps.done > 0
                           ? <span className="text-[9px] tracking-[0.06em] text-[var(--app-muted)]">{steps.done}/{steps.total} steps</span>
                           : <span className="text-[9px] tracking-[0.06em] text-[var(--app-muted)]">{steps.total} steps</span>;
                         if (row.state === 'scheduled' && row.primaryTime) return <span className="text-[9px] tracking-[0.06em] text-[var(--app-muted)]">Scheduled {formatTime(row.primaryTime)}</span>;
+                        if (rowMin > 0 && estMin) return <span className="text-[9px] tracking-[0.06em] text-[var(--app-muted)]">{rowMin}m / {estMin}m</span>;
                         if (rowMin > 0) return <span className="text-[9px] tracking-[0.06em] text-[var(--app-muted)]">{formatMinutes(rowMin)} tracked</span>;
                         return null;
                       })()}
@@ -1573,22 +1684,33 @@ export const LogCalendar: React.FC = () => {
   const renderTimelineChart = (mobile = false) => {
     const chartInnerTop = 24;
     const chartInnerBottom = 78;
-    // For mobile the ref is not attached, so compute baseline from fixed height
     const MOBILE_CHART_H = 380;
     const baselineTop = mobile && timelineChartHeight === 0
       ? Math.round(MOBILE_CHART_H * 0.70)
       : computedBaselineY;
 
-    // Duration (span) mode — greedy lane assignment to avoid bar overlap
+    // ── Swim Lane Mode (Phase 1A) ────────────────────────────────────────────
+    const LANE_H = 34;
+    const LANE_LABEL_W = 140; // px reserved for left label in swim lane mode
+    const laneRows = timelineStyle === 'span' ? (() => {
+      // Group all items by row key preserving timelineRows order
+      const rowMap = new Map(timelineRows.map(r => [r.key, r]));
+      return [...rowMap.values()];
+    })() : [];
+
+    const swimLaneChartH = timelineStyle === 'span'
+      ? Math.max(200, 32 + laneRows.length * LANE_H + 40)
+      : (mobile ? MOBILE_CHART_H : undefined as unknown as number);
+
+    // Legacy span bars (kept for non-swim-lane span rendering, now replaced by swim lanes)
     const BAR_H = 10;
     const LANE_STEP = 14;
-    const MIN_BAR_PCT = 3; // ~9 px minimum on a typical 300 px chart
-    const barsWithLanes = timelineStyle === 'span' ? (() => {
+    const MIN_BAR_PCT = 3;
+    const barsWithLanes = timelineStyle !== 'span' ? [] : (() => {
       const laneEnds: number[] = [];
       return [...filteredByModeDots]
         .sort((a, b) => a.xPct - b.xPct)
         .map((dot) => {
-          // For running sessions with no recorded minutes yet, infer live duration
           const effectiveDuration = dot.durationMin === 0 && dot.status === 'active'
             ? Math.max(1, Math.floor((now - dot.time) / 60000))
             : dot.durationMin;
@@ -1601,13 +1723,19 @@ export const LogCalendar: React.FC = () => {
           const barTop = Math.max(chartInnerTop + 4, baselineTop - BAR_H / 2 - lane * LANE_STEP);
           return { ...dot, wPct, barTop };
         });
-    })() : [];
+    })();
     const hoveredBarTop = timelineStyle === 'span'
       ? (barsWithLanes.find((b) => b.id === hoveredDotId)?.barTop ?? hoveredDot?.laneDotTop ?? 0)
       : (hoveredDot?.laneDotTop ?? 0);
 
+    const chartHeight = timelineStyle === 'span' ? swimLaneChartH : (mobile ? MOBILE_CHART_H : undefined as unknown as number);
+
     return (
-      <div ref={mobile ? undefined : timelineChartRef} className={`rounded-xl bg-[color-mix(in_srgb,var(--app-panel-2)_55%,var(--app-panel))] px-2 py-2 relative overflow-hidden`} style={{ height: mobile ? 380 : 'clamp(320px, 45vh, 520px)' }}>
+      <div
+        ref={mobile ? undefined : timelineChartRef}
+        className="rounded-xl bg-[color-mix(in_srgb,var(--app-panel-2)_55%,var(--app-panel))] px-2 py-2 relative overflow-hidden"
+        style={{ height: chartHeight ?? 'clamp(320px, 45vh, 520px)' }}
+      >
         {/* Instrument panel — anchored to chart top-right */}
         <div className="absolute top-2 right-2 z-10 flex items-center">
           <div className="flex rounded border border-[color-mix(in_srgb,var(--app-text)_14%,transparent)] bg-[color-mix(in_srgb,var(--app-panel-2)_85%,transparent)] p-0.5 gap-0.5">
@@ -1618,7 +1746,7 @@ export const LogCalendar: React.FC = () => {
                   key={label}
                   type="button"
                   onClick={() => setTimelineStyle(styleVal as TimelineStyle)}
-                  className={`inline-flex items-center rounded px-2 py-0.5 text-[9px] uppercase tracking-[0.14em] transition-all duration-150 ${
+                  className={`inline-flex items-center rounded px-2 py-0.5 text-[9px] uppercase tracking-[0.14em] transition-all duration-150 ease-out ${
                     timelineStyle === styleVal
                       ? 'bg-[var(--app-panel)] text-[var(--app-text)] shadow-sm ring-1 ring-[color-mix(in_srgb,var(--app-text)_10%,transparent)]'
                       : 'text-[var(--app-muted)] hover:text-[var(--app-text)]'
@@ -1630,6 +1758,186 @@ export const LogCalendar: React.FC = () => {
             })}
           </div>
         </div>
+
+        {/* ── SWIM LANE rendering ── */}
+        {timelineStyle === 'span' ? (
+          <div className="absolute inset-x-0" style={{ top: 32, bottom: 40 }}>
+            {/* Hour grid lines spanning all lanes */}
+            {TIMELINE_HOUR_MARKERS.map((hour) => (
+              <div
+                key={`sl-grid-${hour}`}
+                className="absolute top-0 bottom-0 border-l border-[color-mix(in_srgb,var(--app-text)_7%,transparent)]"
+                style={{ left: `calc(${LANE_LABEL_W}px + (100% - ${LANE_LABEL_W}px) * ${hour / 24})` }}
+              />
+            ))}
+            {/* NOW line - full height dashed */}
+            {nowMarkerX !== null && (
+              <div
+                className="pointer-events-none absolute top-0 bottom-0 border-l-2 border-dashed border-[color-mix(in_srgb,var(--app-accent)_65%,transparent)]"
+                style={{ left: `calc(${LANE_LABEL_W}px + (100% - ${LANE_LABEL_W}px) * ${nowMarkerX / 100})` }}
+              >
+                <span className="absolute -top-5 -translate-x-1/2 rounded px-1 py-0.5 text-[8px] uppercase tracking-[0.12em] text-[var(--app-accent)] bg-[color-mix(in_srgb,var(--app-accent)_14%,var(--app-panel))] whitespace-nowrap z-10">Now</span>
+              </div>
+            )}
+
+            {laneRows.length === 0 && (
+              <div className="absolute inset-0 grid place-items-center text-[10px] uppercase tracking-[0.14em] text-[var(--app-muted)]">
+                No items for active filter.
+              </div>
+            )}
+
+            {laneRows.map((row, laneIdx) => {
+              const task = row.taskId ? taskByIdMap.get(row.taskId) : undefined;
+              const laneTop = laneIdx * LANE_H;
+              const isHoveredRow = row.taskId ? row.taskId === hoveredTaskId : false;
+              const isExpandedRow = expandedId === row.key;
+              const rowTotalMin = row.items.reduce((acc, it) => acc + Math.max(0, it.durationMin || 0), 0);
+              const stateColor = dotColorByQuestState(row.state);
+              const IconEl = task?.icon ? TASK_ICON_MAP[task.icon] : null;
+              const priorityColor = task?.priority === 'urgent' ? '#e3b34a' : task?.priority === 'high' ? '#c47a40' : null;
+              const dayStart = fromDateKey(selectedKey).getTime();
+
+              return (
+                <div
+                  key={`sl-lane-${row.key}`}
+                  style={{
+                    position: 'absolute',
+                    left: 0,
+                    right: 0,
+                    top: laneTop,
+                    height: LANE_H,
+                    borderBottom: '1px solid color-mix(in srgb, var(--app-text) 6%, transparent)',
+                    background: laneIdx % 2 === 0
+                      ? 'color-mix(in srgb, var(--app-text) 2%, transparent)'
+                      : 'transparent',
+                    borderLeft: isExpandedRow || isHoveredRow ? `2px solid ${stateColor}` : '2px solid transparent',
+                    transition: 'border-color 150ms ease-out, background 150ms ease-out',
+                  }}
+                >
+                  {/* Left label area */}
+                  <button
+                    type="button"
+                    onClick={() => handleTimelineDotClick(row.key)}
+                    onMouseEnter={() => { setHighlightedPanelKey(row.key); setHoveredTaskId(row.taskId || null); }}
+                    onMouseLeave={() => { setHighlightedPanelKey(p => p === row.key ? null : p); setHoveredTaskId(p => p === (row.taskId || null) ? null : p); }}
+                    style={{
+                      position: 'absolute',
+                      left: 0,
+                      top: 0,
+                      width: LANE_LABEL_W,
+                      height: LANE_H,
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 4,
+                      paddingLeft: 6,
+                      paddingRight: 4,
+                      overflow: 'hidden',
+                    }}
+                    title={row.title}
+                  >
+                    {priorityColor && (
+                      <span style={{ width: 6, height: 6, borderRadius: '50%', backgroundColor: priorityColor, flexShrink: 0 }} />
+                    )}
+                    {IconEl && <IconEl size={10} style={{ flexShrink: 0, color: stateColor, opacity: 0.8 }} />}
+                    <span style={{ fontSize: 9, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1, color: 'var(--app-text)', letterSpacing: '0.04em', textTransform: 'uppercase' }}>
+                      {row.title}
+                    </span>
+                    {task?.level && (
+                      <span style={{ fontSize: 7, padding: '1px 3px', borderRadius: 2, background: 'color-mix(in srgb, var(--app-accent) 18%, var(--app-panel))', color: 'var(--app-accent)', flexShrink: 0, letterSpacing: '0.08em' }}>
+                        L{task.level}
+                      </span>
+                    )}
+                  </button>
+
+                  {/* Right total time */}
+                  <div style={{ position: 'absolute', right: 4, top: 0, height: LANE_H, display: 'flex', alignItems: 'center' }}>
+                    {rowTotalMin > 0 && (
+                      <span style={{ fontSize: 8, color: 'var(--app-muted)', fontFamily: 'monospace', letterSpacing: '0.04em' }}>
+                        {formatMinutes(rowTotalMin)}
+                      </span>
+                    )}
+                  </div>
+
+                  {/* Session blocks in the lane */}
+                  {row.items.filter(it => it.type === 'timeline' && it.startAt).map((item) => {
+                    const itemStart = item.startAt || 0;
+                    const itemMin = Math.max(0, item.durationMin || 0);
+                    const xPct = Math.max(0, Math.min(100, ((itemStart - dayStart) / 86400000) * 100));
+                    const wPct = Math.max(1.5, Math.min(100 - xPct, (itemMin / 1440) * 100));
+                    const isRunning = item.status === 'running';
+                    const isFutureScheduled = item.status === 'scheduled' && itemStart > now;
+                    const itemStateColor = isRunning ? 'var(--state-active)' : dotColorByQuestState(NORMALIZED_STATUS_TO_QUEST_STATE[item.status]);
+                    const impactFilter = item.sourceRef?.includes?.('hard') ? 'brightness(1.3)' : undefined;
+                    const showXP = wPct > 5;
+                    const xpProxy = Math.round(itemMin * 0.8);
+                    const blockLeft = LANE_LABEL_W;
+                    const availW = `calc(100% - ${LANE_LABEL_W + 40}px)`;
+
+                    return (
+                      <div
+                        key={`sl-block-${item.id}`}
+                        title={`${item.title} · ${formatTime(itemStart)} · ${formatMinutes(itemMin)}`}
+                        style={{
+                          position: 'absolute',
+                          left: `calc(${blockLeft}px + ${availW} * ${xPct / 100})`,
+                          width: `calc(${availW} * ${wPct / 100})`,
+                          top: 4,
+                          height: LANE_H - 8,
+                          borderRadius: 3,
+                          background: isFutureScheduled ? 'transparent' : itemStateColor,
+                          border: `1px solid ${itemStateColor}`,
+                          opacity: isFutureScheduled ? 0.45 : 0.88,
+                          filter: impactFilter,
+                          display: 'flex',
+                          alignItems: 'center',
+                          overflow: 'hidden',
+                          transition: 'opacity 200ms ease-out, box-shadow 200ms ease-out',
+                          boxShadow: isRunning ? `0 0 6px ${itemStateColor}` : undefined,
+                        }}
+                      >
+                        {isRunning && (
+                          <span style={{
+                            position: 'absolute',
+                            right: 0,
+                            top: 0,
+                            bottom: 0,
+                            width: 3,
+                            borderRadius: '0 3px 3px 0',
+                            background: itemStateColor,
+                            animation: 'pulse-right-border 1.2s ease-in-out infinite',
+                          }} />
+                        )}
+                        {showXP && xpProxy > 0 && (
+                          <span style={{ fontSize: 7, paddingLeft: 3, color: isFutureScheduled ? itemStateColor : '#000', opacity: 0.85, whiteSpace: 'nowrap', overflow: 'hidden', fontFamily: 'monospace' }}>
+                            +{xpProxy}m
+                          </span>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              );
+            })}
+
+            {/* Hour labels */}
+            <div className="absolute inset-x-0 bottom-0 text-[8px] uppercase tracking-[0.02em] text-[var(--app-muted)] tabular-nums font-mono" style={{ height: 18 }}>
+              {(mobile ? TIMELINE_LABELS_SPARSE : visibleHourLabels).filter(h => h < 24).map(hour => (
+                <span
+                  key={`sl-hr-${hour}`}
+                  className="absolute whitespace-nowrap"
+                  style={{
+                    left: `calc(${LANE_LABEL_W}px + (100% - ${LANE_LABEL_W + 40}px) * ${hour / 24})`,
+                    transform: hour === 0 ? 'translateX(0)' : 'translateX(-50%)',
+                    bottom: 2,
+                  }}
+                >
+                  {`${String(hour).padStart(2, '0')}:00`}
+                </span>
+              ))}
+            </div>
+          </div>
+        ) : (
+        /* ── PULSE / legacy rendering ── */
         <div className="absolute inset-x-4" style={{ top: chartInnerTop, bottom: chartInnerBottom }}>
           <div
             className="absolute inset-x-0 h-[2px] bg-[color-mix(in_srgb,var(--app-text)_18%,transparent)]"
@@ -1708,83 +2016,24 @@ export const LogCalendar: React.FC = () => {
               </span>
             </div>
           ) : null}
-          {timelineStyle === 'span' ? barsWithLanes.map((bar) => {
-            const isHovered = hoveredDotId === bar.id;
-            const isSiblingHovered = !isHovered && !!bar.rowTaskId && bar.rowTaskId === hoveredTaskId;
-            const isExpanded = expandedId === bar.rowKey;
-            const isActive = bar.status === 'active';
-            const isDimmed = !isHovered && !isSiblingHovered && !isExpanded;
-            const stateColor = dotColorByQuestState(bar.status);
-            // Wider bars get an inline label
-            const showLabel = bar.wPct > 6;
+          {/* Phase 1B: Enhanced pulse dots */}
+          {clampedDots.map((dot) => {
+            const dotSize = Math.max(12, Math.min(26, 10 + Math.sqrt(dot.durationMin) * 2));
+            const dotYOffset = Math.min(60, Math.round(dot.durationMin * 0.4));
+            const enhancedTop = mobile && timelineChartHeight === 0
+              ? Math.max(24, baselineTop - dot.stackIndex * 24 - dotYOffset)
+              : Math.max(20, dot.laneDotTop - dotYOffset);
+            const dotTask = dot.rowTaskId ? taskByIdMap.get(dot.rowTaskId) : undefined;
+            const isPriorityUrgent = dotTask?.priority === 'urgent';
+            const isPriorityHigh = dotTask?.priority === 'high';
+            const isActive = dot.status === 'active';
+            const stateColor = dotColorByQuestState(dot.status);
             return (
-            <button
-              key={`timeline-bar-${mobile ? 'mob-' : ''}${bar.id}`}
-              type="button"
-              onClick={() => handleTimelineDotClick(bar.rowKey)}
-              className={`absolute overflow-hidden transition-all duration-150 flex items-center ${
-                isDimmed ? 'opacity-80 hover:opacity-100' : 'opacity-100'
-              }`}
-              style={{
-                left: `${bar.xPct}%`,
-                width: `${bar.wPct}%`,
-                top: bar.barTop,
-                height: BAR_H,
-                borderRadius: 4,
-                // Use the status color directly — color-mix with CSS vars is unreliable
-                backgroundColor: bar.status === 'todo' || bar.status === 'scheduled'
-                  ? 'rgba(255,255,255,0.08)'
-                  : stateColor,
-                opacity: isDimmed ? (bar.status === 'todo' || bar.status === 'scheduled' ? 0.7 : 0.65) : 1,
-                border: `1.5px ${bar.inferred ? 'dashed' : 'solid'} ${stateColor}`,
-                boxShadow: isActive && !bar.inferred
-                  ? `0 0 8px ${stateColor}`
-                  : isHovered || isExpanded
-                  ? `0 0 5px ${stateColor}`
-                  : undefined,
-                outline: isExpanded || isSiblingHovered
-                  ? '1.5px solid var(--app-accent)'
-                  : undefined,
-                outlineOffset: 1,
-              }}
-              onMouseEnter={() => { setHoveredDotId(bar.id); setHighlightedPanelKey(bar.rowKey); setHoveredTaskId(bar.rowTaskId || null); }}
-              onMouseLeave={() => {
-                setHoveredDotId((prev) => (prev === bar.id ? null : prev));
-                setHighlightedPanelKey((prev) => prev === bar.rowKey && expandedId !== bar.rowKey ? null : prev);
-                setHoveredTaskId((prev) => (prev === (bar.rowTaskId || null) ? null : prev));
-              }}
-              onFocus={() => { setHoveredDotId(bar.id); setHighlightedPanelKey(bar.rowKey); setHoveredTaskId(bar.rowTaskId || null); }}
-              onBlur={() => {
-                setHoveredDotId((prev) => (prev === bar.id ? null : prev));
-                setHighlightedPanelKey((prev) => prev === bar.rowKey && expandedId !== bar.rowKey ? null : prev);
-                setHoveredTaskId((prev) => (prev === (bar.rowTaskId || null) ? null : prev));
-              }}
-              title={`${bar.title} · ${toQuestStateBadge(bar.status)} · ${formatTime(bar.time)}${bar.inferred ? ' · inferred' : ''}`}
-              aria-label={`${bar.title} ${toQuestStateBadge(bar.status)} ${formatTime(bar.time)}${bar.inferred ? ' inferred' : ''}`}
-            >
-              {showLabel && (
-                <span
-                  className="pointer-events-none truncate px-1.5 leading-none"
-                  style={{
-                    fontSize: 7,
-                    fontWeight: 600,
-                    letterSpacing: '0.06em',
-                    textTransform: 'uppercase',
-                    color: bar.status === 'todo' || bar.status === 'scheduled' ? stateColor : '#000',
-                    opacity: 0.9,
-                  }}
-                >
-                  {bar.title}
-                </span>
-              )}
-            </button>
-            );
-          }) : clampedDots.map((dot) => (
             <button
               key={`timeline-dot-${mobile ? 'mobile-' : ''}${dot.id}`}
               type="button"
               onClick={() => handleTimelineDotClick(dot.rowKey)}
-              className={`absolute h-4 w-4 rounded-full border transition-all duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] hover:scale-110 hover:shadow-[0_0_0_4px_color-mix(in_srgb,var(--app-accent)_12%,transparent)] ${
+              className={`absolute rounded-full border transition-all duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] hover:scale-110 ${
                 hoveredDotId === dot.id
                   ? 'scale-125'
                   : dot.rowTaskId && dot.rowTaskId === hoveredTaskId
@@ -1795,19 +2044,27 @@ export const LogCalendar: React.FC = () => {
               }`}
               style={{
                 left: `${dot.xPct}%`,
-                // Remap laneDotTop when mobile baseline differs from computedBaselineY
-                top: `${mobile && timelineChartHeight === 0 ? Math.max(24, baselineTop - dot.stackIndex * 24) : dot.laneDotTop}px`,
+                top: `${enhancedTop}px`,
+                width: dotSize,
+                height: dotSize,
                 transform: 'translateX(-50%)',
                 backgroundColor:
                   dot.status === 'todo' || dot.status === 'scheduled' || dot.inferred
                     ? 'var(--app-panel)'
-                    : dotColorByQuestState(dot.status),
+                    : stateColor,
                 borderColor: dotBorderByQuestState(dot.status),
                 borderStyle: dot.inferred ? 'dashed' : 'solid',
-                boxShadow:
-                  expandedId === dot.rowKey
-                    ? '0 0 0 3px color-mix(in_srgb,var(--app-accent)_18%,transparent)'
-                    : undefined,
+                boxShadow: isPriorityUrgent
+                  ? `0 0 0 3px ${stateColor}, 0 0 8px ${stateColor}`
+                  : isPriorityHigh
+                  ? `0 0 0 2px ${stateColor}`
+                  : expandedId === dot.rowKey
+                  ? '0 0 0 3px color-mix(in_srgb,var(--app-accent)_18%,transparent)'
+                  : undefined,
+                filter: isActive ? 'brightness(1.1)' : undefined,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
               }}
               onMouseEnter={() => {
                 setHoveredDotId(dot.id);
@@ -1835,9 +2092,31 @@ export const LogCalendar: React.FC = () => {
               }}
               title={`${dot.title} · ${toQuestStateBadge(dot.status)} · ${formatTime(dot.time)}${dot.inferred ? ' · inferred' : ''}`}
               aria-label={`${dot.title} ${toQuestStateBadge(dot.status)} ${formatTime(dot.time)}${dot.inferred ? ' inferred' : ''}`}
-            />
-          ))}
-          {timelineStyle === 'pulse' && overflowBadges.map((badge) => (
+            >
+              {dotTask?.level && dotSize >= 14 && (
+                <span style={{ fontSize: 7, color: dot.status === 'todo' || dot.status === 'scheduled' ? stateColor : '#000', pointerEvents: 'none', lineHeight: 1 }}>
+                  {dotTask.level}
+                </span>
+              )}
+              {/* Live session tail */}
+              {isActive && nowMarkerX !== null && (
+                <div
+                  className="pointer-events-none absolute"
+                  style={{
+                    left: '50%',
+                    top: '50%',
+                    height: 2,
+                    width: `${Math.max(0, nowMarkerX - dot.xPct)}%`,
+                    transform: `translateY(-50%)`,
+                    background: `linear-gradient(90deg, ${stateColor}, transparent)`,
+                    opacity: 0.5,
+                  }}
+                />
+              )}
+            </button>
+            );
+          })}
+          {overflowBadges.map((badge) => (
             <div
               key={`overflow-badge-${mobile ? 'mob-' : ''}${badge.hour}`}
               className="pointer-events-none absolute flex items-center justify-center rounded-full font-mono text-[var(--app-accent)]"
@@ -1856,7 +2135,7 @@ export const LogCalendar: React.FC = () => {
               +{badge.count}
             </div>
           ))}
-          {filteredByModeDots.length === 0 && (legendFilterStates.length > 0 || timelineFilter !== 'all' || timelineStyle !== 'pulse') ? (
+          {filteredByModeDots.length === 0 && (legendFilterStates.length > 0 || timelineFilter !== 'all') ? (
             <div className="absolute inset-0 grid place-items-center text-[10px] uppercase tracking-[0.14em] text-[var(--app-muted)]">
               No items for active filter.
             </div>
@@ -1893,27 +2172,87 @@ export const LogCalendar: React.FC = () => {
               </div>
             );
           })() : null}
+          <div className="absolute inset-x-4 bottom-6 text-[8px] uppercase tracking-[0.02em] text-[var(--app-muted)] tabular-nums font-mono">
+            {(mobile ? TIMELINE_LABELS_SPARSE : visibleHourLabels).filter((hour) => hour < 24).map((hour) => (
+              <span
+                key={`timeline-hour-${hour}`}
+                className="absolute whitespace-nowrap"
+                style={{
+                  left: `${(hour / 24) * 100}%`,
+                  transform: hour === 0 ? 'translateX(0)' : 'translateX(-50%)',
+                }}
+              >
+                {`${String(hour).padStart(2, '0')}:00`}
+              </span>
+            ))}
+          </div>
         </div>
-        <div className="absolute inset-x-4 bottom-6 text-[8px] uppercase tracking-[0.02em] text-[var(--app-muted)] tabular-nums font-mono">
-          {(mobile ? TIMELINE_LABELS_SPARSE : visibleHourLabels).filter((hour) => hour < 24).map((hour) => (
-            <span
-              key={`timeline-hour-${hour}`}
-              className="absolute whitespace-nowrap"
-              style={{
-                left: `${(hour / 24) * 100}%`,
-                transform: hour === 0 ? 'translateX(0)' : 'translateX(-50%)',
-              }}
-            >
-              {`${String(hour).padStart(2, '0')}:00`}
-            </span>
-          ))}
-        </div>
+        )}
       </div>
     );
   };
 
+  // Phase 2B: Inline stats bar values
+  const momentumData = selectors.getMomentum();
+  const todayXPProxy = Math.round(selectedDaySummary.minutesTracked * 0.8);
+  const focusScore = Math.min(100, Math.round((selectedDaySummary.minutesTracked / 480) * 100));
+
+  // Phase 5B: active session focus bar
+  const focusBarTask = activeSession?.taskId ? taskByIdMap.get(activeSession.taskId) : undefined;
+  const focusBarSteps = focusBarTask ? parseRowStepCounts(focusBarTask.details) : null;
+
   const dayConsole = (
-    <div className="rounded-2xl bg-[var(--app-panel-2)] overflow-hidden">
+    <div className="rounded-2xl bg-[var(--app-panel-2)] overflow-hidden relative">
+      {/* Phase 5A: XP popups */}
+      {xpPopups.map(popup => (
+        <div
+          key={popup.id}
+          className="pointer-events-none absolute z-50"
+          style={{
+            bottom: 12,
+            right: 12,
+            fontSize: 13,
+            fontWeight: 700,
+            color: 'var(--app-accent)',
+            letterSpacing: '0.08em',
+            animation: 'xp-popup-float 1.5s ease-out forwards',
+          }}
+        >
+          +{popup.xp}XP
+        </div>
+      ))}
+
+      {/* Phase 5B: Session focus bar */}
+      {activeSession && (
+        <div
+          className="border-b border-[color-mix(in_srgb,var(--app-accent)_30%,transparent)] bg-[color-mix(in_srgb,var(--app-accent)_8%,var(--app-panel))]"
+          style={{ borderLeft: '3px solid var(--app-accent)' }}
+        >
+          <div
+            className="flex items-center gap-2 px-3 py-2 cursor-pointer"
+            onClick={() => setFocusBarExpanded(p => !p)}
+          >
+            <span className="w-1.5 h-1.5 rounded-full bg-[var(--state-active)] animate-pulse shrink-0" />
+            <button
+              type="button"
+              className="text-[10px] uppercase tracking-[0.12em] text-[var(--app-text)] truncate flex-1 text-left hover:text-[var(--app-accent)] transition-colors"
+              onClick={(e) => { e.stopPropagation(); if (activeSession.taskId) setDetailTaskId(activeSession.taskId); }}
+            >
+              {focusBarTask?.title || activeSession.title || 'Active session'}
+            </button>
+            <span className="text-[10px] tabular-nums font-mono text-[var(--app-accent)] shrink-0">
+              {Math.floor((Date.now() - activeSession.startAt) / 60000)}m live
+            </span>
+            {focusBarExpanded ? <ChevronUp className="h-3 w-3 text-[var(--app-muted)] shrink-0" /> : <ChevronDown className="h-3 w-3 text-[var(--app-muted)] shrink-0" />}
+          </div>
+          {focusBarExpanded && focusBarSteps && (
+            <div className="px-3 pb-2 text-[9px] uppercase tracking-[0.1em] text-[var(--app-muted)]">
+              {focusBarSteps.done}/{focusBarSteps.total} steps complete
+            </div>
+          )}
+        </div>
+      )}
+
       <div className="px-4 py-3 border-b border-[color-mix(in_srgb,var(--app-text)_8%,transparent)] bg-[var(--app-panel)]">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
@@ -1921,16 +2260,34 @@ export const LogCalendar: React.FC = () => {
               <div className="text-[10px] uppercase tracking-[0.26em] text-[var(--app-muted)]">Day Console</div>
             </div>
             <div className="text-[10px] uppercase tracking-[0.12em] text-[var(--app-muted)] mt-0.5">{selectedDateLabel}</div>
-            <div className="mt-2 flex items-center gap-3">
-              <span className="text-[9px] uppercase tracking-[0.18em] text-[var(--app-muted)]">
-                {formatMinutes(selectedDaySummary.minutesTracked)} tracked
+            {/* Phase 2B: Inline stats bar */}
+            <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-0.5">
+              <span className="text-[9px] uppercase tracking-[0.18em] font-mono tabular-nums" style={{ color: 'var(--app-accent)' }}>
+                {formatMinutes(selectedDaySummary.minutesTracked)}
               </span>
-              <span className="text-[9px] uppercase tracking-[0.18em] text-[var(--app-muted)]">
-                {selectedDaySummary.completedCount} done
-              </span>
+              {todayXPProxy > 0 && (
+                <span className="text-[9px] uppercase tracking-[0.18em] text-[var(--app-muted)] tabular-nums">
+                  {todayXPProxy}xp
+                </span>
+              )}
+              {selectedDaySummary.completedCount > 0 && (
+                <span className="text-[9px] uppercase tracking-[0.18em] text-[var(--app-muted)]">
+                  {selectedDaySummary.completedCount} done
+                </span>
+              )}
+              {momentumData.currentStreak > 0 && (
+                <span className="text-[9px] uppercase tracking-[0.18em] text-[var(--app-muted)]">
+                  {momentumData.currentStreak}d streak
+                </span>
+              )}
+              {focusScore > 0 && (
+                <span className="text-[9px] uppercase tracking-[0.18em] text-[var(--app-muted)]">
+                  {focusScore}% focus
+                </span>
+              )}
               {sidePanelTabCounts.scheduled > 0 && (
                 <span className="text-[9px] uppercase tracking-[0.18em] text-[var(--app-muted)]">
-                  {sidePanelTabCounts.scheduled} scheduled
+                  {sidePanelTabCounts.scheduled} sched
                 </span>
               )}
               {selectedDaySummary.runningCount > 0 && (
@@ -2105,6 +2462,27 @@ export const LogCalendar: React.FC = () => {
       ) : null}
       <div className="flex-1 overflow-y-auto xt-scroll">
       <div className="space-y-4">
+        {/* Inject CSS keyframes once */}
+        <style>{PULSE_RIGHT_KEYFRAMES}</style>
+
+        {/* Phase 2A: Top stats strip */}
+        <div className="rounded-xl border border-[color-mix(in_srgb,var(--app-text)_8%,transparent)] bg-[var(--app-panel-2)] px-4 py-3">
+          <div className="flex flex-wrap gap-x-6 gap-y-2 items-end">
+            {[
+              { label: 'STREAK', value: momentumData.currentStreak > 0 ? `${momentumData.currentStreak}d` : '—' },
+              { label: 'XP TODAY', value: todayXPProxy > 0 ? `${todayXPProxy}xp` : '—' },
+              { label: 'TRACKED', value: selectedDaySummary.minutesTracked > 0 ? formatMinutes(selectedDaySummary.minutesTracked) : '—' },
+              { label: 'DONE', value: String(selectedDaySummary.completedCount) },
+              { label: 'FOCUS', value: focusScore > 0 ? `${focusScore}%` : '—' },
+            ].map(stat => (
+              <div key={stat.label} className="flex flex-col gap-0.5 min-w-[48px]">
+                <span className="text-[8px] uppercase tracking-[0.22em] text-[var(--app-muted)]">{stat.label}</span>
+                <span className="text-[15px] font-semibold tabular-nums font-mono text-[var(--app-text)] leading-none">{stat.value}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
         <div className="flex justify-center lg:justify-end">
           <DayTimeOrb size={552} showLiveLabel={selectedKey !== todayKey} />
         </div>
@@ -2441,89 +2819,215 @@ export const LogCalendar: React.FC = () => {
           ) : null}
 
           {rangeMode === 'week' ? (
-            <div className="space-y-2">
-              <div className="grid grid-cols-7 gap-2">
-                {DAY_NAMES.map((name) => (
-                  <div
-                    key={`week-${name}`}
-                    className="text-[10px] text-[var(--app-muted)] text-center py-1 font-normal uppercase tracking-[0.2em]"
-                  >
-                    {name}
-                  </div>
-                ))}
-              </div>
-              <div className="overflow-x-auto no-scrollbar">
-                <div
-                  className="grid min-w-[740px] grid-cols-7 gap-2"
-                  onPointerDown={handleGridPointerDown}
-                  onPointerMove={handleGridPointerMove}
-                  onPointerUp={handleGridPointerUp}
-                >
-                  {weekDays.map((day) => {
-                    const daySummary = selectors.getDaySummary(day.key, now) || EMPTY_DAY_SUMMARY;
-                    const isSelected = day.key === selectedKey;
-                    const isToday = day.key === todayKey;
-                    const chDay = getChallengeDayState(day.key);
-                    const wkIntensity = Math.min(1, daySummary.minutesTracked / 480);
-                    const wkTopTasks = selectors.getTopTasksForDay(day.key, 3, now);
-                    return (
+            <div className="overflow-x-auto no-scrollbar">
+              <div
+                className="flex gap-2 min-w-[700px]"
+                onPointerDown={handleGridPointerDown}
+                onPointerMove={handleGridPointerMove}
+                onPointerUp={handleGridPointerUp}
+              >
+                {weekDays.map((day) => {
+                  const daySummary = selectors.getDaySummary(day.key, now) || EMPTY_DAY_SUMMARY;
+                  const isSelected = day.key === selectedKey;
+                  const isToday = day.key === todayKey;
+                  const chDay = getChallengeDayState(day.key);
+                  const wkIntensity = Math.min(1, daySummary.minutesTracked / 480);
+                  const wkTopTasks = selectors.getTopTasksForDay(day.key, 2, now);
+                  const meta = dayMeta[day.key] || {};
+                  const cardAccentColor = meta.color;
+                  const cardTag = meta.tag;
+                  const cardNote = meta.note;
+                  const cardPhoto = meta.photo;
+                  const isHoveredCard = hoveredWeekCard === day.key;
+                  const wkXPProxy = Math.round(daySummary.minutesTracked * 0.8);
+
+                  // Mini timeline strip: approximate blocks from activityCount
+                  const miniBlocks = daySummary.activityCount > 0 ? Array.from({ length: Math.min(daySummary.activityCount, 6) }) : [];
+
+                  return (
+                    <div
+                      key={day.key}
+                      className="relative flex-1 min-w-0 rounded-lg border overflow-hidden flex flex-col transition-all duration-250 ease-out"
+                      style={{
+                        minHeight: 200,
+                        borderColor: isSelected
+                          ? 'color-mix(in srgb, var(--app-accent) 60%, transparent)'
+                          : 'color-mix(in srgb, var(--app-text) 10%, transparent)',
+                        background: cardPhoto
+                          ? 'transparent'
+                          : isSelected
+                          ? 'color-mix(in srgb, var(--app-accent) 10%, var(--app-panel))'
+                          : 'var(--app-panel-2)',
+                        borderLeft: cardAccentColor ? `4px solid ${cardAccentColor}` : undefined,
+                        transition: 'all 250ms ease-out',
+                      }}
+                      onMouseEnter={() => setHoveredWeekCard(day.key)}
+                      onMouseLeave={() => setHoveredWeekCard(null)}
+                    >
+                      {/* Photo background */}
+                      {cardPhoto && (
+                        <div
+                          className="pointer-events-none absolute inset-0"
+                          style={{
+                            backgroundImage: `url(${cardPhoto})`,
+                            backgroundSize: 'cover',
+                            backgroundPosition: 'center',
+                          }}
+                        >
+                          <div className="absolute inset-0" style={{ background: 'rgba(0,0,0,0.72)' }} />
+                        </div>
+                      )}
+
+                      {/* XP gradient */}
+                      {wkIntensity > 0 && (
+                        <div
+                          aria-hidden="true"
+                          className="pointer-events-none absolute inset-0"
+                          style={{ background: `linear-gradient(160deg, transparent 30%, color-mix(in srgb, var(--app-accent) ${Math.round(wkIntensity * 18)}%, transparent) 100%)` }}
+                        />
+                      )}
+
+                      {/* Card content */}
                       <button
-                        key={day.key}
                         type="button"
                         onClick={() => selectDate(day.key, day.date)}
-                        className={`relative min-h-[120px] rounded-lg border p-3 text-left transition-all duration-200 overflow-hidden flex flex-col gap-0.5 ${
-                          isSelected
-                            ? 'border-[color-mix(in_srgb,var(--app-accent)_60%,transparent)] bg-[color-mix(in_srgb,var(--app-accent)_16%,var(--app-panel))]'
-                            : chDay.inRange
-                              ? 'border-[color-mix(in_srgb,var(--app-accent)_26%,transparent)] bg-[color-mix(in_srgb,var(--app-accent)_6%,var(--app-panel-2))] hover:bg-[color-mix(in_srgb,var(--app-text)_4%,var(--app-panel-2))]'
-                              : chDay.excluded
-                                ? 'border-[color-mix(in_srgb,var(--app-text)_8%,transparent)] bg-[color-mix(in_srgb,var(--app-text)_3%,var(--app-panel-2))] hover:bg-[color-mix(in_srgb,var(--app-text)_4%,var(--app-panel-2))]'
-                                : 'border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-[var(--app-panel-2)] hover:bg-[color-mix(in_srgb,var(--app-text)_4%,var(--app-panel-2))]'
-                        }`}
+                        className="relative z-[1] p-2.5 flex-1 text-left flex flex-col gap-1"
                       >
-                        {/* XP heat gradient */}
-                        {wkIntensity > 0 && (
-                          <div
-                            aria-hidden="true"
-                            className="pointer-events-none absolute inset-0"
-                            style={{ background: `linear-gradient(160deg, transparent 30%, color-mix(in srgb, var(--app-accent) ${Math.round(wkIntensity * 22)}%, transparent) 100%)` }}
-                          />
-                        )}
-                        {chDay.excluded && (
-                          <span className={`pointer-events-none absolute top-[6px] right-[6px] flex h-4 w-4 items-center justify-center rounded-sm text-[10px] leading-none text-[var(--app-muted)] ${isSelected ? 'opacity-35' : 'opacity-55'}`}>×</span>
-                        )}
-                        {challengeList.length > 1 && (() => { const n = getChallengeCountForDay(day.key); return n > 0 ? <span className="pointer-events-none absolute top-[6px] left-[6px] flex h-4 w-4 items-center justify-center rounded text-[8px] leading-none text-[var(--app-accent)] bg-[color-mix(in_srgb,var(--app-accent)_18%,transparent)]">{n}</span> : null; })()}
-                        {/* Weekday + date */}
-                        <div className={`relative z-[1] text-[11px] uppercase tracking-[0.16em] ${isToday ? 'text-[var(--app-accent)]' : 'text-[var(--app-muted)]'}`}>
-                          {formatWeekdayLabel(day.key)}
+                        {/* Header */}
+                        <div className="flex items-start justify-between gap-1">
+                          <div>
+                            <div className={`text-[10px] uppercase tracking-[0.18em] ${isToday ? 'text-[var(--app-accent)]' : 'text-[var(--app-muted)]'}`}>
+                              {day.date.toLocaleDateString(undefined, { weekday: 'short' })}
+                            </div>
+                            <div className={`text-[17px] font-semibold leading-tight ${isSelected ? 'text-[var(--app-accent)]' : 'text-[var(--app-text)]'}`}>
+                              {day.date.getDate()}
+                            </div>
+                          </div>
+                          <div className="flex flex-col items-end gap-0.5">
+                            {daySummary.minutesTracked > 0 && (
+                              <span className={`text-[9px] uppercase tracking-[0.12em] tabular-nums font-mono ${daySummary.runningCount > 0 ? 'text-[var(--app-accent)]' : 'text-[var(--app-muted)]'}`}>
+                                {formatMinutes(daySummary.minutesTracked)}
+                              </span>
+                            )}
+                            {wkXPProxy > 0 && (
+                              <span className="text-[8px] uppercase tracking-[0.1em] tabular-nums text-[var(--app-muted)]">{wkXPProxy}xp</span>
+                            )}
+                          </div>
                         </div>
-                        {/* Top task lines */}
-                        <div className="relative z-[1] flex-1 min-w-0 space-y-0.5 mt-1">
+
+                        {/* Tag badge */}
+                        {cardTag && (
+                          <span className="self-start rounded-full px-1.5 py-0.5 text-[8px] uppercase tracking-[0.1em] bg-[color-mix(in_srgb,var(--app-accent)_18%,var(--app-panel))] text-[var(--app-accent)]">
+                            {cardTag}
+                          </span>
+                        )}
+
+                        {/* Quest list */}
+                        <div className="flex-1 space-y-0.5 mt-0.5">
                           {wkTopTasks.map((t, i) => (
-                            <p key={i} className={`text-[9px] truncate leading-snug ${i === 0 ? 'text-[color-mix(in_srgb,var(--app-text)_70%,var(--app-muted))]' : 'text-[var(--app-muted)]'}`}>{t.title}</p>
+                            <div key={i} className="flex items-center gap-1">
+                              <p className={`text-[9px] truncate leading-snug flex-1 ${i === 0 ? 'text-[color-mix(in_srgb,var(--app-text)_70%,var(--app-muted))]' : 'text-[var(--app-muted)]'}`}>{t.title}</p>
+                              {t.minutes > 0 && <span className="text-[8px] text-[var(--app-muted)] tabular-nums shrink-0">{t.minutes}m</span>}
+                            </div>
                           ))}
                         </div>
-                        {/* Minutes + challenge dot */}
-                        <div className="relative z-[1] mt-auto flex items-center gap-1.5">
-                          {daySummary.minutesTracked > 0 && (
-                            <span className={`text-[10px] uppercase tracking-[0.14em] tabular-nums ${daySummary.runningCount > 0 ? 'text-[var(--app-accent)]' : 'text-[var(--app-text)]'}`}>
-                              {Math.round(daySummary.minutesTracked)}m
-                            </span>
-                          )}
-                          {chDay.inRange && chDay.done && (
-                            <span className={`h-[5px] w-[5px] rounded-full bg-[var(--app-accent)] shadow-[0_0_5px_color-mix(in_srgb,var(--app-accent)_55%,transparent)] ${isSelected ? 'opacity-60' : ''}`} />
-                          )}
-                        </div>
-                        {/* Mini XP bar */}
-                        {wkIntensity > 0 && (
-                          <div aria-hidden="true" className="pointer-events-none absolute bottom-0 left-0 right-0 h-[3px]" style={{ opacity: 0.55 }}>
-                            <div className="h-full" style={{ width: `${Math.min(100, wkIntensity * 100)}%`, background: 'var(--app-accent)', borderRadius: '0 1px 0 0' }} />
+
+                        {/* Mini timeline strip */}
+                        {miniBlocks.length > 0 && (
+                          <div className="flex gap-0.5 mt-1 overflow-hidden" style={{ height: 4 }}>
+                            {miniBlocks.map((_, bi) => (
+                              <div
+                                key={bi}
+                                className="flex-1 rounded-sm"
+                                style={{
+                                  background: 'var(--app-accent)',
+                                  opacity: 0.3 + bi * 0.1,
+                                }}
+                              />
+                            ))}
                           </div>
                         )}
+
+                        {/* Note */}
+                        {cardNote && (
+                          <p className="text-[8px] italic text-[var(--app-muted)] truncate mt-0.5">{cardNote}</p>
+                        )}
+
+                        {/* Challenge dot */}
+                        {chDay.inRange && chDay.done && (
+                          <span className="h-[4px] w-[4px] rounded-full bg-[var(--app-accent)] mt-0.5 self-end" />
+                        )}
                       </button>
-                    );
-                  })}
-                </div>
+
+                      {/* Hover actions */}
+                      {isHoveredCard && (
+                        <div className="relative z-[2] flex items-center gap-1 px-2 py-1.5 border-t border-[color-mix(in_srgb,var(--app-text)_8%,transparent)]">
+                          {/* Note edit */}
+                          {weekCardNoteEdit === day.key ? (
+                            <input
+                              autoFocus
+                              type="text"
+                              value={weekCardNoteValue}
+                              onChange={(e) => setWeekCardNoteValue(e.target.value)}
+                              onBlur={() => {
+                                setDayMeta(prev => ({ ...prev, [day.key]: { ...(prev[day.key] || {}), note: weekCardNoteValue || undefined } }));
+                                setWeekCardNoteEdit(null);
+                              }}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter' || e.key === 'Escape') {
+                                  setDayMeta(prev => ({ ...prev, [day.key]: { ...(prev[day.key] || {}), note: weekCardNoteValue || undefined } }));
+                                  setWeekCardNoteEdit(null);
+                                }
+                              }}
+                              className="flex-1 min-w-0 rounded border border-[color-mix(in_srgb,var(--app-text)_14%,transparent)] bg-[var(--app-panel-2)] px-1.5 py-0.5 text-[9px] text-[var(--app-text)] outline-none"
+                              placeholder="Add note..."
+                              onClick={(e) => e.stopPropagation()}
+                            />
+                          ) : (
+                            <button
+                              type="button"
+                              title="Add note"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setWeekCardNoteValue(meta.note || '');
+                                setWeekCardNoteEdit(day.key);
+                              }}
+                              className="text-[8px] uppercase tracking-[0.1em] text-[var(--app-muted)] hover:text-[var(--app-text)] transition-colors"
+                            >
+                              {meta.note ? 'Edit' : '+ Note'}
+                            </button>
+                          )}
+                          {/* Color dots */}
+                          {['#f46a2e','#7c6fcd','#43d39e','#e3b34a','#6b6560'].map(c => (
+                            <button
+                              key={c}
+                              type="button"
+                              title={`Set color ${c}`}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setDayMeta(prev => ({ ...prev, [day.key]: { ...(prev[day.key] || {}), color: meta.color === c ? undefined : c } }));
+                              }}
+                              className="rounded-full border border-[color-mix(in_srgb,var(--app-text)_15%,transparent)]"
+                              style={{
+                                width: 10, height: 10,
+                                background: c,
+                                opacity: meta.color === c ? 1 : 0.55,
+                                flexShrink: 0,
+                              }}
+                            />
+                          ))}
+                        </div>
+                      )}
+
+                      {/* Mini XP bar */}
+                      {wkIntensity > 0 && (
+                        <div aria-hidden="true" className="pointer-events-none absolute bottom-0 left-0 right-0 h-[3px]" style={{ opacity: 0.45 }}>
+                          <div className="h-full" style={{ width: `${Math.min(100, wkIntensity * 100)}%`, background: 'var(--app-accent)', borderRadius: '0 1px 0 0' }} />
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
             </div>
           ) : null}
@@ -2584,8 +3088,26 @@ export const LogCalendar: React.FC = () => {
                         selectDate(day.key, day.date);
                         setQuickPopoverKey(prev => prev === day.key ? null : day.key);
                       }}
+                      onDragOver={(e) => { e.preventDefault(); setDragOverCell(day.key); }}
+                      onDragLeave={() => setDragOverCell(prev => prev === day.key ? null : prev)}
+                      onDrop={(e) => {
+                        e.preventDefault();
+                        setDragOverCell(null);
+                        if (!dragStateRef.current) return;
+                        const { taskId } = dragStateRef.current;
+                        dragStateRef.current = null;
+                        const targetTask = taskByIdMap.get(taskId);
+                        if (!targetTask) return;
+                        const targetDayStart = fromDateKey(day.key).getTime();
+                        const existingHour = targetTask.scheduledAt
+                          ? new Date(targetTask.scheduledAt).getHours() * 3600000 + new Date(targetTask.scheduledAt).getMinutes() * 60000
+                          : 12 * 3600000;
+                        updateTask(taskId, { scheduledAt: targetDayStart + existingHour });
+                      }}
                       className={`group relative min-h-[88px] rounded-lg border p-2 text-left transition-all duration-200 overflow-hidden flex flex-col gap-0.5 ${
-                        isSelected
+                        dragOverCell === day.key
+                          ? 'border-[color-mix(in_srgb,var(--app-accent)_55%,transparent)] bg-[color-mix(in_srgb,var(--app-accent)_8%,var(--app-panel-2))]'
+                          : isSelected
                           ? 'border-transparent border-l-2 border-l-[var(--app-accent)] bg-[color-mix(in_srgb,var(--app-accent)_6%,var(--app-panel))]'
                           : !day.inMonth
                             ? 'border-transparent opacity-30'
@@ -2595,6 +3117,7 @@ export const LogCalendar: React.FC = () => {
                                 ? 'border-[color-mix(in_srgb,var(--app-text)_8%,transparent)] bg-[color-mix(in_srgb,var(--app-text)_3%,var(--app-panel-2))] hover:bg-[color-mix(in_srgb,var(--app-text)_4%,var(--app-panel-2))]'
                                 : 'border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-[var(--app-panel-2)] hover:bg-[color-mix(in_srgb,var(--app-text)_4%,var(--app-panel-2))]'
                       }`}
+                      style={{ transition: 'background 150ms ease-out, border-color 150ms ease-out' }}
                     >
                       {/* XP heat map layer — bottom-rising gradient */}
                       {xpIntensity > 0 && (
@@ -2677,16 +3200,33 @@ export const LogCalendar: React.FC = () => {
 
                       {/* Top task lines */}
                       <div className="relative z-[1] flex-1 min-w-0 space-y-0.5">
-                        {cellTopTasks.map((t, i) => (
-                          <p key={i} className={`text-[9px] truncate leading-snug ${i === 0 ? 'text-[color-mix(in_srgb,var(--app-text)_70%,var(--app-muted))]' : 'text-[var(--app-muted)]'}`}>{t.title}</p>
-                        ))}
+                        {cellTopTasks.map((t, i) => {
+                          const cellTask = taskByIdMap.get(t.taskId);
+                          const isDraggable = cellTask && cellTask.status !== 'done';
+                          return (
+                            <p
+                              key={i}
+                              draggable={isDraggable}
+                              onDragStart={(e) => {
+                                if (!isDraggable) return;
+                                e.stopPropagation();
+                                dragStateRef.current = { taskId: t.taskId, fromDateKey: day.key };
+                                (e.currentTarget as HTMLElement).style.opacity = '0.5';
+                              }}
+                              onDragEnd={(e) => { (e.currentTarget as HTMLElement).style.opacity = ''; }}
+                              className={`text-[9px] truncate leading-snug ${isDraggable ? 'cursor-grab active:cursor-grabbing' : ''} ${i === 0 ? 'text-[color-mix(in_srgb,var(--app-text)_70%,var(--app-muted))]' : 'text-[var(--app-muted)]'}`}
+                            >
+                              {t.title}
+                            </p>
+                          );
+                        })}
                         {info.activityCount > cellTopTasks.length && info.activityCount > 0 && (
                           <p className="text-[8px] text-[var(--app-muted)] opacity-60 leading-snug">+{info.activityCount - cellTopTasks.length} more</p>
                         )}
                       </div>
 
                       {/* Bottom bar: XP bar + minutes + challenge dot */}
-                      <div className="relative z-[1] mt-auto flex items-center gap-1 pb-[5px]">
+                      <div className="relative z-[1] mt-auto flex items-center gap-1 pb-[8px]">
                         {xpIntensity > 0 && (
                           <div className="flex-1 h-[3px] rounded-full overflow-hidden bg-[color-mix(in_srgb,var(--app-text)_8%,transparent)]">
                             <div
@@ -2704,6 +3244,31 @@ export const LogCalendar: React.FC = () => {
                           <span className={`h-[5px] w-[5px] rounded-full bg-[var(--app-accent)] shadow-[0_0_5px_color-mix(in_srgb,var(--app-accent)_55%,transparent)] shrink-0 ${isSelected ? 'opacity-60' : ''}`} />
                         )}
                       </div>
+
+                      {/* Phase 2D: Category color strip at absolute bottom */}
+                      {cellTopTasks.length > 0 && day.inMonth && (() => {
+                        const totalTaskMin = cellTopTasks.reduce((s, t) => s + (t.minutes || 1), 0) || 1;
+                        return (
+                          <div aria-hidden="true" className="pointer-events-none absolute bottom-0 left-0 right-0 flex overflow-hidden" style={{ height: 3, borderRadius: '0 0 6px 6px' }}>
+                            {cellTopTasks.map((t, ti) => {
+                              const taskObj = taskByIdMap.get(t.taskId);
+                              const color = getCategoryColor(taskObj?.category);
+                              const widthPct = ((t.minutes || 1) / totalTaskMin) * 100;
+                              return (
+                                <div
+                                  key={ti}
+                                  style={{
+                                    width: `${widthPct}%`,
+                                    background: color,
+                                    borderRadius: ti === 0 ? '0 0 0 6px' : ti === cellTopTasks.length - 1 ? '0 0 6px 0' : 0,
+                                    opacity: 0.75,
+                                  }}
+                                />
+                              );
+                            })}
+                          </div>
+                        );
+                      })()}
                     </button>
                   );
                 })}

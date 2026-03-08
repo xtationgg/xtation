@@ -9,6 +9,7 @@ import { playClickSound, playSuccessSound, playHoverSound } from '../../utils/So
 import { readFileAsDataUrl } from '../../utils/fileUtils';
 import { useXP } from '../XP/xpStore';
 import { LogCalendar } from '../XP/LogCalendar';
+import { DayTimeline } from '../XP/DayTimeline';
 import { Activity as ProfileActivity } from './Activity';
 import './ProfileHUD.css';
 
@@ -43,6 +44,7 @@ interface BioStats {
 }
 
 export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
+  const [calendarSubView, setCalendarSubView] = useState<'day' | 'log'>('day');
   const [activeTab, setActiveTab] = useState<'PROFILE' | 'HEALTH' | 'ACHIEVEMENTS' | 'ACTIVITY' | 'LOG'>(() => {
     try {
       const stored = window.sessionStorage.getItem('profileActiveTab');
@@ -2062,8 +2064,28 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
         );
       case 'LOG':
         return (
-          <div className="absolute inset-0 overflow-hidden">
-            <LogCalendar />
+          <div className="absolute inset-0 overflow-hidden flex flex-col">
+            {/* Calendar sub-tab bar */}
+            <div className="shrink-0 flex items-center gap-1 px-3 py-2 border-b border-[var(--app-border)]">
+              {(['day', 'log'] as const).map((view) => (
+                <button
+                  key={view}
+                  type="button"
+                  onClick={() => setCalendarSubView(view)}
+                  className={`px-2.5 py-1 rounded-md text-[10px] font-medium uppercase tracking-[0.16em] transition-colors ${
+                    calendarSubView === view
+                      ? 'bg-[color-mix(in_srgb,var(--app-accent)_16%,var(--app-panel))] text-[var(--app-accent)]'
+                      : 'text-[var(--app-muted)] hover:text-[var(--app-text)]'
+                  }`}
+                >
+                  {view === 'day' ? 'Day' : 'W / M / Y'}
+                </button>
+              ))}
+            </div>
+            {/* Calendar content */}
+            <div className="flex-1 overflow-hidden relative">
+              {calendarSubView === 'day' ? <DayTimeline /> : <LogCalendar />}
+            </div>
           </div>
         );
       case 'ACTIVITY':

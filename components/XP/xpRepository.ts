@@ -11,6 +11,16 @@ import {
   XPSession,
   XPSessionImpact,
   XPSessionSource,
+  QuestType,
+  QuestLevel,
+  SelfTreeBranch,
+  ProjectType,
+  ProjectStatus,
+  Project,
+  Milestone,
+  SelfTreeNode,
+  InventoryCategory,
+  InventorySlot,
 } from './xpTypes';
 
 const LEDGER_KEY_PREFIX = 'xpLedger_v2';
@@ -109,6 +119,134 @@ const normalizeSettings = (value: unknown): XPSettings => {
   };
 };
 
+const normalizeQuestType = (value: unknown, ruleType?: unknown): QuestType => {
+  if (value === 'instant' || value === 'session' || value === 'scheduled') return value;
+  // Infer from legacy ruleType for existing tasks
+  if (ruleType === 'scheduled') return 'scheduled';
+  return 'session';
+};
+
+const normalizeQuestLevel = (value: unknown): QuestLevel => {
+  if (value === 1 || value === 2 || value === 3 || value === 4) return value;
+  return 1;
+};
+
+const normalizeSelfTreeBranch = (value: unknown): SelfTreeBranch | undefined => {
+  if (
+    value === 'Knowledge' ||
+    value === 'Creation' ||
+    value === 'Systems' ||
+    value === 'Communication' ||
+    value === 'Physical' ||
+    value === 'Inner'
+  ) return value;
+  return undefined;
+};
+
+const normalizeProjectType = (value: unknown): ProjectType => {
+  if (
+    value === 'Learning' || value === 'Build' || value === 'Business' ||
+    value === 'Health' || value === 'Personal'
+  ) return value;
+  return 'Personal';
+};
+
+const normalizeProjectStatus = (value: unknown): ProjectStatus => {
+  if (
+    value === 'Draft' || value === 'Active' || value === 'OnHold' ||
+    value === 'Completed' || value === 'Archived'
+  ) return value;
+  return 'Draft';
+};
+
+const normalizeProject = (project: any): Project => {
+  const now = Date.now();
+  return {
+    id: typeof project?.id === 'string' && project.id
+      ? project.id
+      : `project-${now}-${Math.random().toString(36).slice(2, 6)}`,
+    title: typeof project?.title === 'string' && project.title.trim()
+      ? project.title
+      : 'Untitled Project',
+    description: typeof project?.description === 'string' ? project.description : undefined,
+    type: normalizeProjectType(project?.type),
+    level: normalizeQuestLevel(project?.level),
+    status: normalizeProjectStatus(project?.status),
+    dueDate: Number.isFinite(project?.dueDate) ? project.dueDate : undefined,
+    selfTreePrimary: normalizeSelfTreeBranch(project?.selfTreePrimary) ?? 'Knowledge',
+    selfTreeSecondary: normalizeSelfTreeBranch(project?.selfTreeSecondary),
+    createdAt: Number.isFinite(project?.createdAt) ? project.createdAt : now,
+    updatedAt: Number.isFinite(project?.updatedAt) ? project.updatedAt : now,
+  };
+};
+
+const normalizeMilestone = (milestone: any): Milestone => {
+  const now = Date.now();
+  return {
+    id: typeof milestone?.id === 'string' && milestone.id
+      ? milestone.id
+      : `milestone-${now}-${Math.random().toString(36).slice(2, 6)}`,
+    projectId: typeof milestone?.projectId === 'string' ? milestone.projectId : '',
+    title: typeof milestone?.title === 'string' && milestone.title.trim()
+      ? milestone.title
+      : 'Untitled Milestone',
+    description: typeof milestone?.description === 'string' ? milestone.description : undefined,
+    order: Number.isFinite(milestone?.order) && milestone.order >= 0
+      ? Math.floor(milestone.order)
+      : 0,
+    rewardXP: Number.isFinite(milestone?.rewardXP) && milestone.rewardXP > 0
+      ? Math.floor(milestone.rewardXP)
+      : undefined,
+    isCompleted: !!milestone?.isCompleted,
+    completedAt: milestone?.isCompleted && Number.isFinite(milestone?.completedAt)
+      ? milestone.completedAt
+      : undefined,
+    createdAt: Number.isFinite(milestone?.createdAt) ? milestone.createdAt : now,
+    updatedAt: Number.isFinite(milestone?.updatedAt) ? milestone.updatedAt : now,
+  };
+};
+
+const normalizeSelfTreeNode = (node: any): SelfTreeNode => {
+  const now = Date.now();
+  return {
+    id: typeof node?.id === 'string' && node.id
+      ? node.id
+      : `stn-${now}-${Math.random().toString(36).slice(2, 6)}`,
+    parentId: typeof node?.parentId === 'string' && node.parentId ? node.parentId : undefined,
+    rootBranch: normalizeSelfTreeBranch(node?.rootBranch) ?? 'Knowledge',
+    title: typeof node?.title === 'string' && node.title.trim() ? node.title : 'Untitled Node',
+    description: typeof node?.description === 'string' ? node.description : undefined,
+    createdAt: Number.isFinite(node?.createdAt) ? node.createdAt : now,
+    updatedAt: Number.isFinite(node?.updatedAt) ? node.updatedAt : now,
+  };
+};
+
+const normalizeInventoryCategory = (value: unknown): InventoryCategory => {
+  if (value === 'OUTFIT' || value === 'GEAR' || value === 'VEHICLE' || value === 'TOOLS') return value;
+  return 'GEAR';
+};
+
+const normalizeInventoryImportance = (value: unknown): InventorySlot['importance'] => {
+  if (value === 'low' || value === 'medium' || value === 'high' || value === 'critical') return value;
+  return undefined;
+};
+
+const normalizeInventorySlot = (slot: any): InventorySlot => {
+  const now = Date.now();
+  return {
+    id: typeof slot?.id === 'string' && slot.id
+      ? slot.id
+      : `inv-${now}-${Math.random().toString(36).slice(2, 6)}`,
+    category: normalizeInventoryCategory(slot?.category),
+    name: typeof slot?.name === 'string' && slot.name.trim() ? slot.name : 'Unnamed Item',
+    details: typeof slot?.details === 'string' ? slot.details : undefined,
+    importance: normalizeInventoryImportance(slot?.importance),
+    fileId: typeof slot?.fileId === 'string' && slot.fileId ? slot.fileId : undefined,
+    createdAt: Number.isFinite(slot?.createdAt) ? slot.createdAt : now,
+    updatedAt: Number.isFinite(slot?.updatedAt) ? slot.updatedAt : now,
+  };
+};
+
 const normalizeTask = (task: any): Task => {
   const now = Date.now();
   const priority =
@@ -116,7 +254,8 @@ const normalizeTask = (task: any): Task => {
       ? task.priority
       : 'normal';
   const status =
-    task?.status === 'todo' || task?.status === 'active' || task?.status === 'done' || task?.status === 'dropped'
+    task?.status === 'todo' || task?.status === 'active' || task?.status === 'paused' ||
+    task?.status === 'done' || task?.status === 'dropped'
       ? task.status
       : 'todo';
   const icon =
@@ -172,6 +311,13 @@ const normalizeTask = (task: any): Task => {
     icon,
     createdAt: Number.isFinite(task?.createdAt) ? task.createdAt : now,
     updatedAt: Number.isFinite(task?.updatedAt) ? task.updatedAt : now,
+    // Xtation Core Engine fields — safe defaults for legacy tasks
+    questType: normalizeQuestType(task?.questType, task?.ruleType),
+    level: normalizeQuestLevel(task?.level),
+    selfTreePrimary: normalizeSelfTreeBranch(task?.selfTreePrimary),
+    selfTreeSecondary: normalizeSelfTreeBranch(task?.selfTreeSecondary),
+    projectId: typeof task?.projectId === 'string' && task.projectId ? task.projectId : undefined,
+    startedAt: Number.isFinite(task?.startedAt) ? task.startedAt : undefined,
   };
 };
 
@@ -406,6 +552,10 @@ const createEmptyState = (): XPLedgerState => {
     },
     settings: DEFAULT_SETTINGS,
     legacyXP: 0,
+    projects: [],
+    milestones: [],
+    selfTreeNodes: [],
+    inventorySlots: [],
   };
 };
 
@@ -577,6 +727,26 @@ const migrateLedger = (stored: any): XPLedgerState => {
     dayConfigs: normalizeDayConfigs(stored.dayConfigs, todayKey),
     settings: normalizeSettings(stored.settings),
     legacyXP: typeof stored.legacyXP === 'number' ? stored.legacyXP : base.legacyXP,
+    projects: Array.isArray(stored.projects)
+      ? stored.projects
+          .filter((p: any) => p && typeof p === 'object')
+          .map(normalizeProject)
+      : base.projects,
+    milestones: Array.isArray(stored.milestones)
+      ? stored.milestones
+          .filter((m: any) => m && typeof m === 'object')
+          .map(normalizeMilestone)
+      : base.milestones,
+    selfTreeNodes: Array.isArray(stored.selfTreeNodes)
+      ? stored.selfTreeNodes
+          .filter((n: any) => n && typeof n === 'object')
+          .map(normalizeSelfTreeNode)
+      : base.selfTreeNodes,
+    inventorySlots: Array.isArray(stored.inventorySlots)
+      ? stored.inventorySlots
+          .filter((s: any) => s && typeof s === 'object')
+          .map(normalizeInventorySlot)
+      : base.inventorySlots,
   };
 };
 

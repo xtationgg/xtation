@@ -7,8 +7,11 @@ import { playClickSound, playHoverSound, playSuccessSound, playErrorSound } from
 import { useAuth } from '../../src/auth/AuthProvider';
 import { supabase } from '../../src/lib/supabaseClient';
 import type { UserFileRow } from '../../src/lib/attachments/types';
+import { useXP } from '../XP/xpStore';
+import type { InventorySlot } from '../XP/xpTypes';
 
 export const Inventory: React.FC<{ uiTheme?: 'kpr' | 'valorant-a' | 'valorant-b' }> = ({ uiTheme = 'kpr' }) => {
+    const { inventorySlots, addInventorySlot, updateInventorySlot, deleteInventorySlot } = useXP();
     const { user } = useAuth();
     const activeUserId = user?.id || null;
     type InventoryAttachment = UserFileRow & { thumbUrl: string | null };
@@ -39,6 +42,32 @@ export const Inventory: React.FC<{ uiTheme?: 'kpr' | 'valorant-a' | 'valorant-b'
         sourceUrl: string | null;
         mime: string | null;
     } | null>(null);
+    const [newLedgerItemName, setNewLedgerItemName] = useState('');
+    const [editingLedgerSlotId, setEditingLedgerSlotId] = useState<string | null>(null);
+    const [editingLedgerSlotName, setEditingLedgerSlotName] = useState('');
+
+    const activeLedgerSlots = inventorySlots.filter((s) => s.category === activeCategory);
+
+    const handleAddLedgerItem = () => {
+        const name = newLedgerItemName.trim();
+        if (!name) return;
+        addInventorySlot({ category: activeCategory, name });
+        setNewLedgerItemName('');
+        playSuccessSound();
+    };
+
+    const handleStartEditLedgerSlot = (slot: InventorySlot) => {
+        setEditingLedgerSlotId(slot.id);
+        setEditingLedgerSlotName(slot.name);
+    };
+
+    const handleSaveLedgerSlot = (id: string) => {
+        const name = editingLedgerSlotName.trim();
+        if (name) updateInventorySlot(id, { name });
+        setEditingLedgerSlotId(null);
+        setEditingLedgerSlotName('');
+    };
+
     const categories: InventoryCategory[] = ['OUTFIT', 'GEAR', 'VEHICLE', 'TOOLS'];
     const activeCategoryOwnerId = categoryKey(activeCategory);
 
@@ -847,9 +876,92 @@ export const Inventory: React.FC<{ uiTheme?: 'kpr' | 'valorant-a' | 'valorant-b'
                 </div>
             </div>
 
+            {/* Ledger Items — local-first data model (no Supabase required) */}
+            <div className="mt-8 rounded-[12px] border border-[var(--app-border)] bg-[var(--app-panel)] p-4">
+                <div className="mb-3 flex items-center justify-between gap-2">
+                    <div>
+                        <div className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[var(--app-text)]">
+                            Ledger Items — {activeCategory}
+                        </div>
+                        <div className="text-[9px] uppercase tracking-[0.1em] text-[var(--app-muted)]">
+                            Offline-first items stored in your XP ledger
+                        </div>
+                    </div>
+                    <span className="font-mono text-[9px] text-[var(--app-muted)]">{activeLedgerSlots.length}</span>
+                </div>
+
+                <div className="flex gap-2 mb-3">
+                    <input
+                        value={newLedgerItemName}
+                        onChange={(e) => setNewLedgerItemName(e.target.value)}
+                        onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleAddLedgerItem(); } }}
+                        className="flex-1 rounded-lg border border-[var(--app-border)] bg-[var(--app-panel-2)] px-2.5 py-1.5 text-[12px] text-[var(--app-text)] outline-none focus:border-[var(--app-accent)]"
+                        placeholder={`New ${activeCategory.toLowerCase()} item name`}
+                    />
+                    <button
+                        type="button"
+                        onClick={handleAddLedgerItem}
+                        className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-[var(--app-border)] text-[var(--app-text)] hover:border-[var(--app-accent)]"
+                        aria-label="Add ledger item"
+                    >
+                        <Plus size={14} />
+                    </button>
+                </div>
+
+                {activeLedgerSlots.length > 0 ? (
+                    <div className="space-y-1">
+                        {activeLedgerSlots.map((slot) => (
+                            <div
+                                key={slot.id}
+                                className="flex items-center gap-2 rounded-lg border border-[var(--app-border)] bg-[var(--app-panel-2)] px-2.5 py-1.5"
+                            >
+                                {editingLedgerSlotId === slot.id ? (
+                                    <input
+                                        autoFocus
+                                        value={editingLedgerSlotName}
+                                        onChange={(e) => setEditingLedgerSlotName(e.target.value)}
+                                        onBlur={() => handleSaveLedgerSlot(slot.id)}
+                                        onKeyDown={(e) => {
+                                            if (e.key === 'Enter') handleSaveLedgerSlot(slot.id);
+                                            if (e.key === 'Escape') { setEditingLedgerSlotId(null); }
+                                        }}
+                                        className="flex-1 bg-transparent text-[12px] text-[var(--app-text)] outline-none"
+                                    />
+                                ) : (
+                                    <button
+                                        type="button"
+                                        onClick={() => handleStartEditLedgerSlot(slot)}
+                                        className="flex-1 text-left text-[12px] text-[var(--app-text)] hover:text-[var(--app-accent)] transition-colors truncate"
+                                    >
+                                        {slot.name}
+                                    </button>
+                                )}
+                                {slot.importance ? (
+                                    <span className="shrink-0 text-[8px] uppercase tracking-[0.12em] text-[var(--app-muted)] font-mono">
+                                        {slot.importance}
+                                    </span>
+                                ) : null}
+                                <button
+                                    type="button"
+                                    aria-label="Delete ledger item"
+                                    onClick={() => { deleteInventorySlot(slot.id); playClickSound(); }}
+                                    className="shrink-0 inline-flex h-6 w-6 items-center justify-center rounded border border-[var(--app-border)] text-[var(--app-muted)] hover:text-[var(--app-accent)] hover:border-[var(--app-accent)] transition-colors"
+                                >
+                                    <Trash2 size={11} />
+                                </button>
+                            </div>
+                        ))}
+                    </div>
+                ) : (
+                    <div className="text-[10px] text-[var(--app-muted)]">
+                        No ledger items for this category. Add one above.
+                    </div>
+                )}
+            </div>
+
             {/* Hidden File Input */}
-            <input 
-                type="file" 
+            <input
+                type="file"
                 ref={fileInputRef}
                 className="hidden"
                 accept={[
