@@ -15,7 +15,8 @@ export type XtationTheme =
   | 'glass_night'
   | 'notion_light'
   | 'notion_dark'
-  | 'void';
+  | 'void'
+  | 'bureau';
 
 export interface XtationThemeOption {
   value: XtationTheme;
@@ -47,6 +48,7 @@ export const XTATION_THEME_OPTIONS: XtationThemeOption[] = [
   { value: 'notion_light', label: 'Notion Light' },
   { value: 'notion_dark', label: 'Notion Dark' },
   { value: 'void', label: 'Void' },
+  { value: 'bureau', label: 'Bureau' },
 ];
 
 export const XTATION_ACCENT_OPTIONS: XtationAccentOption[] = [

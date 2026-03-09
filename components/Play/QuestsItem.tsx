@@ -103,11 +103,11 @@ export const QuestsItem: React.FC<QuestsItemProps> = ({ tasks }) => {
     : 0;
 
   return (
-    <div className="w-full rounded-xl border border-white/10 bg-gradient-to-b from-[#242427] to-[#1a1a1c] shadow-[0_10px_24px_rgba(0,0,0,0.45)] overflow-hidden transition-all duration-300">
+    <div className="xt-quest-panel w-full rounded-xl border border-white/10 bg-gradient-to-b from-[#242427] to-[#1a1a1c] shadow-[0_10px_24px_rgba(0,0,0,0.45)] overflow-hidden transition-all duration-300">
       <button
         type="button"
         onClick={() => setIsOpen((prev) => !prev)}
-        className="w-full px-4 py-3 flex items-center justify-between uppercase tracking-[0.32em] text-[11px] text-[#f3f0e8]"
+        className="xt-quest-header-btn w-full px-4 py-3 flex items-center justify-between uppercase tracking-[0.32em] text-[11px] text-[#f3f0e8]"
       >
         <span>Quests</span>
         <span className="flex items-center gap-2">
@@ -123,7 +123,7 @@ export const QuestsItem: React.FC<QuestsItemProps> = ({ tasks }) => {
       </button>
 
       {activeSession && (
-        <div className="px-4 py-2 flex items-center justify-between border-t border-[#f46a2e]/20 bg-[#f46a2e]/[0.06]">
+        <div className="xt-session-bar px-4 py-2 flex items-center justify-between border-t border-[#f46a2e]/20 bg-[#f46a2e]/[0.06]">
           <div className="flex items-center gap-2 min-w-0">
             <span className="shrink-0 w-1.5 h-1.5 rounded-full bg-[#f46a2e] animate-pulse" />
             <span className="text-[10px] uppercase tracking-[0.2em] text-[#f3f0e8] truncate">
@@ -162,7 +162,8 @@ export const QuestsItem: React.FC<QuestsItemProps> = ({ tasks }) => {
               return (
                 <div
                   key={mission.id}
-                  className="rounded-lg border border-white/10 bg-[#0f0f10] px-3 py-2 flex items-stretch justify-between gap-3"
+                  data-priority={mission.priority}
+                  className="xt-quest-card rounded-lg border border-white/10 bg-[#0f0f10] px-3 py-2 flex items-stretch justify-between gap-3"
                 >
                   <div className="flex-1 flex flex-col gap-2">
                     <div className="flex items-center justify-between">

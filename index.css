@@ -1050,6 +1050,330 @@
   border-radius: 0 !important;
 }
 
+/* ─── Bureau ─────────────────────────────────────────────────────────────────
+   Federal bureau discovers paranormal phenomena. Classified case files,
+   black ops dossiers, government records. Max contrast, zero radius, red accent.
+   ─────────────────────────────────────────────────────────────────────────── */
+[data-theme='bureau'] {
+  --app-bg: #0a0a0a;
+  --app-panel: #111111;
+  --app-panel-2: #1a1a1a;
+  --app-border: rgba(255, 255, 255, 0.1);
+  --app-text: #f0ede8;
+  --app-muted: #6a6560;
+  --app-accent: #cc1111;
+  --app-accent-weak: color-mix(in srgb, var(--app-accent) 12%, transparent);
+  --app-focus-ring: color-mix(in srgb, var(--app-accent) 38%, transparent);
+  --app-danger: #cc1111;
+  --app-radius-sm: 0px;
+  --app-radius-md: 0px;
+  --app-radius-lg: 0px;
+  --app-cut-sm: 0px;
+  --app-cut-md: 0px;
+  --app-cut-lg: 0px;
+  --app-stroke: 1px;
+  --app-shadow-soft: 0 4px 20px rgba(0, 0, 0, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  --app-shadow-strong: 0 8px 40px rgba(0, 0, 0, 0.88);
+  --app-glow-accent: inset 0 0 0 1px rgba(204, 17, 17, 0.55);
+  --app-glow-strength: 0;
+  --app-hover-glow-base: 0%;
+  --app-noise-opacity: 0;
+  --app-glass-opacity: 0;
+  --app-blur: 0px;
+  --app-panel-rgb: 17 17 17;
+  --app-panel-2-rgb: 26 26 26;
+  --app-bg-overlay: none;
+  --app-motion-fast: 90ms;
+  --app-motion-med: 130ms;
+  --app-motion-slow: 190ms;
+  --app-ease: cubic-bezier(0.16, 1, 0.3, 1);
+  --app-hover-lift-y: 0px;
+  --app-hover-scale: 1;
+  --app-body-letter-spacing: 0.016em;
+  --app-clip-all: none;
+  --app-clip-right: none;
+  --app-clip-left: none;
+  --app-clip-card: none;
+  --app-clip-pill: none;
+  --bureau-red: #cc1111;
+  --bureau-amber: #c9920a;
+}
+
+[data-theme='bureau'] {
+  color-scheme: dark;
+}
+
+/* ── Bureau: strip ALL border-radius ─────────────────────────────────────── */
+[data-theme='bureau'] * {
+  border-radius: 0 !important;
+}
+
+[data-theme='bureau'] .rounded-full {
+  border-radius: 9999px !important;
+}
+
+/* ── Bureau: grain texture overlay ──────────────────────────────────────── */
+[data-theme='bureau'] body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 9998;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='250' height='250'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.78' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='250' height='250' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 250px 250px;
+  opacity: 0.042;
+  mix-blend-mode: overlay;
+}
+
+/* ── Bureau: topbar — solid black, red left binding line ─────────────────── */
+[data-theme='bureau'] .xt-topbar {
+  background: #0a0a0a !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+  box-shadow: none !important;
+}
+
+[data-theme='bureau'] .xt-topbar::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: var(--bureau-red);
+  z-index: 10;
+}
+
+/* ── Bureau: nav tabs — white inversion for active ───────────────────────── */
+[data-theme='bureau'] .xt-nav-tabs {
+  padding-inline: 0 !important;
+  gap: 0 !important;
+}
+
+[data-theme='bureau'] .xt-nav-tab {
+  border: none !important;
+  border-right: 1px solid rgba(255, 255, 255, 0.07) !important;
+  background: transparent !important;
+  height: 100% !important;
+  padding: 0 22px !important;
+  letter-spacing: 0.17em !important;
+  font-size: 10px !important;
+  font-weight: 700 !important;
+  box-shadow: none !important;
+  overflow: visible !important;
+  transition: background-color 90ms ease, color 90ms ease !important;
+}
+
+[data-theme='bureau'] .xt-nav-tab .xt-nav-active-bg,
+[data-theme='bureau'] .xt-nav-tab .xt-nav-active-indicators,
+[data-theme='bureau'] .xt-nav-tab .xt-nav-hover-line,
+[data-theme='bureau'] .xt-nav-tab .xt-nav-caret {
+  display: none !important;
+}
+
+[data-theme='bureau'] .xt-nav-tab[data-active='false'] {
+  color: #5a5550 !important;
+}
+
+[data-theme='bureau'] .xt-nav-tab[data-active='false']:hover {
+  color: #f0ede8 !important;
+  background: rgba(255, 255, 255, 0.04) !important;
+}
+
+[data-theme='bureau'] .xt-nav-tab[data-active='true'] {
+  background: #f0ede8 !important;
+  color: #0a0a0a !important;
+  font-weight: 900 !important;
+  letter-spacing: 0.19em !important;
+}
+
+/* ── Bureau: pressable/interactive — flat, no lift/glow ─────────────────── */
+[data-theme='bureau'] .ui-pressable:hover {
+  transform: none !important;
+  box-shadow: none !important;
+  filter: none !important;
+  background-color: rgba(255, 255, 255, 0.05) !important;
+}
+
+[data-theme='bureau'] .ui-pressable:active {
+  transform: none !important;
+  background-color: rgba(255, 255, 255, 0.08) !important;
+}
+
+[data-theme='bureau'] .ui-glow {
+  box-shadow:
+    inset 0 0 0 1px rgba(204, 17, 17, 0.6),
+    0 0 12px rgba(204, 17, 17, 0.2) !important;
+}
+
+[data-theme='bureau'] .ui-panel-surface {
+  background: #111111 !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06),
+              0 1px 0 rgba(0, 0, 0, 0.5) !important;
+}
+
+/* ── Bureau: quest panel ─────────────────────────────────────────────────── */
+[data-theme='bureau'] .xt-quest-panel {
+  background: #0e0e0e !important;
+  background-image: none !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  box-shadow: none !important;
+}
+
+[data-theme='bureau'] .xt-quest-header-btn {
+  color: #f0ede8 !important;
+  border-bottom: 1px dashed rgba(255, 255, 255, 0.12) !important;
+  letter-spacing: 0.28em !important;
+}
+
+[data-theme='bureau'] .xt-quest-header-btn:hover {
+  background: rgba(255, 255, 255, 0.03) !important;
+}
+
+/* Active session bar — RED ALERT */
+[data-theme='bureau'] .xt-session-bar {
+  background: rgba(204, 17, 17, 0.1) !important;
+  border-top: 1px solid rgba(204, 17, 17, 0.35) !important;
+}
+
+[data-theme='bureau'] .xt-session-bar > div > span:first-child {
+  background-color: var(--bureau-red) !important;
+}
+
+[data-theme='bureau'] .xt-session-bar span.font-mono {
+  color: var(--bureau-red) !important;
+}
+
+[data-theme='bureau'] .xt-session-bar span[class*="text-[#f3f0e8]"],
+[data-theme='bureau'] .xt-session-bar span[class*="text-\[\#f3f0e8\]"] {
+  color: #f0ede8 !important;
+}
+
+/* ── Bureau: quest cards with priority left strip ────────────────────────── */
+[data-theme='bureau'] .xt-quest-card {
+  background: #111111 !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  border-left: 4px solid rgba(255, 255, 255, 0.18) !important;
+  box-shadow: none !important;
+}
+
+[data-theme='bureau'] .xt-quest-card[data-priority='urgent'] {
+  border-left-color: var(--bureau-red) !important;
+}
+
+[data-theme='bureau'] .xt-quest-card[data-priority='high'] {
+  border-left-color: var(--bureau-amber) !important;
+}
+
+[data-theme='bureau'] .xt-quest-card[data-priority='normal'] {
+  border-left-color: rgba(255, 255, 255, 0.2) !important;
+}
+
+/* Remap orange accent to red inside quest cards */
+[data-theme='bureau'] .xt-quest-card .text-\[\#f46a2e\] {
+  color: var(--bureau-red) !important;
+}
+
+[data-theme='bureau'] .xt-quest-card .border-\[\#f46a2e\]\/50 {
+  border-color: rgba(204, 17, 17, 0.5) !important;
+}
+
+[data-theme='bureau'] .xt-quest-card .hover\:bg-\[\#f46a2e\]\/10:hover {
+  background-color: rgba(204, 17, 17, 0.1) !important;
+}
+
+/* Icon holder in quest card */
+[data-theme='bureau'] .xt-quest-card .bg-\[\#1a1a1d\] {
+  background: #1a1a1a !important;
+}
+
+/* Running clock section */
+[data-theme='bureau'] .xt-quest-card .text-\[\#f3f0e8\] {
+  color: #f0ede8 !important;
+}
+
+[data-theme='bureau'] .xt-quest-card .text-\[\#8b847a\],
+[data-theme='bureau'] .xt-quest-card .text-\[\#9a9288\] {
+  color: #6a6560 !important;
+}
+
+/* ── Bureau: glitch animation for active session timer ───────────────────── */
+@keyframes bureau-glitch {
+  0%, 90%, 100% {
+    clip-path: none;
+    transform: translateX(0);
+  }
+  91% {
+    clip-path: polygon(0 15%, 100% 15%, 100% 38%, 0 38%);
+    transform: translateX(3px);
+  }
+  92% {
+    clip-path: polygon(0 58%, 100% 58%, 100% 82%, 0 82%);
+    transform: translateX(-2px);
+  }
+  93% {
+    clip-path: none;
+    transform: translateX(0);
+  }
+}
+
+[data-theme='bureau'] .xt-session-bar .font-mono {
+  animation: bureau-glitch 9s ease-in-out infinite;
+}
+
+/* ── Bureau: rounded panels in main views ────────────────────────────────── */
+/* Remove background gradient from any gradient-to-b panels */
+[data-theme='bureau'] .bg-gradient-to-b {
+  background-image: none !important;
+  background-color: #111111 !important;
+}
+
+/* Bureau override for borders — all use the token color, which is rgba(255,255,255,0.1) */
+
+/* ── Bureau: scrollbars ──────────────────────────────────────────────────── */
+[data-theme='bureau'] ::-webkit-scrollbar {
+  width: 3px;
+  height: 3px;
+}
+
+[data-theme='bureau'] ::-webkit-scrollbar-track {
+  background: #0a0a0a;
+}
+
+[data-theme='bureau'] ::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.14);
+}
+
+[data-theme='bureau'] ::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.24);
+}
+
+/* ── Bureau: calendar today-cell inverse highlight ───────────────────────── */
+[data-theme='bureau'] [data-today='true'] {
+  background: #f0ede8 !important;
+  color: #0a0a0a !important;
+}
+
+[data-theme='bureau'] [data-today='true'] * {
+  color: #0a0a0a !important;
+}
+
+/* ── Bureau: focus states ────────────────────────────────────────────────── */
+[data-theme='bureau'] *:focus-visible {
+  outline: 1px solid rgba(204, 17, 17, 0.7) !important;
+  outline-offset: 2px !important;
+  box-shadow: none !important;
+}
+
+/* ── Bureau: selection ───────────────────────────────────────────────────── */
+[data-theme='bureau'] ::selection {
+  background: rgba(204, 17, 17, 0.3);
+  color: #f0ede8;
+}
+
 [data-accent='neutral'] {
   --app-accent: #8ea2cc;
   --app-accent-weak: color-mix(in srgb, var(--app-accent) 18%, transparent);
