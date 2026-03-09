@@ -817,6 +817,7 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
   const TabButton: React.FC<{ label: string; value: typeof activeTab; icon: React.ReactNode }> = ({ label, value, icon }) => (
     <button
       onClick={() => setActiveTab(value)}
+      data-active={activeTab === value}
       className={`px-3 py-1.5 border rounded-lg text-xs tracking-[0.2em] uppercase transition-all duration-200 flex items-center gap-2 ${
         activeTab === value
           ? 'border-[color-mix(in_srgb,var(--app-accent)_70%,transparent)] bg-[color-mix(in_srgb,var(--app-accent)_16%,var(--app-panel))] text-[var(--app-text)] shadow-[0_0_18px_color-mix(in_srgb,var(--app-accent)_22%,transparent)]'
@@ -1408,7 +1409,8 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
             <button
               type="button"
               onClick={() => setLobbyOpenPanel(p => p === btn.key ? null : btn.key)}
-              className="w-12 h-[46px] rounded-[10px] flex flex-col items-center justify-center gap-[3px] cursor-pointer select-none transition-[transform,box-shadow,background]"
+              data-active={active}
+              className="xt-dock-btn w-12 h-[46px] rounded-[10px] flex flex-col items-center justify-center gap-[3px] cursor-pointer select-none transition-[transform,box-shadow,background]"
               style={{
                 background: active
                   ? 'var(--app-accent)'
@@ -1440,7 +1442,7 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
         }[stageState];
 
         return (
-          <div className="h-full relative overflow-hidden">
+          <div className="xt-profile-stage-wrapper h-full relative overflow-hidden">
             {/* dotPulse keyframe */}
             <style>{`
               @keyframes dotPulse {
@@ -1450,7 +1452,7 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
             `}</style>
 
             {/* ── Stage background (full area) ── */}
-            <div className="absolute inset-0 overflow-hidden">
+            <div className="xt-profile-stage-bg absolute inset-0 overflow-hidden">
               {/* Layer 1: base bg */}
               <div className="absolute inset-0 bg-[var(--app-bg)]" />
               {/* Layer 2: reactive accent glow */}
@@ -1598,12 +1600,12 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
 
             {/* ── Floating lobby card — left side ── */}
             <div
-              className="absolute top-1/2 -translate-y-1/2 z-30"
+              className="xt-profile-lobby-outer absolute top-1/2 -translate-y-1/2 z-30"
               style={{ left: 20 }}
             >
               {/* Card shell */}
               <div
-                className="relative flex shrink-0"
+                className="xt-profile-lobby-card relative flex shrink-0"
                 style={{
                   width: 340,
                   height: 'min(680px, calc(100vh - 80px))',
@@ -1615,7 +1617,7 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
               >
                 {/* Card inner */}
                 <div
-                  className="flex-1 flex overflow-hidden relative"
+                  className="xt-profile-lobby-inner flex-1 flex overflow-hidden relative"
                   style={{ background: 'var(--app-bg)', borderRadius: 12 }}
                 >
                   {/* Corner cut accent */}
@@ -1630,7 +1632,7 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
 
                   {/* ── Dock ── */}
                   <div
-                    className="shrink-0 flex flex-col items-center gap-[6px] relative z-10"
+                    className="xt-profile-dock shrink-0 flex flex-col items-center gap-[6px] relative z-10"
                     style={{
                       width: 58,
                       padding: '10px 5px 12px',
@@ -2185,11 +2187,11 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
   };
 
   return (
-    <div className="h-full overflow-hidden flex bg-[var(--app-bg)] text-[var(--app-text)]">
+    <div className="xt-profile-wrapper h-full overflow-hidden flex bg-[var(--app-bg)] text-[var(--app-text)]">
       {/* Main area */}
       <div className="flex-1 flex flex-col overflow-hidden min-w-0">
         {/* Game HUD tab bar */}
-        <div className="flex items-center justify-center py-2 shrink-0 border-b border-[color-mix(in_srgb,var(--app-text)_8%,transparent)] px-4 gap-3">
+        <div className="xt-profile-tabs-bar flex items-center justify-center py-2 shrink-0 border-b border-[color-mix(in_srgb,var(--app-text)_8%,transparent)] px-4 gap-3">
           <div className="flex-1 h-px bg-gradient-to-r from-transparent to-[color-mix(in_srgb,var(--app-accent)_30%,transparent)]" />
           <div className="flex items-center gap-1 bg-[var(--app-panel)] border border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] rounded-xl px-1.5 py-1">
             <TabButton label="PROFILE" value="PROFILE" icon={<User size={12} />} />

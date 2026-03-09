@@ -3241,7 +3241,7 @@ export const LogCalendar: React.FC = () => {
                 </div>
               )}
               <div
-                className="grid grid-cols-7 gap-1.5"
+                className="xt-cal-grid grid grid-cols-7 gap-1.5"
                 onPointerDown={handleGridPointerDown}
                 onPointerMove={handleGridPointerMove}
                 onPointerUp={handleGridPointerUp}
@@ -3296,7 +3296,7 @@ export const LogCalendar: React.FC = () => {
                         setDropTimePickerState({ taskId, dayKey: day.key, hour: existingHour });
                         setTimeout(() => setDropTimePickerState(null), 6000);
                       }}
-                      className={`group relative min-h-[80px] rounded-lg border p-1.5 text-left transition-colors duration-150 overflow-hidden flex flex-col gap-1 ${isDraggingQuest && day.inMonth && day.key !== dragStateRef.current?.fromDateKey ? 'ring-1 ring-[color-mix(in_srgb,var(--app-accent)_20%,transparent)]' : ''} ${
+                      className={`xt-cal-cell${isToday ? ' xt-cal-cell--today' : ''} group relative min-h-[80px] rounded-lg border p-1.5 text-left transition-colors duration-150 overflow-hidden flex flex-col gap-1 ${isDraggingQuest && day.inMonth && day.key !== dragStateRef.current?.fromDateKey ? 'ring-1 ring-[color-mix(in_srgb,var(--app-accent)_20%,transparent)]' : ''} ${
                         dragOverCell === day.key
                           ? 'border-[color-mix(in_srgb,var(--app-accent)_60%,transparent)] bg-[color-mix(in_srgb,var(--app-accent)_10%,var(--app-panel))]'
                           : isSelected

@@ -1217,16 +1217,76 @@
 
 /* ── Bureau: quest panel ─────────────────────────────────────────────────── */
 [data-theme='bureau'] .xt-quest-panel {
-  background: #0e0e0e !important;
+  background: #0a0a0a !important;
   background-image: none !important;
-  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
   box-shadow: none !important;
+  position: relative !important;
+  /* 4-corner bracket treatment — same technique as Settings HexPanel */
+  --bkt: 2px;
+  --bkt-sz: 14px;
+  --bkt-col: rgba(255, 255, 255, 0.35);
+}
+
+/* corner brackets via background multi-gradient */
+[data-theme='bureau'] .xt-quest-panel::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background-image:
+    linear-gradient(var(--bkt-col), var(--bkt-col)),
+    linear-gradient(var(--bkt-col), var(--bkt-col)),
+    linear-gradient(var(--bkt-col), var(--bkt-col)),
+    linear-gradient(var(--bkt-col), var(--bkt-col)),
+    linear-gradient(var(--bkt-col), var(--bkt-col)),
+    linear-gradient(var(--bkt-col), var(--bkt-col)),
+    linear-gradient(var(--bkt-col), var(--bkt-col)),
+    linear-gradient(var(--bkt-col), var(--bkt-col));
+  background-size:
+    var(--bkt) var(--bkt-sz),
+    var(--bkt-sz) var(--bkt),
+    var(--bkt) var(--bkt-sz),
+    var(--bkt-sz) var(--bkt),
+    var(--bkt) var(--bkt-sz),
+    var(--bkt-sz) var(--bkt),
+    var(--bkt) var(--bkt-sz),
+    var(--bkt-sz) var(--bkt);
+  background-position:
+    top 4px left 4px,
+    top 4px left 4px,
+    top 4px right 4px,
+    top 4px right 4px,
+    bottom 4px left 4px,
+    bottom 4px left 4px,
+    bottom 4px right 4px,
+    bottom 4px right 4px;
+  background-repeat: no-repeat;
+}
+
+/* classification stamp — top right corner */
+[data-theme='bureau'] .xt-quest-panel::after {
+  content: 'CLASSIFIED';
+  position: absolute;
+  top: 8px;
+  right: 44px;
+  font-size: 7px;
+  font-weight: 700;
+  letter-spacing: 0.4em;
+  color: rgba(204, 17, 17, 0.45);
+  pointer-events: none;
+  z-index: 1;
+  text-transform: uppercase;
 }
 
 [data-theme='bureau'] .xt-quest-header-btn {
   color: #f0ede8 !important;
   border-bottom: 1px dashed rgba(255, 255, 255, 0.12) !important;
-  letter-spacing: 0.28em !important;
+  letter-spacing: 0.32em !important;
+  font-size: 10px !important;
+  position: relative !important;
+  z-index: 1 !important;
 }
 
 [data-theme='bureau'] .xt-quest-header-btn:hover {
@@ -1250,6 +1310,12 @@
 [data-theme='bureau'] .xt-session-bar span[class*="text-[#f3f0e8]"],
 [data-theme='bureau'] .xt-session-bar span[class*="text-\[\#f3f0e8\]"] {
   color: #f0ede8 !important;
+}
+
+/* Quest panel inner content — above ::before brackets */
+[data-theme='bureau'] .xt-quest-panel > * {
+  position: relative;
+  z-index: 1;
 }
 
 /* ── Bureau: quest cards with priority left strip ────────────────────────── */
@@ -1372,6 +1438,284 @@
 [data-theme='bureau'] ::selection {
   background: rgba(204, 17, 17, 0.3);
   color: #f0ede8;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   BUREAU — PROFILE SECTION OVERRIDES
+   ════════════════════════════════════════════════════════════════════════════ */
+
+/* ── Profile tab bar — flat ruled divider, no gradient wings ──────────────── */
+[data-theme='bureau'] .xt-profile-tabs-bar {
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+  background: #0a0a0a !important;
+}
+
+/* hide the decorative gradient lines flanking the tab pill */
+[data-theme='bureau'] .xt-profile-tabs-bar > div.flex-1 {
+  display: none !important;
+}
+
+/* The tab pill itself — flat rectangle, dashed border */
+[data-theme='bureau'] .xt-profile-tabs-bar .flex.items-center.gap-1 {
+  background: transparent !important;
+  border: 1px dashed rgba(255, 255, 255, 0.12) !important;
+  border-radius: 0 !important;
+  padding: 0 !important;
+  gap: 0 !important;
+}
+
+/* Individual tab buttons in the pill */
+[data-theme='bureau'] .xt-profile-tabs-bar .flex.items-center.gap-1 > button {
+  border-radius: 0 !important;
+  border-right: 1px solid rgba(255, 255, 255, 0.08) !important;
+  padding: 6px 12px !important;
+  font-size: 9px !important;
+  letter-spacing: 0.28em !important;
+  font-weight: 600 !important;
+  transition: background 0.15s, color 0.15s !important;
+  color: rgba(240, 237, 232, 0.35) !important;
+}
+
+[data-theme='bureau'] .xt-profile-tabs-bar .flex.items-center.gap-1 > button:last-child {
+  border-right: none !important;
+}
+
+/* Active profile tab — white inverse */
+[data-theme='bureau'] .xt-profile-tabs-bar .flex.items-center.gap-1 > button[data-active='true'] {
+  background: #f0ede8 !important;
+  color: #0a0a0a !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+}
+
+[data-theme='bureau'] .xt-profile-tabs-bar .flex.items-center.gap-1 > button[data-active='true'] span {
+  color: #0a0a0a !important;
+}
+
+/* ── Stage background — desaturate glow, add scanline intensity ───────────── */
+[data-theme='bureau'] .xt-profile-stage-bg .stage-bg-breathe {
+  opacity: 0.15 !important;
+  animation: none !important;
+}
+
+[data-theme='bureau'] .xt-profile-stage-bg .stage-active-pulse {
+  display: none !important;
+}
+
+/* Stronger scanline layer in bureau */
+[data-theme='bureau'] .xt-profile-stage-wrapper::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 25;
+  background-image: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0, 0, 0, 0.08) 2px,
+    rgba(0, 0, 0, 0.08) 3px
+  );
+}
+
+/* ── Lobby card — case-file dossier aesthetic ─────────────────────────────── */
+[data-theme='bureau'] .xt-profile-lobby-card {
+  background: #f0ede8 !important;   /* white parchment outer border */
+  border-radius: 0 !important;
+  padding: 2px !important;
+  box-shadow: 6px 6px 0 rgba(0, 0, 0, 0.8), 12px 12px 0 rgba(0, 0, 0, 0.3) !important;
+}
+
+[data-theme='bureau'] .xt-profile-lobby-inner {
+  background-color: #0a0a0a !important;
+  border-radius: 0 !important;
+  /* corner bracket inset using 4-corner multi-gradient */
+  background-image:
+    linear-gradient(#f0ede8, #f0ede8),
+    linear-gradient(#f0ede8, #f0ede8),
+    linear-gradient(#f0ede8, #f0ede8),
+    linear-gradient(#f0ede8, #f0ede8),
+    linear-gradient(#f0ede8, #f0ede8),
+    linear-gradient(#f0ede8, #f0ede8),
+    linear-gradient(#f0ede8, #f0ede8),
+    linear-gradient(#f0ede8, #f0ede8) !important;
+  background-size:
+    2px 16px,
+    16px 2px,
+    2px 16px,
+    16px 2px,
+    2px 16px,
+    16px 2px,
+    2px 16px,
+    16px 2px !important;
+  background-position:
+    top 6px left 6px,
+    top 6px left 6px,
+    top 6px right 6px,
+    top 6px right 6px,
+    bottom 6px left 6px,
+    bottom 6px left 6px,
+    bottom 6px right 6px,
+    bottom 6px right 6px !important;
+  background-repeat: no-repeat !important;
+}
+
+/* ── Dock — vertical index spine ─────────────────────────────────────────── */
+[data-theme='bureau'] .xt-profile-dock {
+  background: #111111 !important;
+  border-radius: 0 !important;
+  border-right: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Home avatar button in dock */
+[data-theme='bureau'] .xt-profile-dock > button:first-child {
+  border-radius: 0 !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+}
+
+[data-theme='bureau'] .xt-dock-btn {
+  border-radius: 0 !important;
+  border: 1px solid transparent !important;
+  transition: background 0.15s, border-color 0.15s !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+
+[data-theme='bureau'] .xt-dock-btn:hover {
+  background: rgba(255, 255, 255, 0.06) !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+
+/* Active dock button — white inverse block */
+[data-theme='bureau'] .xt-dock-btn[data-active='true'] {
+  background: #f0ede8 !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+
+[data-theme='bureau'] .xt-dock-btn[data-active='true'] span {
+  color: #0a0a0a !important;
+  opacity: 1 !important;
+}
+
+[data-theme='bureau'] .xt-dock-btn[data-active='false'] {
+  background: rgba(255, 255, 255, 0.04) !important;
+}
+
+/* Hex logo in dock */
+[data-theme='bureau'] .xt-profile-dock svg {
+  stroke: rgba(240, 237, 232, 0.25) !important;
+}
+
+/* Corner cut accent triangle — replace with right-angle notch in bureau */
+[data-theme='bureau'] .xt-profile-lobby-inner > div[style*="clipPath"] {
+  background: rgba(255, 255, 255, 0.08) !important;
+}
+
+/* Panel overlay header (key name + close X) */
+[data-theme='bureau'] .xt-profile-lobby-inner .text-\[var\(--app-accent\)\] {
+  color: #cc1111 !important;
+}
+
+/* Stats row inside lobby card */
+[data-theme='bureau'] .xt-profile-lobby-inner [style*="borderTop"][style*="accent"] {
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Circular timer ring — in bureau, desaturate glow */
+[data-theme='bureau'] .xt-profile-lobby-inner svg circle[stroke="rgba(255,255,255,0.88)"] {
+  stroke: rgba(255, 255, 255, 0.7) !important;
+  filter: none !important;
+}
+
+/* Session progress bar */
+[data-theme='bureau'] .xt-profile-lobby-inner [style*="levelProgress"] {
+  background: #f0ede8 !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   BUREAU — CALENDAR GRID OVERRIDES
+   ════════════════════════════════════════════════════════════════════════════ */
+
+/* Calendar grid — remove gap, replace with dashed grid lines */
+[data-theme='bureau'] .xt-cal-grid {
+  gap: 0 !important;
+  border-left: 1px dashed rgba(255, 255, 255, 0.12) !important;
+  border-top: 1px dashed rgba(255, 255, 255, 0.12) !important;
+}
+
+/* Each calendar cell — equal-height box, hard dashed borders */
+[data-theme='bureau'] .xt-cal-cell {
+  min-height: 0 !important;
+  height: 88px !important;
+  border: none !important;
+  border-right: 1px dashed rgba(255, 255, 255, 0.12) !important;
+  border-bottom: 1px dashed rgba(255, 255, 255, 0.12) !important;
+  border-radius: 0 !important;
+  background: #0a0a0a !important;
+  padding: 6px 5px !important;
+  transition: background 0.1s !important;
+}
+
+[data-theme='bureau'] .xt-cal-cell:hover {
+  background: rgba(255, 255, 255, 0.03) !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+}
+
+/* Today cell — white inverse */
+[data-theme='bureau'] .xt-cal-cell.xt-cal-cell--today {
+  background: #f0ede8 !important;
+  border-color: rgba(255, 255, 255, 0.3) !important;
+}
+
+[data-theme='bureau'] .xt-cal-cell.xt-cal-cell--today * {
+  color: #0a0a0a !important;
+}
+
+/* Today circular date badge — now a square badge */
+[data-theme='bureau'] .xt-cal-cell.xt-cal-cell--today span.rounded-full {
+  background: #0a0a0a !important;
+  color: #f0ede8 !important;
+  border-radius: 0 !important;
+}
+
+/* Selected cell — red left stripe instead of accent border */
+[data-theme='bureau'] .xt-cal-cell.border-l-2 {
+  border-left: 3px solid var(--bureau-red) !important;
+  background: rgba(204, 17, 17, 0.04) !important;
+}
+
+/* Out-of-month cells — heavily dimmed */
+[data-theme='bureau'] .xt-cal-cell.opacity-40 {
+  opacity: 0.18 !important;
+}
+
+/* Day-name header row above calendar grid — uppercase, tracked */
+[data-theme='bureau'] .xt-cal-grid ~ * .text-center.text-\[9px\],
+[data-theme='bureau'] .grid-cols-7:first-of-type > div {
+  letter-spacing: 0.28em !important;
+  font-size: 8px !important;
+}
+
+/* Remove ring highlight on drag-over — use red border instead */
+[data-theme='bureau'] .xt-cal-cell.ring-1 {
+  ring: none !important;
+  box-shadow: none !important;
+  border-color: rgba(204, 17, 17, 0.5) !important;
+}
+
+/* ── Bureau: inactive profile tabs ────────────────────────────────────────── */
+[data-theme='bureau'] .xt-profile-tabs-bar button[data-active='false'] {
+  background: transparent !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+}
+
+[data-theme='bureau'] .xt-profile-tabs-bar button[data-active='false']:hover {
+  background: rgba(255, 255, 255, 0.04) !important;
+  color: #f0ede8 !important;
 }
 
 [data-accent='neutral'] {
