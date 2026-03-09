@@ -760,6 +760,102 @@
               0 2px 8px rgba(0, 0, 0, 0.24) !important;
 }
 
+/* ─── Void ───────────────────────────────────────────────────────────────────
+   Deep space aesthetic: near-black void backgrounds, vivid indigo accent,
+   chamfered corners, glass panels, strong depth shadows, subtle violet glow.
+   ─────────────────────────────────────────────────────────────────────────── */
+[data-theme='void'] {
+  --app-bg: #07080f;
+  --app-panel: #0d1019;
+  --app-panel-2: #131827;
+  --app-border: #1c2540;
+  --app-text: #eef0ff;
+  --app-muted: #6b7a9f;
+  --app-accent: #7c5ffa;
+  --app-accent-weak: color-mix(in srgb, var(--app-accent) 18%, transparent);
+  --app-focus-ring: color-mix(in srgb, var(--app-accent) 40%, transparent);
+  --app-danger: #f05068;
+
+  --app-radius-sm: 10px;
+  --app-radius-md: 14px;
+  --app-radius-lg: 20px;
+  --app-cut-sm: 6px;
+  --app-cut-md: 10px;
+  --app-cut-lg: 14px;
+
+  --app-stroke: 1px;
+  --app-shadow-soft: 0 14px 40px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  --app-shadow-strong: 0 24px 64px rgba(0, 0, 0, 0.7);
+  --app-glow-accent: 0 0 0 1px color-mix(in srgb, var(--app-accent) 40%, transparent),
+    0 0 20px color-mix(in srgb, var(--app-accent) 30%, transparent);
+  --app-glow-strength: 0.4;
+  --app-hover-glow-base: 8%;
+  --app-noise-opacity: 0.03;
+  --app-glass-opacity: 0.18;
+  --app-blur: 12px;
+  --app-panel-rgb: 13 16 25;
+  --app-panel-2-rgb: 19 24 39;
+  --app-bg-overlay:
+    radial-gradient(110% 80% at 15% -5%, rgba(124, 95, 250, 0.14), transparent 52%),
+    radial-gradient(80% 60% at 90% 100%, rgba(100, 60, 220, 0.08), transparent 55%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.014), transparent 44%);
+
+  --app-motion-fast: 135ms;
+  --app-motion-med: 195ms;
+  --app-motion-slow: 255ms;
+  --app-ease: cubic-bezier(0.24, 0.9, 0.26, 1);
+  --app-hover-lift-y: -2px;
+  --app-hover-scale: 1.01;
+  --app-body-letter-spacing: 0.012em;
+
+  --app-clip-all: polygon(
+    var(--cut) 0,
+    calc(100% - var(--cut)) 0,
+    100% var(--cut),
+    100% calc(100% - var(--cut)),
+    calc(100% - var(--cut)) 100%,
+    var(--cut) 100%,
+    0 calc(100% - var(--cut)),
+    0 var(--cut)
+  );
+  --app-clip-right: polygon(
+    0 0,
+    calc(100% - var(--cut)) 0,
+    100% var(--cut),
+    100% calc(100% - var(--cut)),
+    calc(100% - var(--cut)) 100%,
+    0 100%
+  );
+  --app-clip-left: polygon(
+    var(--cut) 0,
+    100% 0,
+    100% 100%,
+    var(--cut) 100%,
+    0 calc(100% - var(--cut)),
+    0 var(--cut)
+  );
+  --app-clip-card: polygon(
+    0 0,
+    calc(100% - var(--cut)) 0,
+    100% var(--cut),
+    100% 100%,
+    var(--cut) 100%,
+    0 calc(100% - var(--cut))
+  );
+  --app-clip-pill: polygon(
+    var(--cut) 0,
+    calc(100% - var(--cut)) 0,
+    100% 50%,
+    calc(100% - var(--cut)) 100%,
+    var(--cut) 100%,
+    0 50%
+  );
+}
+
+[data-theme='void'] {
+  color-scheme: dark;
+}
+
 [data-accent='neutral'] {
   --app-accent: #8ea2cc;
   --app-accent-weak: color-mix(in srgb, var(--app-accent) 18%, transparent);
