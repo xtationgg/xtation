@@ -3050,16 +3050,16 @@ export const LogCalendar: React.FC = () => {
                   </span>
                 </div>
               )}
-              <div className="grid grid-cols-7 gap-2 mb-2">
+              <div className="grid grid-cols-7 gap-1.5 mb-1.5">
                 {DAY_NAMES.map((name) => (
-                  <div key={name} className="text-[10px] text-[var(--app-muted)] text-center py-1 font-normal uppercase tracking-[0.2em]">
+                  <div key={name} className="text-[9px] text-[var(--app-muted)] text-center py-0.5 font-normal uppercase tracking-[0.14em] opacity-50">
                     {name}
                   </div>
                 ))}
               </div>
 
               <div
-                className="grid grid-cols-7 gap-2"
+                className="grid grid-cols-7 gap-1.5"
                 onPointerDown={handleGridPointerDown}
                 onPointerMove={handleGridPointerMove}
                 onPointerUp={handleGridPointerUp}
@@ -3104,58 +3104,51 @@ export const LogCalendar: React.FC = () => {
                           : 12 * 3600000;
                         updateTask(taskId, { scheduledAt: targetDayStart + existingHour });
                       }}
-                      className={`group relative min-h-[88px] rounded-lg border p-2 text-left transition-all duration-200 overflow-hidden flex flex-col gap-0.5 ${
+                      className={`group relative min-h-[68px] rounded-lg border p-1.5 text-left transition-colors duration-150 overflow-hidden flex flex-col gap-1 ${
                         dragOverCell === day.key
-                          ? 'border-[color-mix(in_srgb,var(--app-accent)_55%,transparent)] bg-[color-mix(in_srgb,var(--app-accent)_8%,var(--app-panel-2))]'
+                          ? 'border-[color-mix(in_srgb,var(--app-accent)_60%,transparent)] bg-[color-mix(in_srgb,var(--app-accent)_10%,var(--app-panel))]'
                           : isSelected
-                          ? 'border-transparent border-l-2 border-l-[var(--app-accent)] bg-[color-mix(in_srgb,var(--app-accent)_6%,var(--app-panel))]'
+                          ? 'border-l-2 border-l-[var(--app-accent)] border-t-[color-mix(in_srgb,var(--app-accent)_20%,transparent)] border-r-[color-mix(in_srgb,var(--app-accent)_20%,transparent)] border-b-[color-mix(in_srgb,var(--app-accent)_20%,transparent)] bg-[color-mix(in_srgb,var(--app-accent)_5%,var(--app-panel))]'
                           : !day.inMonth
-                            ? 'border-transparent opacity-30'
+                            ? 'border-transparent opacity-20'
                             : chDay.inRange
-                              ? 'border-[color-mix(in_srgb,var(--app-accent)_22%,transparent)] bg-[color-mix(in_srgb,var(--app-accent)_5%,var(--app-panel-2))] hover:bg-[color-mix(in_srgb,var(--app-text)_4%,var(--app-panel-2))]'
+                              ? 'border-[color-mix(in_srgb,var(--app-accent)_18%,transparent)] bg-[var(--app-panel)] hover:border-[color-mix(in_srgb,var(--app-accent)_30%,transparent)]'
                               : chDay.excluded
-                                ? 'border-[color-mix(in_srgb,var(--app-text)_8%,transparent)] bg-[color-mix(in_srgb,var(--app-text)_3%,var(--app-panel-2))] hover:bg-[color-mix(in_srgb,var(--app-text)_4%,var(--app-panel-2))]'
-                                : 'border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-[var(--app-panel-2)] hover:bg-[color-mix(in_srgb,var(--app-text)_4%,var(--app-panel-2))]'
+                                ? 'border-[color-mix(in_srgb,var(--app-text)_6%,transparent)] bg-[color-mix(in_srgb,var(--app-text)_2%,var(--app-panel))] hover:border-[color-mix(in_srgb,var(--app-text)_12%,transparent)]'
+                                : 'border-[color-mix(in_srgb,var(--app-text)_8%,transparent)] bg-[var(--app-panel)] hover:border-[color-mix(in_srgb,var(--app-text)_16%,transparent)]'
                       }`}
-                      style={{ transition: 'background 150ms ease-out, border-color 150ms ease-out' }}
                     >
-                      {/* XP heat map layer — bottom-rising gradient */}
-                      {xpIntensity > 0 && (
-                        <div
-                          aria-hidden="true"
-                          className="pointer-events-none absolute inset-0"
-                          style={{
-                            background: `linear-gradient(170deg, transparent 30%, color-mix(in srgb, var(--app-accent) ${Math.round(xpIntensity * 22)}%, transparent) 100%)`,
-                            opacity: day.inMonth ? 1 : 0.45,
-                          }}
-                        />
-                      )}
-
-                      {/* Streak chain — reduced opacity */}
+                      {/* Streak connector — clean 2px line, minimal opacity */}
                       {streakConn && (
                         <div
                           aria-hidden="true"
-                          className="pointer-events-none absolute left-0 right-0"
+                          className="pointer-events-none absolute"
                           style={{
-                            top: '44%',
-                            height: 3,
-                            opacity: 0.25,
-                            background: streakConn.left && streakConn.right
-                              ? 'color-mix(in srgb, var(--app-accent) 38%, transparent)'
-                              : streakConn.left
-                                ? 'linear-gradient(90deg, color-mix(in srgb, var(--app-accent) 42%, transparent) 0%, transparent 100%)'
-                                : 'linear-gradient(90deg, transparent 0%, color-mix(in srgb, var(--app-accent) 42%, transparent) 100%)',
+                            top: '38%',
+                            height: 2,
+                            opacity: 0.12,
+                            background: 'var(--app-accent)',
+                            left: streakConn.left ? 0 : '50%',
+                            right: streakConn.right ? 0 : '50%',
                           }}
                         />
                       )}
 
-                      {chDay.excluded && (
-                        <span className={`pointer-events-none absolute top-[5px] right-[5px] flex h-4 w-4 items-center justify-center rounded-sm text-[10px] leading-none text-[var(--app-muted)] ${isSelected ? 'opacity-35' : 'opacity-55'}`}>×</span>
+                      {/* Drop zone overlay */}
+                      {dragOverCell === day.key && (
+                        <div className="pointer-events-none absolute inset-0 flex items-center justify-center z-10">
+                          <span className="text-[9px] uppercase tracking-[0.16em] font-semibold text-[var(--app-accent)] opacity-70">Move here</span>
+                        </div>
                       )}
 
-                      {/* Multi-challenge completion dots */}
+                      {/* Challenge excluded marker */}
+                      {chDay.excluded && (
+                        <span className="pointer-events-none absolute top-[4px] right-[4px] text-[9px] leading-none text-[var(--app-muted)] opacity-40">×</span>
+                      )}
+
+                      {/* Multi-challenge dots */}
                       {multiChDots.length > 0 && (
-                        <div className="pointer-events-none absolute bottom-[6px] left-[4px] flex gap-[3px]">
+                        <div className="pointer-events-none absolute bottom-[4px] left-[4px] flex gap-[3px]">
                           {multiChDots.map(d => (
                             <span
                               key={d.id}
@@ -3164,7 +3157,7 @@ export const LogCalendar: React.FC = () => {
                                 width: 4, height: 4,
                                 background: d.done
                                   ? 'var(--app-accent)'
-                                  : 'color-mix(in srgb, var(--app-accent) 28%, transparent)',
+                                  : 'color-mix(in srgb, var(--app-accent) 22%, transparent)',
                               }}
                             />
                           ))}
@@ -3172,84 +3165,94 @@ export const LogCalendar: React.FC = () => {
                       )}
 
                       {/* Challenge count badge */}
-                      {challengeList.length > 1 && (() => { const n = getChallengeCountForDay(day.key); return n > 0 ? <span className="pointer-events-none absolute top-[5px] left-[5px] flex h-4 w-4 items-center justify-center rounded text-[8px] leading-none text-[var(--app-accent)] bg-[color-mix(in_srgb,var(--app-accent)_18%,transparent)]">{n}</span> : null; })()}
+                      {challengeList.length > 1 && (() => { const n = getChallengeCountForDay(day.key); return n > 0 ? <span className="pointer-events-none absolute top-[4px] left-[4px] flex h-[14px] w-[14px] items-center justify-center rounded text-[7px] leading-none text-[var(--app-accent)] bg-[color-mix(in_srgb,var(--app-accent)_16%,transparent)]">{n}</span> : null; })()}
 
-                      {/* Hover "+" button top-right */}
+                      {/* Hover "+" button */}
                       {day.inMonth && !chDay.excluded && (
                         <button
                           type="button"
                           onClick={(e) => { e.stopPropagation(); selectDate(day.key, day.date); setQuickPopoverKey(day.key); }}
-                          className="absolute top-[5px] right-[5px] flex items-center justify-center h-[15px] w-[15px] rounded text-[11px] leading-none text-[var(--app-muted)] hover:text-[var(--app-text)] opacity-0 group-hover:opacity-100 transition-opacity z-[2]"
+                          className="absolute top-[3px] right-[3px] flex items-center justify-center h-[14px] w-[14px] rounded text-[10px] leading-none text-[var(--app-muted)] hover:text-[var(--app-text)] opacity-0 group-hover:opacity-100 transition-opacity z-[2]"
                         >
                           +
                         </button>
                       )}
 
-                      {/* Date number */}
-                      <div className="relative z-[1]">
+                      {/* Date row: number left, minutes right */}
+                      <div className="relative z-[1] flex items-center justify-between">
                         {isToday ? (
-                          <span className="inline-flex items-center justify-center rounded-full w-6 h-6 bg-[var(--app-accent)] text-white text-[13px] font-semibold leading-none">
+                          <span className="inline-flex items-center justify-center rounded-full w-5 h-5 bg-[var(--app-accent)] text-white text-[11px] font-semibold leading-none">
                             {day.date.getDate()}
                           </span>
                         ) : (
-                          <span className="text-[15px] font-semibold leading-none text-[var(--app-text)]">
+                          <span className="text-[11px] font-mono leading-none text-[var(--app-muted)] opacity-60">
                             {day.date.getDate()}
+                          </span>
+                        )}
+                        {loggedMin > 0 && (
+                          <span className={`text-[7px] tabular-nums font-mono leading-none ${info.running ? 'text-[var(--app-accent)]' : 'text-[var(--app-muted)] opacity-50'}`}>
+                            {Math.round(loggedMin)}m{info.running ? '●' : ''}
                           </span>
                         )}
                       </div>
 
-                      {/* Top task lines */}
-                      <div className="relative z-[1] flex-1 min-w-0 space-y-0.5">
+                      {/* Quest pills */}
+                      <div className="relative z-[1] flex flex-col gap-[3px]">
                         {cellTopTasks.map((t, i) => {
                           const cellTask = taskByIdMap.get(t.taskId);
                           const isDraggable = cellTask && cellTask.status !== 'done';
+                          const catColor = getCategoryColor(cellTask?.category);
                           return (
-                            <p
-                              key={i}
+                            <div
+                              key={t.taskId}
                               draggable={isDraggable}
                               onDragStart={(e) => {
                                 if (!isDraggable) return;
                                 e.stopPropagation();
                                 dragStateRef.current = { taskId: t.taskId, fromDateKey: day.key };
-                                (e.currentTarget as HTMLElement).style.opacity = '0.5';
+                                // transparent drag ghost
+                                const ghost = document.createElement('div');
+                                ghost.style.cssText = 'position:absolute;top:-9999px;left:-9999px;padding:3px 6px;border-radius:4px;font-size:9px;font-family:monospace;background:#1a1a1e;border:1px solid rgba(255,255,255,0.15);color:#f1ebff;white-space:nowrap;';
+                                ghost.textContent = cellTask?.title || t.title;
+                                document.body.appendChild(ghost);
+                                e.dataTransfer.setDragImage(ghost, 0, 0);
+                                setTimeout(() => document.body.removeChild(ghost), 0);
                               }}
-                              onDragEnd={(e) => { (e.currentTarget as HTMLElement).style.opacity = ''; }}
-                              className={`text-[9px] truncate leading-snug ${isDraggable ? 'cursor-grab active:cursor-grabbing' : ''} ${i === 0 ? 'text-[color-mix(in_srgb,var(--app-text)_70%,var(--app-muted))]' : 'text-[var(--app-muted)]'}`}
+                              onDragEnd={() => { dragStateRef.current = null; }}
+                              onClick={(e) => { e.stopPropagation(); if (cellTask) setDetailTaskId(t.taskId); }}
+                              className={`flex items-center gap-1 rounded px-1.5 py-[2px] transition-opacity duration-100 ${isDraggable ? 'cursor-grab active:cursor-grabbing' : 'cursor-pointer'} ${i >= 2 ? 'hidden' : ''}`}
+                              style={{
+                                background: `color-mix(in srgb, ${catColor} 10%, var(--app-panel))`,
+                                borderLeft: `2px solid ${catColor}`,
+                              }}
                             >
-                              {t.title}
-                            </p>
+                              <span className={`truncate text-[8px] font-medium leading-snug ${cellTask?.status === 'done' ? 'line-through opacity-50' : 'text-[var(--app-text)]'}`}>{t.title}</span>
+                            </div>
                           );
                         })}
-                        {info.activityCount > cellTopTasks.length && info.activityCount > 0 && (
-                          <p className="text-[8px] text-[var(--app-muted)] opacity-60 leading-snug">+{info.activityCount - cellTopTasks.length} more</p>
+                        {info.activityCount > 2 && (
+                          <span className="text-[7px] text-[var(--app-muted)] opacity-40 leading-snug pl-0.5">+{info.activityCount - 2}</span>
                         )}
                       </div>
 
-                      {/* Bottom bar: XP bar + minutes + challenge dot */}
-                      <div className="relative z-[1] mt-auto flex items-center gap-1 pb-[8px]">
-                        {xpIntensity > 0 && (
-                          <div className="flex-1 h-[3px] rounded-full overflow-hidden bg-[color-mix(in_srgb,var(--app-text)_8%,transparent)]">
-                            <div
-                              className="h-full rounded-full bg-[var(--app-accent)]"
-                              style={{ width: `${Math.min(100, xpIntensity * 100)}%`, opacity: day.inMonth ? 0.7 : 0.35 }}
-                            />
-                          </div>
-                        )}
-                        {loggedMin > 0 && (
-                          <span className={`text-[8px] tabular-nums shrink-0 ${info.running ? 'text-[var(--app-accent)]' : 'text-[var(--app-muted)]'}`}>
-                            {Math.round(loggedMin)}m{info.running ? ' ●' : ''}
-                          </span>
-                        )}
-                        {chDay.inRange && chDay.done && challengeList.length <= 1 && (
-                          <span className={`h-[5px] w-[5px] rounded-full bg-[var(--app-accent)] shadow-[0_0_5px_color-mix(in_srgb,var(--app-accent)_55%,transparent)] shrink-0 ${isSelected ? 'opacity-60' : ''}`} />
-                        )}
-                      </div>
+                      {/* XP intensity — left-edge bar instead of gradient */}
+                      {xpIntensity > 0 && day.inMonth && (
+                        <div
+                          aria-hidden="true"
+                          className="pointer-events-none absolute left-0 bottom-0 w-[2px] rounded-full"
+                          style={{
+                            height: `${Math.min(90, xpIntensity * 90)}%`,
+                            background: 'var(--app-accent)',
+                            opacity: 0.35,
+                          }}
+                        />
+                      )}
 
-                      {/* Phase 2D: Category color strip at absolute bottom */}
+                      {/* Category color strip at bottom */}
                       {cellTopTasks.length > 0 && day.inMonth && (() => {
                         const totalTaskMin = cellTopTasks.reduce((s, t) => s + (t.minutes || 1), 0) || 1;
                         return (
-                          <div aria-hidden="true" className="pointer-events-none absolute bottom-0 left-0 right-0 flex overflow-hidden" style={{ height: 3, borderRadius: '0 0 6px 6px' }}>
+                          <div aria-hidden="true" className="pointer-events-none absolute bottom-0 left-0 right-0 flex overflow-hidden" style={{ height: 2, borderRadius: '0 0 6px 6px' }}>
                             {cellTopTasks.map((t, ti) => {
                               const taskObj = taskByIdMap.get(t.taskId);
                               const color = getCategoryColor(taskObj?.category);
@@ -3260,8 +3263,7 @@ export const LogCalendar: React.FC = () => {
                                   style={{
                                     width: `${widthPct}%`,
                                     background: color,
-                                    borderRadius: ti === 0 ? '0 0 0 6px' : ti === cellTopTasks.length - 1 ? '0 0 6px 0' : 0,
-                                    opacity: 0.75,
+                                    opacity: 0.55,
                                   }}
                                 />
                               );
@@ -3269,6 +3271,11 @@ export const LogCalendar: React.FC = () => {
                           </div>
                         );
                       })()}
+
+                      {/* Challenge done dot */}
+                      {chDay.inRange && chDay.done && challengeList.length <= 1 && (
+                        <span className="pointer-events-none absolute bottom-[4px] right-[4px] h-[4px] w-[4px] rounded-full bg-[var(--app-accent)] shadow-[0_0_4px_color-mix(in_srgb,var(--app-accent)_55%,transparent)]" />
+                      )}
                     </button>
                   );
                 })}
