@@ -712,6 +712,12 @@ export const LogCalendar: React.FC = () => {
   // Phase 4: drag state
   const dragStateRef = useRef<{ taskId: string; fromDateKey: string } | null>(null);
   const [dragOverCell, setDragOverCell] = useState<string | null>(null);
+  const [isDraggingQuest, setIsDraggingQuest] = useState(false);
+  const [overflowDayKey, setOverflowDayKey] = useState<string | null>(null);
+  const [dropTimePickerState, setDropTimePickerState] = useState<{ taskId: string; dayKey: string; hour: number } | null>(null);
+  const [draggingDotId, setDraggingDotId] = useState<string | null>(null);
+  const [draggingDotX, setDraggingDotX] = useState<number | null>(null);
+  const [qPopoverTab, setQPopoverTab] = useState<'log' | 'assign'>('log');
   const dayConsoleListRef = useRef<HTMLDivElement | null>(null);
   const rowRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const hudContainerRef = useRef<HTMLDivElement | null>(null);
@@ -942,9 +948,9 @@ export const LogCalendar: React.FC = () => {
 
   // Top tasks per day for month grid (computed once for all 42 cells)
   const topTasksByDay = useMemo(() => {
-    const map = new Map<string, { title: string; minutes: number; running: boolean }[]>();
+    const map = new Map<string, { taskId: string; title: string; minutes: number; running: boolean; doneToday: boolean }[]>();
     gridDays.forEach(day => {
-      const tops = selectors.getTopTasksForDay(day.key, 2, now);
+      const tops = selectors.getTopTasksForDay(day.key, 4, now);
       if (tops.length) map.set(day.key, tops);
     });
     return map;
@@ -1735,6 +1741,26 @@ export const LogCalendar: React.FC = () => {
         ref={mobile ? undefined : timelineChartRef}
         className="rounded-xl bg-[color-mix(in_srgb,var(--app-panel-2)_55%,var(--app-panel))] px-2 py-2 relative overflow-hidden"
         style={{ height: chartHeight ?? 'clamp(320px, 45vh, 520px)' }}
+        onDragOver={(e) => {
+          e.preventDefault();
+          if (!draggingDotId || draggingDotId.startsWith('sl-')) return;
+          const rect = (mobile ? e.currentTarget : timelineChartRef.current)?.getBoundingClientRect();
+          if (!rect) return;
+          const xPct = Math.max(0, Math.min(100, ((e.clientX - rect.left) / rect.width) * 100));
+          setDraggingDotX(xPct);
+        }}
+        onDrop={(e) => {
+          e.preventDefault();
+          if (!draggingDotId || draggingDotId.startsWith('sl-') || draggingDotX === null) return;
+          const dot = filteredByModeDots.find(d => d.id === draggingDotId);
+          if (!dot?.rowTaskId) return;
+          const dayStart = fromDateKey(selectedKey).getTime();
+          const newMinute = Math.round((draggingDotX / 100) * 1440 / 15) * 15;
+          const newTimestamp = dayStart + newMinute * 60000;
+          updateTask(dot.rowTaskId, { scheduledAt: newTimestamp });
+          setDraggingDotId(null);
+          setDraggingDotX(null);
+        }}
       >
         {/* Instrument panel — anchored to chart top-right */}
         <div className="absolute top-2 right-2 z-10 flex items-center">
@@ -1761,7 +1787,29 @@ export const LogCalendar: React.FC = () => {
 
         {/* ── SWIM LANE rendering ── */}
         {timelineStyle === 'span' ? (
-          <div className="absolute inset-x-0" style={{ top: 32, bottom: 40 }}>
+          <div className="absolute inset-x-0" style={{ top: 32, bottom: 40 }}
+            onDragOver={(e) => {
+              e.preventDefault();
+              if (!draggingDotId?.startsWith('sl-')) return;
+              const rect = (e.currentTarget as HTMLDivElement).getBoundingClientRect();
+              const availableW = rect.width - LANE_LABEL_W - 40;
+              const xFromLane = e.clientX - rect.left - LANE_LABEL_W;
+              const xPct = Math.max(0, Math.min(100, (xFromLane / availableW) * 100));
+              setDraggingDotX(xPct);
+            }}
+            onDrop={(e) => {
+              e.preventDefault();
+              if (!draggingDotId?.startsWith('sl-') || draggingDotX === null) return;
+              const itemId = draggingDotId.replace('sl-', '');
+              const matchedRow = laneRows.find(r => r.items.some(it => it.id === itemId));
+              if (!matchedRow?.taskId) return;
+              const dayStart = fromDateKey(selectedKey).getTime();
+              const newMinute = Math.round((draggingDotX / 100) * 1440 / 15) * 15;
+              updateTask(matchedRow.taskId, { scheduledAt: dayStart + newMinute * 60000 });
+              setDraggingDotId(null);
+              setDraggingDotX(null);
+            }}
+          >
             {/* Hour grid lines spanning all lanes */}
             {TIMELINE_HOUR_MARKERS.map((hour) => (
               <div
@@ -1877,6 +1925,14 @@ export const LogCalendar: React.FC = () => {
                       <div
                         key={`sl-block-${item.id}`}
                         title={`${item.title} · ${formatTime(itemStart)} · ${formatMinutes(itemMin)}`}
+                        draggable={!!item.taskId}
+                        onDragStart={(e) => {
+                          if (!item.taskId) return;
+                          e.stopPropagation();
+                          setDraggingDotId(`sl-${item.id}`);
+                          e.dataTransfer.effectAllowed = 'move';
+                        }}
+                        onDragEnd={() => { setDraggingDotId(null); setDraggingDotX(null); }}
                         style={{
                           position: 'absolute',
                           left: `calc(${blockLeft}px + ${availW} * ${xPct / 100})`,
@@ -1893,6 +1949,7 @@ export const LogCalendar: React.FC = () => {
                           overflow: 'hidden',
                           transition: 'opacity 200ms ease-out, box-shadow 200ms ease-out',
                           boxShadow: isRunning ? `0 0 6px ${itemStateColor}` : undefined,
+                          cursor: item.taskId ? 'grab' : undefined,
                         }}
                       >
                         {isRunning && (
@@ -2032,6 +2089,21 @@ export const LogCalendar: React.FC = () => {
             <button
               key={`timeline-dot-${mobile ? 'mobile-' : ''}${dot.id}`}
               type="button"
+              draggable={dot.rowTaskId != null}
+              onDragStart={(e) => {
+                if (!dot.rowTaskId) return;
+                setDraggingDotId(dot.id);
+                e.dataTransfer.effectAllowed = 'move';
+                const ghost = document.createElement('div');
+                ghost.style.cssText = 'position:absolute;top:-9999px;padding:3px 7px;background:#1a1a1e;border:1px solid rgba(255,255,255,0.2);border-radius:4px;font-size:9px;color:#f1ebff;font-family:monospace;white-space:nowrap;';
+                const h = new Date(dot.time).getHours();
+                const m = new Date(dot.time).getMinutes();
+                ghost.textContent = `${dot.title} · ${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
+                document.body.appendChild(ghost);
+                e.dataTransfer.setDragImage(ghost, 0, 0);
+                setTimeout(() => document.body.removeChild(ghost), 0);
+              }}
+              onDragEnd={() => { setDraggingDotId(null); setDraggingDotX(null); }}
               onClick={() => handleTimelineDotClick(dot.rowKey)}
               className={`absolute rounded-full border transition-all duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] hover:scale-110 ${
                 hoveredDotId === dot.id
@@ -2135,6 +2207,17 @@ export const LogCalendar: React.FC = () => {
               +{badge.count}
             </div>
           ))}
+          {draggingDotId && !draggingDotId.startsWith('sl-') && draggingDotX !== null && (
+            <div
+              className="pointer-events-none absolute z-20 flex flex-col items-center"
+              style={{ left: `${draggingDotX}%`, top: baselineTop - 24, transform: 'translateX(-50%)' }}
+            >
+              <span className="rounded px-1.5 py-0.5 text-[9px] font-mono bg-[var(--app-accent)] text-white">
+                {String(Math.floor((draggingDotX / 100) * 24)).padStart(2,'0')}:{String(Math.round(((draggingDotX / 100) * 1440) % 60 / 15) * 15).padStart(2,'0')}
+              </span>
+              <div className="w-[1px] h-4 bg-[var(--app-accent)] opacity-60" />
+            </div>
+          )}
           {filteredByModeDots.length === 0 && (legendFilterStates.length > 0 || timelineFilter !== 'all') ? (
             <div className="absolute inset-0 grid place-items-center text-[10px] uppercase tracking-[0.14em] text-[var(--app-muted)]">
               No items for active filter.
@@ -2742,6 +2825,19 @@ export const LogCalendar: React.FC = () => {
               <ChevronRight className="h-3.5 w-3.5" />
             </button>
 
+            {/* Today button — always visible */}
+            <button
+              type="button"
+              onClick={() => {
+                const today = new Date();
+                selectDate(toDateKey(today), today);
+                setViewMonth(new Date(today.getFullYear(), today.getMonth(), 1));
+              }}
+              className="px-2 py-0.5 rounded border border-[color-mix(in_srgb,var(--app-text)_14%,transparent)] text-[9px] uppercase tracking-[0.14em] text-[var(--app-muted)] hover:text-[var(--app-text)] hover:border-[color-mix(in_srgb,var(--app-text)_28%,transparent)] transition-colors"
+            >
+              Today
+            </button>
+
             {/* Today chip — only visible when not on current month */}
             {(viewMonth.getFullYear() !== new Date(now).getFullYear() || viewMonth.getMonth() !== new Date(now).getMonth()) && (
               <button
@@ -3058,6 +3154,33 @@ export const LogCalendar: React.FC = () => {
                 ))}
               </div>
 
+              <div className="relative">
+              {dropTimePickerState && (
+                <div className="absolute bottom-2 left-1/2 -translate-x-1/2 z-30 flex items-center gap-2 rounded-lg border border-[color-mix(in_srgb,var(--app-accent)_35%,transparent)] bg-[var(--app-panel)] px-3 py-2 shadow-lg text-[10px]">
+                  <span className="text-[var(--app-muted)] uppercase tracking-[0.12em]">Scheduled</span>
+                  <select
+                    value={dropTimePickerState.hour}
+                    onChange={(e) => {
+                      const newHour = Number(e.target.value);
+                      const dayStart = fromDateKey(dropTimePickerState.dayKey).getTime();
+                      updateTask(dropTimePickerState.taskId, { scheduledAt: dayStart + newHour * 3600000 });
+                      setDropTimePickerState(prev => prev ? { ...prev, hour: newHour } : null);
+                    }}
+                    className="rounded border border-[color-mix(in_srgb,var(--app-accent)_30%,transparent)] bg-[var(--app-panel-2)] px-1.5 py-0.5 text-[var(--app-text)] text-[10px] outline-none"
+                  >
+                    {Array.from({ length: 24 }, (_, h) => (
+                      <option key={h} value={h}>{String(h).padStart(2,'0')}:00</option>
+                    ))}
+                  </select>
+                  <button
+                    type="button"
+                    onClick={() => setDropTimePickerState(null)}
+                    className="ml-1 text-[var(--app-muted)] hover:text-[var(--app-text)] transition-colors"
+                  >
+                    ×
+                  </button>
+                </div>
+              )}
               <div
                 className="grid grid-cols-7 gap-1.5"
                 onPointerDown={handleGridPointerDown}
@@ -3093,6 +3216,7 @@ export const LogCalendar: React.FC = () => {
                       onDrop={(e) => {
                         e.preventDefault();
                         setDragOverCell(null);
+                        setIsDraggingQuest(false);
                         if (!dragStateRef.current) return;
                         const { taskId } = dragStateRef.current;
                         dragStateRef.current = null;
@@ -3100,17 +3224,19 @@ export const LogCalendar: React.FC = () => {
                         if (!targetTask) return;
                         const targetDayStart = fromDateKey(day.key).getTime();
                         const existingHour = targetTask.scheduledAt
-                          ? new Date(targetTask.scheduledAt).getHours() * 3600000 + new Date(targetTask.scheduledAt).getMinutes() * 60000
-                          : 12 * 3600000;
-                        updateTask(taskId, { scheduledAt: targetDayStart + existingHour });
+                          ? new Date(targetTask.scheduledAt).getHours()
+                          : 12;
+                        updateTask(taskId, { scheduledAt: targetDayStart + existingHour * 3600000 });
+                        setDropTimePickerState({ taskId, dayKey: day.key, hour: existingHour });
+                        setTimeout(() => setDropTimePickerState(null), 6000);
                       }}
-                      className={`group relative min-h-[68px] rounded-lg border p-1.5 text-left transition-colors duration-150 overflow-hidden flex flex-col gap-1 ${
+                      className={`group relative min-h-[80px] rounded-lg border p-1.5 text-left transition-colors duration-150 overflow-hidden flex flex-col gap-1 ${isDraggingQuest && day.inMonth && day.key !== dragStateRef.current?.fromDateKey ? 'ring-1 ring-[color-mix(in_srgb,var(--app-accent)_20%,transparent)]' : ''} ${
                         dragOverCell === day.key
                           ? 'border-[color-mix(in_srgb,var(--app-accent)_60%,transparent)] bg-[color-mix(in_srgb,var(--app-accent)_10%,var(--app-panel))]'
                           : isSelected
                           ? 'border-l-2 border-l-[var(--app-accent)] border-t-[color-mix(in_srgb,var(--app-accent)_20%,transparent)] border-r-[color-mix(in_srgb,var(--app-accent)_20%,transparent)] border-b-[color-mix(in_srgb,var(--app-accent)_20%,transparent)] bg-[color-mix(in_srgb,var(--app-accent)_5%,var(--app-panel))]'
                           : !day.inMonth
-                            ? 'border-transparent opacity-20'
+                            ? 'border-[color-mix(in_srgb,var(--app-text)_5%,transparent)] opacity-40'
                             : chDay.inRange
                               ? 'border-[color-mix(in_srgb,var(--app-accent)_18%,transparent)] bg-[var(--app-panel)] hover:border-[color-mix(in_srgb,var(--app-accent)_30%,transparent)]'
                               : chDay.excluded
@@ -3125,19 +3251,20 @@ export const LogCalendar: React.FC = () => {
                           className="pointer-events-none absolute"
                           style={{
                             top: '38%',
-                            height: 2,
-                            opacity: 0.12,
+                            height: 3,
+                            opacity: (streakConn.left && streakConn.right) ? 0.35 : 0.22,
                             background: 'var(--app-accent)',
                             left: streakConn.left ? 0 : '50%',
                             right: streakConn.right ? 0 : '50%',
+                            boxShadow: (streakConn.left && streakConn.right) ? '0 0 6px var(--app-accent)' : 'none',
                           }}
                         />
                       )}
 
                       {/* Drop zone overlay */}
                       {dragOverCell === day.key && (
-                        <div className="pointer-events-none absolute inset-0 flex items-center justify-center z-10">
-                          <span className="text-[9px] uppercase tracking-[0.16em] font-semibold text-[var(--app-accent)] opacity-70">Move here</span>
+                        <div className="pointer-events-none absolute inset-0 flex items-center justify-center z-10 rounded-lg bg-[color-mix(in_srgb,var(--app-accent)_8%,transparent)]">
+                          <span className="text-[9px] uppercase tracking-[0.2em] font-semibold text-[var(--app-accent)]">Move here</span>
                         </div>
                       )}
 
@@ -3168,7 +3295,7 @@ export const LogCalendar: React.FC = () => {
                       {challengeList.length > 1 && (() => { const n = getChallengeCountForDay(day.key); return n > 0 ? <span className="pointer-events-none absolute top-[4px] left-[4px] flex h-[14px] w-[14px] items-center justify-center rounded text-[7px] leading-none text-[var(--app-accent)] bg-[color-mix(in_srgb,var(--app-accent)_16%,transparent)]">{n}</span> : null; })()}
 
                       {/* Hover "+" button */}
-                      {day.inMonth && !chDay.excluded && (
+                      {!chDay.excluded && (
                         <button
                           type="button"
                           onClick={(e) => { e.stopPropagation(); selectDate(day.key, day.date); setQuickPopoverKey(day.key); }}
@@ -3200,7 +3327,7 @@ export const LogCalendar: React.FC = () => {
                       <div className="relative z-[1] flex flex-col gap-[3px]">
                         {cellTopTasks.map((t, i) => {
                           const cellTask = taskByIdMap.get(t.taskId);
-                          const isDraggable = cellTask && cellTask.status !== 'done';
+                          const isDraggable = !!cellTask && cellTask.status !== 'done';
                           const catColor = getCategoryColor(cellTask?.category);
                           return (
                             <div
@@ -3210,6 +3337,7 @@ export const LogCalendar: React.FC = () => {
                                 if (!isDraggable) return;
                                 e.stopPropagation();
                                 dragStateRef.current = { taskId: t.taskId, fromDateKey: day.key };
+                                setIsDraggingQuest(true);
                                 // transparent drag ghost
                                 const ghost = document.createElement('div');
                                 ghost.style.cssText = 'position:absolute;top:-9999px;left:-9999px;padding:3px 6px;border-radius:4px;font-size:9px;font-family:monospace;background:#1a1a1e;border:1px solid rgba(255,255,255,0.15);color:#f1ebff;white-space:nowrap;';
@@ -3218,20 +3346,69 @@ export const LogCalendar: React.FC = () => {
                                 e.dataTransfer.setDragImage(ghost, 0, 0);
                                 setTimeout(() => document.body.removeChild(ghost), 0);
                               }}
-                              onDragEnd={() => { dragStateRef.current = null; }}
+                              onDragEnd={() => { dragStateRef.current = null; setIsDraggingQuest(false); }}
                               onClick={(e) => { e.stopPropagation(); if (cellTask) setDetailTaskId(t.taskId); }}
-                              className={`flex items-center gap-1 rounded px-1.5 py-[2px] transition-opacity duration-100 ${isDraggable ? 'cursor-grab active:cursor-grabbing' : 'cursor-pointer'} ${i >= 2 ? 'hidden' : ''}`}
+                              className={`group/pill flex items-center gap-1 rounded px-1.5 py-[3px] transition-opacity duration-100 ${isDraggable ? 'cursor-grab active:cursor-grabbing' : 'cursor-pointer'} ${i >= 3 ? 'hidden' : ''}`}
                               style={{
                                 background: `color-mix(in srgb, ${catColor} 10%, var(--app-panel))`,
                                 borderLeft: `2px solid ${catColor}`,
                               }}
                             >
-                              <span className={`truncate text-[8px] font-medium leading-snug ${cellTask?.status === 'done' ? 'line-through opacity-50' : 'text-[var(--app-text)]'}`}>{t.title}</span>
+                              {isDraggable && (
+                                <span className="opacity-0 group-hover/pill:opacity-40 mr-0.5 text-[8px] leading-none select-none shrink-0" style={{ cursor: 'grab' }}>⠿</span>
+                              )}
+                              <span className={`truncate text-[9px] font-medium leading-snug ${cellTask?.status === 'done' ? 'line-through opacity-50' : 'text-[var(--app-text)]'}`}>{t.title}</span>
                             </div>
                           );
                         })}
-                        {info.activityCount > 2 && (
-                          <span className="text-[7px] text-[var(--app-muted)] opacity-40 leading-snug pl-0.5">+{info.activityCount - 2}</span>
+                        {info.activityCount > 3 && (
+                          <button
+                            type="button"
+                            onClick={(e) => { e.stopPropagation(); setOverflowDayKey(prev => prev === day.key ? null : day.key); }}
+                            className="text-[7px] text-[var(--app-muted)] hover:text-[var(--app-text)] transition-colors leading-snug pl-0.5 cursor-pointer"
+                          >
+                            +{info.activityCount - 3} more
+                          </button>
+                        )}
+                        {overflowDayKey === day.key && (
+                          <div className="absolute left-0 top-full z-20 mt-0.5 w-full bg-[var(--app-panel-2)] border border-[color-mix(in_srgb,var(--app-text)_18%,transparent)] rounded-lg shadow-xl p-1.5 flex flex-col gap-1" onClick={(e) => e.stopPropagation()}>
+                            {selectors.getTopTasksForDay(day.key, 10, now).map((t) => {
+                              const cellTask = taskByIdMap.get(t.taskId);
+                              const isDraggable = !!cellTask && cellTask.status !== 'done';
+                              const catColor = getCategoryColor(cellTask?.category);
+                              return (
+                                <div
+                                  key={t.taskId}
+                                  draggable={isDraggable}
+                                  onDragStart={(e) => {
+                                    if (!isDraggable) return;
+                                    e.stopPropagation();
+                                    dragStateRef.current = { taskId: t.taskId, fromDateKey: day.key };
+                                    setIsDraggingQuest(true);
+                                    setOverflowDayKey(null);
+                                    const ghost = document.createElement('div');
+                                    ghost.style.cssText = 'position:absolute;top:-9999px;left:-9999px;padding:3px 6px;border-radius:4px;font-size:9px;font-family:monospace;background:#1a1a1e;border:1px solid rgba(255,255,255,0.15);color:#f1ebff;white-space:nowrap;';
+                                    ghost.textContent = cellTask?.title || t.title;
+                                    document.body.appendChild(ghost);
+                                    e.dataTransfer.setDragImage(ghost, 0, 0);
+                                    setTimeout(() => document.body.removeChild(ghost), 0);
+                                  }}
+                                  onDragEnd={() => { dragStateRef.current = null; setIsDraggingQuest(false); }}
+                                  onClick={(e) => { e.stopPropagation(); if (cellTask) setDetailTaskId(t.taskId); }}
+                                  className={`group/pill flex items-center gap-1 rounded px-1.5 py-[3px] transition-opacity duration-100 ${isDraggable ? 'cursor-grab active:cursor-grabbing' : 'cursor-pointer'}`}
+                                  style={{
+                                    background: `color-mix(in srgb, ${catColor} 10%, var(--app-panel))`,
+                                    borderLeft: `2px solid ${catColor}`,
+                                  }}
+                                >
+                                  {isDraggable && (
+                                    <span className="opacity-0 group-hover/pill:opacity-40 mr-0.5 text-[8px] leading-none select-none shrink-0" style={{ cursor: 'grab' }}>⠿</span>
+                                  )}
+                                  <span className={`truncate text-[9px] font-medium leading-snug ${cellTask?.status === 'done' ? 'line-through opacity-50' : 'text-[var(--app-text)]'}`}>{t.title}</span>
+                                </div>
+                              );
+                            })}
+                          </div>
                         )}
                       </div>
 
@@ -3249,10 +3426,14 @@ export const LogCalendar: React.FC = () => {
                       )}
 
                       {/* Category color strip at bottom */}
-                      {cellTopTasks.length > 0 && day.inMonth && (() => {
+                      {cellTopTasks.length > 0 && (() => {
                         const totalTaskMin = cellTopTasks.reduce((s, t) => s + (t.minutes || 1), 0) || 1;
+                        const stripTitle = cellTopTasks.map(t => {
+                          const taskObj = taskByIdMap.get(t.taskId);
+                          return `${taskObj?.title || t.title}: ${Math.round(t.minutes || 0)}m`;
+                        }).join(' / ');
                         return (
-                          <div aria-hidden="true" className="pointer-events-none absolute bottom-0 left-0 right-0 flex overflow-hidden" style={{ height: 2, borderRadius: '0 0 6px 6px' }}>
+                          <div aria-hidden="true" className="pointer-events-none absolute bottom-0 left-0 right-0 flex overflow-hidden" style={{ height: 4, borderRadius: '0 0 6px 6px' }} title={stripTitle}>
                             {cellTopTasks.map((t, ti) => {
                               const taskObj = taskByIdMap.get(t.taskId);
                               const color = getCategoryColor(taskObj?.category);
@@ -3263,7 +3444,7 @@ export const LogCalendar: React.FC = () => {
                                   style={{
                                     width: `${widthPct}%`,
                                     background: color,
-                                    opacity: 0.55,
+                                    opacity: 0.7,
                                   }}
                                 />
                               );
@@ -3279,6 +3460,7 @@ export const LogCalendar: React.FC = () => {
                     </button>
                   );
                 })}
+              </div>
               </div>
             </>
           ) : null}
@@ -3464,8 +3646,20 @@ export const LogCalendar: React.FC = () => {
             >
               {/* Header */}
               <div className="flex items-center gap-3 px-4 py-3 border-b border-[color-mix(in_srgb,var(--app-text)_8%,transparent)]">
-                <div className="min-w-0 flex-1">
+                <div className="min-w-0 flex-1 flex items-center gap-2 flex-wrap">
                   <span className="text-[13px] font-medium text-[var(--app-text)]">{qDateLabel}</span>
+                  <div className="flex gap-1">
+                    {(['log', 'assign'] as const).map(tab => (
+                      <button
+                        key={tab}
+                        type="button"
+                        onClick={() => setQPopoverTab(tab)}
+                        className={`px-2 py-0.5 rounded text-[9px] uppercase tracking-[0.14em] transition-colors ${qPopoverTab === tab ? 'bg-[color-mix(in_srgb,var(--app-accent)_18%,var(--app-panel-2))] text-[var(--app-accent)]' : 'text-[var(--app-muted)] hover:text-[var(--app-text)]'}`}
+                      >
+                        {tab === 'log' ? 'Log' : 'Assign Quest'}
+                      </button>
+                    ))}
+                  </div>
                 </div>
                 <div className="flex items-center gap-3 text-[10px] text-[var(--app-muted)] uppercase tracking-[0.14em]">
                   {qSummary.minutesTracked > 0 && <span>{Math.round(qSummary.minutesTracked)}m tracked</span>}
@@ -3495,6 +3689,7 @@ export const LogCalendar: React.FC = () => {
               )}
 
               {/* Quick-log form */}
+              {qPopoverTab === 'log' && (
               <div className="px-4 py-3 flex flex-wrap items-center gap-2 border-b border-[color-mix(in_srgb,var(--app-text)_8%,transparent)]">
                 <input
                   type="text"
@@ -3534,6 +3729,40 @@ export const LogCalendar: React.FC = () => {
                   Log it →
                 </button>
               </div>
+              )}
+
+              {/* Assign Quest tab */}
+              {qPopoverTab === 'assign' && (
+                <div className="px-2 py-2 max-h-[160px] overflow-y-auto flex flex-col gap-1">
+                  {tasks
+                    .filter(t => !t.archivedAt && t.status !== 'done' && t.status !== 'dropped')
+                    .slice(0, 12)
+                    .map(t => (
+                      <button
+                        key={t.id}
+                        type="button"
+                        onClick={() => {
+                          const dayStart = fromDateKey(qKey).getTime();
+                          const hour = t.scheduledAt ? new Date(t.scheduledAt).getHours() : 9;
+                          updateTask(t.id, { scheduledAt: dayStart + hour * 3600000 });
+                          setQuickPopoverKey(null);
+                        }}
+                        className="flex items-center gap-2 rounded px-2 py-1.5 text-left hover:bg-[color-mix(in_srgb,var(--app-accent)_8%,var(--app-panel-2))] transition-colors group"
+                      >
+                        <span
+                          className="w-1.5 h-1.5 rounded-full shrink-0"
+                          style={{ background: getCategoryColor(t.category) }}
+                        />
+                        <span className="text-[10px] text-[var(--app-text)] truncate flex-1">{t.title}</span>
+                        <span className="text-[9px] text-[var(--app-accent)] opacity-0 group-hover:opacity-100 transition-opacity uppercase tracking-[0.12em]">assign →</span>
+                      </button>
+                    ))
+                  }
+                  {tasks.filter(t => !t.archivedAt && t.status !== 'done' && t.status !== 'dropped').length === 0 && (
+                    <span className="text-[10px] text-[var(--app-muted)] px-2 py-1">No active quests.</span>
+                  )}
+                </div>
+              )}
 
               {/* Challenge row */}
               {primaryChallenge && qChDay.inRange && !qChDay.excluded && (
