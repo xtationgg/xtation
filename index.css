@@ -1593,7 +1593,7 @@ body {
   background-image: var(--ui-bg-overlay) !important;
   color: var(--dc-text) !important;
   letter-spacing: var(--ui-body-letter-spacing);
-  overflow-x: hidden;
+  overflow: hidden;
 }
 
 body::before {
@@ -1641,9 +1641,10 @@ body::before {
   #root {
     max-width: none;
     width: calc(100% / var(--xt-ui-scale));
-    min-height: calc(100dvh / var(--xt-ui-scale));
+    height: calc(100dvh / var(--xt-ui-scale));
     transform: scale(var(--xt-ui-scale));
     transform-origin: top left;
+    overflow: hidden;
   }
 }
 

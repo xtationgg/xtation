@@ -379,7 +379,7 @@ const App: React.FC = () => {
 
   return (
     <div 
-        className="w-full min-h-[100dvh] md:h-screen flex flex-col overflow-x-hidden overflow-y-auto md:overflow-hidden text-[var(--ui-text)] font-mono bg-cover bg-center transition-all duration-200 ease-out relative"
+        className="w-full min-h-[100dvh] md:h-screen lg:h-full flex flex-col overflow-x-hidden overflow-y-auto md:overflow-hidden text-[var(--ui-text)] font-mono bg-cover bg-center transition-all duration-200 ease-out relative"
         style={getBackgroundStyle()}
     >
       <ScheduledTaskPrompt />

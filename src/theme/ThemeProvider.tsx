@@ -128,8 +128,10 @@ const clamp = (value: number, min: number, max: number) => Math.min(max, Math.ma
 
 const computeAutoResolutionScale = () => {
   if (typeof window === 'undefined') return 1;
-  const widthScale = window.innerWidth / 1920;
-  const heightScale = window.innerHeight / 1080;
+  // Use screen dimensions — unaffected by browser zoom (innerWidth shrinks on zoom-in,
+  // causing the app to fight against the user's zoom and shrink content).
+  const widthScale = window.screen.width / 1920;
+  const heightScale = window.screen.height / 1080;
   return clamp(Math.min(widthScale, heightScale), 0.78, 1);
 };
 
