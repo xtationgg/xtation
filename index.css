@@ -856,6 +856,200 @@
   color-scheme: dark;
 }
 
+/* ─── Void: actual UI overrides ─────────────────────────────────────────── */
+
+/* Topbar — frosted glass strip with indigo glow border */
+[data-theme='void'] .xt-topbar,
+[data-theme='void'] [class*="h-[56px]"],
+[data-theme='void'] [class*="h-[60px]"] {
+  background: rgba(7, 8, 15, 0.72) !important;
+  backdrop-filter: blur(20px) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
+  border-bottom-color: color-mix(in srgb, var(--app-accent) 22%, var(--app-border)) !important;
+  box-shadow: 0 1px 0 color-mix(in srgb, var(--app-accent) 14%, transparent),
+              0 4px 24px rgba(7, 8, 15, 0.6) !important;
+}
+
+/* Nav tab container */
+[data-theme='void'] .xt-nav-tabs {
+  gap: 2px;
+  padding-inline: 8px;
+}
+
+/* Nav tabs base — clean transparent slate */
+[data-theme='void'] .xt-nav-tab {
+  border-right: none !important;
+  border: none !important;
+  background: transparent !important;
+  height: 36px !important;
+  margin: auto 0;
+  padding-inline: 16px !important;
+  box-shadow: none !important;
+  text-shadow: none !important;
+  letter-spacing: 0.18em;
+  position: relative;
+  overflow: visible !important;
+}
+
+/* Hide the old terminal decorators */
+[data-theme='void'] .xt-nav-tab .xt-nav-active-bg,
+[data-theme='void'] .xt-nav-tab .xt-nav-active-indicators,
+[data-theme='void'] .xt-nav-tab .xt-nav-hover-line,
+[data-theme='void'] .xt-nav-tab .xt-nav-caret {
+  display: none !important;
+}
+
+/* Inactive tab */
+[data-theme='void'] .xt-nav-tab[data-active='false'] {
+  color: var(--app-muted) !important;
+}
+
+[data-theme='void'] .xt-nav-tab[data-active='false']:hover {
+  color: var(--app-text) !important;
+  background: color-mix(in srgb, var(--app-accent) 10%, transparent) !important;
+  --cut: 6px;
+  clip-path: polygon(
+    var(--cut) 0, calc(100% - var(--cut)) 0,
+    100% var(--cut), 100% calc(100% - var(--cut)),
+    calc(100% - var(--cut)) 100%, var(--cut) 100%,
+    0 calc(100% - var(--cut)), 0 var(--cut)
+  );
+}
+
+/* Active tab — solid accent fill with chamfer + glow */
+[data-theme='void'] .xt-nav-tab[data-active='true'] {
+  color: #fff !important;
+  background: var(--app-accent) !important;
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--app-accent) 70%, transparent),
+    0 0 18px color-mix(in srgb, var(--app-accent) 45%, transparent),
+    0 0 40px color-mix(in srgb, var(--app-accent) 20%, transparent) !important;
+  --cut: 6px;
+  clip-path: polygon(
+    var(--cut) 0, calc(100% - var(--cut)) 0,
+    100% var(--cut), 100% calc(100% - var(--cut)),
+    calc(100% - var(--cut)) 100%, var(--cut) 100%,
+    0 calc(100% - var(--cut)), 0 var(--cut)
+  ) !important;
+  border-radius: 0 !important;
+  overflow: hidden !important;
+}
+
+/* Main page panels — replace flat rounded corners with chamfered glass */
+[data-theme='void'] .rounded-xl,
+[data-theme='void'] .rounded-2xl,
+[data-theme='void'] .rounded-3xl {
+  --cut: 10px;
+  border-radius: 0 !important;
+  clip-path: polygon(
+    var(--cut) 0, calc(100% - var(--cut)) 0,
+    100% var(--cut), 100% calc(100% - var(--cut)),
+    calc(100% - var(--cut)) 100%, var(--cut) 100%,
+    0 calc(100% - var(--cut)), 0 var(--cut)
+  );
+}
+
+[data-theme='void'] .rounded-lg {
+  --cut: 7px;
+  border-radius: 0 !important;
+  clip-path: polygon(
+    var(--cut) 0, calc(100% - var(--cut)) 0,
+    100% var(--cut), 100% calc(100% - var(--cut)),
+    calc(100% - var(--cut)) 100%, var(--cut) 100%,
+    0 calc(100% - var(--cut)), 0 var(--cut)
+  );
+}
+
+[data-theme='void'] .rounded-md,
+[data-theme='void'] .rounded {
+  --cut: 5px;
+  border-radius: 0 !important;
+  clip-path: polygon(
+    var(--cut) 0, calc(100% - var(--cut)) 0,
+    100% var(--cut), 100% calc(100% - var(--cut)),
+    calc(100% - var(--cut)) 100%, var(--cut) 100%,
+    0 calc(100% - var(--cut)), 0 var(--cut)
+  );
+}
+
+/* Glass panels — backdrop blur on surfaces with background */
+[data-theme='void'] .bg-\[var\(--app-panel\)\],
+[data-theme='void'] .bg-\[var\(--ui-panel\)\] {
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+  background: rgba(var(--app-panel-rgb) / 0.85) !important;
+}
+
+[data-theme='void'] .bg-\[var\(--app-panel-2\)\],
+[data-theme='void'] .bg-\[var\(--ui-panel-2\)\] {
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+  background: rgba(var(--app-panel-2-rgb) / 0.9) !important;
+}
+
+/* Strong glow on active/focused interactive elements */
+[data-theme='void'] .ui-glow {
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--app-accent) 55%, transparent),
+    0 0 16px color-mix(in srgb, var(--app-accent) 40%, transparent),
+    0 0 40px color-mix(in srgb, var(--app-accent) 18%, transparent) !important;
+}
+
+[data-theme='void'] .ui-pressable:hover {
+  transform: translateY(-2px) scale(1.01);
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--app-accent) 32%, transparent),
+    0 0 12px color-mix(in srgb, var(--app-accent) 28%, transparent),
+    0 8px 24px rgba(0, 0, 0, 0.4) !important;
+}
+
+/* Borders pulse subtly with accent on key containers */
+[data-theme='void'] .border-\[var\(--app-border\)\],
+[data-theme='void'] .border-\[var\(--ui-border\)\] {
+  border-color: color-mix(in srgb, var(--app-accent) 18%, var(--app-border)) !important;
+}
+
+/* Home news tabs (card tabs in views) */
+[data-theme='void'] .xt-home-news-tab {
+  --cut: 10px;
+  border-radius: 0 !important;
+  overflow: hidden;
+  clip-path: polygon(
+    0 0, calc(100% - 14px) 0, calc(100% - 5px) 5px, 100% 14px,
+    100% 100%, 0 100%
+  );
+}
+
+[data-theme='void'] .xt-home-news-badge {
+  color: #fff !important;
+  background: var(--app-accent) !important;
+  border: none !important;
+  border-radius: 0 !important;
+  --cut: 5px;
+  clip-path: polygon(
+    0 0, calc(100% - 10px) 0, calc(100% - 4px) 4px, 100% 10px,
+    100% 100%, 0 100%
+  );
+}
+
+/* Rounded avatar/badge circles — keep these round */
+[data-theme='void'] .rounded-full {
+  clip-path: none !important;
+  border-radius: 9999px !important;
+}
+
+/* QUESTS button in topbar */
+[data-theme='void'] #hextech-assistant-toggle {
+  --cut: 6px;
+  clip-path: polygon(
+    var(--cut) 0, calc(100% - var(--cut)) 0,
+    100% var(--cut), 100% calc(100% - var(--cut)),
+    calc(100% - var(--cut)) 100%, var(--cut) 100%,
+    0 calc(100% - var(--cut)), 0 var(--cut)
+  ) !important;
+  border-radius: 0 !important;
+}
+
 [data-accent='neutral'] {
   --app-accent: #8ea2cc;
   --app-accent-weak: color-mix(in srgb, var(--app-accent) 18%, transparent);
