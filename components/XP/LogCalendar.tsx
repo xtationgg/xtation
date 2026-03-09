@@ -643,6 +643,7 @@ export const LogCalendar: React.FC = () => {
     startSession,
     stopSession,
     addManualSession,
+    addTask,
     updateTask,
     selectors,
     activeLogDateKey,
@@ -717,7 +718,8 @@ export const LogCalendar: React.FC = () => {
   const [dropTimePickerState, setDropTimePickerState] = useState<{ taskId: string; dayKey: string; hour: number } | null>(null);
   const [draggingDotId, setDraggingDotId] = useState<string | null>(null);
   const [draggingDotX, setDraggingDotX] = useState<number | null>(null);
-  const [qPopoverTab, setQPopoverTab] = useState<'log' | 'assign'>('log');
+  const [qPopoverTab, setQPopoverTab] = useState<'log' | 'assign' | 'create'>('log');
+  const [qlNewTitle, setQlNewTitle] = useState('');
   const dayConsoleListRef = useRef<HTMLDivElement | null>(null);
   const rowRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const hudContainerRef = useRef<HTMLDivElement | null>(null);
@@ -2928,7 +2930,7 @@ export const LogCalendar: React.FC = () => {
                   const isToday = day.key === todayKey;
                   const chDay = getChallengeDayState(day.key);
                   const wkIntensity = Math.min(1, daySummary.minutesTracked / 480);
-                  const wkTopTasks = selectors.getTopTasksForDay(day.key, 2, now);
+                  const wkTopTasks = selectors.getTopTasksForDay(day.key, 4, now);
                   const meta = dayMeta[day.key] || {};
                   const cardAccentColor = meta.color;
                   const cardTag = meta.tag;
@@ -2959,7 +2961,36 @@ export const LogCalendar: React.FC = () => {
                       }}
                       onMouseEnter={() => setHoveredWeekCard(day.key)}
                       onMouseLeave={() => setHoveredWeekCard(null)}
+                      onDragOver={(e) => { e.preventDefault(); setDragOverCell(day.key); }}
+                      onDragLeave={() => setDragOverCell(prev => prev === day.key ? null : prev)}
+                      onDrop={(e) => {
+                        e.preventDefault();
+                        setDragOverCell(null);
+                        setIsDraggingQuest(false);
+                        if (!dragStateRef.current) return;
+                        const { taskId } = dragStateRef.current;
+                        dragStateRef.current = null;
+                        const targetTask = taskByIdMap.get(taskId);
+                        if (!targetTask) return;
+                        const targetDayStart = fromDateKey(day.key).getTime();
+                        const todayMidnight = new Date(now);
+                        todayMidnight.setHours(0, 0, 0, 0);
+                        const isFutureDay = targetDayStart > todayMidnight.getTime();
+                        const existingHour = targetTask.scheduledAt ? new Date(targetTask.scheduledAt).getHours() : 12;
+                        const patch: Partial<Task> = { scheduledAt: targetDayStart + existingHour * 3600000 };
+                        if (isFutureDay && targetTask.status === 'done') patch.status = 'todo';
+                        updateTask(taskId, patch);
+                        setDropTimePickerState({ taskId, dayKey: day.key, hour: existingHour });
+                        setTimeout(() => setDropTimePickerState(null), 6000);
+                      }}
                     >
+                      {/* Drop overlay */}
+                      {dragOverCell === day.key && (
+                        <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center rounded-lg bg-[color-mix(in_srgb,var(--app-accent)_8%,transparent)] border-2 border-[color-mix(in_srgb,var(--app-accent)_50%,transparent)]">
+                          <span className="text-[9px] uppercase tracking-[0.2em] font-semibold text-[var(--app-accent)]">Move here</span>
+                        </div>
+                      )}
+
                       {/* Photo background */}
                       {cardPhoto && (
                         <div
@@ -3020,12 +3051,40 @@ export const LogCalendar: React.FC = () => {
 
                         {/* Quest list */}
                         <div className="flex-1 space-y-0.5 mt-0.5">
-                          {wkTopTasks.map((t, i) => (
-                            <div key={i} className="flex items-center gap-1">
-                              <p className={`text-[9px] truncate leading-snug flex-1 ${i === 0 ? 'text-[color-mix(in_srgb,var(--app-text)_70%,var(--app-muted))]' : 'text-[var(--app-muted)]'}`}>{t.title}</p>
-                              {t.minutes > 0 && <span className="text-[8px] text-[var(--app-muted)] tabular-nums shrink-0">{t.minutes}m</span>}
-                            </div>
-                          ))}
+                          {wkTopTasks.map((t) => {
+                            const wkTask = taskByIdMap.get(t.taskId);
+                            const isDraggable = !!wkTask && wkTask.status !== 'done';
+                            const catColor = getCategoryColor(wkTask?.category);
+                            return (
+                              <div
+                                key={t.taskId}
+                                draggable={isDraggable}
+                                onPointerDown={(e) => { if (isDraggable) e.stopPropagation(); }}
+                                onDragStart={(e) => {
+                                  if (!isDraggable) return;
+                                  e.stopPropagation();
+                                  dragStateRef.current = { taskId: t.taskId, fromDateKey: day.key };
+                                  setIsDraggingQuest(true);
+                                  const ghost = document.createElement('div');
+                                  ghost.style.cssText = 'position:absolute;top:-9999px;padding:3px 8px;border-radius:4px;font-size:9px;font-family:monospace;background:#1a1a1e;border:1px solid rgba(255,255,255,0.15);color:#f1ebff;';
+                                  ghost.textContent = wkTask?.title || t.title;
+                                  document.body.appendChild(ghost);
+                                  e.dataTransfer.setDragImage(ghost, 0, 0);
+                                  setTimeout(() => document.body.removeChild(ghost), 0);
+                                }}
+                                onDragEnd={() => { dragStateRef.current = null; setIsDraggingQuest(false); }}
+                                onClick={(e) => { e.stopPropagation(); if (wkTask) setDetailTaskId(t.taskId); }}
+                                className={`flex items-center gap-1 rounded px-1.5 py-[3px] ${isDraggable ? 'cursor-grab active:cursor-grabbing' : 'cursor-pointer'}`}
+                                style={{
+                                  background: `color-mix(in srgb, ${catColor} 10%, var(--app-panel))`,
+                                  borderLeft: `2px solid ${catColor}`,
+                                }}
+                              >
+                                <span className={`truncate text-[9px] font-medium leading-snug ${wkTask?.status === 'done' ? 'line-through opacity-50' : 'text-[var(--app-text)]'}`}>{t.title}</span>
+                                {t.minutes > 0 && <span className="shrink-0 text-[7px] text-[var(--app-muted)] tabular-nums">{t.minutes}m</span>}
+                              </div>
+                            );
+                          })}
                         </div>
 
                         {/* Mini timeline strip */}
@@ -3223,10 +3282,17 @@ export const LogCalendar: React.FC = () => {
                         const targetTask = taskByIdMap.get(taskId);
                         if (!targetTask) return;
                         const targetDayStart = fromDateKey(day.key).getTime();
+                        const todayMidnight = new Date(now);
+                        todayMidnight.setHours(0, 0, 0, 0);
+                        const isFutureDay = targetDayStart > todayMidnight.getTime();
                         const existingHour = targetTask.scheduledAt
                           ? new Date(targetTask.scheduledAt).getHours()
                           : 12;
-                        updateTask(taskId, { scheduledAt: targetDayStart + existingHour * 3600000 });
+                        const patch: Partial<Task> = { scheduledAt: targetDayStart + existingHour * 3600000 };
+                        if (isFutureDay && targetTask.status === 'done') {
+                          patch.status = 'todo';
+                        }
+                        updateTask(taskId, patch);
                         setDropTimePickerState({ taskId, dayKey: day.key, hour: existingHour });
                         setTimeout(() => setDropTimePickerState(null), 6000);
                       }}
@@ -3298,7 +3364,14 @@ export const LogCalendar: React.FC = () => {
                       {!chDay.excluded && (
                         <button
                           type="button"
-                          onClick={(e) => { e.stopPropagation(); selectDate(day.key, day.date); setQuickPopoverKey(day.key); }}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            selectDate(day.key, day.date);
+                            const dayTs = fromDateKey(day.key).getTime();
+                            const todayMid = new Date(now); todayMid.setHours(0,0,0,0);
+                            setQPopoverTab(dayTs > todayMid.getTime() ? 'create' : 'log');
+                            setQuickPopoverKey(day.key);
+                          }}
                           className="absolute top-[3px] right-[3px] flex items-center justify-center h-[14px] w-[14px] rounded text-[10px] leading-none text-[var(--app-muted)] hover:text-[var(--app-text)] opacity-0 group-hover:opacity-100 transition-opacity z-[2]"
                         >
                           +
@@ -3333,6 +3406,7 @@ export const LogCalendar: React.FC = () => {
                             <div
                               key={t.taskId}
                               draggable={isDraggable}
+                              onPointerDown={(e) => { if (isDraggable) e.stopPropagation(); }}
                               onDragStart={(e) => {
                                 if (!isDraggable) return;
                                 e.stopPropagation();
@@ -3364,51 +3438,11 @@ export const LogCalendar: React.FC = () => {
                         {info.activityCount > 3 && (
                           <button
                             type="button"
-                            onClick={(e) => { e.stopPropagation(); setOverflowDayKey(prev => prev === day.key ? null : day.key); }}
+                            onClick={(e) => { e.stopPropagation(); selectDate(day.key, day.date); setQuickPopoverKey(day.key); setQPopoverTab('assign'); }}
                             className="text-[7px] text-[var(--app-muted)] hover:text-[var(--app-text)] transition-colors leading-snug pl-0.5 cursor-pointer"
                           >
                             +{info.activityCount - 3} more
                           </button>
-                        )}
-                        {overflowDayKey === day.key && (
-                          <div className="absolute left-0 top-full z-20 mt-0.5 w-full bg-[var(--app-panel-2)] border border-[color-mix(in_srgb,var(--app-text)_18%,transparent)] rounded-lg shadow-xl p-1.5 flex flex-col gap-1" onClick={(e) => e.stopPropagation()}>
-                            {selectors.getTopTasksForDay(day.key, 10, now).map((t) => {
-                              const cellTask = taskByIdMap.get(t.taskId);
-                              const isDraggable = !!cellTask && cellTask.status !== 'done';
-                              const catColor = getCategoryColor(cellTask?.category);
-                              return (
-                                <div
-                                  key={t.taskId}
-                                  draggable={isDraggable}
-                                  onDragStart={(e) => {
-                                    if (!isDraggable) return;
-                                    e.stopPropagation();
-                                    dragStateRef.current = { taskId: t.taskId, fromDateKey: day.key };
-                                    setIsDraggingQuest(true);
-                                    setOverflowDayKey(null);
-                                    const ghost = document.createElement('div');
-                                    ghost.style.cssText = 'position:absolute;top:-9999px;left:-9999px;padding:3px 6px;border-radius:4px;font-size:9px;font-family:monospace;background:#1a1a1e;border:1px solid rgba(255,255,255,0.15);color:#f1ebff;white-space:nowrap;';
-                                    ghost.textContent = cellTask?.title || t.title;
-                                    document.body.appendChild(ghost);
-                                    e.dataTransfer.setDragImage(ghost, 0, 0);
-                                    setTimeout(() => document.body.removeChild(ghost), 0);
-                                  }}
-                                  onDragEnd={() => { dragStateRef.current = null; setIsDraggingQuest(false); }}
-                                  onClick={(e) => { e.stopPropagation(); if (cellTask) setDetailTaskId(t.taskId); }}
-                                  className={`group/pill flex items-center gap-1 rounded px-1.5 py-[3px] transition-opacity duration-100 ${isDraggable ? 'cursor-grab active:cursor-grabbing' : 'cursor-pointer'}`}
-                                  style={{
-                                    background: `color-mix(in srgb, ${catColor} 10%, var(--app-panel))`,
-                                    borderLeft: `2px solid ${catColor}`,
-                                  }}
-                                >
-                                  {isDraggable && (
-                                    <span className="opacity-0 group-hover/pill:opacity-40 mr-0.5 text-[8px] leading-none select-none shrink-0" style={{ cursor: 'grab' }}>⠿</span>
-                                  )}
-                                  <span className={`truncate text-[9px] font-medium leading-snug ${cellTask?.status === 'done' ? 'line-through opacity-50' : 'text-[var(--app-text)]'}`}>{t.title}</span>
-                                </div>
-                              );
-                            })}
-                          </div>
                         )}
                       </div>
 
@@ -3639,6 +3673,7 @@ export const LogCalendar: React.FC = () => {
           const qSummary = selectors.getDaySummary(qKey, now) || EMPTY_DAY_SUMMARY;
           const qDateLabel = fromDateKey(qKey).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
           const qTopTasks = selectors.getTopTasksForDay(qKey, 3, now);
+          const qIsFuture = fromDateKey(qKey).getTime() > (() => { const d = new Date(now); d.setHours(0,0,0,0); return d.getTime(); })();
           return (
             <div
               className="rounded-xl border border-[color-mix(in_srgb,var(--app-accent)_30%,transparent)] bg-[var(--app-panel)] overflow-hidden"
@@ -3649,16 +3684,19 @@ export const LogCalendar: React.FC = () => {
                 <div className="min-w-0 flex-1 flex items-center gap-2 flex-wrap">
                   <span className="text-[13px] font-medium text-[var(--app-text)]">{qDateLabel}</span>
                   <div className="flex gap-1">
-                    {(['log', 'assign'] as const).map(tab => (
-                      <button
-                        key={tab}
-                        type="button"
-                        onClick={() => setQPopoverTab(tab)}
-                        className={`px-2 py-0.5 rounded text-[9px] uppercase tracking-[0.14em] transition-colors ${qPopoverTab === tab ? 'bg-[color-mix(in_srgb,var(--app-accent)_18%,var(--app-panel-2))] text-[var(--app-accent)]' : 'text-[var(--app-muted)] hover:text-[var(--app-text)]'}`}
-                      >
-                        {tab === 'log' ? 'Log' : 'Assign Quest'}
-                      </button>
-                    ))}
+                    {(['log', 'assign', 'create'] as const)
+                      .filter(tab => tab === 'log' ? !qIsFuture : true)
+                      .map(tab => (
+                        <button
+                          key={tab}
+                          type="button"
+                          onClick={() => setQPopoverTab(tab as 'log' | 'assign' | 'create')}
+                          className={`px-2 py-0.5 rounded text-[9px] uppercase tracking-[0.14em] transition-colors ${qPopoverTab === tab ? 'bg-[color-mix(in_srgb,var(--app-accent)_18%,var(--app-panel-2))] text-[var(--app-accent)]' : 'text-[var(--app-muted)] hover:text-[var(--app-text)]'}`}
+                        >
+                          {tab === 'log' ? 'Log' : tab === 'assign' ? 'Assign' : 'New Quest'}
+                        </button>
+                      ))
+                    }
                   </div>
                 </div>
                 <div className="flex items-center gap-3 text-[10px] text-[var(--app-muted)] uppercase tracking-[0.14em]">
@@ -3667,7 +3705,7 @@ export const LogCalendar: React.FC = () => {
                 </div>
                 <button
                   type="button"
-                  onClick={() => setQuickPopoverKey(null)}
+                  onClick={() => { setQuickPopoverKey(null); setQPopoverTab('log'); }}
                   className="flex h-6 w-6 items-center justify-center rounded border border-[color-mix(in_srgb,var(--app-text)_14%,transparent)] text-[var(--app-muted)] hover:text-[var(--app-text)] text-[12px] transition-colors"
                 >
                   ×
@@ -3689,7 +3727,7 @@ export const LogCalendar: React.FC = () => {
               )}
 
               {/* Quick-log form */}
-              {qPopoverTab === 'log' && (
+              {!qIsFuture && qPopoverTab === 'log' && (
               <div className="px-4 py-3 flex flex-wrap items-center gap-2 border-b border-[color-mix(in_srgb,var(--app-text)_8%,transparent)]">
                 <input
                   type="text"
@@ -3731,6 +3769,60 @@ export const LogCalendar: React.FC = () => {
               </div>
               )}
 
+              {/* Create Quest tab */}
+              {qPopoverTab === 'create' && (
+                <div className="px-4 py-3 flex flex-col gap-2 border-b border-[color-mix(in_srgb,var(--app-text)_8%,transparent)]">
+                  <input
+                    type="text"
+                    placeholder="Quest title..."
+                    value={qlNewTitle}
+                    onChange={(e) => setQlNewTitle(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && qlNewTitle.trim()) {
+                        const dayStart = fromDateKey(qKey).getTime();
+                        addTask({
+                          title: qlNewTitle.trim(),
+                          details: '',
+                          priority: 'normal',
+                          status: 'todo',
+                          scheduledAt: dayStart + 9 * 3600000,
+                        });
+                        setQlNewTitle('');
+                        setQuickPopoverKey(null);
+                        setQPopoverTab('log');
+                      }
+                    }}
+                    className="flex-1 rounded border border-[color-mix(in_srgb,var(--app-text)_14%,transparent)] bg-[var(--app-panel-2)] px-2.5 py-1.5 text-[11px] text-[var(--app-text)] placeholder-[var(--app-muted)] outline-none focus:border-[color-mix(in_srgb,var(--app-accent)_50%,transparent)]"
+                    autoFocus
+                  />
+                  <div className="flex items-center gap-2">
+                    {(['normal', 'high', 'urgent'] as const).map(p => (
+                      <button
+                        key={p}
+                        type="button"
+                        className="px-2 py-0.5 rounded border text-[9px] uppercase tracking-[0.12em] transition-colors border-[color-mix(in_srgb,var(--app-text)_14%,transparent)] text-[var(--app-muted)] hover:text-[var(--app-text)]"
+                        onClick={() => {
+                          if (!qlNewTitle.trim()) return;
+                          const dayStart = fromDateKey(qKey).getTime();
+                          addTask({
+                            title: qlNewTitle.trim(),
+                            details: '',
+                            priority: p,
+                            status: 'todo',
+                            scheduledAt: dayStart + 9 * 3600000,
+                          });
+                          setQlNewTitle('');
+                          setQuickPopoverKey(null);
+                          setQPopoverTab('log');
+                        }}
+                      >
+                        {p === 'normal' ? '+ Normal' : p === 'high' ? '⚡ High' : '🔴 Urgent'}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {/* Assign Quest tab */}
               {qPopoverTab === 'assign' && (
                 <div className="px-2 py-2 max-h-[160px] overflow-y-auto flex flex-col gap-1">
@@ -3746,6 +3838,7 @@ export const LogCalendar: React.FC = () => {
                           const hour = t.scheduledAt ? new Date(t.scheduledAt).getHours() : 9;
                           updateTask(t.id, { scheduledAt: dayStart + hour * 3600000 });
                           setQuickPopoverKey(null);
+                          setQPopoverTab('log');
                         }}
                         className="flex items-center gap-2 rounded px-2 py-1.5 text-left hover:bg-[color-mix(in_srgb,var(--app-accent)_8%,var(--app-panel-2))] transition-colors group"
                       >
