@@ -1,5 +1,5 @@
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { HexCard } from '../UI/HextechUI';
 import { InventoryCategory, InventoryItem } from '../../types';
 import { Plus, Trash2, Upload, Box, Car, Wrench, Shirt, Cpu, Settings, Loader2, X } from 'lucide-react';
@@ -9,10 +9,15 @@ import { supabase } from '../../src/lib/supabaseClient';
 import type { UserFileRow } from '../../src/lib/attachments/types';
 import { useXP } from '../XP/xpStore';
 import type { InventorySlot } from '../XP/xpTypes';
+import { useXtationSettings } from '../../src/settings/SettingsProvider';
+import { useTheme } from '../../src/theme/ThemeProvider';
+import { getActiveCapabilityItems } from '../../src/inventory/models';
 
 export const Inventory: React.FC<{ uiTheme?: 'kpr' | 'valorant-a' | 'valorant-b' }> = ({ uiTheme = 'kpr' }) => {
     const { inventorySlots, addInventorySlot, updateInventorySlot, deleteInventorySlot } = useXP();
     const { user } = useAuth();
+    const { settings } = useXtationSettings();
+    const { theme } = useTheme();
     const activeUserId = user?.id || null;
     type InventoryAttachment = UserFileRow & { thumbUrl: string | null };
     const isValorantB = uiTheme === 'valorant-b';
@@ -47,6 +52,7 @@ export const Inventory: React.FC<{ uiTheme?: 'kpr' | 'valorant-a' | 'valorant-b'
     const [editingLedgerSlotName, setEditingLedgerSlotName] = useState('');
 
     const activeLedgerSlots = inventorySlots.filter((s) => s.category === activeCategory);
+    const activeCapabilityItems = useMemo(() => getActiveCapabilityItems(settings, theme), [settings, theme]);
 
     const handleAddLedgerItem = () => {
         const name = newLedgerItemName.trim();
@@ -201,8 +207,9 @@ export const Inventory: React.FC<{ uiTheme?: 'kpr' | 'valorant-a' | 'valorant-b'
         let isCancelled = false;
         const run = async () => {
             if (!activeUserId) {
-                console.error('[Inventory] missing session/user during fetch');
                 setItemAttachments([]);
+                setAttachmentsLoading(false);
+                setAttachmentsError('');
                 return;
             }
             setAttachmentsLoading(true);
@@ -529,7 +536,7 @@ export const Inventory: React.FC<{ uiTheme?: 'kpr' | 'valorant-a' | 'valorant-b'
     };
 
     return (
-        <div className={(isValorantB ? 'p-10 ui-font ' : 'p-8 ') + 'h-full overflow-y-auto custom-scrollbar flex flex-col'}>
+        <div className={(isValorantB ? 'p-10 ui-font ' : 'xt-inventory-shell p-8 ') + 'h-full overflow-y-auto custom-scrollbar flex flex-col'}>
             {/* Header */}
             {isValorantB ? (
               <div className="mb-10 ui-panel clip-cut-corner border border-white/15 bg-black/20 overflow-hidden">
@@ -547,7 +554,7 @@ export const Inventory: React.FC<{ uiTheme?: 'kpr' | 'valorant-a' | 'valorant-b'
                 <div className="h-[1px] bg-[linear-gradient(90deg,transparent,rgba(255,70,85,0.7),transparent)]" />
               </div>
             ) : (
-              <div className="flex items-center justify-between mb-8 border-b border-[var(--ui-border)] pb-4">
+              <div className="xt-inventory-header flex items-center justify-between mb-8 pb-4">
                 <div>
                   <h1 className="text-4xl font-black text-white uppercase tracking-tighter">Armory Database</h1>
                   <div className="flex items-center gap-2 mt-1">
@@ -580,7 +587,7 @@ export const Inventory: React.FC<{ uiTheme?: 'kpr' | 'valorant-a' | 'valorant-b'
                 ))}
               </div>
             ) : (
-              <div className="flex gap-4 mb-8">
+              <div className="xt-inventory-nav flex gap-4 mb-8">
                 {categories.map(cat => (
                   <button
                     key={cat}
@@ -588,7 +595,7 @@ export const Inventory: React.FC<{ uiTheme?: 'kpr' | 'valorant-a' | 'valorant-b'
                     onMouseEnter={playHoverSound}
                     className={
                       `
-                            px-6 py-3 font-mono text-xs font-bold uppercase tracking-widest transition-all duration-300 border flex items-center gap-2
+                            xt-inventory-nav-btn px-6 py-3 font-mono text-xs font-bold uppercase tracking-widest transition-all duration-300 border flex items-center gap-2
                             ${activeCategory === cat 
                                 ? 'bg-white text-black border-white shadow-[0_0_15px_rgba(255,255,255,0.2)]' 
                                 : 'bg-[var(--ui-surface)] text-[var(--ui-muted)] border-[var(--ui-border)] hover:text-white hover:border-white'}
@@ -686,7 +693,7 @@ export const Inventory: React.FC<{ uiTheme?: 'kpr' | 'valorant-a' | 'valorant-b'
 
                             {/* Media Frame */}
                             <div
-                                className="relative rounded-2xl clip-cut-corner border border-[#2a2a2a] bg-[var(--ui-panel)] overflow-hidden inventory-preview-frame"
+                                className="xt-inventory-preview relative clip-cut-corner overflow-hidden inventory-preview-frame"
                                 style={{ aspectRatio: '4 / 3' }}
                             >
                                 {/* corner ticks */}
@@ -703,7 +710,7 @@ export const Inventory: React.FC<{ uiTheme?: 'kpr' | 'valorant-a' | 'valorant-b'
 
                                 {/* settings button */}
                                 <button
-                                    className="absolute top-3 right-3 z-20 w-10 h-10 rounded-lg border border-[var(--ui-border)] bg-[#d9d9d9] text-black flex items-center justify-center hover:bg-white transition-colors"
+                                    className="xt-inventory-icon-btn absolute top-3 right-3 z-20 w-10 h-10 flex items-center justify-center text-[var(--app-text)]"
                                     title="Edit item"
                                     onClick={(e) => { e.stopPropagation(); setDetailEditOpen(v => !v); }}
                                 >
@@ -744,7 +751,7 @@ export const Inventory: React.FC<{ uiTheme?: 'kpr' | 'valorant-a' | 'valorant-b'
                             </div>
 
                             {/* Text / Details */}
-                            <div className="mt-4 rounded-2xl clip-cut-corner border border-[#2a2a2a] bg-[var(--ui-panel)] p-4">
+                            <div className="xt-inventory-detail-card mt-4 clip-cut-corner p-4">
                                 {detailEditOpen ? (
                                     <div className="space-y-3">
                                         <div className="flex items-center justify-between gap-3">
@@ -753,7 +760,7 @@ export const Inventory: React.FC<{ uiTheme?: 'kpr' | 'valorant-a' | 'valorant-b'
                                                 value={selectedItem.importance || 'high'}
                                                 onChange={() => {}}
                                                 disabled
-                                                className="bg-[var(--ui-bg)] border border-[var(--ui-border)] px-2 py-1 text-[10px] uppercase tracking-[0.2em] text-white"
+                                                className="xt-inventory-input px-2 py-1 text-[10px] uppercase tracking-[0.2em] text-[var(--app-text)]"
                                                 title="Importance"
                                             >
                                                 <option value="low">LOW</option>
@@ -769,7 +776,7 @@ export const Inventory: React.FC<{ uiTheme?: 'kpr' | 'valorant-a' | 'valorant-b'
                                                 value={selectedItem.name || ''}
                                                 onChange={() => {}}
                                                 readOnly
-                                                className="mt-2 w-full bg-[var(--ui-bg)] border border-[var(--ui-border)] px-3 py-2 text-white text-sm font-mono outline-none focus:border-[var(--ui-accent)]"
+                                                className="xt-inventory-input mt-2 w-full px-3 py-2 text-sm font-mono text-[var(--app-text)]"
                                                 placeholder="Title…"
                                             />
                                         </div>
@@ -780,7 +787,7 @@ export const Inventory: React.FC<{ uiTheme?: 'kpr' | 'valorant-a' | 'valorant-b'
                                                 value={selectedItem.details || ''}
                                                 onChange={() => {}}
                                                 readOnly
-                                                className="mt-2 w-full bg-[var(--ui-bg)] border border-[var(--ui-border)] px-3 py-2 text-white text-sm font-mono outline-none focus:border-[var(--ui-accent)]"
+                                                className="xt-inventory-input xt-inventory-textarea mt-2 w-full px-3 py-2 text-sm font-mono text-[var(--app-text)]"
                                                 placeholder="Add detailed text…"
                                                 rows={4}
                                             />
@@ -798,7 +805,7 @@ export const Inventory: React.FC<{ uiTheme?: 'kpr' | 'valorant-a' | 'valorant-b'
                                 )}
                             </div>
 
-                            <div className="mt-4 rounded-2xl clip-cut-corner border border-[#2a2a2a] bg-[var(--ui-panel)] p-4">
+                            <div className="xt-inventory-detail-card mt-4 clip-cut-corner p-4">
                                 <div className="flex items-center justify-between gap-3">
                                     <div>
                                         <div className="text-[10px] uppercase tracking-[0.25em] text-[var(--ui-muted)]">Media</div>
@@ -808,7 +815,7 @@ export const Inventory: React.FC<{ uiTheme?: 'kpr' | 'valorant-a' | 'valorant-b'
                                     </div>
                                     <button
                                         type="button"
-                                        className="px-3 py-2 rounded-lg border border-[var(--ui-border)] text-[11px] uppercase tracking-[0.15em] text-[var(--ui-muted)] hover:text-white hover:border-[#e6e8ee] transition-colors disabled:opacity-60"
+                                        className="xt-inventory-action px-3 py-2 text-[11px] uppercase tracking-[0.15em] text-[var(--ui-muted)] hover:text-white disabled:opacity-60"
                                         onClick={() => attachmentInputRef.current?.click()}
                                         disabled={attachmentsUploading || !selectedItem}
                                     >
@@ -839,7 +846,7 @@ export const Inventory: React.FC<{ uiTheme?: 'kpr' | 'valorant-a' | 'valorant-b'
                                                         handleOpenAttachmentViewer(attachment);
                                                     }
                                                 }}
-                                                className="group relative aspect-square rounded-lg border border-[var(--ui-border)] overflow-hidden bg-[var(--ui-bg)] hover:border-[#e6e8ee] transition-colors cursor-pointer"
+                                                className="xt-inventory-attachment group relative aspect-square overflow-hidden cursor-pointer"
                                                 title={attachment.title || 'Media'}
                                             >
                                                 {attachment.thumbUrl ? (
@@ -849,12 +856,12 @@ export const Inventory: React.FC<{ uiTheme?: 'kpr' | 'valorant-a' | 'valorant-b'
                                                         No thumb
                                                     </div>
                                                 )}
-                                                <div className="absolute left-1 bottom-1 px-1.5 py-0.5 rounded bg-black/70 text-[8px] uppercase tracking-[0.15em] text-white">
+                                                <div className="xt-inventory-chip absolute left-1 bottom-1 px-1.5 py-0.5 text-[8px] uppercase tracking-[0.15em] text-white">
                                                     cloud
                                                 </div>
                                                 <button
                                                     type="button"
-                                                    className="absolute top-1 right-1 w-6 h-6 rounded-full bg-black/70 border border-white/15 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                                                    className="xt-inventory-icon-btn absolute top-1 right-1 h-6 w-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity text-white"
                                                     onClick={(event) => handleRemoveAttachment(attachment, event)}
                                                     title="Delete media"
                                                 >
@@ -877,7 +884,7 @@ export const Inventory: React.FC<{ uiTheme?: 'kpr' | 'valorant-a' | 'valorant-b'
             </div>
 
             {/* Ledger Items — local-first data model (no Supabase required) */}
-            <div className="mt-8 rounded-[12px] border border-[var(--app-border)] bg-[var(--app-panel)] p-4">
+            <div className="xt-inventory-system-card mt-8 p-4">
                 <div className="mb-3 flex items-center justify-between gap-2">
                     <div>
                         <div className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[var(--app-text)]">
@@ -895,13 +902,13 @@ export const Inventory: React.FC<{ uiTheme?: 'kpr' | 'valorant-a' | 'valorant-b'
                         value={newLedgerItemName}
                         onChange={(e) => setNewLedgerItemName(e.target.value)}
                         onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleAddLedgerItem(); } }}
-                        className="flex-1 rounded-lg border border-[var(--app-border)] bg-[var(--app-panel-2)] px-2.5 py-1.5 text-[12px] text-[var(--app-text)] outline-none focus:border-[var(--app-accent)]"
+                        className="xt-inventory-input flex-1 px-2.5 py-1.5 text-[12px] text-[var(--app-text)]"
                         placeholder={`New ${activeCategory.toLowerCase()} item name`}
                     />
                     <button
                         type="button"
                         onClick={handleAddLedgerItem}
-                        className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-[var(--app-border)] text-[var(--app-text)] hover:border-[var(--app-accent)]"
+                        className="xt-inventory-icon-btn inline-flex h-8 w-8 shrink-0 items-center justify-center"
                         aria-label="Add ledger item"
                     >
                         <Plus size={14} />
@@ -913,7 +920,7 @@ export const Inventory: React.FC<{ uiTheme?: 'kpr' | 'valorant-a' | 'valorant-b'
                         {activeLedgerSlots.map((slot) => (
                             <div
                                 key={slot.id}
-                                className="flex items-center gap-2 rounded-lg border border-[var(--app-border)] bg-[var(--app-panel-2)] px-2.5 py-1.5"
+                                className="xt-inventory-ledger-row flex items-center gap-2 px-2.5 py-1.5"
                             >
                                 {editingLedgerSlotId === slot.id ? (
                                     <input
@@ -945,7 +952,7 @@ export const Inventory: React.FC<{ uiTheme?: 'kpr' | 'valorant-a' | 'valorant-b'
                                     type="button"
                                     aria-label="Delete ledger item"
                                     onClick={() => { deleteInventorySlot(slot.id); playClickSound(); }}
-                                    className="shrink-0 inline-flex h-6 w-6 items-center justify-center rounded border border-[var(--app-border)] text-[var(--app-muted)] hover:text-[var(--app-accent)] hover:border-[var(--app-accent)] transition-colors"
+                                    className="xt-inventory-icon-btn shrink-0 inline-flex h-6 w-6 items-center justify-center text-[var(--app-muted)]"
                                 >
                                     <Trash2 size={11} />
                                 </button>
@@ -983,7 +990,7 @@ export const Inventory: React.FC<{ uiTheme?: 'kpr' | 'valorant-a' | 'valorant-b'
             {attachmentViewer ? (
                 <div className="fixed inset-0 z-[220] bg-black/70 flex items-center justify-center p-6" onMouseDown={closeAttachmentViewer}>
                     <div
-                        className="w-full max-w-4xl rounded-2xl border border-[var(--ui-border)] bg-[var(--ui-panel)] overflow-hidden"
+                        className="xt-inventory-viewer w-full max-w-4xl overflow-hidden"
                         onMouseDown={(event) => event.stopPropagation()}
                     >
                         <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--ui-border)]">
@@ -993,7 +1000,7 @@ export const Inventory: React.FC<{ uiTheme?: 'kpr' | 'valorant-a' | 'valorant-b'
                             </div>
                             <button
                                 type="button"
-                                className="w-9 h-9 rounded-full border border-[var(--ui-border)] bg-[var(--ui-panel)] hover:border-white transition-colors flex items-center justify-center"
+                                className="xt-inventory-icon-btn w-9 h-9 flex items-center justify-center"
                                 onClick={closeAttachmentViewer}
                             >
                                 <X size={14} />
@@ -1022,7 +1029,7 @@ export const Inventory: React.FC<{ uiTheme?: 'kpr' | 'valorant-a' | 'valorant-b'
                                     <a
                                         href={attachmentViewer.sourceUrl}
                                         download={attachmentViewer.item.title || 'attachment'}
-                                        className="px-4 py-2 border border-[var(--ui-border)] rounded text-[12px] uppercase tracking-[0.15em] hover:border-white transition-colors"
+                                        className="xt-inventory-action px-4 py-2 text-[12px] uppercase tracking-[0.15em] text-[var(--app-text)]"
                                     >
                                         Download File
                                     </a>
@@ -1046,10 +1053,68 @@ export const Inventory: React.FC<{ uiTheme?: 'kpr' | 'valorant-a' | 'valorant-b'
                 </div>
             ) : null}
 
+            <div className="xt-inventory-system-card mt-8 p-4">
+                <div className="mb-3 flex items-center justify-between gap-2">
+                    <div>
+                        <div className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[var(--app-text)]">
+                            System Assets
+                        </div>
+                        <div className="text-[9px] uppercase tracking-[0.1em] text-[var(--app-muted)]">
+                            Active themes, widgets, and modules working inside XTATION right now
+                        </div>
+                    </div>
+                    <span className="font-mono text-[9px] text-[var(--app-muted)]">{activeCapabilityItems.length}</span>
+                </div>
+
+                {activeCapabilityItems.length ? (
+                    <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+                        {activeCapabilityItems.map((item) => (
+                            <div
+                                key={item.id}
+                                className="xt-inventory-system-item px-3 py-3"
+                            >
+                                <div className="flex items-start justify-between gap-3">
+                                    <div className="min-w-0">
+                                        <div className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--app-text)]">
+                                            {item.title}
+                                        </div>
+                                        <div className="mt-1 text-[9px] uppercase tracking-[0.16em] text-[var(--app-muted)]">
+                                            {item.kind} · {item.sourceLabel}
+                                        </div>
+                                    </div>
+                                    <div className="xt-inventory-chip shrink-0 px-2 py-1 text-[8px] uppercase tracking-[0.14em] text-[var(--app-muted)]">
+                                        active
+                                    </div>
+                                </div>
+
+                                <div className="mt-3 text-[12px] leading-5 text-[var(--ui-muted)]">
+                                    {item.description}
+                                </div>
+
+                                <div className="mt-3 flex flex-wrap gap-1.5">
+                                    {item.highlights.slice(0, 3).map((highlight) => (
+                                        <span
+                                            key={`${item.id}-${highlight}`}
+                                            className="xt-inventory-chip px-2 py-1 text-[8px] uppercase tracking-[0.12em] text-[var(--ui-muted)]"
+                                        >
+                                            {highlight}
+                                        </span>
+                                    ))}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                ) : (
+                    <div className="text-[10px] text-[var(--app-muted)]">
+                        No active system assets yet. Enable themes, widgets, or Lab modules in Store and they will appear here.
+                    </div>
+                )}
+            </div>
+
             {/* Footer Status */}
             <div className="mt-8 border-t border-[var(--ui-border)] pt-4 flex justify-between text-[10px] text-[var(--ui-muted)] font-mono uppercase">
                 <span>SECTION: {activeCategory}</span>
-                <span>SYNC STATUS: ONLINE</span>
+                <span>SYNC STATUS: {activeUserId ? 'CLOUD READY' : 'LOCAL ONLY'}</span>
             </div>
         </div>
     );

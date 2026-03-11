@@ -1,0 +1,1151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UX DNA Viewer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0a0a0a;
+    --surface: #141414;
+    --card: #1a1a1a;
+    --border: #252525;
+    --accent: #7c5cfc;
+    --accent-dim: rgba(124,92,252,0.15);
+    --done: #22c55e;
+    --done-dim: rgba(34,197,94,0.12);
+    --partial: #f59e0b;
+    --partial-dim: rgba(245,158,11,0.12);
+    --missing-bg: #222;
+    --missing-text: #555;
+    --text: #e8e8e8;
+    --text-muted: #666;
+    --text-dim: #444;
+    --font: 'Inter', sans-serif;
+    --mono: 'JetBrains Mono', monospace;
+    --radius: 8px;
+    --radius-sm: 5px;
+  }
+
+  html, body {
+    height: 100%;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font);
+    font-size: 14px;
+    line-height: 1.5;
+    overflow: hidden;
+  }
+
+  /* ─── EMPTY STATE ──────────────────────────────────────────────── */
+  #empty-state {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    background: var(--bg);
+    z-index: 100;
+  }
+  #empty-state.hidden { display: none; }
+
+  .empty-icon {
+    width: 72px;
+    height: 72px;
+    border-radius: 18px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--accent);
+  }
+  .empty-icon svg { width: 36px; height: 36px; }
+  .empty-title {
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--text);
+    text-align: center;
+  }
+  .empty-sub {
+    color: var(--text-muted);
+    text-align: center;
+    max-width: 340px;
+    font-size: 13px;
+  }
+  .btn-primary {
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: var(--radius-sm);
+    padding: 10px 22px;
+    font-size: 13px;
+    font-weight: 600;
+    font-family: var(--font);
+    cursor: pointer;
+    transition: opacity .15s, transform .1s;
+    letter-spacing: .01em;
+  }
+  .btn-primary:hover { opacity: .88; transform: translateY(-1px); }
+  .btn-primary:active { transform: translateY(0); opacity: 1; }
+
+  .btn-secondary {
+    background: var(--surface);
+    color: var(--text);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 8px 16px;
+    font-size: 12px;
+    font-weight: 500;
+    font-family: var(--font);
+    cursor: pointer;
+    transition: background .15s, border-color .15s;
+  }
+  .btn-secondary:hover { background: var(--card); border-color: #333; }
+
+  /* ─── MAIN LAYOUT ──────────────────────────────────────────────── */
+  #app {
+    display: flex;
+    height: 100vh;
+  }
+  #app.hidden { display: none; }
+
+  /* ─── LEFT SIDEBAR ─────────────────────────────────────────────── */
+  #sidebar {
+    width: 360px;
+    flex-shrink: 0;
+    background: var(--surface);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    padding: 24px 20px;
+    gap: 20px;
+  }
+
+  #sidebar::-webkit-scrollbar { width: 4px; }
+  #sidebar::-webkit-scrollbar-track { background: transparent; }
+  #sidebar::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+  .sidebar-top {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+  .sidebar-top .btn-primary { flex: 1; }
+  .sidebar-top .btn-secondary { flex-shrink: 0; }
+
+  .project-name {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--text);
+    line-height: 1.2;
+    word-break: break-word;
+  }
+  .project-name.placeholder { color: var(--text-muted); font-style: italic; font-weight: 400; font-size: 16px; }
+
+  .meta-row {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .meta-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+  .meta-item span { color: var(--text); font-weight: 500; }
+
+  /* Completion Ring */
+  .ring-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    padding: 20px 0 16px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+  }
+  .ring-svg-wrap { position: relative; width: 120px; height: 120px; }
+  .ring-svg-wrap svg { transform: rotate(-90deg); }
+  .ring-center {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1px;
+  }
+  .ring-number {
+    font-size: 24px;
+    font-weight: 700;
+    line-height: 1;
+  }
+  .ring-label {
+    font-size: 11px;
+    color: var(--text-muted);
+    text-align: center;
+  }
+  .ring-sub {
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+  .ring-sub strong { color: var(--text); font-weight: 600; }
+
+  /* Quick Read */
+  .section-label {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: .1em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+  }
+  .quick-read-box {
+    background: #0d0d0d;
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent);
+    border-radius: var(--radius-sm);
+    padding: 14px;
+    font-family: var(--mono);
+    font-size: 11.5px;
+    line-height: 1.7;
+    color: #b0b0b0;
+    white-space: pre-wrap;
+    word-break: break-word;
+    max-height: 260px;
+    overflow-y: auto;
+  }
+  .quick-read-box::-webkit-scrollbar { width: 3px; }
+  .quick-read-box::-webkit-scrollbar-thumb { background: var(--border); }
+
+  .not-filled {
+    color: var(--text-dim);
+    font-style: italic;
+    font-size: 12px;
+  }
+
+  /* ─── MAIN CONTENT ─────────────────────────────────────────────── */
+  #main {
+    flex: 1;
+    overflow-y: auto;
+    padding: 28px 28px 48px;
+    display: flex;
+    flex-direction: column;
+    gap: 36px;
+  }
+  #main::-webkit-scrollbar { width: 6px; }
+  #main::-webkit-scrollbar-track { background: transparent; }
+  #main::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+  .section-heading {
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .section-heading::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  /* ─── LAYER GRID ───────────────────────────────────────────────── */
+  .layer-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+  }
+
+  @media (max-width: 1100px) {
+    .layer-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  .layer-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px;
+    cursor: pointer;
+    transition: background .15s, border-color .15s;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-height: 90px;
+  }
+  .layer-card:hover {
+    background: #1f1f1f;
+    border-color: #303030;
+  }
+  .layer-card.done { border-left: 3px solid var(--done); }
+  .layer-card.partial { border-left: 3px solid var(--partial); }
+  .layer-card.missing { border-left: 3px solid #333; }
+
+  .layer-num {
+    font-size: 10px;
+    color: var(--text-muted);
+    font-weight: 600;
+    letter-spacing: .06em;
+    font-family: var(--mono);
+  }
+  .layer-name {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+    line-height: 1.3;
+    padding-right: 52px;
+  }
+  .layer-notes {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-top: 4px;
+    line-height: 1.5;
+    display: none;
+  }
+  .layer-card.expanded .layer-notes { display: block; }
+  .layer-notes.placeholder { color: var(--text-dim); font-style: italic; }
+
+  .status-badge {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: .04em;
+    padding: 3px 8px;
+    border-radius: 20px;
+    text-transform: uppercase;
+  }
+  .badge-done {
+    background: var(--done-dim);
+    color: var(--done);
+    border: 1px solid rgba(34,197,94,0.25);
+  }
+  .badge-partial {
+    background: var(--partial-dim);
+    color: var(--partial);
+    border: 1px solid rgba(245,158,11,0.25);
+  }
+  .badge-missing {
+    background: var(--missing-bg);
+    color: var(--missing-text);
+    border: 1px solid #2a2a2a;
+  }
+
+  /* ─── DECISIONS ─────────────────────────────────────────────────── */
+  .decisions-search-wrap {
+    margin-bottom: 12px;
+  }
+  .decisions-search {
+    width: 100%;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 9px 14px;
+    color: var(--text);
+    font-family: var(--font);
+    font-size: 13px;
+    outline: none;
+    transition: border-color .15s;
+  }
+  .decisions-search::placeholder { color: var(--text-dim); }
+  .decisions-search:focus { border-color: var(--accent); }
+
+  .decisions-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+  }
+  .decision-item {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 12px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    transition: background .12s;
+  }
+  .decision-item:hover { background: #1e1e1e; }
+  .decision-meta {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  .pill {
+    font-size: 10px;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 20px;
+    letter-spacing: .03em;
+  }
+  .pill-date {
+    background: var(--accent-dim);
+    color: var(--accent);
+    border: 1px solid rgba(124,92,252,0.2);
+    font-family: var(--mono);
+  }
+  .pill-topic {
+    background: #1e1e1e;
+    color: #888;
+    border: 1px solid var(--border);
+  }
+  .decision-text {
+    font-size: 13px;
+    color: var(--text);
+    line-height: 1.5;
+  }
+  .no-items { color: var(--text-muted); font-size: 13px; font-style: italic; }
+
+  /* ─── SESSION TIMELINE ──────────────────────────────────────────── */
+  .sessions-timeline {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    position: relative;
+  }
+  .sessions-timeline::before {
+    content: '';
+    position: absolute;
+    left: 11px;
+    top: 12px;
+    bottom: 12px;
+    width: 1px;
+    background: var(--border);
+  }
+  .session-item {
+    display: flex;
+    gap: 18px;
+    padding-bottom: 20px;
+    position: relative;
+  }
+  .session-item:last-child { padding-bottom: 0; }
+  .session-dot {
+    width: 23px;
+    height: 23px;
+    border-radius: 50%;
+    background: var(--card);
+    border: 2px solid var(--accent);
+    flex-shrink: 0;
+    margin-top: 8px;
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 9px;
+    font-weight: 700;
+    color: var(--accent);
+    font-family: var(--mono);
+  }
+  .session-content {
+    flex: 1;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    cursor: pointer;
+    transition: border-color .15s;
+  }
+  .session-content:hover { border-color: #333; }
+  .session-header {
+    padding: 12px 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .session-num {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--accent);
+  }
+  .session-date {
+    font-size: 12px;
+    color: var(--text-muted);
+    font-family: var(--mono);
+  }
+  .session-ai {
+    margin-left: auto;
+    font-size: 11px;
+    color: #888;
+    background: #1e1e1e;
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 2px 8px;
+  }
+  .session-expand {
+    padding: 0 14px 14px;
+    display: none;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .session-item.expanded .session-expand { display: flex; }
+  .session-section-label {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    margin-bottom: 3px;
+  }
+  .session-section-content {
+    font-size: 12px;
+    color: #aaa;
+    line-height: 1.6;
+    white-space: pre-wrap;
+    font-family: var(--mono);
+    background: #0f0f0f;
+    border-radius: 4px;
+    padding: 8px 10px;
+    border: 1px solid var(--border);
+  }
+  .divider {
+    height: 1px;
+    background: var(--border);
+    margin: 4px 0;
+  }
+
+  /* hidden fallback input */
+  #file-input { display: none; }
+
+  /* scrollbar global */
+  * { scrollbar-width: thin; scrollbar-color: var(--border) transparent; }
+</style>
+</head>
+<body>
+
+<!-- EMPTY STATE -->
+<div id="empty-state">
+  <div class="empty-icon">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/>
+      <polyline points="14 2 14 8 20 8"/>
+      <line x1="16" y1="13" x2="8" y2="13"/>
+      <line x1="16" y1="17" x2="8" y2="17"/>
+      <polyline points="10 9 9 9 8 9"/>
+    </svg>
+  </div>
+  <div class="empty-title">UX DNA Viewer</div>
+  <div class="empty-sub">Load your PROJECT_DNA.md to see your project status displayed beautifully.</div>
+  <button class="btn-primary" id="empty-load-btn">Load PROJECT_DNA.md</button>
+</div>
+
+<!-- MAIN APP -->
+<div id="app" class="hidden">
+  <!-- LEFT SIDEBAR -->
+  <div id="sidebar">
+    <div class="sidebar-top">
+      <button class="btn-primary" id="load-btn">Load File</button>
+      <button class="btn-secondary" id="refresh-btn">↺ Refresh</button>
+    </div>
+
+    <div>
+      <div id="project-name" class="project-name">—</div>
+    </div>
+
+    <div class="meta-row">
+      <div class="meta-item">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+        Last updated: <span id="last-updated">—</span>
+      </div>
+      <div class="meta-item">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/></svg>
+        Session: <span id="session-num">—</span>
+      </div>
+    </div>
+
+    <!-- Completion Ring -->
+    <div class="ring-wrap">
+      <div class="ring-svg-wrap">
+        <svg width="120" height="120" viewBox="0 0 120 120">
+          <circle cx="60" cy="60" r="50" fill="none" stroke="#1e1e1e" stroke-width="10"/>
+          <circle id="ring-circle" cx="60" cy="60" r="50" fill="none" stroke="#7c5cfc"
+            stroke-width="10" stroke-linecap="round"
+            stroke-dasharray="314" stroke-dashoffset="314"
+            style="transition: stroke-dashoffset 0.8s ease, stroke 0.4s ease"/>
+        </svg>
+        <div class="ring-center">
+          <div class="ring-number" id="ring-number">0/25</div>
+        </div>
+      </div>
+      <div class="ring-label">layers complete</div>
+      <div class="ring-sub" id="ring-sub"><strong>0%</strong> complete</div>
+    </div>
+
+    <!-- Quick Read -->
+    <div>
+      <div class="section-label">Quick Read</div>
+      <div class="quick-read-box" id="quick-read-content">—</div>
+    </div>
+  </div>
+
+  <!-- MAIN CONTENT -->
+  <div id="main">
+    <!-- LAYERS -->
+    <div>
+      <div class="section-heading">25 Layers</div>
+      <div class="layer-grid" id="layer-grid"></div>
+    </div>
+
+    <!-- DECISIONS -->
+    <div>
+      <div class="section-heading">Decisions Log</div>
+      <div class="decisions-search-wrap">
+        <input class="decisions-search" id="decisions-search" type="text" placeholder="Search decisions by topic or content…">
+      </div>
+      <div class="decisions-list" id="decisions-list"></div>
+    </div>
+
+    <!-- SESSIONS -->
+    <div>
+      <div class="section-heading">Session Log</div>
+      <div class="sessions-timeline" id="sessions-timeline"></div>
+    </div>
+  </div>
+</div>
+
+<input type="file" id="file-input" accept=".md,.txt">
+
+<script>
+// ─── STATE ───────────────────────────────────────────────────────────
+let lastFileHandle = null;
+let lastFileBlob   = null;
+let allDecisions   = [];
+
+// ─── ELEMENT REFS ────────────────────────────────────────────────────
+const emptyState       = document.getElementById('empty-state');
+const app              = document.getElementById('app');
+const emptyLoadBtn     = document.getElementById('empty-load-btn');
+const loadBtn          = document.getElementById('load-btn');
+const refreshBtn       = document.getElementById('refresh-btn');
+const fileInput        = document.getElementById('file-input');
+const projectNameEl    = document.getElementById('project-name');
+const lastUpdatedEl    = document.getElementById('last-updated');
+const sessionNumEl     = document.getElementById('session-num');
+const ringCircle       = document.getElementById('ring-circle');
+const ringNumber       = document.getElementById('ring-number');
+const ringSub          = document.getElementById('ring-sub');
+const quickReadEl      = document.getElementById('quick-read-content');
+const layerGrid        = document.getElementById('layer-grid');
+const decisionsListEl  = document.getElementById('decisions-list');
+const decisionsSearch  = document.getElementById('decisions-search');
+const sessionTimeline  = document.getElementById('sessions-timeline');
+
+// ─── FILE LOADING ─────────────────────────────────────────────────────
+async function loadFile() {
+  if (window.showOpenFilePicker) {
+    try {
+      const [handle] = await window.showOpenFilePicker({
+        types: [{ description: 'Markdown', accept: { 'text/markdown': ['.md', '.txt'] } }],
+        multiple: false
+      });
+      lastFileHandle = handle;
+      const file = await handle.getFile();
+      lastFileBlob = file;
+      const text = await file.text();
+      parseAndRender(text);
+    } catch (e) {
+      if (e.name !== 'AbortError') console.error(e);
+    }
+  } else {
+    fileInput.click();
+  }
+}
+
+fileInput.addEventListener('change', async () => {
+  const file = fileInput.files[0];
+  if (!file) return;
+  lastFileBlob = file;
+  lastFileHandle = null;
+  const text = await file.text();
+  parseAndRender(text);
+  fileInput.value = '';
+});
+
+async function refreshFile() {
+  if (lastFileHandle) {
+    try {
+      const file = await lastFileHandle.getFile();
+      lastFileBlob = file;
+      const text = await file.text();
+      parseAndRender(text);
+    } catch(e) { alert('Could not refresh: ' + e.message); }
+  } else if (lastFileBlob) {
+    const text = await lastFileBlob.text();
+    parseAndRender(text);
+  } else {
+    alert('No file loaded yet. Use "Load File" to open a file first.');
+  }
+}
+
+emptyLoadBtn.addEventListener('click', loadFile);
+loadBtn.addEventListener('click', loadFile);
+refreshBtn.addEventListener('click', refreshFile);
+
+// ─── PLACEHOLDER DETECTION ────────────────────────────────────────────
+function isPlaceholder(str) {
+  if (!str) return true;
+  const s = str.trim();
+  if (!s || s === '—' || s === '-') return true;
+  // matches [anything] patterns
+  if (/^\[.+\]$/.test(s)) return true;
+  return false;
+}
+function display(str, fallback = 'Not set') {
+  if (isPlaceholder(str)) return { text: fallback, placeholder: true };
+  return { text: str.trim(), placeholder: false };
+}
+
+// ─── PARSER ──────────────────────────────────────────────────────────
+function parseAndRender(raw) {
+  const lines = raw.split('\n');
+
+  // ── Project name
+  let projectName = '';
+  for (const l of lines) {
+    const m = l.match(/^\*\*Project:\*\*\s*(.+)/i);
+    if (m) { projectName = m[1].trim(); break; }
+  }
+
+  // ── Last updated
+  let lastUpdated = '';
+  for (const l of lines) {
+    const m = l.match(/^\*\*Last Updated:\*\*\s*(.+)/i);
+    if (m) { lastUpdated = m[1].trim(); break; }
+  }
+
+  // ── Session number — find highest session number from SESSION LOG
+  let highestSession = '';
+  for (const l of lines) {
+    const m = l.match(/^###\s+Session\s+(\d+)/i);
+    if (m) { highestSession = m[1]; }
+  }
+  if (!highestSession) {
+    // try Current Session line
+    for (const l of lines) {
+      const m = l.match(/\*\*Session(?:\s+Number)?:\*\*\s*(.+)/i);
+      if (m) { highestSession = m[1].trim(); break; }
+    }
+  }
+
+  // ── Quick Read block — content between ``` after ★ QUICK READ
+  let quickRead = '';
+  let inQuickRead = false;
+  let quickReadFound = false;
+  let inBlock = false;
+  for (let i = 0; i < lines.length; i++) {
+    const l = lines[i];
+    if (!quickReadFound && l.includes('QUICK READ')) {
+      quickReadFound = true;
+      continue;
+    }
+    if (quickReadFound && !inBlock) {
+      if (l.trim().startsWith('```')) { inBlock = true; continue; }
+    }
+    if (inBlock && !inQuickRead) {
+      // started reading block
+      inQuickRead = true;
+    }
+    if (inQuickRead) {
+      if (l.trim().startsWith('```')) { break; }
+      quickRead += l + '\n';
+    }
+  }
+  quickRead = quickRead.trimEnd();
+
+  // ── Parse 25 layers
+  const layers = parseLayers(lines);
+
+  // ── Parse decisions (last 10)
+  const decisions = parseDecisions(lines);
+
+  // ── Parse sessions (last 5)
+  const sessions = parseSessions(raw);
+
+  // ── Render
+  render({ projectName, lastUpdated, highestSession, quickRead, layers, decisions, sessions });
+}
+
+function parseLayers(lines) {
+  // Layer names in order
+  const LAYER_NAMES = [
+    'Product Snapshot', 'Target Users', 'Business & Success Metrics',
+    'User Goals & Jobs to Be Done', 'Pain Points & Frustrations',
+    'Emotional & Social Drivers', 'Trust & Risk Factors', 'Mental Models & Metaphors',
+    'User Journey Overview', 'Key Screens & Flows', 'Navigation & IA',
+    'Content & Hierarchy', 'Interaction Patterns', 'Feedback & States',
+    'Accessibility & Inclusivity', 'Performance & Reliability (UX)',
+    'Personalization & Adaptivity', 'Notification & Interruption Strategy',
+    'Data Transparency & Control', 'Competitive & Comparative Landscape',
+    'Design Tokens & System Notes', 'Component Inventory',
+    'Open UX Questions', 'Known Unknowns', 'Future Considerations'
+  ];
+
+  const layers = [];
+
+  // Strategy: find layer headers by number pattern or known names
+  // Then look for Status: checkbox lines beneath them
+  // We scan through lines looking for layer section starts
+
+  const text = lines.join('\n');
+
+  for (let idx = 0; idx < 25; idx++) {
+    const layerNum = idx + 1;
+    const layerName = LAYER_NAMES[idx];
+    let status = 'missing';
+    let notes = '';
+
+    // Build a regex to find the layer section header
+    // Pattern: ## Layer N: or ### Layer N or just the layer name near a number
+    // Try multiple patterns
+    const patterns = [
+      new RegExp(`##\\s+(?:Layer\\s+)?${layerNum}[:.\\s]`, 'i'),
+      new RegExp(`##\\s+${escapeReg(layerName)}`, 'i'),
+    ];
+
+    let sectionStart = -1;
+    for (const pat of patterns) {
+      const m = pat.exec(text);
+      if (m) { sectionStart = m.index; break; }
+    }
+
+    if (sectionStart === -1) {
+      // Try finding by layer name alone in a heading
+      const nameReg = new RegExp(`#+\\s+.*${escapeReg(layerName)}`, 'i');
+      const m = nameReg.exec(text);
+      if (m) sectionStart = m.index;
+    }
+
+    if (sectionStart !== -1) {
+      // Look in the next ~600 chars for Status: line
+      const chunk = text.slice(sectionStart, sectionStart + 800);
+      const chunkLines = chunk.split('\n');
+
+      for (let ci = 0; ci < chunkLines.length; ci++) {
+        const cl = chunkLines[ci];
+        // Match: Status: or **Status:**
+        if (/^\*?\*?Status:\*?\*?/i.test(cl.trim())) {
+          if (/\[x\]\s*Done/i.test(cl) || /\[x\]\s*Complete/i.test(cl)) {
+            status = 'done';
+          } else if (/\[x\]\s*Partial/i.test(cl) || /\[x\]\s*In.?Progress/i.test(cl)) {
+            status = 'partial';
+          } else if (/\[x\]\s*Missing/i.test(cl) || /\[x\]\s*Not.?Started/i.test(cl) || /\[x\]\s*Empty/i.test(cl)) {
+            status = 'missing';
+          }
+          // Also handle inline: - [x] Done / - [ ] Partial / - [ ] Missing
+          break;
+        }
+        // Alternative: lines like "- [x] Done" or "- [x] Partial" directly under the layer
+        const chkMatch = cl.match(/[-*]\s+\[([x ])\]\s+(\w[\w\s]*)/i);
+        if (chkMatch) {
+          const checked = chkMatch[1].toLowerCase() === 'x';
+          const label = chkMatch[2].trim().toLowerCase();
+          if (checked) {
+            if (label.startsWith('done') || label.startsWith('complete')) status = 'done';
+            else if (label.startsWith('partial') || label.startsWith('in')) status = 'partial';
+            else if (label.startsWith('miss') || label.startsWith('not') || label.startsWith('emp')) status = 'missing';
+          }
+        }
+      }
+
+      // Notes
+      const notesMatch = chunk.match(/\*?\*?Notes?:\*?\*?\s*(.+)/i);
+      if (notesMatch) {
+        notes = notesMatch[1].trim();
+      }
+    }
+
+    layers.push({ num: layerNum, name: layerName, status, notes });
+  }
+
+  return layers;
+}
+
+function parseDecisions(lines) {
+  const decisions = [];
+  let inDecisions = false;
+
+  for (const l of lines) {
+    if (/^##\s+DECISIONS\s+LOG/i.test(l.trim())) { inDecisions = true; continue; }
+    if (inDecisions && /^##\s+/.test(l.trim()) && !/^##\s+DECISIONS/i.test(l.trim())) { inDecisions = false; }
+
+    if (inDecisions) {
+      // Pattern: [Date] | Topic | Decision text
+      // Or: - [Date]: text
+      const m1 = l.match(/^\s*[-*]?\s*\[([^\]]+)\]\s*\|\s*([^|]+)\|\s*(.+)/);
+      if (m1) {
+        decisions.push({ date: m1[1].trim(), topic: m1[2].trim(), text: m1[3].trim() });
+        continue;
+      }
+      // Pattern: [YYYY-MM-DD] text
+      const m2 = l.match(/^\s*[-*]?\s*\[(\d{4}-\d{2}-\d{2})\]\s+(.+)/);
+      if (m2) {
+        decisions.push({ date: m2[1], topic: '', text: m2[2].trim() });
+        continue;
+      }
+      // Pattern: **[date]** | topic | decision
+      const m3 = l.match(/\*\*\[([^\]]+)\]\*\*\s*\|\s*([^|]+)\|\s*(.+)/);
+      if (m3) {
+        decisions.push({ date: m3[1].trim(), topic: m3[2].trim(), text: m3[3].trim() });
+        continue;
+      }
+      // Any line with a date-ish pattern
+      const m4 = l.match(/^\s*[-*]?\s*(\d{4}-\d{2}-\d{2}|\w+\s+\d{1,2},\s+\d{4})\s*[|:]\s*(.+)/);
+      if (m4) {
+        decisions.push({ date: m4[1].trim(), topic: '', text: m4[2].trim() });
+      }
+    }
+  }
+
+  // Return most recent 10
+  return decisions.slice(-10).reverse();
+}
+
+function parseSessions(raw) {
+  const sessions = [];
+  // Split by ### Session
+  const parts = raw.split(/(?=^###\s+Session)/m);
+
+  for (const part of parts) {
+    const headerMatch = part.match(/^###\s+Session\s+(\d+)/im);
+    if (!headerMatch) continue;
+
+    const num = headerMatch[1];
+    const dateMatch = part.match(/\*\*Date:\*\*\s*(.+)/i) || part.match(/Date:\s*(.+)/i);
+    const aiMatch   = part.match(/\*\*AI:\*\*\s*(.+)/i)   || part.match(/AI Used:\s*(.+)/i) || part.match(/\*\*Model:\*\*\s*(.+)/i);
+
+    const date = dateMatch ? dateMatch[1].trim() : '';
+    const ai   = aiMatch   ? aiMatch[1].trim()   : '';
+
+    // Extract sections
+    const built      = extractSessionSection(part, ['Built', 'Created', 'Completed']);
+    const changed    = extractSessionSection(part, ['Changed', 'Modified', 'Updated']);
+    const incomplete = extractSessionSection(part, ['Incomplete', 'Left incomplete', 'Not finished']);
+    const next       = extractSessionSection(part, ['Next', 'Next session', 'Next steps']);
+    const questions  = extractSessionSection(part, ['Questions', 'Open questions']);
+
+    sessions.push({ num, date, ai, built, changed, incomplete, next, questions });
+  }
+
+  // Return most recent 5
+  return sessions.slice(-5).reverse();
+}
+
+function extractSessionSection(text, keywords) {
+  for (const kw of keywords) {
+    const reg = new RegExp(`\\*\\*${kw}[^:]*:\\*\\*([\\s\\S]*?)(?=\\*\\*[A-Z]|###|$)`, 'i');
+    const m = reg.exec(text);
+    if (m) return m[1].trim();
+    const reg2 = new RegExp(`^#+\\s+${kw}[\\s\\S]*?\\n([\\s\\S]*?)(?=^#+|$)`, 'im');
+    const m2 = reg2.exec(text);
+    if (m2) return m2[1].trim();
+  }
+  return '';
+}
+
+function escapeReg(s) {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+// ─── RENDER ──────────────────────────────────────────────────────────
+function render({ projectName, lastUpdated, highestSession, quickRead, layers, decisions, sessions }) {
+  // Show app
+  emptyState.classList.add('hidden');
+  app.classList.remove('hidden');
+
+  // Project name
+  const pn = display(projectName, 'Untitled Project');
+  projectNameEl.textContent = pn.text;
+  projectNameEl.className = 'project-name' + (pn.placeholder ? ' placeholder' : '');
+
+  // Last updated
+  const lu = display(lastUpdated, 'Not set');
+  lastUpdatedEl.textContent = lu.text;
+  if (lu.placeholder) lastUpdatedEl.style.color = 'var(--text-dim)';
+  else lastUpdatedEl.style.color = '';
+
+  // Session
+  const sn = display(highestSession, 'Not set');
+  sessionNumEl.textContent = sn.text;
+
+  // Ring
+  const doneCount    = layers.filter(l => l.status === 'done').length;
+  const partialCount = layers.filter(l => l.status === 'partial').length;
+  const totalDone    = doneCount; // only full done
+  const pct = totalDone / 25;
+  const circumference = 314;
+  const offset = circumference - (pct * circumference);
+  ringCircle.style.strokeDashoffset = offset;
+
+  let ringColor = '#7c5cfc';
+  if (pct > 0.8) ringColor = '#22c55e';
+  else if (pct > 0.4) ringColor = '#f59e0b';
+  ringCircle.style.stroke = ringColor;
+
+  ringNumber.textContent = `${totalDone}/25`;
+  ringNumber.style.color = ringColor;
+  ringSub.innerHTML = `<strong>${Math.round(pct * 100)}%</strong> complete · ${partialCount} partial`;
+
+  // Quick Read
+  if (!quickRead || isPlaceholder(quickRead)) {
+    quickReadEl.textContent = 'No QUICK READ block found.';
+    quickReadEl.style.color = 'var(--text-dim)';
+    quickReadEl.style.fontStyle = 'italic';
+  } else {
+    quickReadEl.textContent = quickRead;
+    quickReadEl.style.color = '';
+    quickReadEl.style.fontStyle = '';
+  }
+
+  // Layers
+  renderLayers(layers);
+
+  // Decisions
+  allDecisions = decisions;
+  renderDecisions(decisions);
+
+  // Sessions
+  renderSessions(sessions);
+}
+
+function renderLayers(layers) {
+  layerGrid.innerHTML = '';
+  layers.forEach(layer => {
+    const card = document.createElement('div');
+    card.className = `layer-card ${layer.status}`;
+    card.dataset.layerNum = layer.num;
+
+    const statusLabels = { done: 'Done', partial: 'Partial', missing: 'Missing' };
+    const badgeClass   = { done: 'badge-done', partial: 'badge-partial', missing: 'badge-missing' };
+
+    const nd = display(layer.notes, '');
+    const hasNotes = !nd.placeholder && nd.text.length > 0;
+
+    card.innerHTML = `
+      <div class="layer-num">Layer ${String(layer.num).padStart(2, '0')}</div>
+      <div class="layer-name">${escapeHtml(layer.name)}</div>
+      <span class="status-badge ${badgeClass[layer.status]}">${statusLabels[layer.status]}</span>
+      ${hasNotes || true ? `<div class="layer-notes${nd.placeholder || !hasNotes ? ' placeholder' : ''}">${hasNotes ? escapeHtml(nd.text) : '<em style="color:var(--text-dim)">No notes</em>'}</div>` : ''}
+    `;
+
+    card.addEventListener('click', () => {
+      card.classList.toggle('expanded');
+    });
+
+    layerGrid.appendChild(card);
+  });
+}
+
+function renderDecisions(decisions) {
+  decisionsListEl.innerHTML = '';
+  if (!decisions.length) {
+    decisionsListEl.innerHTML = '<div class="no-items">No decisions found in the file.</div>';
+    return;
+  }
+  decisions.forEach(d => {
+    const item = document.createElement('div');
+    item.className = 'decision-item';
+    item.dataset.search = (d.date + ' ' + d.topic + ' ' + d.text).toLowerCase();
+
+    const topicPill = d.topic
+      ? `<span class="pill pill-topic">${escapeHtml(d.topic)}</span>`
+      : '';
+
+    item.innerHTML = `
+      <div class="decision-meta">
+        <span class="pill pill-date">${escapeHtml(d.date || '—')}</span>
+        ${topicPill}
+      </div>
+      <div class="decision-text">${escapeHtml(d.text)}</div>
+    `;
+    decisionsListEl.appendChild(item);
+  });
+}
+
+decisionsSearch.addEventListener('input', () => {
+  const q = decisionsSearch.value.toLowerCase().trim();
+  const items = decisionsListEl.querySelectorAll('.decision-item');
+  items.forEach(item => {
+    item.style.display = (!q || item.dataset.search.includes(q)) ? '' : 'none';
+  });
+});
+
+function renderSessions(sessions) {
+  sessionTimeline.innerHTML = '';
+  if (!sessions.length) {
+    sessionTimeline.innerHTML = '<div class="no-items">No sessions found in the file.</div>';
+    return;
+  }
+  sessions.forEach(s => {
+    const item = document.createElement('div');
+    item.className = 'session-item';
+
+    const sections = [
+      { label: 'Built / Created', content: s.built },
+      { label: 'Changed / Updated', content: s.changed },
+      { label: 'Incomplete', content: s.incomplete },
+      { label: 'Next Steps', content: s.next },
+      { label: 'Open Questions', content: s.questions },
+    ].filter(sec => sec.content && sec.content.trim());
+
+    const expandHtml = sections.map(sec => `
+      <div>
+        <div class="session-section-label">${escapeHtml(sec.label)}</div>
+        <div class="session-section-content">${escapeHtml(sec.content)}</div>
+      </div>
+    `).join('');
+
+    const aiDisplay = display(s.ai, '').text;
+    const dateDisplay = display(s.date, '').text;
+
+    item.innerHTML = `
+      <div class="session-dot">${escapeHtml(s.num)}</div>
+      <div class="session-content">
+        <div class="session-header">
+          <span class="session-num">Session ${escapeHtml(s.num)}</span>
+          ${dateDisplay ? `<span class="session-date">${escapeHtml(dateDisplay)}</span>` : ''}
+          ${aiDisplay ? `<span class="session-ai">${escapeHtml(aiDisplay)}</span>` : ''}
+        </div>
+        ${expandHtml ? `<div class="session-expand">${expandHtml}</div>` : ''}
+      </div>
+    `;
+
+    item.querySelector('.session-content').addEventListener('click', () => {
+      item.classList.toggle('expanded');
+    });
+
+    sessionTimeline.appendChild(item);
+  });
+}
+
+function escapeHtml(str) {
+  if (!str) return '';
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,95 @@
+- generic [ref=e3]:
+  - generic [ref=e4]:
+    - generic [ref=e5]:
+      - button "Play" [active] [ref=e6] [cursor=pointer]:
+        - generic [ref=e7]: Play
+      - button "Lab" [ref=e8] [cursor=pointer]:
+        - generic [ref=e9]: Lab
+      - button "Multiplayer" [ref=e10] [cursor=pointer]:
+        - generic [ref=e11]: Multiplayer
+      - button "Profile" [ref=e12] [cursor=pointer]:
+        - generic [ref=e13]: Profile
+      - button "Inventory" [ref=e14] [cursor=pointer]:
+        - generic [ref=e15]: Inventory
+      - button "Store" [ref=e16] [cursor=pointer]:
+        - generic [ref=e17]: Store
+      - button "Settings" [ref=e18] [cursor=pointer]:
+        - generic [ref=e19]: Settings
+    - generic [ref=e20]:
+      - button "QUESTS" [ref=e21] [cursor=pointer]:
+        - img [ref=e22]
+        - generic [ref=e25]: QUESTS
+      - generic [ref=e26]:
+        - generic [ref=e27]: Today
+        - generic [ref=e28]:
+          - text: "0"
+          - generic [ref=e29]: / 960
+        - generic [ref=e30]: 0 MIN
+      - button "LOGIN" [ref=e163] [cursor=pointer]
+      - button "⌘K" [ref=e33] [cursor=pointer]
+      - generic [ref=e35]:
+        - generic "Player Level (0 total XP)" [ref=e36]:
+          - img [ref=e37]
+          - generic [ref=e43]: LV 0
+        - button [ref=e44] [cursor=pointer]:
+          - img [ref=e45]
+        - button [ref=e48] [cursor=pointer]:
+          - img [ref=e49]
+  - generic [ref=e1218]:
+    - generic [ref=e1219]:
+      - generic [ref=e1220]:
+        - generic [ref=e1221]:
+          - generic [ref=e1222]: Play / Action Room
+          - heading "Ready for the next operation" [level=1] [ref=e1223]
+          - paragraph [ref=e1224]: Create one clear quest, start a session, and let Xtation turn execution into visible progress.
+        - button "New Quest" [ref=e1226] [cursor=pointer]:
+          - img [ref=e1227]
+          - text: New Quest
+      - generic [ref=e1228]:
+        - generic [ref=e1230]:
+          - generic [ref=e1231]: No quest selected
+          - heading "Build the first operation" [level=2] [ref=e1232]
+          - paragraph [ref=e1233]: Start with one clear quest. Once it exists, Play becomes the live execution room for timing, steps, debrief, and momentum.
+          - button "Create First Quest" [ref=e1234] [cursor=pointer]:
+            - img [ref=e1235]
+            - text: Create First Quest
+        - generic [ref=e1236]:
+          - generic [ref=e1237]:
+            - generic [ref=e1238]: Today Pulse
+            - generic [ref=e1239]:
+              - generic [ref=e1240]:
+                - generic [ref=e1241]: 0 min
+                - generic [ref=e1242]: Tracked
+              - generic [ref=e1243]:
+                - generic [ref=e1244]: "0"
+                - generic [ref=e1245]: XP Today
+              - generic [ref=e1246]:
+                - generic [ref=e1247]: "0"
+                - generic [ref=e1248]: Completed
+              - generic [ref=e1249]:
+                - generic [ref=e1250]: "0"
+                - generic [ref=e1251]: Active Days
+            - generic [ref=e1252]:
+              - generic [ref=e1253]:
+                - img [ref=e1254]
+                - text: Momentum
+              - generic [ref=e1260]: 0 day streak · x1.00
+              - generic [ref=e1261]: Player level 0 · 0 total XP
+          - generic [ref=e1262]:
+            - generic [ref=e1263]: Project Context
+            - generic [ref=e1264]: This quest is running standalone. Link it to a project when you want campaign-level structure and milestone tracking.
+          - generic [ref=e1265]:
+            - generic [ref=e1266]: Recent Output
+            - generic [ref=e1268]: No activity yet today. The next clean session will start building the trace.
+    - generic [ref=e1269]:
+      - generic [ref=e1270]:
+        - generic [ref=e1271]:
+          - generic [ref=e1272]: Quest Queue
+          - generic [ref=e1273]: Select the next operation, or switch live if something else is more urgent.
+        - generic [ref=e1274]: 0 active
+      - generic [ref=e1276]: No active quests yet. Start with one concrete objective and the rest of Play will open up around it.
+  - button [ref=e1030] [cursor=pointer]:
+    - img [ref=e1031]
+  - generic [ref=e124]:
+    - generic [ref=e126]: Developer HUD
+    - button "Open" [ref=e843] [cursor=pointer]

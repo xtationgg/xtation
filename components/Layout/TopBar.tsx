@@ -1,13 +1,27 @@
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Settings, Bell, Trophy, Bot, X } from 'lucide-react';
 import { ClientView } from '../../types';
 import { NavTab } from '../UI/HextechUI';
-import { EyeOrb } from '../UI/EyeOrb';
 import { AuthDrawer } from '../UI/AuthDrawer';
+import { AuthCard } from '../Auth/AuthCard';
+import { StationContinuityPanel } from '../Auth/StationContinuityPanel';
 import { playClickSound, playHoverSound } from '../../utils/SoundEffects';
 import { useXP } from '../XP/xpStore';
 import { useAuth } from '../../src/auth/AuthProvider';
+import { useAdminConsole } from '../../src/admin/AdminConsoleProvider';
+import {
+  readGuestStationRecoverySnapshot,
+  XTATION_GUEST_STATION_RECOVERY_EVENT,
+} from '../../src/auth/guestStation';
+import { buildStationIdentitySummary } from '../../src/station/stationIdentity';
+import { buildStationContinuityContext } from '../../src/station/continuityContext';
+import {
+  readStationActivity,
+  XTATION_STATION_ACTIVITY_EVENT,
+  type StationActivityEntry,
+} from '../../src/station/stationActivity';
+import { resolveGuestStationEntryState } from '../../src/welcome/guestContinuity';
 
 interface TopBarProps {
   currentView: ClientView;
@@ -17,6 +31,15 @@ interface TopBarProps {
   isAssistantOpen: boolean;
   activeTasksCount: number;
   onOpenPalette?: () => void;
+  isGuestMode?: boolean;
+  onExitGuestMode?: () => void;
+  onOpenGuidedSetup?: () => void;
+  canAccessAdmin?: boolean;
+  featureVisibility?: {
+    lab: boolean;
+    multiplayer: boolean;
+    store: boolean;
+  };
 }
 
 export const TopBar: React.FC<TopBarProps> = ({
@@ -27,20 +50,115 @@ export const TopBar: React.FC<TopBarProps> = ({
   isAssistantOpen,
   activeTasksCount,
   onOpenPalette,
+  isGuestMode = false,
+  onExitGuestMode,
+  onOpenGuidedSetup,
+  canAccessAdmin = false,
+  featureVisibility = {
+    lab: true,
+    multiplayer: true,
+    store: true,
+  },
 }) => {
   const { selectors, dateKey, authStatus, stats } = useXP();
-  const { user, loading, error, signInWithGoogle, signUpWithPassword, signInWithPassword, requestPasswordReset, signOut } = useAuth();
+  const { user, loading, error, signOut } = useAuth();
+  const { currentStation } = useAdminConsole();
+  const activeUserId = user?.id || null;
   const userLabel = user?.name || user?.email || 'Signed in';
   const userInitial = (user?.name || user?.email || 'U').charAt(0).toUpperCase();
+  const [handoffRecoverySnapshot, setHandoffRecoverySnapshot] = useState(() =>
+    activeUserId ? readGuestStationRecoverySnapshot(activeUserId) : null
+  );
+  const [stationActivity, setStationActivity] = useState<StationActivityEntry[]>(() =>
+    isGuestMode ? readStationActivity() : []
+  );
+  const {
+    starterFlowSummary,
+    latestTransitionActivity,
+    visibleRecentStationActivity,
+  } = useMemo(
+    () =>
+      buildStationContinuityContext(
+        stationActivity,
+        currentView,
+        {
+          canAccessAdmin,
+          featureVisibility,
+        },
+        2
+      ),
+    [canAccessAdmin, currentView, featureVisibility, stationActivity]
+  );
   const todayTrackedMinutes = selectors.getTrackedMinutesForDay(dateKey);
   const todayTargetMinutes = selectors.getTargetXP(dateKey);
+  const trialDaysRemaining = currentStation.trialEndsAt
+    ? Math.max(0, Math.ceil((currentStation.trialEndsAt - Date.now()) / (1000 * 60 * 60 * 24)))
+    : null;
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
-  const [authMode, setAuthMode] = useState<'login' | 'signup'>('login');
-  const [authEmail, setAuthEmail] = useState('');
-  const [authPassword, setAuthPassword] = useState('');
-  const [authNotice, setAuthNotice] = useState<string | null>(null);
-  const [isAuthSubmitting, setIsAuthSubmitting] = useState(false);
   const loginTriggerRef = useRef<HTMLButtonElement | null>(null);
+  const guestEntry = useMemo(() => {
+    if (!isGuestMode) return null;
+    return resolveGuestStationEntryState(stationActivity, starterFlowSummary, latestTransitionActivity, {
+      canAccessAdmin,
+      featureVisibility,
+    });
+  }, [
+    canAccessAdmin,
+    featureVisibility,
+    isGuestMode,
+    latestTransitionActivity,
+    starterFlowSummary,
+    stationActivity,
+  ]);
+  const localStationStatus = guestEntry?.localStatus ?? null;
+  useEffect(() => {
+    setHandoffRecoverySnapshot(activeUserId ? readGuestStationRecoverySnapshot(activeUserId) : null);
+  }, [activeUserId]);
+
+  useEffect(() => {
+    if (!isGuestMode || typeof window === 'undefined') {
+      setStationActivity([]);
+      return;
+    }
+
+    const refresh = () => setStationActivity(readStationActivity());
+    refresh();
+    window.addEventListener(XTATION_STATION_ACTIVITY_EVENT, refresh as EventListener);
+    return () => window.removeEventListener(XTATION_STATION_ACTIVITY_EVENT, refresh as EventListener);
+  }, [isGuestMode]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    const handleRecoverySnapshotChange = (event: Event) => {
+      const detail = (event as CustomEvent<{ userId?: string | null }>).detail;
+      const eventUserId = detail?.userId ?? null;
+      if ((activeUserId || null) !== eventUserId) return;
+      setHandoffRecoverySnapshot(activeUserId ? readGuestStationRecoverySnapshot(activeUserId) : null);
+    };
+
+    window.addEventListener(XTATION_GUEST_STATION_RECOVERY_EVENT, handleRecoverySnapshotChange as EventListener);
+    return () =>
+      window.removeEventListener(
+        XTATION_GUEST_STATION_RECOVERY_EVENT,
+        handleRecoverySnapshotChange as EventListener
+      );
+  }, [activeUserId]);
+  const stationIdentity = useMemo(
+    () =>
+      buildStationIdentitySummary({
+        currentStation,
+        activeUserId,
+        isGuestMode,
+        activeView: currentView,
+        handoffRecoverySnapshot,
+        access: {
+          canAccessAdmin,
+          featureVisibility,
+        },
+      }),
+    [activeUserId, canAccessAdmin, currentStation, currentView, featureVisibility, handoffRecoverySnapshot, isGuestMode]
+  );
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
@@ -57,96 +175,51 @@ export const TopBar: React.FC<TopBarProps> = ({
   const drawerDateLabel = `${drawerDate.getFullYear()}/${drawerDate
     .toLocaleDateString(undefined, { month: 'short' })
     .toLowerCase()}/${String(drawerDate.getDate()).padStart(2, '0')}`;
+  const isPlayView =
+    currentView === ClientView.LOBBY ||
+    currentView === ClientView.MATCH_FOUND ||
+    currentView === ClientView.CHAMP_SELECT;
 
   const openLoginModal = () => {
-    setAuthMode('login');
-    setAuthEmail(user?.email || '');
-    setAuthPassword('');
-    setAuthNotice(null);
     setIsLoginModalOpen(true);
   };
 
   const closeLoginModal = () => {
-    if (isAuthSubmitting) return;
     setIsLoginModalOpen(false);
-  };
-
-  const handlePrimaryAuthSubmit = async () => {
-    if (isAuthSubmitting) return;
-    if (!authEmail.trim() || !authPassword) {
-      setAuthNotice('Enter email and password.');
-      return;
-    }
-    setIsAuthSubmitting(true);
-    setAuthNotice(null);
-    const success =
-      authMode === 'login'
-        ? await signInWithPassword(authEmail, authPassword)
-        : await signUpWithPassword(authEmail, authPassword);
-    setIsAuthSubmitting(false);
-    if (success) {
-      if (authMode === 'login') {
-        setAuthNotice('Logged in successfully.');
-        setIsLoginModalOpen(false);
-      } else {
-        setAuthNotice('Account created. Check email if confirmation is enabled.');
-        setAuthMode('login');
-      }
-    } else {
-      setAuthNotice(authMode === 'login' ? 'Login failed. Check credentials.' : null);
-    }
-  };
-
-  const handleSendResetLink = async () => {
-    if (isAuthSubmitting) return;
-    const targetEmail = authEmail.trim();
-    if (!targetEmail) {
-      setAuthNotice('Enter your email to receive a reset link.');
-      return;
-    }
-    setIsAuthSubmitting(true);
-    setAuthNotice(null);
-    const success = await requestPasswordReset(targetEmail);
-    setIsAuthSubmitting(false);
-    if (success) {
-      setAuthNotice('Reset email sent. Check your inbox.');
-    } else {
-      setAuthNotice(null);
-    }
-  };
-
-  const handleGoogleSignIn = async () => {
-    if (isAuthSubmitting) return;
-    setIsAuthSubmitting(true);
-    setAuthNotice(null);
-    await signInWithGoogle();
-    setIsAuthSubmitting(false);
   };
 
   return (
     <>
-      <div className="xt-topbar h-[56px] md:h-[60px] bg-[color-mix(in_srgb,var(--app-panel)_82%,transparent)] backdrop-blur-sm border-b border-[var(--app-border)] flex items-center relative z-40 select-none">
+      <div className="xt-topbar xt-topbar-shell h-[56px] md:h-[60px] flex items-center relative z-40 select-none">
       {/* Middle: Navigation */}
       <div className="xt-nav-tabs flex-1 flex items-center h-full overflow-x-auto no-scrollbar min-w-0">
-        <NavTab label="Home" isActive={currentView === ClientView.HOME} onClick={() => onChangeView(ClientView.HOME)} />
-        <NavTab label="Earth" isActive={currentView === ClientView.TFT} onClick={() => onChangeView(ClientView.TFT)} />
-        <NavTab label="Multiplayer" isActive={currentView === ClientView.MULTIPLAYER} onClick={() => onChangeView(ClientView.MULTIPLAYER)} />
+        <NavTab label="Play" isActive={isPlayView} onClick={onPlayClick} />
+        {featureVisibility.lab ? (
+          <NavTab label="Lab" isActive={currentView === ClientView.LAB} onClick={() => onChangeView(ClientView.LAB)} />
+        ) : null}
+        {featureVisibility.multiplayer ? (
+          <NavTab label="Multiplayer" isActive={currentView === ClientView.MULTIPLAYER} onClick={() => onChangeView(ClientView.MULTIPLAYER)} />
+        ) : null}
         <NavTab label="Profile" isActive={currentView === ClientView.PROFILE} onClick={() => onChangeView(ClientView.PROFILE)} />
         <NavTab label="Inventory" isActive={currentView === ClientView.INVENTORY} onClick={() => onChangeView(ClientView.INVENTORY)} />
-        <NavTab label="Store" isActive={currentView === ClientView.STORE} onClick={() => onChangeView(ClientView.STORE)} />
-        <NavTab label="UI Kit" isActive={currentView === ClientView.UI_KIT} onClick={() => onChangeView(ClientView.UI_KIT)} />
+        {featureVisibility.store ? (
+          <NavTab label="Store" isActive={currentView === ClientView.STORE} onClick={() => onChangeView(ClientView.STORE)} />
+        ) : null}
         <NavTab label="Settings" isActive={currentView === ClientView.SETTINGS} onClick={() => onChangeView(ClientView.SETTINGS)} />
+        {canAccessAdmin ? (
+          <NavTab label="Admin" isActive={currentView === ClientView.ADMIN} onClick={() => onChangeView(ClientView.ADMIN)} />
+        ) : null}
       </div>
 
       {/* Right: Assistant, Currency & System */}
-      <div className="flex items-center px-2 sm:px-3 md:px-4 h-full border-l border-[var(--app-border)] gap-2 sm:gap-3 md:gap-4 bg-[var(--app-panel)] min-w-0">
+      <div className="xt-topbar-rail flex items-center px-2 sm:px-3 md:px-4 h-full gap-2 sm:gap-3 md:gap-4 min-w-0">
         {/* AI Assistant Toggle (Moved here) */}
         <button 
-            id="hextech-assistant-toggle"
+            id="dusk-assistant-toggle"
             onClick={() => { playClickSound(); onToggleAssistant(); }}
             onMouseEnter={playHoverSound}
             className={`
-                group relative flex items-center justify-center gap-2 w-9 sm:w-24 md:w-32 h-9 md:h-10 border transition-all duration-300
+                xt-topbar-dusk group relative flex items-center justify-center gap-2 w-9 sm:w-24 md:w-32 h-9 md:h-10 border transition-all duration-300
                 ${isAssistantOpen 
                     ? 'bg-[var(--app-accent)] border-[var(--app-accent)] text-[var(--app-text)]' 
                     : activeTasksCount > 0
@@ -155,26 +228,26 @@ export const TopBar: React.FC<TopBarProps> = ({
                 }
             `}
         >
-            <Bot size={16} className={activeTasksCount > 0 && !isAssistantOpen ? 'animate-pulse' : ''} />
-            <span className="hidden sm:inline text-[9px] md:text-[10px] font-bold font-mono tracking-widest">QUESTS</span>
+            <Bot size={16} className={activeTasksCount > 0 && !isAssistantOpen ? 'xt-topbar-dusk-pulse' : ''} />
+            <span className="hidden sm:inline text-[9px] md:text-[10px] font-bold font-mono tracking-widest">DUSK</span>
         </button>
 
         {/* Server Status Indicator -> Active Mission Count */}
-        <div className="hidden xl:flex items-center gap-2 mr-2 min-w-[60px] justify-end">
-             <div className={`w-2 h-2 rounded-full ${activeTasksCount > 0 ? 'bg-[var(--app-accent)] animate-pulse shadow-[var(--app-glow-accent)]' : 'bg-[var(--app-border)]'}`}></div>
+        <div className="xt-topbar-status hidden xl:flex items-center gap-2 mr-2 min-w-[60px] justify-end">
+             <div className={`w-2 h-2 rounded-full ${activeTasksCount > 0 ? 'xt-topbar-live-dot bg-[var(--app-accent)] shadow-[var(--app-glow-accent)]' : 'bg-[var(--app-border)]'}`}></div>
              {activeTasksCount > 0 ? (
                  <span className="text-[10px] text-[var(--app-accent)] font-mono uppercase font-bold tracking-widest">ACTIVE: {activeTasksCount}</span>
              ) : (
                  <div className="flex gap-1 h-2 items-center">
-                    <div className="w-1 h-1 bg-[var(--app-muted)] animate-bounce [animation-duration:1s]"></div>
-                    <div className="w-1 h-1 bg-[var(--app-muted)] animate-bounce [animation-duration:1s] [animation-delay:0.1s]"></div>
-                    <div className="w-1 h-1 bg-[var(--app-muted)] animate-bounce [animation-duration:1s] [animation-delay:0.2s]"></div>
+                    <div className="xt-topbar-idle-dot w-1 h-1 bg-[var(--app-muted)]"></div>
+                    <div className="xt-topbar-idle-dot xt-topbar-idle-dot--2 w-1 h-1 bg-[var(--app-muted)]"></div>
+                    <div className="xt-topbar-idle-dot xt-topbar-idle-dot--3 w-1 h-1 bg-[var(--app-muted)]"></div>
                  </div>
              )}
         </div>
 
         {/* XP Summary */}
-        <div className="hidden lg:flex flex-col items-center text-center font-mono text-xs leading-tight gap-0.5">
+        <div className="xt-topbar-summary hidden lg:flex flex-col items-center text-center font-mono text-xs leading-tight gap-0.5">
             <div className="text-[9px] uppercase tracking-[0.2em] text-[var(--app-muted)]">Today</div>
             <div className="text-[var(--app-text)]">
                 <span className="font-bold tracking-wider">{todayTrackedMinutes}</span>
@@ -189,12 +262,38 @@ export const TopBar: React.FC<TopBarProps> = ({
 
         {/* Auth (minimal UI) */}
         <div className="flex items-center gap-2 min-w-0 justify-end">
+            {isGuestMode ? (
+                <div className="xt-topbar-pill hidden md:flex items-center gap-2 px-3 py-1 text-[9px] uppercase tracking-[0.2em] text-[var(--app-accent)]">
+                    Local Mode
+                </div>
+            ) : null}
+            <div
+              className={`xt-topbar-pill hidden xl:flex items-center gap-2 px-3 py-1 text-[9px] uppercase tracking-[0.18em] ${
+                stationIdentity.tone === 'accent' ? 'text-[var(--app-accent)]' : 'text-[var(--app-muted)]'
+              }`}
+              title={stationIdentity.detail}
+            >
+              <span className="text-[var(--app-text)]">{stationIdentity.modeLabel}</span>
+              <span>•</span>
+              <span>{stationIdentity.workspaceLabel}</span>
+            </div>
+            <div className="xt-topbar-pill hidden lg:flex items-center gap-2 px-3 py-1 text-[9px] uppercase tracking-[0.18em] text-[var(--app-muted)]">
+                <span className="text-[var(--app-text)]">{currentStation.plan}</span>
+                <span>•</span>
+                <span>{currentStation.releaseChannel}</span>
+                {currentStation.plan === 'trial' && trialDaysRemaining !== null ? (
+                  <>
+                    <span>•</span>
+                    <span className="text-[var(--app-accent)]">{trialDaysRemaining}d</span>
+                  </>
+                ) : null}
+            </div>
             {loading ? (
                 <span className="text-[11px] text-[var(--app-muted)] font-mono">…</span>
             ) : null}
             {user ? (
                 <>
-                    <div className="w-7 h-7 rounded-full overflow-hidden border border-[color-mix(in_srgb,var(--app-border)_70%,var(--app-text))] bg-[var(--app-panel-2)] flex items-center justify-center text-[10px] text-[var(--app-text)]">
+                    <div className="xt-topbar-avatar w-7 h-7 overflow-hidden flex items-center justify-center text-[10px] text-[var(--app-text)]">
                         {user.avatar ? (
                           <img src={user.avatar} alt="user avatar" className="w-full h-full object-cover" />
                         ) : (
@@ -208,7 +307,7 @@ export const TopBar: React.FC<TopBarProps> = ({
                             playClickSound();
                             void signOut();
                         }}
-                    className="h-8 px-2 sm:px-3 border border-[var(--app-border)] text-[8px] sm:text-[9px] uppercase tracking-[0.2em] text-[var(--app-text)] hover:border-[var(--app-accent)] hover:text-[var(--app-accent)] transition-colors"
+                    className="xt-topbar-btn h-8 px-2 sm:px-3 text-[8px] sm:text-[9px] uppercase tracking-[0.2em] text-[var(--app-text)] hover:border-[var(--app-accent)] hover:text-[var(--app-accent)] transition-colors"
                     >
                         Logout
                     </button>
@@ -221,9 +320,9 @@ export const TopBar: React.FC<TopBarProps> = ({
                         playClickSound();
                         openLoginModal();
                     }}
-                    className="h-8 px-2 sm:px-3 border border-[var(--app-border)] text-[8px] sm:text-[9px] uppercase tracking-[0.2em] transition-colors text-[var(--app-text)] hover:border-[var(--app-accent)] hover:text-[var(--app-accent)]"
+                    className="xt-topbar-btn h-8 px-2 sm:px-3 text-[8px] sm:text-[9px] uppercase tracking-[0.2em] transition-colors text-[var(--app-text)] hover:border-[var(--app-accent)] hover:text-[var(--app-accent)]"
                 >
-                    LOGIN
+                    {isGuestMode ? 'CONNECT' : 'LOGIN'}
                 </button>
             ) : null}
             {import.meta.env.DEV && error && (
@@ -239,25 +338,39 @@ export const TopBar: React.FC<TopBarProps> = ({
             onClick={onOpenPalette}
             onMouseEnter={playHoverSound}
             title="Command palette (⌘K)"
-            className="hidden md:inline-flex items-center gap-1 rounded border border-[color-mix(in_srgb,var(--app-border)_70%,transparent)] px-2 py-1 text-[9px] uppercase tracking-[0.18em] text-[var(--app-muted)] font-mono hover:border-[var(--app-accent)] hover:text-[var(--app-accent)] transition-colors"
+            className="xt-topbar-keycap hidden md:inline-flex items-center gap-1 px-2 py-1 text-[9px] uppercase tracking-[0.18em] text-[var(--app-muted)] font-mono hover:border-[var(--app-accent)] hover:text-[var(--app-accent)] transition-colors"
           >
             ⌘K
           </button>
         ) : null}
 
-        <div className="hidden sm:block w-[1px] h-6 bg-[var(--app-border)]"></div>
+        <div className="xt-topbar-divider hidden sm:block w-[1px] h-6"></div>
+
+        {isGuestMode && onExitGuestMode ? (
+          <button
+            type="button"
+            onClick={() => {
+              playClickSound();
+              onExitGuestMode();
+            }}
+            onMouseEnter={playHoverSound}
+            className="xt-topbar-keycap inline-flex items-center gap-1 px-2 py-1 text-[9px] uppercase tracking-[0.18em] text-[var(--app-muted)] font-mono hover:border-[var(--app-accent)] hover:text-[var(--app-accent)] transition-colors"
+          >
+            Exit
+          </button>
+        ) : null}
 
         {/* System Icons */}
         <div className="hidden sm:flex items-center gap-1 text-[var(--app-muted)]">
             <div
-              className="flex items-center gap-1 px-1.5 py-0.5 border border-[var(--app-border)] text-[var(--app-accent)]"
+              className="xt-topbar-keycap flex items-center gap-1 px-1.5 py-0.5 text-[var(--app-accent)]"
               title={`Player Level (${stats.totalEarnedXP} total XP)`}
             >
               <Trophy size={11} />
               <span className="font-mono text-[9px] font-bold tracking-widest uppercase">LV {stats.playerLevel}</span>
             </div>
-            <button onMouseEnter={playHoverSound} onClick={playClickSound} className="hover:text-[var(--app-text)] p-1.5 md:p-2 transition-colors"><Bell size={15} /></button>
-            <button onMouseEnter={playHoverSound} onClick={() => onChangeView(ClientView.SETTINGS)} className="hover:text-[var(--app-text)] p-1.5 md:p-2 transition-colors"><Settings size={15} /></button>
+            <button onMouseEnter={playHoverSound} onClick={playClickSound} className="xt-topbar-icon hover:text-[var(--app-text)] p-1.5 md:p-2 transition-colors"><Bell size={15} /></button>
+            <button onMouseEnter={playHoverSound} onClick={() => onChangeView(ClientView.SETTINGS)} className="xt-topbar-icon hover:text-[var(--app-text)] p-1.5 md:p-2 transition-colors"><Settings size={15} /></button>
         </div>
       </div>
       </div>
@@ -265,7 +378,6 @@ export const TopBar: React.FC<TopBarProps> = ({
       <AuthDrawer
         open={isLoginModalOpen && !user}
         onClose={closeLoginModal}
-        disableClose={isAuthSubmitting}
         variant="center"
         panelClassName="!w-auto !max-h-none !overflow-visible !rounded-none !border-0 !bg-transparent !shadow-none"
         triggerRef={loginTriggerRef as React.RefObject<HTMLElement | null>}
@@ -331,7 +443,6 @@ export const TopBar: React.FC<TopBarProps> = ({
           <button
             type="button"
             onClick={closeLoginModal}
-            disabled={isAuthSubmitting}
             className="auth-modal-close ui-pressable absolute right-[2.05%] top-[1.95%] z-20 flex h-[6.2%] min-h-[38px] w-[4.95%] min-w-[38px] items-center justify-center rounded-[10px] bg-[color-mix(in_srgb,var(--app-bg)_62%,#1b1530)] text-[var(--app-text)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ui-accent)] disabled:cursor-not-allowed disabled:opacity-60"
             aria-label="Close login modal"
             title="Close"
@@ -340,110 +451,42 @@ export const TopBar: React.FC<TopBarProps> = ({
           </button>
 
           <div className="auth-modal-form auth-drawer-stagger absolute left-[2.2%] top-[2.2%] z-10 h-[95.6%] w-[40.8%] rounded-[12px] bg-[#1f162d]">
-            <form
-              className="relative z-10 flex h-full min-h-0 flex-col justify-center gap-2.5 overflow-y-auto px-7 py-6"
-              onSubmit={(event) => {
-                event.preventDefault();
-                void handlePrimaryAuthSubmit();
+            <AuthCard
+              title="HELLO PLAYER"
+              description={isGuestMode ? 'Connect your XTATION account to sync this local station into cloud mode.' : undefined}
+              isGuestMode={isGuestMode}
+              continuityStatus={localStationStatus}
+              entryDescriptor={guestEntry?.transitionDescriptor ?? null}
+              showEntryDescriptor={false}
+              onSuccess={(mode) => {
+                if (mode === 'login') {
+                  closeLoginModal();
+                }
               }}
-            >
-              <div className="flex justify-center pt-1 pb-8">
-                <EyeOrb
-                  onClick={() => {}}
-                  ariaLabel="Decorative orb"
-                  className="auth-mini-orb pointer-events-none cursor-default h-[156px] w-[156px] p-0"
-                />
-              </div>
-
-              <div className="text-center">
-                <div className="text-[12px] font-semibold uppercase tracking-[0.2em] text-[#f8c74c]">HELLO PLAYER</div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setAuthMode('login');
-                    setAuthNotice(null);
-                  }}
-                  className={`ui-pressable h-9 rounded-[8px] border text-[11px] font-semibold uppercase tracking-[0.2em] ${
-                    authMode === 'login'
-                      ? 'border-[var(--ui-accent)] bg-[color-mix(in_srgb,var(--app-accent)_58%,transparent)] text-[var(--ui-text)]'
-                      : 'border-[color-mix(in_srgb,var(--app-accent)_35%,var(--app-border))] bg-transparent text-[var(--ui-text)]'
-                  }`}
-                >
-                  LOGIN
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setAuthMode('signup');
-                    setAuthNotice(null);
-                  }}
-                  className={`ui-pressable h-9 rounded-[8px] border text-[11px] font-semibold uppercase tracking-[0.2em] ${
-                    authMode === 'signup'
-                      ? 'border-[var(--ui-accent)] bg-[color-mix(in_srgb,var(--app-accent)_58%,transparent)] text-[var(--ui-text)]'
-                      : 'border-[color-mix(in_srgb,var(--app-accent)_35%,var(--app-border))] bg-transparent text-[var(--ui-text)]'
-                  }`}
-                >
-                  SIGN UP
-                </button>
-              </div>
-
-              <div className="space-y-2">
-                <input
-                  type="email"
-                  value={authEmail}
-                  onChange={(event) => setAuthEmail(event.target.value)}
-                  placeholder="Email"
-                  data-auth-initial-focus="true"
-                  className="h-9 w-full rounded-[7px] border border-transparent bg-[color-mix(in_srgb,var(--app-bg)_80%,black)] px-4 text-sm text-[var(--ui-text)] outline-none transition-colors focus:border-[var(--ui-accent)]"
-                  autoFocus
-                />
-                <input
-                  type="password"
-                  value={authPassword}
-                  onChange={(event) => setAuthPassword(event.target.value)}
-                  placeholder="Password"
-                  className="h-9 w-full rounded-[7px] border border-transparent bg-[color-mix(in_srgb,var(--app-bg)_80%,black)] px-4 text-sm text-[var(--ui-text)] outline-none transition-colors focus:border-[var(--ui-accent)]"
-                />
-                {authMode === 'login' && (
-                  <button
-                    type="button"
-                    onClick={() => void handleSendResetLink()}
-                    disabled={isAuthSubmitting}
-                    className="text-left text-[9px] uppercase tracking-[0.18em] text-[var(--ui-muted)] hover:text-[var(--ui-text)] disabled:cursor-not-allowed disabled:opacity-60"
-                  >
-                    FORGOT PASSWORD?
-                  </button>
-                )}
-              </div>
-
-              {(authNotice || error) && (
-                <div className="min-h-[20px] text-[9px] leading-[1.35] tracking-[0.1em] text-[var(--ui-muted)]">
-                  {authNotice || error}
-                </div>
-              )}
-
-              <div className="mt-1 flex flex-col gap-2">
-                <button
-                  type="submit"
-                  disabled={isAuthSubmitting}
-                  className="ui-pressable h-9 rounded-[8px] border border-[var(--ui-accent)] bg-[color-mix(in_srgb,var(--app-accent)_62%,transparent)] text-[11px] font-semibold uppercase tracking-[0.2em] text-[var(--ui-text)] hover:-translate-y-[1px] disabled:cursor-not-allowed disabled:opacity-60"
-                >
-                  {authMode === 'login' ? 'SIGN IN' : 'SIGN UP'}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => void handleGoogleSignIn()}
-                  disabled={isAuthSubmitting}
-                  className="ui-pressable h-9 rounded-[8px] border border-[color-mix(in_srgb,var(--app-accent)_35%,var(--app-border))] bg-transparent text-[11px] font-semibold uppercase tracking-[0.2em] text-[var(--ui-text)] hover:-translate-y-[1px] hover:border-[var(--ui-accent)] disabled:cursor-not-allowed disabled:opacity-60"
-                >
-                  GOOGLE OAUTH
-                </button>
-              </div>
-            </form>
+            />
           </div>
+
+          {isGuestMode && localStationStatus ? (
+                <StationContinuityPanel
+                  status={localStationStatus}
+                  releaseChannel={currentStation.releaseChannel}
+                  plan={currentStation.plan}
+                  trialDays={trialDaysRemaining}
+                  activity={visibleRecentStationActivity}
+                  starterFlowSummary={starterFlowSummary}
+                  latestTransitionActivity={latestTransitionActivity}
+                  entryDescriptor={guestEntry?.transitionDescriptor ?? null}
+                  onOpenGuidedSetup={
+                    onOpenGuidedSetup
+                      ? () => {
+                          closeLoginModal();
+                          onOpenGuidedSetup();
+                        }
+                      : null
+                  }
+                  variant="drawer"
+                />
+          ) : null}
         </div>
       </AuthDrawer>
     </>

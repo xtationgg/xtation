@@ -31,6 +31,7 @@ import { xpRepository } from './xpRepository';
 import { useAuth } from '../../src/auth/AuthProvider';
 import { getOrCreateLedger, resetCloudLedgerForCurrentUser, saveLedger } from '../../src/data/userLedger';
 import type { UserLedger } from '../../src/types/ledger';
+import { parseQuestNotesAndSteps } from '../../src/lib/quests/steps';
 
 const MODE_TARGETS: Record<XPMode, number> = {
   Easy: 480,
@@ -157,22 +158,12 @@ const calculateSessionXP = (overlapMinutes: number): number => {
   return overlapMinutes + getDeepSessionBonus(overlapMinutes);
 };
 
-/** Parse step completion state from the embedded steps block in task.details. */
-const STEPS_XP_REGEX = /\n?---\s*\n\[xstation_steps_v1\]\s*\n([\s\S]*?)\n---\s*$/;
 const parseStepsFromDetails = (details?: string): { total: number; done: number } => {
-  if (!details) return { total: 0, done: 0 };
-  const match = details.match(STEPS_XP_REGEX);
-  if (!match?.[1]) return { total: 0, done: 0 };
-  try {
-    const parsed = JSON.parse(match[1]);
-    const steps = Array.isArray(parsed?.steps) ? parsed.steps : [];
-    return {
-      total: steps.filter((s: unknown) => typeof (s as { text?: unknown })?.text === 'string').length,
-      done: steps.filter((s: unknown) => !!(s as { done?: boolean })?.done).length,
-    };
-  } catch {
-    return { total: 0, done: 0 };
-  }
+  const { steps } = parseQuestNotesAndSteps(details);
+  return {
+    total: steps.length,
+    done: steps.filter((step) => step.done).length,
+  };
 };
 
 /**

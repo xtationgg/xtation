@@ -1,0 +1,97 @@
+- generic [ref=e94]:
+  - generic [ref=e95]:
+    - generic [ref=e96]:
+      - button "Play" [ref=e97]:
+        - generic [ref=e98]: Play
+      - button "Lab" [ref=e99]:
+        - generic [ref=e100]: Lab
+      - button "Multiplayer" [ref=e101]:
+        - generic [ref=e102]: Multiplayer
+      - button "Profile" [active] [ref=e103]:
+        - generic [ref=e104]: Profile
+      - button "Inventory" [ref=e105]:
+        - generic [ref=e106]: Inventory
+      - button "Store" [ref=e107]:
+        - generic [ref=e108]: Store
+      - button "Settings" [ref=e109]:
+        - generic [ref=e110]: Settings
+      - button "Admin" [ref=e111]:
+        - generic [ref=e112]: Admin
+    - generic [ref=e113]:
+      - button "DUSK" [ref=e114]:
+        - img [ref=e115]
+        - generic [ref=e118]: DUSK
+      - generic [ref=e125]:
+        - generic [ref=e126]: Today
+        - generic [ref=e127]:
+          - text: "0"
+          - generic [ref=e128]: / 960
+        - generic [ref=e129]: 0 MIN
+      - generic [ref=e130]:
+        - generic [ref=e131]: Local Mode
+        - generic [ref=e132]:
+          - generic [ref=e133]: trial
+          - generic [ref=e134]: •
+          - generic [ref=e135]: internal
+          - generic [ref=e136]: •
+          - generic [ref=e137]: 14d
+        - button "CONNECT" [ref=e138]
+      - button "⌘K" [ref=e139]
+      - button "Exit" [ref=e141]
+      - generic [ref=e142]:
+        - generic "Player Level (0 total XP)" [ref=e143]:
+          - img [ref=e144]
+          - generic [ref=e150]: LV 0
+        - button [ref=e151]:
+          - img [ref=e152]
+        - button [ref=e155]:
+          - img [ref=e156]
+  - generic [ref=e593]:
+    - generic [ref=e595]:
+      - button "PROFILE" [ref=e596]:
+        - img [ref=e598]
+        - text: PROFILE
+      - button "HEALTH" [ref=e601]:
+        - img [ref=e603]
+        - text: HEALTH
+      - button "ACHIEVEMENTS" [ref=e605]:
+        - img [ref=e607]
+        - text: ACHIEVEMENTS
+      - button "ACTIVITY" [ref=e610]:
+        - img [ref=e612]
+        - text: ACTIVITY
+      - button "LOG" [ref=e614]:
+        - img [ref=e616]
+        - text: LOG
+    - generic [ref=e620]:
+      - generic [ref=e621]:
+        - generic [ref=e623]:
+          - iframe [ref=e625]:
+            - generic [ref=f1e3]:
+              - img
+          - generic [ref=e626]:
+            - generic [ref=e627]:
+              - generic [ref=e628]:
+                - img [ref=e629]
+                - generic [ref=e632]: Scene Lobby
+              - generic [ref=e633]: Profile scene synced to XTATION state.
+              - generic [ref=e634]: bureau • wide • 16 commands
+            - button "Reload Scene" [ref=e636]:
+              - generic [ref=e637]:
+                - img [ref=e638]
+                - text: Reload Scene
+          - generic:
+            - generic: Profile Relay
+            - generic: Standby station
+            - generic: Plan TRIAL • Local Station
+            - generic: last event • stateChanged
+        - button "Play" [ref=e644]
+      - button "Profile deck Summoner Name Open the deck for identity, stats, and loadout. Open" [ref=e667]:
+        - img [ref=e670]
+        - generic [ref=e673]:
+          - generic [ref=e674]: Profile deck
+          - generic [ref=e675]: Summoner Name
+          - generic [ref=e676]: Open the deck for identity, stats, and loadout.
+        - generic [ref=e677]: Open
+  - button [ref=e230]:
+    - img [ref=e231]

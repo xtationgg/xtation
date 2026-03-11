@@ -1,0 +1,256 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Scene API Smoke Test</title>
+    <style>
+      :root {
+        color-scheme: dark;
+      }
+      body {
+        margin: 0;
+        font-family: ui-monospace, Menlo, Monaco, "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+        background: #0b0d12;
+        color: #dfe7f7;
+      }
+      .wrap {
+        display: grid;
+        grid-template-columns: 360px 1fr;
+        min-height: 100vh;
+      }
+      .panel {
+        border-right: 1px solid rgba(198, 216, 248, 0.2);
+        background: linear-gradient(180deg, rgba(16, 20, 30, 0.92), rgba(10, 12, 18, 0.9));
+        padding: 12px;
+        display: grid;
+        gap: 10px;
+        align-content: start;
+      }
+      .row {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+      }
+      button {
+        border: 1px solid rgba(180, 205, 245, 0.35);
+        background: linear-gradient(180deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.04));
+        color: #eaf2ff;
+        font: inherit;
+        font-size: 11px;
+        padding: 8px;
+        cursor: pointer;
+      }
+      button:hover {
+        filter: brightness(1.08);
+      }
+      .log {
+        border: 1px solid rgba(198, 216, 248, 0.2);
+        background: rgba(0, 0, 0, 0.32);
+        min-height: 220px;
+        max-height: 42vh;
+        overflow: auto;
+        font-size: 11px;
+        padding: 8px;
+        white-space: pre-wrap;
+      }
+      iframe {
+        width: 100%;
+        height: 100vh;
+        border: none;
+        background: #000;
+      }
+      .meta {
+        font-size: 11px;
+        opacity: 0.8;
+      }
+      .meta strong {
+        color: #f3f8ff;
+      }
+      input {
+        width: 100%;
+        box-sizing: border-box;
+        border: 1px solid rgba(180, 205, 245, 0.35);
+        background: rgba(255, 255, 255, 0.06);
+        color: #eaf2ff;
+        font: inherit;
+        font-size: 11px;
+        padding: 7px;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <div class="panel">
+        <div class="meta">Channel: <strong>xtation.scene</strong></div>
+        <div class="meta">Session: <strong id="session">pending</strong></div>
+        <div class="meta">State Version: <strong id="stateVersion">0</strong></div>
+        <div class="meta">A/C/F/T: <strong id="eventStats">0 / 0 / 0 / 0</strong></div>
+        <div class="row">
+          <button id="helloBtn">hello</button>
+          <button id="capBtn">getCapabilities</button>
+          <button id="contractBtn">load contract</button>
+          <button id="stateBtn">getState</button>
+          <button id="presetBtn">applyPreset(neon)</button>
+          <button id="envBtn">setEnvironment(dusk)</button>
+          <button id="shotBtn">setShot(hero)</button>
+          <button id="orbitBtn">orbit on 0.6x</button>
+          <button id="captureBtn">capture png</button>
+          <button id="staleBtn">stale expectedState</button>
+        </div>
+        <input id="timeoutMs" value="12000" />
+        <input id="expectedState" value="" placeholder="expectedStateVersion (optional)" />
+        <input id="mediaUrl" value="https://www.youtube.com/watch?v=dQw4w9WgXcQ" />
+        <div class="row">
+          <button id="providerBtn">screen provider</button>
+          <button id="pauseBtn">pause media</button>
+          <button id="muteBtn">toggle mute</button>
+          <button id="playBtn">play media</button>
+        </div>
+        <div class="log" id="log"></div>
+      </div>
+      <iframe id="sceneFrame" src="/" allow="autoplay; fullscreen; picture-in-picture"></iframe>
+    </div>
+    <script>
+      const CHANNEL = "xtation.scene";
+      const frame = document.getElementById("sceneFrame");
+      const logEl = document.getElementById("log");
+      const sessionEl = document.getElementById("session");
+      const stateVersionEl = document.getElementById("stateVersion");
+      const eventStatsEl = document.getElementById("eventStats");
+      const mediaUrlEl = document.getElementById("mediaUrl");
+      const timeoutMsEl = document.getElementById("timeoutMs");
+      const expectedStateEl = document.getElementById("expectedState");
+      let sessionId = "";
+      let stateVersion = 0;
+      const eventStats = {
+        accepted: 0,
+        completed: 0,
+        failed: 0,
+        timeout: 0,
+      };
+
+      const updateStats = () => {
+        eventStatsEl.textContent = `${eventStats.accepted} / ${eventStats.completed} / ${eventStats.failed} / ${eventStats.timeout}`;
+      };
+
+      const log = (...args) => {
+        logEl.textContent += `${args
+          .map((item) => (typeof item === "string" ? item : JSON.stringify(item, null, 2)))
+          .join(" ")}\n\n`;
+        logEl.scrollTop = logEl.scrollHeight;
+      };
+
+      const makeReqId = () => `smoke-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+
+      const send = (name, payload = {}, options = {}) => {
+        const timeoutMs = Number(timeoutMsEl.value);
+        const expectedStateRaw = expectedStateEl.value.trim();
+        const expectedStateVersion = Number(expectedStateRaw);
+        const req = {
+          channel: CHANNEL,
+          sessionId: options.forceNoSession ? "" : sessionId,
+          apiVersion: "1.0",
+          kind: "command",
+          domain: "scene",
+          name,
+          requestId: makeReqId(),
+          ts: Date.now(),
+          origin: "host",
+          payload,
+          ...options,
+        };
+        if (Number.isFinite(timeoutMs) && timeoutMs > 0) {
+          req.timeoutMs = Math.max(250, Math.round(timeoutMs));
+        }
+        if (expectedStateRaw.length > 0 && Number.isFinite(expectedStateVersion)) {
+          req.expectedStateVersion = Math.round(expectedStateVersion);
+        }
+        frame.contentWindow.postMessage(req, window.location.origin);
+        log("SEND", req);
+      };
+
+      window.addEventListener("message", (event) => {
+        if (event.origin !== window.location.origin) return;
+        const data = event.data;
+        if (!data || data.channel !== CHANNEL) return;
+        if (data.kind === "response" && data.name === "hello" && data.ok && data.result?.sessionId) {
+          sessionId = data.result.sessionId;
+          sessionEl.textContent = sessionId;
+        }
+        if (typeof data.stateVersion === "number") {
+          stateVersion = data.stateVersion;
+          stateVersionEl.textContent = String(stateVersion);
+        }
+        if (data.kind === "event") {
+          if (data.name === "commandAccepted") eventStats.accepted += 1;
+          if (data.name === "commandCompleted") eventStats.completed += 1;
+          if (data.name === "commandFailed") {
+            eventStats.failed += 1;
+            if (data.payload && typeof data.payload === "object" && data.payload.code === "TIMEOUT") {
+              eventStats.timeout += 1;
+            }
+          }
+          updateStats();
+        }
+        log("RECV", data);
+      });
+
+      document.getElementById("helloBtn").onclick = () => send("hello", { requestedVersion: "1.0" }, { forceNoSession: true });
+      document.getElementById("capBtn").onclick = () => send("getCapabilities");
+      document.getElementById("contractBtn").onclick = async () => {
+        try {
+          const response = await fetch("/scene-api-contract.json", { cache: "no-store" });
+          const contract = await response.json();
+          log("CONTRACT", contract);
+        } catch (error) {
+          log("CONTRACT_ERROR", String(error));
+        }
+      };
+      document.getElementById("stateBtn").onclick = () => send("getState");
+      document.getElementById("presetBtn").onclick = () => send("applyPreset", { preset: "neon" });
+      document.getElementById("envBtn").onclick = () => send("setEnvironmentMode", { mode: "dusk" });
+      document.getElementById("shotBtn").onclick = () => send("setCameraShot", { shot: "hero" });
+      document.getElementById("orbitBtn").onclick = () => send("setCameraMotion", { enabled: true, speed: 0.6 });
+      document.getElementById("captureBtn").onclick = () =>
+        send("captureStill", { format: "png" }, { idempotencyKey: `cap-${Date.now()}` });
+      document.getElementById("staleBtn").onclick = () =>
+        send(
+          "setEnvironmentMode",
+          { mode: "mono" },
+          {
+            expectedStateVersion: Math.max(0, stateVersion - 1),
+          }
+        );
+      document.getElementById("providerBtn").onclick = () =>
+        send("setScreenMedia", {
+          screenId: "screen-a",
+          sourceType: "provider",
+          url: mediaUrlEl.value,
+          playing: true,
+          showFrame: false,
+        });
+      document.getElementById("pauseBtn").onclick = () =>
+        send("playPauseMedia", {
+          screenId: "screen-a",
+          media: "video",
+          playing: false,
+        });
+      document.getElementById("playBtn").onclick = () =>
+        send("playPauseMedia", {
+          screenId: "screen-a",
+          media: "video",
+          playing: true,
+        });
+      let muted = true;
+      document.getElementById("muteBtn").onclick = () => {
+        muted = !muted;
+        send("playPauseMedia", {
+          screenId: "screen-a",
+          media: "mute",
+          playing: !muted,
+        });
+      };
+    </script>
+  </body>
+</html>

@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useRef } from 'react';
 import { X, Zap, Layers, Calendar, Clock, FolderOpen } from 'lucide-react';
 import { useXP } from '../XP/xpStore';
 import type { QuestLevel, XPSession } from '../XP/xpTypes';
+import { parseQuestNotesAndSteps, stripQuestStepsBlock } from '../../src/lib/quests/steps';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -149,18 +150,8 @@ export const QuestDetailPanel: React.FC<QuestDetailPanelProps> = ({ taskId, onCl
   );
 
   const stepsData = useMemo(() => {
-    if (!task?.details) return null;
-    const m = task.details.match(/\n?---\s*\n\[xstation_steps_v1\]\s*\n([\s\S]*?)\n---\s*$/);
-    if (!m) return null;
-    try {
-      const parsed = JSON.parse(m[1]?.trim());
-      const steps = Array.isArray(parsed?.steps)
-        ? (parsed.steps as Array<{ text?: string; done?: boolean }>).filter((s) => s.text?.trim())
-        : [];
-      return steps.length > 0 ? (steps as Array<{ text: string; done: boolean }>) : null;
-    } catch {
-      return null;
-    }
+    const parsed = parseQuestNotesAndSteps(task?.details);
+    return parsed.steps.length ? parsed.steps : null;
   }, [task]);
 
   const totalXP = xpBreakdown?.total ?? sessionXPTotal;
@@ -174,7 +165,7 @@ export const QuestDetailPanel: React.FC<QuestDetailPanelProps> = ({ taskId, onCl
   const visibleSessions = sessions.slice(0, MAX_VISIBLE_SESSIONS);
   const hasMoreSessions = sessions.length > MAX_VISIBLE_SESSIONS;
   const descriptionText = task.details
-    ? task.details.replace(/\n?---\s*\n\[xstation_steps_v1\][\s\S]*$/, '').trim()
+    ? stripQuestStepsBlock(task.details)
     : '';
 
   return (

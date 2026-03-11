@@ -88,7 +88,10 @@ export const AuthDrawer: React.FC<AuthDrawerProps> = ({
 
   return (
     <div
-      className="auth-drawer-backdrop fixed inset-0 z-[180] bg-[color-mix(in_srgb,var(--app-bg)_74%,black)] backdrop-blur-[2px]"
+      className={[
+        'auth-drawer-backdrop fixed inset-0 z-[180] bg-[color-mix(in_srgb,var(--app-bg)_74%,black)] backdrop-blur-[2px]',
+        variant === 'center' ? 'flex items-center justify-center p-4' : '',
+      ].join(' ')}
       onClick={() => {
         if (!disableClose) onClose();
       }}
@@ -97,7 +100,7 @@ export const AuthDrawer: React.FC<AuthDrawerProps> = ({
         className={[
           variant === 'drawer'
             ? 'auth-drawer-panel absolute right-0 top-0 h-[100dvh] max-w-full border-l border-[var(--app-border)] bg-[var(--app-panel)] shadow-[var(--app-shadow)]'
-            : 'auth-center-panel absolute left-1/2 top-1/2 h-auto w-[min(92vw,1280px)] max-h-[92dvh] -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-[20px] border border-[var(--app-border)] bg-[var(--app-panel)] shadow-[var(--app-shadow)]',
+            : 'auth-center-panel relative h-auto w-[min(92vw,1280px)] max-h-[94dvh] overflow-hidden rounded-[20px] border border-[var(--app-border)] bg-[var(--app-panel)] shadow-[var(--app-shadow)]',
           panelClassName,
         ].join(' ')}
         style={variant === 'drawer' ? { width: 'clamp(360px, 34vw, 520px)' } : undefined}

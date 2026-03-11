@@ -1,9 +1,13 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { useAuth } from '../auth/AuthProvider';
+import { readUserScopedString, writeUserScopedString } from '../lib/userScopedStorage';
 
 export const XTATION_THEME_STORAGE_KEY = 'xtation_theme_pack';
 export const XTATION_ACCENT_STORAGE_KEY = 'xtation_accent_pack';
 export const XTATION_RESOLUTION_STORAGE_KEY = 'xtation_resolution_mode';
 const LEGACY_THEME_STORAGE_KEY = 'xtation_theme';
+export const BUILTIN_THEME_PACK_PREFIX = 'builtin:';
+const THEME_DIRECTION_MIGRATION_KEY = 'xtation_theme_direction_v1';
 
 export type XtationTheme =
   | 'dusk'
@@ -37,6 +41,8 @@ export interface XtationResolutionOption {
   label: string;
 }
 
+export const getBuiltInThemePackId = (theme: XtationTheme) => `${BUILTIN_THEME_PACK_PREFIX}${theme}`;
+
 export const XTATION_THEME_OPTIONS: XtationThemeOption[] = [
   { value: 'dusk', label: 'Dusk' },
   { value: 'dusk_soft', label: 'Dusk • No Outline' },
@@ -69,8 +75,8 @@ export const XTATION_RESOLUTION_OPTIONS: XtationResolutionOption[] = [
   { value: 'uhd_2160', label: '3840 × 2160' },
 ];
 
-const DEFAULT_THEME: XtationTheme = 'dusk';
-const DEFAULT_ACCENT: XtationAccent = 'purple';
+const DEFAULT_THEME: XtationTheme = 'bureau';
+const DEFAULT_ACCENT: XtationAccent = 'amber';
 const DEFAULT_RESOLUTION: XtationResolutionMode = 'auto';
 const VALID_THEMES = new Set<XtationTheme>(XTATION_THEME_OPTIONS.map((option) => option.value));
 const VALID_ACCENTS = new Set<XtationAccent>(XTATION_ACCENT_OPTIONS.map((option) => option.value));
@@ -99,6 +105,14 @@ const readStoredTheme = (): XtationTheme => {
   return legacy ?? DEFAULT_THEME;
 };
 
+const readStoredThemeForUser = (userId?: string | null): XtationTheme => {
+  const scoped = normalizeTheme(readUserScopedString(XTATION_THEME_STORAGE_KEY, null, userId));
+  if (scoped) return scoped;
+  const scopedLegacy = normalizeTheme(readUserScopedString(LEGACY_THEME_STORAGE_KEY, null, userId));
+  if (scopedLegacy) return scopedLegacy;
+  return readStoredTheme();
+};
+
 const readStoredAccent = (): XtationAccent => {
   if (typeof window === 'undefined') return DEFAULT_ACCENT;
   const stored = window.localStorage.getItem(XTATION_ACCENT_STORAGE_KEY);
@@ -106,11 +120,23 @@ const readStoredAccent = (): XtationAccent => {
   return DEFAULT_ACCENT;
 };
 
+const readStoredAccentForUser = (userId?: string | null): XtationAccent => {
+  const scoped = readUserScopedString(XTATION_ACCENT_STORAGE_KEY, null, userId);
+  if (scoped && isAccent(scoped)) return scoped;
+  return readStoredAccent();
+};
+
 const readStoredResolution = (): XtationResolutionMode => {
   if (typeof window === 'undefined') return DEFAULT_RESOLUTION;
   const stored = window.localStorage.getItem(XTATION_RESOLUTION_STORAGE_KEY);
   if (stored && isResolution(stored)) return stored;
   return DEFAULT_RESOLUTION;
+};
+
+const readStoredResolutionForUser = (userId?: string | null): XtationResolutionMode => {
+  const scoped = readUserScopedString(XTATION_RESOLUTION_STORAGE_KEY, null, userId);
+  if (scoped && isResolution(scoped)) return scoped;
+  return readStoredResolution();
 };
 
 const applyThemeToDom = (theme: XtationTheme) => {
@@ -126,6 +152,74 @@ const applyAccentToDom = (accent: XtationAccent) => {
 const applyResolutionToDom = (resolution: XtationResolutionMode) => {
   if (typeof document === 'undefined') return;
   document.documentElement.dataset.resolution = resolution;
+};
+
+const persistThemeSelection = (theme: XtationTheme, userId?: string | null) => {
+  if (typeof window === 'undefined') return;
+  window.localStorage.setItem(XTATION_THEME_STORAGE_KEY, theme);
+  window.localStorage.removeItem(LEGACY_THEME_STORAGE_KEY);
+  if (userId) {
+    writeUserScopedString(XTATION_THEME_STORAGE_KEY, theme, userId);
+    writeUserScopedString(LEGACY_THEME_STORAGE_KEY, theme, userId);
+  }
+};
+
+const persistAccentSelection = (accent: XtationAccent, userId?: string | null) => {
+  if (typeof window === 'undefined') return;
+  window.localStorage.setItem(XTATION_ACCENT_STORAGE_KEY, accent);
+  if (userId) {
+    writeUserScopedString(XTATION_ACCENT_STORAGE_KEY, accent, userId);
+  }
+};
+
+const persistResolutionSelection = (resolution: XtationResolutionMode, userId?: string | null) => {
+  if (typeof window === 'undefined') return;
+  window.localStorage.setItem(XTATION_RESOLUTION_STORAGE_KEY, resolution);
+  if (userId) {
+    writeUserScopedString(XTATION_RESOLUTION_STORAGE_KEY, resolution, userId);
+  }
+};
+
+const persistThemeDirectionMigration = (userId?: string | null) => {
+  if (typeof window === 'undefined') return;
+  if (userId) {
+    writeUserScopedString(THEME_DIRECTION_MIGRATION_KEY, 'applied', userId);
+    return;
+  }
+  window.localStorage.setItem(THEME_DIRECTION_MIGRATION_KEY, 'applied');
+};
+
+const hasThemeDirectionMigration = (userId?: string | null) => {
+  if (typeof window === 'undefined') return true;
+  if (userId) {
+    return readUserScopedString(THEME_DIRECTION_MIGRATION_KEY, null, userId) === 'applied';
+  }
+  return window.localStorage.getItem(THEME_DIRECTION_MIGRATION_KEY) === 'applied';
+};
+
+const migrateThemeDirection = (userId?: string | null) => {
+  if (typeof window === 'undefined') return;
+  if (hasThemeDirectionMigration(userId)) return;
+
+  const storedTheme = normalizeTheme(
+    userId
+      ? readUserScopedString(XTATION_THEME_STORAGE_KEY, null, userId) ??
+          readUserScopedString(LEGACY_THEME_STORAGE_KEY, null, userId)
+      : window.localStorage.getItem(XTATION_THEME_STORAGE_KEY) ?? window.localStorage.getItem(LEGACY_THEME_STORAGE_KEY)
+  );
+  const storedAccent = userId
+    ? readUserScopedString(XTATION_ACCENT_STORAGE_KEY, null, userId)
+    : window.localStorage.getItem(XTATION_ACCENT_STORAGE_KEY);
+
+  const themeLooksDefault = storedTheme == null || storedTheme === 'dusk';
+  const accentLooksDefault = storedAccent == null || storedAccent === 'purple';
+
+  if (themeLooksDefault && accentLooksDefault) {
+    persistThemeSelection(DEFAULT_THEME, userId);
+    persistAccentSelection(DEFAULT_ACCENT, userId);
+  }
+
+  persistThemeDirectionMigration(userId);
 };
 
 const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
@@ -164,9 +258,12 @@ interface ThemeContextValue {
 const ThemeContext = createContext<ThemeContextValue | null>(null);
 
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { user, loading: authLoading } = useAuth();
+  const activeUserId = user?.id || null;
   const [theme, setThemeState] = useState<XtationTheme>(() => initializeThemeFromStorage());
   const [accent, setAccentState] = useState<XtationAccent>(() => readStoredAccent());
   const [resolution, setResolutionState] = useState<XtationResolutionMode>(() => readStoredResolution());
+  const [hydratedScopeKey, setHydratedScopeKey] = useState('__boot__');
 
   const setTheme = useCallback((nextTheme: XtationTheme) => {
     if (!isTheme(nextTheme)) return;
@@ -184,26 +281,32 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   }, []);
 
   useEffect(() => {
+    if (authLoading) return;
+    const scopeKey = activeUserId || 'local';
+    migrateThemeDirection(activeUserId);
+    setThemeState(readStoredThemeForUser(activeUserId));
+    setAccentState(readStoredAccentForUser(activeUserId));
+    setResolutionState(readStoredResolutionForUser(activeUserId));
+    setHydratedScopeKey(scopeKey);
+  }, [authLoading, activeUserId]);
+
+  useEffect(() => {
+    if (authLoading || hydratedScopeKey !== (activeUserId || 'local')) return;
     applyThemeToDom(theme);
-    if (typeof window !== 'undefined') {
-      window.localStorage.setItem(XTATION_THEME_STORAGE_KEY, theme);
-      window.localStorage.removeItem(LEGACY_THEME_STORAGE_KEY);
-    }
-  }, [theme]);
+    persistThemeSelection(theme, activeUserId);
+  }, [theme, authLoading, hydratedScopeKey, activeUserId]);
 
   useEffect(() => {
+    if (authLoading || hydratedScopeKey !== (activeUserId || 'local')) return;
     applyAccentToDom(accent);
-    if (typeof window !== 'undefined') {
-      window.localStorage.setItem(XTATION_ACCENT_STORAGE_KEY, accent);
-    }
-  }, [accent]);
+    persistAccentSelection(accent, activeUserId);
+  }, [accent, authLoading, hydratedScopeKey, activeUserId]);
 
   useEffect(() => {
+    if (authLoading || hydratedScopeKey !== (activeUserId || 'local')) return;
     applyResolutionToDom(resolution);
-    if (typeof window !== 'undefined') {
-      window.localStorage.setItem(XTATION_RESOLUTION_STORAGE_KEY, resolution);
-    }
-  }, [resolution]);
+    persistResolutionSelection(resolution, activeUserId);
+  }, [resolution, authLoading, hydratedScopeKey, activeUserId]);
 
   useEffect(() => {
     if (typeof document === 'undefined') return;

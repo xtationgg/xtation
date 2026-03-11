@@ -1,0 +1,129 @@
+- generic [ref=e3]:
+  - generic [ref=e4]:
+    - generic [ref=e5]:
+      - button "Play" [ref=e6] [cursor=pointer]:
+        - generic [ref=e7]: Play
+      - button "Lab" [ref=e8] [cursor=pointer]:
+        - generic [ref=e9]: Lab
+      - button "Multiplayer" [ref=e10] [cursor=pointer]:
+        - generic [ref=e11]: Multiplayer
+      - button "Profile" [ref=e12] [cursor=pointer]:
+        - generic [ref=e13]: Profile
+      - button "Inventory" [ref=e14] [cursor=pointer]:
+        - generic [ref=e15]: Inventory
+      - button "Store" [ref=e16] [cursor=pointer]:
+        - generic [ref=e17]: Store
+      - button "Settings" [ref=e18] [cursor=pointer]:
+        - generic [ref=e19]: Settings
+    - generic [ref=e20]:
+      - button "QUESTS" [ref=e21] [cursor=pointer]:
+        - img [ref=e22]
+        - generic [ref=e25]: QUESTS
+      - generic [ref=e32]:
+        - generic [ref=e33]: Today
+        - generic [ref=e34]:
+          - text: "0"
+          - generic [ref=e35]: / 960
+        - generic [ref=e36]: 0 MIN
+      - button "LOGIN" [ref=e169] [cursor=pointer]
+      - button "⌘K" [ref=e39] [cursor=pointer]
+      - generic [ref=e41]:
+        - generic "Player Level (0 total XP)" [ref=e42]:
+          - img [ref=e43]
+          - generic [ref=e49]: LV 0
+        - button [ref=e50] [cursor=pointer]:
+          - img [ref=e51]
+        - button [ref=e54] [cursor=pointer]:
+          - img [ref=e55]
+  - generic [ref=e64]:
+    - generic [ref=e65]:
+      - generic [ref=e66]:
+        - generic [ref=e67]:
+          - generic [ref=e68]: Play / Action Room
+          - heading "Ready for the next operation" [level=1] [ref=e69]
+          - paragraph [ref=e70]: Create one clear quest, start a session, and let Xtation turn execution into visible progress.
+        - button "New Quest" [ref=e72] [cursor=pointer]:
+          - img [ref=e73]
+          - text: New Quest
+      - generic [ref=e74]:
+        - generic [ref=e76]:
+          - generic [ref=e77]: No quest selected
+          - heading "Build the first operation" [level=2] [ref=e78]
+          - paragraph [ref=e79]: Start with one clear quest. Once it exists, Play becomes the live execution room for timing, steps, debrief, and momentum.
+          - button "Create First Quest" [ref=e80] [cursor=pointer]:
+            - img [ref=e81]
+            - text: Create First Quest
+        - generic [ref=e82]:
+          - generic [ref=e83]:
+            - generic [ref=e84]: Today Pulse
+            - generic [ref=e85]:
+              - generic [ref=e86]:
+                - generic [ref=e87]: 0 min
+                - generic [ref=e88]: Tracked
+              - generic [ref=e89]:
+                - generic [ref=e90]: "0"
+                - generic [ref=e91]: XP Today
+              - generic [ref=e92]:
+                - generic [ref=e93]: "0"
+                - generic [ref=e94]: Completed
+              - generic [ref=e95]:
+                - generic [ref=e96]: "0"
+                - generic [ref=e97]: Active Days
+            - generic [ref=e98]:
+              - generic [ref=e99]:
+                - img [ref=e100]
+                - text: Momentum
+              - generic [ref=e106]: 0 day streak · x1.00
+              - generic [ref=e107]: Player level 0 · 0 total XP
+          - generic [ref=e108]:
+            - generic [ref=e109]: Project Context
+            - generic [ref=e110]: This quest is running standalone. Link it to a project when you want campaign-level structure and milestone tracking.
+          - generic [ref=e111]:
+            - generic [ref=e112]: Recent Output
+            - generic [ref=e114]: No activity yet today. The next clean session will start building the trace.
+    - generic [ref=e115]:
+      - generic [ref=e116]:
+        - generic [ref=e117]:
+          - generic [ref=e118]: Quest Queue
+          - generic [ref=e119]: Select the next operation, or switch live if something else is more urgent.
+        - generic [ref=e120]: 0 active
+      - generic [ref=e122]: No active quests yet. Start with one concrete objective and the rest of Play will open up around it.
+  - button [ref=e125] [cursor=pointer]:
+    - img [ref=e126]
+  - generic [ref=e129]:
+    - generic [ref=e130]:
+      - generic [ref=e132]: Developer HUD
+      - button "Min" [ref=e133] [cursor=pointer]
+    - generic [ref=e134]:
+      - generic [ref=e135]:
+        - generic [ref=e136]: Auth
+        - generic [ref=e137]: Not signed in
+        - generic [ref=e138]: User ID
+        - generic [ref=e139]: anon
+        - generic [ref=e140]: Ledger Key
+        - generic [ref=e141]: xpLedger_v2:anon
+        - generic [ref=e142]: Ledger Source
+        - generic [ref=e143]: anon-local
+        - generic [ref=e144]: Cloud Status
+        - generic [ref=e145]: idle
+        - generic [ref=e146]: Last Sync
+        - generic [ref=e147]: "-"
+        - generic [ref=e148]: Counts
+        - generic [ref=e149]: 0 tasks / 0 sessions / 0 challenges
+        - generic [ref=e150]: Running
+        - generic [ref=e151]: none
+        - generic [ref=e152]: Today
+        - generic [ref=e153]: 0/960 (Bronze)
+      - generic [ref=e154]:
+        - button "Run Checks" [ref=e155] [cursor=pointer]
+        - button "Repair Links" [ref=e156] [cursor=pointer]
+        - button "Export Ledger JSON" [ref=e157] [cursor=pointer]
+        - button "Reset Local Data" [ref=e158] [cursor=pointer]
+        - button "Reset Cloud Data (This Account)" [disabled] [ref=e159]
+      - generic [ref=e160]:
+        - generic [ref=e161]: Cloud reset
+        - generic [ref=e162]: Idle
+      - 'button "Health: OK Show" [ref=e164] [cursor=pointer]':
+        - generic [ref=e165]: "Health: OK"
+        - generic [ref=e166]: Show
+      - generic [ref=e167]: Health checks OK

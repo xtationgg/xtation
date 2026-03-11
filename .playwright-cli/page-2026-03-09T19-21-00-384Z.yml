@@ -1,0 +1,340 @@
+- generic [ref=e3]:
+  - generic [ref=e4]:
+    - generic [ref=e5]:
+      - button "Play" [ref=e6]
+      - button "Lab" [ref=e8]:
+        - generic [ref=e386]: Lab
+      - button "Multiplayer" [ref=e9]
+      - button "Profile" [ref=e10]
+      - button "Inventory" [ref=e11]
+      - button "Store" [ref=e12]
+      - button "Settings" [ref=e13]
+    - generic [ref=e14]:
+      - button "DUSK" [ref=e15]:
+        - img [ref=e16]
+        - text: DUSK
+      - generic [ref=e19]:
+        - generic [ref=e20]: Today
+        - generic [ref=e21]:
+          - text: "0"
+          - generic [ref=e22]: / 960
+        - generic [ref=e23]: 0 MIN
+      - button "LOGIN" [ref=e25]
+      - button "⌘K" [ref=e26]
+      - generic [ref=e27]:
+        - generic "Player Level (0 total XP)" [ref=e28]:
+          - img [ref=e29]
+          - generic [ref=e35]: LV 0
+        - button [ref=e36]:
+          - img [ref=e37]
+        - button [ref=e40]:
+          - img [ref=e41]
+  - generic [ref=e388]:
+    - generic [ref=e389]:
+      - generic [ref=e390]:
+        - generic [ref=e391]:
+          - generic [ref=e392]: Lab / System Workshop
+          - heading "Build the systems that sharpen execution." [level=1] [ref=e393]
+          - paragraph [ref=e394]: "Lab is the workshop layer of Xtation: assistant projects, knowledge notes, templates, and event-driven automations that should make Play cleaner and follow-through easier."
+          - generic [ref=e395]:
+            - generic [ref=e397]:
+              - generic [ref=e398]:
+                - generic [ref=e399]: Active Projects
+                - generic [ref=e400]: "2"
+              - img [ref=e402]
+            - generic [ref=e406]:
+              - generic [ref=e407]:
+                - generic [ref=e408]: Pinned Notes
+                - generic [ref=e409]: "1"
+              - img [ref=e411]
+            - generic [ref=e414]:
+              - generic [ref=e415]:
+                - generic [ref=e416]: Enabled Rules
+                - generic [ref=e417]: "1"
+              - img [ref=e419]
+            - generic [ref=e424]:
+              - generic [ref=e425]:
+                - generic [ref=e426]: Play Minutes Today
+                - generic [ref=e427]: "0"
+              - img [ref=e429]
+        - generic [ref=e432]:
+          - generic [ref=e433]: Workspace Brief
+          - generic [ref=e434]:
+            - paragraph [ref=e435]: Current quest context:No active quest
+            - paragraph [ref=e436]: Lead project:XTATION architecture
+            - paragraph [ref=e437]: Operating rule:if it does not improve Play, Profile, or real follow-through, it should not stay.
+          - button "Send Workspace To Dusk" [ref=e438]:
+            - img [ref=e439]
+            - text: Send Workspace To Dusk
+      - generic [ref=e442]:
+        - button "Workspace Command deck and next actions" [ref=e443]:
+          - generic [ref=e444]:
+            - img [ref=e445]
+            - text: Workspace
+          - generic [ref=e450]: Command deck and next actions
+        - button "Assistants Structured project contexts" [ref=e451]:
+          - generic [ref=e452]:
+            - img [ref=e453]
+            - text: Assistants
+          - generic [ref=e456]: Structured project contexts
+        - button "Knowledge Notes, captures, and linked context" [ref=e457]:
+          - generic [ref=e458]:
+            - img [ref=e459]
+            - text: Knowledge
+          - generic [ref=e462]: Notes, captures, and linked context
+        - button "Automations Rules, triggers, and action flows" [ref=e463]:
+          - generic [ref=e464]:
+            - img [ref=e465]
+            - text: Automations
+          - generic [ref=e469]: Rules, triggers, and action flows
+        - button "Media Ops Accounts, campaigns, and publishing queue" [active] [ref=e470]:
+          - generic [ref=e471]:
+            - img [ref=e472]
+            - text: Media Ops
+          - generic [ref=e475]: Accounts, campaigns, and publishing queue
+        - button "Templates Reusable starting points" [ref=e476]:
+          - generic [ref=e477]:
+            - img [ref=e478]
+            - text: Templates
+          - generic [ref=e481]: Reusable starting points
+    - generic [ref=e601]:
+      - article [ref=e602]:
+        - generic [ref=e603]:
+          - generic [ref=e604]:
+            - generic [ref=e605]: Accounts
+            - generic [ref=e606]: Channels you want to run or monitor with a clear cadence and focus.
+          - generic [ref=e607]: 2/2 active
+        - generic [ref=e608]:
+          - button "@xtationhq X · watching Product signals and build updates" [ref=e609]:
+            - generic [ref=e610]:
+              - generic [ref=e611]:
+                - generic [ref=e612]: "@xtationhq"
+                - generic [ref=e613]: X · watching
+              - img [ref=e614]
+            - generic [ref=e620]: Product signals and build updates
+          - button "xtation-studio LinkedIn · active Professional positioning and roadmap updates" [ref=e621]:
+            - generic [ref=e622]:
+              - generic [ref=e623]:
+                - generic [ref=e624]: xtation-studio
+                - generic [ref=e625]: LinkedIn · active
+              - img [ref=e626]
+            - generic [ref=e632]: Professional positioning and roadmap updates
+        - generic [ref=e633]:
+          - textbox [ref=e634]: "@xtationhq"
+          - generic [ref=e635]:
+            - generic [ref=e636]:
+              - text: Platform
+              - combobox "Platform" [ref=e637]:
+                - option "Instagram"
+                - option "X" [selected]
+                - option "YouTube"
+                - option "TikTok"
+                - option "LinkedIn"
+                - option "Website"
+            - generic [ref=e638]:
+              - text: Status
+              - combobox "Status" [ref=e639]:
+                - option "Active"
+                - option "Watching" [selected]
+                - option "Paused"
+          - generic [ref=e640]:
+            - text: Cadence
+            - textbox "Cadence" [ref=e641]: 3x weekly
+          - generic [ref=e642]:
+            - text: Focus
+            - textbox "Focus" [ref=e643]: Product signals and build updates
+          - button "Remove Account" [ref=e644]:
+            - img [ref=e645]
+            - text: Remove Account
+        - generic [ref=e648]:
+          - generic [ref=e649]: New Account
+          - combobox [ref=e650]:
+            - option "Instagram"
+            - option "X" [selected]
+            - option "YouTube"
+            - option "TikTok"
+            - option "LinkedIn"
+            - option "Website"
+          - textbox "@handle or channel name" [ref=e651]
+          - textbox "What does this channel exist for?" [ref=e652]
+          - button "Add Account" [disabled] [ref=e653]:
+            - img [ref=e654]
+            - text: Add Account
+      - article [ref=e655]:
+        - generic [ref=e656]:
+          - generic [ref=e657]:
+            - generic [ref=e658]: Publishing Queue
+            - generic [ref=e659]: Keep what should go out next visible, scheduled, and tied to a campaign when needed.
+          - generic [ref=e660]: 1 ready
+        - button "Play + Lab update log X · queued Short thread on Play v1 and Lab improvements with one screenshot and one next-step teaser." [ref=e662]:
+          - generic [ref=e663]:
+            - generic [ref=e664]:
+              - generic [ref=e665]: Play + Lab update log
+              - generic [ref=e666]: X · queued
+            - img [ref=e667]
+          - generic [ref=e671]: Short thread on Play v1 and Lab improvements with one screenshot and one next-step teaser.
+        - generic [ref=e672]:
+          - textbox [ref=e673]: Play + Lab update log
+          - generic [ref=e674]:
+            - generic [ref=e675]:
+              - text: Channel
+              - combobox "Channel" [ref=e676]:
+                - option "Instagram"
+                - option "X" [selected]
+                - option "YouTube"
+                - option "TikTok"
+                - option "LinkedIn"
+                - option "Website"
+            - generic [ref=e677]:
+              - text: Status
+              - combobox "Status" [ref=e678]:
+                - option "Draft"
+                - option "Queued" [selected]
+                - option "Scheduled"
+                - option "Published"
+          - generic [ref=e679]:
+            - text: Scheduled
+            - textbox "Scheduled" [ref=e680]
+          - generic [ref=e681]:
+            - text: Campaign
+            - combobox "Campaign" [ref=e682]:
+              - option "No campaign" [selected]
+              - option "Launch rhythm"
+          - textbox [ref=e683]: Short thread on Play v1 and Lab improvements with one screenshot and one next-step teaser.
+          - generic [ref=e684]:
+            - button "Hand Off To Dusk" [ref=e685]:
+              - img [ref=e686]
+              - text: Hand Off To Dusk
+            - button "Remove Item" [ref=e689]:
+              - img [ref=e690]
+              - text: Remove Item
+        - generic [ref=e693]:
+          - generic [ref=e694]: New Queue Item
+          - textbox "Post or asset title" [ref=e695]
+          - combobox [ref=e696]:
+            - option "Instagram"
+            - option "X" [selected]
+            - option "YouTube"
+            - option "TikTok"
+            - option "LinkedIn"
+            - option "Website"
+          - textbox "What is this item supposed to communicate?" [ref=e697]
+          - button "Add To Queue" [disabled] [ref=e698]:
+            - img [ref=e699]
+            - text: Add To Queue
+      - article [ref=e700]:
+        - generic [ref=e701]:
+          - generic [ref=e702]:
+            - generic [ref=e703]: Campaigns
+            - generic [ref=e704]: Keep campaign intent tied to project context, notes, and what should publish next.
+          - generic [ref=e705]: 1/1 active
+        - generic [ref=e706]:
+          - generic [ref=e707]:
+            - generic [ref=e708]: "2"
+            - generic [ref=e709]: Accounts
+          - generic [ref=e710]:
+            - generic [ref=e711]: "1"
+            - generic [ref=e712]: Queue Ready
+          - generic [ref=e713]:
+            - generic [ref=e714]: "0"
+            - generic [ref=e715]: Published
+        - button "Launch rhythm active · X Ship consistent product logs and feature reveals without losing execution focus." [ref=e717]:
+          - generic [ref=e718]:
+            - generic [ref=e719]:
+              - generic [ref=e720]: Launch rhythm
+              - generic [ref=e721]: active · X
+            - img [ref=e722]
+          - generic [ref=e725]: Ship consistent product logs and feature reveals without losing execution focus.
+        - generic [ref=e726]:
+          - generic [ref=e727]:
+            - textbox [ref=e728]: Launch rhythm
+            - button [ref=e729]:
+              - img [ref=e730]
+          - generic [ref=e733]:
+            - generic [ref=e734]:
+              - text: Primary Channel
+              - combobox "Primary Channel" [ref=e735]:
+                - option "Instagram"
+                - option "X" [selected]
+                - option "YouTube"
+                - option "TikTok"
+                - option "LinkedIn"
+                - option "Website"
+            - generic [ref=e736]:
+              - text: Status
+              - combobox "Status" [ref=e737]:
+                - option "Planned"
+                - option "Active" [selected]
+                - option "Holding"
+                - option "Done"
+          - generic [ref=e738]:
+            - text: Objective
+            - textbox "Objective" [ref=e739]: Ship consistent product logs and feature reveals without losing execution focus.
+          - generic [ref=e740]:
+            - text: Next Action
+            - textbox "Next Action" [ref=e741]: Turn the next build milestone into one public-facing recap.
+          - generic [ref=e742]:
+            - generic [ref=e743]:
+              - generic [ref=e744]: Linked Projects
+              - generic [ref=e745]:
+                - generic [ref=e746]:
+                  - checkbox "XTATION architecture" [ref=e747]
+                  - text: XTATION architecture
+                - generic [ref=e748]:
+                  - checkbox "Play room refinement" [ref=e749]
+                  - text: Play room refinement
+            - generic [ref=e750]:
+              - generic [ref=e751]: Linked Notes
+              - generic [ref=e752]:
+                - generic [ref=e753]:
+                  - checkbox "Lab direction" [ref=e754]
+                  - text: Lab direction
+                - generic [ref=e755]:
+                  - checkbox "Dusk handoff idea" [ref=e756]
+                  - text: Dusk handoff idea
+          - generic [ref=e757]:
+            - button "Hand Off To Dusk" [ref=e758]:
+              - img [ref=e759]
+              - text: Hand Off To Dusk
+            - generic [ref=e762]:
+              - img [ref=e763]
+              - text: 0 linked projects · 0 notes
+        - generic [ref=e765]:
+          - generic [ref=e766]: New Campaign
+          - textbox "Campaign title" [ref=e767]
+          - combobox [ref=e768]:
+            - option "Instagram"
+            - option "X" [selected]
+            - option "YouTube"
+            - option "TikTok"
+            - option "LinkedIn"
+            - option "Website"
+          - textbox "What should this campaign accomplish?" [ref=e769]
+          - button "Create Campaign" [disabled] [ref=e770]:
+            - img [ref=e771]
+            - text: Create Campaign
+  - button [ref=e111]:
+    - img [ref=e112]
+  - generic [ref=e116]:
+    - generic [ref=e117]:
+      - generic [ref=e118]: Developer HUD
+      - button "Min" [ref=e119]
+    - generic [ref=e120]:
+      - generic [ref=e121]:
+        - text: AuthNot signed inUser IDanonLedger KeyxpLedger_v2:anonLedger Sourceanon-localCloud StatusidleLast Sync-Counts
+        - generic [ref=e122]: 0 tasks / 0 sessions / 0 challenges
+        - text: RunningnoneToday
+        - generic [ref=e123]: 0/960 (Bronze)
+      - generic [ref=e124]:
+        - button "Run Checks" [ref=e125]
+        - button "Repair Links" [ref=e126]
+        - button "Export Ledger JSON" [ref=e127]
+        - button "Reset Local Data" [ref=e128]
+        - button "Reset Cloud Data (This Account)" [disabled] [ref=e129]
+      - generic [ref=e130]:
+        - generic [ref=e131]: Cloud reset
+        - generic [ref=e132]: Idle
+      - 'button "Health: OKShow" [ref=e134]':
+        - generic [ref=e135]: "Health: OK"
+        - text: Show
+      - generic [ref=e136]: Health checks OK

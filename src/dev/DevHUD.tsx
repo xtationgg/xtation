@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useXP } from '../../components/XP/xpStore';
 import { useAuth } from '../auth/AuthProvider';
+import { useXtationSettings } from '../settings/SettingsProvider';
 import { Issue, runLedgerHealthChecks } from './devHealth';
 
 const formatElapsed = (seconds: number) => {
@@ -285,5 +286,7 @@ const DevHUDInner: React.FC = () => {
 
 export const DevHUD: React.FC = () => {
   if (!import.meta.env.DEV) return null;
+  const { settings } = useXtationSettings();
+  if (!settings.device.devHudEnabled) return null;
   return <DevHUDInner />;
 };

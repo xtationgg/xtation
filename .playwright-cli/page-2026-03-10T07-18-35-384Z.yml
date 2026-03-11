@@ -1,0 +1,3461 @@
+- generic [ref=e94]:
+  - generic [ref=e95]:
+    - generic [ref=e96]:
+      - button "Play" [ref=e97]:
+        - generic [ref=e98]: Play
+      - button "Lab" [ref=e99]:
+        - generic [ref=e100]: Lab
+      - button "Multiplayer" [ref=e101]:
+        - generic [ref=e102]: Multiplayer
+      - button "Profile" [ref=e103]:
+        - generic [ref=e104]: Profile
+      - button "Inventory" [ref=e105]:
+        - generic [ref=e106]: Inventory
+      - button "Store" [ref=e107]:
+        - generic [ref=e108]: Store
+      - button "Settings" [ref=e109]:
+        - generic [ref=e110]: Settings
+      - button "Admin" [ref=e111]:
+        - generic [ref=e112]: Admin
+    - generic [ref=e113]:
+      - button "DUSK" [ref=e114]:
+        - img [ref=e115]
+        - generic [ref=e118]: DUSK
+      - generic [ref=e119]:
+        - generic [ref=e120]: Today
+        - generic [ref=e121]:
+          - text: "0"
+          - generic [ref=e122]: / 960
+        - generic [ref=e123]: 0 MIN
+      - generic [ref=e124]:
+        - generic [ref=e125]: Local Mode
+        - generic [ref=e126]:
+          - generic [ref=e127]: trial
+          - generic [ref=e128]: •
+          - generic [ref=e129]: internal
+          - generic [ref=e130]: •
+          - generic [ref=e131]: 14d
+        - button "CONNECT" [ref=e132]
+      - button "⌘K" [ref=e133]
+      - button "Exit" [ref=e135]
+      - generic [ref=e136]:
+        - generic "Player Level (0 total XP)" [ref=e137]:
+          - img [ref=e138]
+          - generic [ref=e144]: LV 0
+        - button [ref=e145]:
+          - img [ref=e146]
+        - button [ref=e149]:
+          - img [ref=e150]
+  - generic [ref=e339]:
+    - generic [ref=e342]:
+      - generic [ref=e343]:
+        - generic [ref=e344]: Operator Console
+        - heading "Run XTATION like a real platform." [level=1] [ref=e345]
+        - paragraph [ref=e346]: "This surface owns rollout state, support diagnostics, test cohorts, and audit. It stays deliberately narrow: no fake backend power, only controls the current client can actually honor safely."
+      - generic [ref=e347]:
+        - generic [ref=e348]: Local preview operator
+        - generic [ref=e349]: super admin
+    - generic [ref=e350]:
+      - button "Overview" [ref=e351]:
+        - img [ref=e352]
+        - text: Overview
+      - button "Rollout" [ref=e357]:
+        - img [ref=e358]
+        - text: Rollout
+      - button "Support" [ref=e360]:
+        - img [ref=e361]
+        - text: Support
+      - button "Catalog" [ref=e368]:
+        - img [ref=e369]
+        - text: Catalog
+      - button "Creative Ops" [active] [ref=e379]:
+        - img [ref=e380]
+        - text: Creative Ops
+      - button "Audit" [ref=e383]:
+        - img [ref=e384]
+        - text: Audit
+      - button "Test Lab" [ref=e386]:
+        - img [ref=e387]
+        - text: Test Lab
+    - generic [ref=e478]:
+      - generic [ref=e479]:
+        - generic [ref=e480]:
+          - generic [ref=e481]:
+            - generic [ref=e482]:
+              - generic [ref=e483]: Skin Package Summary
+              - generic [ref=e484]: Read the whole draft package as one publish unit across sound, scene, state, screen, avatar, light, and motion.
+            - generic [ref=e485]: ready to publish
+          - generic [ref=e486]:
+            - generic [ref=e487]:
+              - generic [ref=e488]:
+                - img [ref=e490]
+                - generic [ref=e493]:
+                  - generic [ref=e494]: Package
+                  - generic [ref=e495]: Bureau / Amber
+              - generic [ref=e496]: bureau scene • station avatar • calm motion • bureau screens
+            - generic [ref=e497]:
+              - generic [ref=e498]:
+                - img [ref=e500]
+                - generic [ref=e505]:
+                  - generic [ref=e506]: Statuses
+                  - generic [ref=e507]: published / published
+              - generic [ref=e508]: Sound route soundpack-bureau-amber • live safe
+            - generic [ref=e509]:
+              - generic [ref=e510]:
+                - img [ref=e512]
+                - generic [ref=e516]:
+                  - generic [ref=e517]: Draft Drift
+                  - generic [ref=e518]: 32 changes
+              - generic [ref=e519]: scene 15 • state 0 • avatar 0 • screen 0 • motion 0
+            - generic [ref=e520]:
+              - generic [ref=e521]:
+                - img [ref=e523]
+                - generic [ref=e526]:
+                  - generic [ref=e527]: Blockers
+                  - generic [ref=e528]: None
+              - generic [ref=e529]: Draft package has the required authored layers.
+        - generic [ref=e530]:
+          - generic [ref=e531]:
+            - generic [ref=e532]:
+              - generic [ref=e533]: Preview Lab
+              - generic [ref=e534]: Trigger semantic XTATION events against a live preview stage. Scene cues and mapped audio run through the same runtime the station uses.
+            - generic [ref=e535]:
+              - button "Draft Preview" [ref=e536]
+              - button "Published Preview" [ref=e537]
+              - generic [ref=e538]: draft skin • Bureau / Amber
+          - generic [ref=e539]:
+            - iframe [ref=e541]:
+              - generic [ref=f1e3]:
+                - img
+            - generic [ref=e542]:
+              - generic [ref=e543]:
+                - generic [ref=e544]:
+                  - img [ref=e545]
+                  - generic [ref=e548]: Scene Lobby
+                - generic [ref=e549]: Profile scene synced to XTATION state.
+                - generic [ref=e550]: bureau • mid • 16 commands
+                - generic [ref=e551]: state • profile.focus • base
+                - generic [ref=e552]: screens • focus
+              - button "Reload Scene" [ref=e554]:
+                - generic [ref=e555]:
+                  - img [ref=e556]
+                  - text: Reload Scene
+            - generic:
+              - generic: Profile Relay
+              - generic: Preview authored cues
+              - generic: Bureau / Amber runtime
+              - generic: scene state • profile.focus • base layer
+              - generic: last event • commandCompleted
+          - generic [ref=e561]:
+            - generic [ref=e562]:
+              - generic [ref=e563]: Draft Package
+              - generic [ref=e564]: Bureau / Amber
+              - generic [ref=e565]: bureau scene • station avatar • calm motion • bureau screens
+            - generic [ref=e566]:
+              - generic [ref=e567]: Published Package
+              - generic [ref=e568]: Bureau / Amber
+              - generic [ref=e569]: bureau scene • station avatar • calm motion • bureau screens
+          - generic [ref=e570]:
+            - button "ambient.day.enter" [ref=e571]
+            - button "ambient.night.enter" [ref=e572]
+            - button "dusk.brief.loaded" [ref=e573]
+            - button "nav.section.admin.open" [ref=e574]
+            - button "nav.section.lab.open" [ref=e575]
+            - button "nav.section.lobby.open" [ref=e576]
+            - button "nav.section.play.open" [ref=e577]
+            - button "nav.section.profile.open" [ref=e578]
+            - button "notification.urgent" [ref=e579]
+            - button "play.session.start" [ref=e580]
+            - button "profile.scene.sync" [ref=e581]
+            - button "profile.scene.connected" [ref=e582]
+          - generic [ref=e583]:
+            - generic [ref=e584]: "Last live event: profile.scene.sync"
+            - button "Clear Feed" [ref=e585]
+        - generic [ref=e586]:
+          - generic [ref=e587]:
+            - generic [ref=e588]:
+              - generic [ref=e589]: Presentation Runtime
+              - generic [ref=e590]: Semantic XTATION events are now the single source of truth for scene, audio, motion, and future skin behavior.
+            - generic [ref=e591]: scope • guest
+          - generic [ref=e592]:
+            - generic [ref=e593]:
+              - generic [ref=e594]:
+                - img [ref=e596]
+                - generic [ref=e599]:
+                  - generic [ref=e600]: Skin Studio
+                  - generic [ref=e601]: Bureau / Amber
+              - generic [ref=e602]: BUREAU / AMBER
+            - generic [ref=e603]:
+              - generic [ref=e604]:
+                - img [ref=e606]
+                - generic [ref=e611]:
+                  - generic [ref=e612]: Scene Director
+                  - generic [ref=e613]: R3
+              - generic [ref=e614]: Bureau Scene Pack • published R3
+            - generic [ref=e615]:
+              - generic [ref=e616]:
+                - img [ref=e618]
+                - generic [ref=e622]:
+                  - generic [ref=e623]: Audio Studio
+                  - generic [ref=e624]: 5 assets
+              - generic [ref=e625]: 6 mapped events ready for sound binding. 17 draft differences from published.
+            - generic [ref=e626]:
+              - generic [ref=e627]:
+                - img [ref=e629]
+                - generic [ref=e633]:
+                  - generic [ref=e634]: Live Coverage
+                  - generic [ref=e635]: 8 events
+              - generic [ref=e636]: "Top family: profile"
+            - generic [ref=e637]:
+              - generic [ref=e638]:
+                - img [ref=e640]
+                - generic [ref=e643]:
+                  - generic [ref=e644]: Scene Runtime
+                  - generic [ref=e645]: profile.focus
+              - generic [ref=e646]: bureau • focus • base • ambient/base
+        - generic [ref=e647]:
+          - generic [ref=e648]:
+            - generic [ref=e649]:
+              - generic [ref=e650]: Skin Studio
+              - generic [ref=e651]: Publish the feel of XTATION without touching logic. Users consume skins; admin defines them.
+            - generic [ref=e652]: current station • bureau / amber
+          - generic [ref=e653]:
+            - generic [ref=e654]:
+              - generic [ref=e655]:
+                - generic [ref=e656]:
+                  - generic [ref=e657]: Bureau / Amber
+                  - generic [ref=e658]: BUREAU / AMBER • published
+                  - generic [ref=e659]: Institutional amber command skin with calm motion and restrained scene response.
+                  - generic [ref=e660]: BUREAU • STATION avatar • CALM motion • BUREAU screens • builtin:bureau
+                  - generic [ref=e661]:
+                    - generic [ref=e662]:
+                      - text: Motion Profile
+                      - combobox "Motion Profile" [ref=e663]:
+                        - option "calm" [selected]
+                        - option "sharp"
+                        - option "cinematic"
+                    - generic [ref=e664]:
+                      - text: Screen Profile
+                      - combobox "Screen Profile" [ref=e665]:
+                        - option "bureau" [selected]
+                        - option "void"
+                        - option "ops"
+                    - generic [ref=e666]:
+                      - text: Avatar Profile
+                      - combobox "Avatar Profile" [ref=e667]:
+                        - option "station" [selected]
+                        - option "ops"
+                        - option "minimal"
+                  - generic [ref=e668]:
+                    - button "Apply Motion Pack" [ref=e670]
+                    - button "Apply Screen Pack" [ref=e672]
+                    - button "Apply Avatar Pack" [ref=e674]
+                - generic [ref=e675]:
+                  - button "Inspect" [ref=e676]
+                  - button "Apply" [ref=e677]
+                  - button "Set Draft" [ref=e678]
+              - generic [ref=e679]:
+                - generic [ref=e680]: active skin
+                - generic [ref=e681]: selected
+            - generic [ref=e683]:
+              - generic [ref=e684]:
+                - generic [ref=e685]: Void Command
+                - generic [ref=e686]: VOID / TEAL • published
+                - generic [ref=e687]: Sharper dark tactical presentation with higher contrast panels and stricter motion.
+                - generic [ref=e688]: VOID • OPS avatar • SHARP motion • VOID screens • builtin:void
+                - generic [ref=e689]:
+                  - generic [ref=e690]:
+                    - text: Motion Profile
+                    - combobox "Motion Profile" [ref=e691]:
+                      - option "calm"
+                      - option "sharp" [selected]
+                      - option "cinematic"
+                  - generic [ref=e692]:
+                    - text: Screen Profile
+                    - combobox "Screen Profile" [ref=e693]:
+                      - option "bureau"
+                      - option "void" [selected]
+                      - option "ops"
+                  - generic [ref=e694]:
+                    - text: Avatar Profile
+                    - combobox "Avatar Profile" [ref=e695]:
+                      - option "station"
+                      - option "ops" [selected]
+                      - option "minimal"
+                - generic [ref=e696]:
+                  - button "Apply Motion Pack" [ref=e698]
+                  - button "Apply Screen Pack" [ref=e700]
+                  - button "Apply Avatar Pack" [ref=e702]
+              - generic [ref=e703]:
+                - button "Inspect" [ref=e704]
+                - button "Apply" [ref=e705]
+                - button "Set Draft" [ref=e706]
+            - generic [ref=e708]:
+              - generic [ref=e709]:
+                - generic [ref=e710]: Ops / Amber
+                - generic [ref=e711]: BUREAU / AMBER • draft
+                - generic [ref=e712]: Operator-focused pack with command-room rhythm, amber signals, and stronger scene reactions.
+                - generic [ref=e713]: OPS • OPS avatar • CINEMATIC motion • OPS screens • builtin:bureau
+                - generic [ref=e714]:
+                  - generic [ref=e715]:
+                    - text: Motion Profile
+                    - combobox "Motion Profile" [ref=e716]:
+                      - option "calm"
+                      - option "sharp"
+                      - option "cinematic" [selected]
+                  - generic [ref=e717]:
+                    - text: Screen Profile
+                    - combobox "Screen Profile" [ref=e718]:
+                      - option "bureau"
+                      - option "void"
+                      - option "ops" [selected]
+                  - generic [ref=e719]:
+                    - text: Avatar Profile
+                    - combobox "Avatar Profile" [ref=e720]:
+                      - option "station"
+                      - option "ops" [selected]
+                      - option "minimal"
+                - generic [ref=e721]:
+                  - button "Apply Motion Pack" [ref=e723]
+                  - button "Apply Screen Pack" [ref=e725]
+                  - button "Apply Avatar Pack" [ref=e727]
+              - generic [ref=e728]:
+                - button "Inspect" [ref=e729]
+                - button "Draft Only" [disabled] [ref=e730]
+                - button "Publish" [ref=e731]
+          - generic [ref=e732]: Current station matches the active skin. XTATION is already rendering through the selected published pack.
+        - generic [ref=e733]:
+          - generic [ref=e734]:
+            - generic [ref=e735]:
+              - generic [ref=e736]: Scene Director
+              - generic [ref=e737]: Author temporary camera, light, and motion responses for semantic XTATION events. Cues override the scene briefly and then return to the base profile state.
+            - generic [ref=e738]: 8 active cues
+          - generic [ref=e740]:
+            - generic [ref=e741]:
+              - generic [ref=e742]: Bureau Scene Pack
+              - generic [ref=e743]: bureau • published • draft R3 • published R3
+              - generic [ref=e744]: Institutional profile lobby cues with restrained motion and amber bureau atmosphere.
+              - generic [ref=e745]: "Last published: 10/9/2025, 4:53:20 PM"
+              - generic [ref=e746]:
+                - text: "Draft vs published:"
+                - generic [ref=e747]: 15 cue changes
+                - text: •
+                - generic [ref=e748]: 0 state changes
+                - text: •
+                - generic [ref=e749]: 0 response preset changes
+                - text: •
+                - generic [ref=e750]: 0 screen preset changes
+                - text: •
+                - generic [ref=e751]: 0 trigger changes
+            - generic [ref=e752]:
+              - button "Restore Published" [ref=e753]
+              - button "Set Draft" [ref=e754]
+              - button "Publish Scene Pack" [ref=e755]
+          - generic [ref=e756]:
+            - generic [ref=e757]:
+              - generic [ref=e758]:
+                - generic [ref=e759]:
+                  - generic [ref=e760]: profile.day
+                  - generic [ref=e761]: bureau • hero • base • orbit 0.36 • atmosphere 0.16 • key 1.12 • fill 0.44
+                - button "Preview State" [ref=e762]
+              - generic [ref=e763]:
+                - generic [ref=e764]:
+                  - text: Environment
+                  - combobox "Environment" [ref=e765]:
+                    - option "inherit"
+                    - option "bureau" [selected]
+                    - option "light"
+                    - option "mono"
+                    - option "glacier"
+                    - option "core"
+                    - option "dusk"
+                - generic [ref=e766]:
+                  - text: Camera
+                  - combobox "Camera" [ref=e767]:
+                    - option "inherit"
+                    - option "wide"
+                    - option "hero" [selected]
+                    - option "mid"
+                - generic [ref=e768]:
+                  - text: Screen
+                  - combobox "Screen" [ref=e769]:
+                    - option "base" [selected]
+                    - option "focus"
+                    - option "brief"
+                    - option "urgent"
+                    - option "success"
+                - generic [ref=e770]:
+                  - text: Atmosphere
+                  - spinbutton "Atmosphere" [ref=e771]: "0.16"
+                - generic [ref=e772]:
+                  - text: Orbit
+                  - spinbutton "Orbit" [ref=e773]: "0.36"
+                - generic [ref=e774]:
+                  - generic [ref=e775]:
+                    - checkbox "Beat Pulse" [ref=e776]
+                    - generic [ref=e777]: Beat Pulse
+                  - generic [ref=e778]:
+                    - checkbox "Ring Pulse" [checked] [ref=e779]
+                    - generic [ref=e780]: Ring Pulse
+                  - generic [ref=e781]:
+                    - checkbox "Ground Motion" [ref=e782]
+                    - generic [ref=e783]: Ground Motion
+                  - generic [ref=e784]:
+                    - checkbox "Model Float" [checked] [ref=e785]
+                    - generic [ref=e786]: Model Float
+                  - generic [ref=e787]:
+                    - checkbox "Hide Light" [checked] [ref=e788]
+                    - generic [ref=e789]: Hide Light
+              - generic [ref=e790]:
+                - generic [ref=e791]:
+                  - text: Key Light
+                  - spinbutton "Key Light" [ref=e792]: "1.12"
+                - generic [ref=e793]:
+                  - text: Fill Light
+                  - spinbutton "Fill Light" [ref=e794]: "0.44"
+                - generic [ref=e795]:
+                  - text: Key Color
+                  - textbox "Key Color" [ref=e796]: "#f9c86f"
+                - generic [ref=e797]:
+                  - text: Fill Color
+                  - textbox "Fill Color" [ref=e798]: "#f4e3bc"
+            - generic [ref=e799]:
+              - generic [ref=e800]:
+                - generic [ref=e801]:
+                  - generic [ref=e802]: profile.night
+                  - generic [ref=e803]: mono • wide • base • orbit 0.28 • atmosphere 0.10 • key 0.76 • fill 0.18
+                - button "Preview State" [ref=e804]
+              - generic [ref=e805]:
+                - generic [ref=e806]:
+                  - text: Environment
+                  - combobox "Environment" [ref=e807]:
+                    - option "inherit"
+                    - option "bureau"
+                    - option "light"
+                    - option "mono" [selected]
+                    - option "glacier"
+                    - option "core"
+                    - option "dusk"
+                - generic [ref=e808]:
+                  - text: Camera
+                  - combobox "Camera" [ref=e809]:
+                    - option "inherit"
+                    - option "wide" [selected]
+                    - option "hero"
+                    - option "mid"
+                - generic [ref=e810]:
+                  - text: Screen
+                  - combobox "Screen" [ref=e811]:
+                    - option "base" [selected]
+                    - option "focus"
+                    - option "brief"
+                    - option "urgent"
+                    - option "success"
+                - generic [ref=e812]:
+                  - text: Atmosphere
+                  - spinbutton "Atmosphere" [ref=e813]: "0.1"
+                - generic [ref=e814]:
+                  - text: Orbit
+                  - spinbutton "Orbit" [ref=e815]: "0.28"
+                - generic [ref=e816]:
+                  - generic [ref=e817]:
+                    - checkbox "Beat Pulse" [ref=e818]
+                    - generic [ref=e819]: Beat Pulse
+                  - generic [ref=e820]:
+                    - checkbox "Ring Pulse" [ref=e821]
+                    - generic [ref=e822]: Ring Pulse
+                  - generic [ref=e823]:
+                    - checkbox "Ground Motion" [ref=e824]
+                    - generic [ref=e825]: Ground Motion
+                  - generic [ref=e826]:
+                    - checkbox "Model Float" [checked] [ref=e827]
+                    - generic [ref=e828]: Model Float
+                  - generic [ref=e829]:
+                    - checkbox "Hide Light" [checked] [ref=e830]
+                    - generic [ref=e831]: Hide Light
+              - generic [ref=e832]:
+                - generic [ref=e833]:
+                  - text: Key Light
+                  - spinbutton "Key Light" [ref=e834]: "0.76"
+                - generic [ref=e835]:
+                  - text: Fill Light
+                  - spinbutton "Fill Light" [ref=e836]: "0.18"
+                - generic [ref=e837]:
+                  - text: Key Color
+                  - textbox "Key Color" [ref=e838]: "#d6b27a"
+                - generic [ref=e839]:
+                  - text: Fill Color
+                  - textbox "Fill Color" [ref=e840]: "#72809a"
+            - generic [ref=e841]:
+              - generic [ref=e842]:
+                - generic [ref=e843]:
+                  - generic [ref=e844]: profile.focus
+                  - generic [ref=e845]: bureau • mid • focus • orbit 0.46 • atmosphere 0.20 • key 1.24 • fill 0.48
+                - button "Preview State" [ref=e846]
+              - generic [ref=e847]:
+                - generic [ref=e848]:
+                  - text: Environment
+                  - combobox "Environment" [ref=e849]:
+                    - option "inherit"
+                    - option "bureau" [selected]
+                    - option "light"
+                    - option "mono"
+                    - option "glacier"
+                    - option "core"
+                    - option "dusk"
+                - generic [ref=e850]:
+                  - text: Camera
+                  - combobox "Camera" [ref=e851]:
+                    - option "inherit"
+                    - option "wide"
+                    - option "hero"
+                    - option "mid" [selected]
+                - generic [ref=e852]:
+                  - text: Screen
+                  - combobox "Screen" [ref=e853]:
+                    - option "base"
+                    - option "focus" [selected]
+                    - option "brief"
+                    - option "urgent"
+                    - option "success"
+                - generic [ref=e854]:
+                  - text: Atmosphere
+                  - spinbutton "Atmosphere" [ref=e855]: "0.2"
+                - generic [ref=e856]:
+                  - text: Orbit
+                  - spinbutton "Orbit" [ref=e857]: "0.46"
+                - generic [ref=e858]:
+                  - generic [ref=e859]:
+                    - checkbox "Beat Pulse" [ref=e860]
+                    - generic [ref=e861]: Beat Pulse
+                  - generic [ref=e862]:
+                    - checkbox "Ring Pulse" [checked] [ref=e863]
+                    - generic [ref=e864]: Ring Pulse
+                  - generic [ref=e865]:
+                    - checkbox "Ground Motion" [ref=e866]
+                    - generic [ref=e867]: Ground Motion
+                  - generic [ref=e868]:
+                    - checkbox "Model Float" [checked] [ref=e869]
+                    - generic [ref=e870]: Model Float
+                  - generic [ref=e871]:
+                    - checkbox "Hide Light" [checked] [ref=e872]
+                    - generic [ref=e873]: Hide Light
+              - generic [ref=e874]:
+                - generic [ref=e875]:
+                  - text: Key Light
+                  - spinbutton "Key Light" [ref=e876]: "1.24"
+                - generic [ref=e877]:
+                  - text: Fill Light
+                  - spinbutton "Fill Light" [ref=e878]: "0.48"
+                - generic [ref=e879]:
+                  - text: Key Color
+                  - textbox "Key Color" [ref=e880]: "#ffbf57"
+                - generic [ref=e881]:
+                  - text: Fill Color
+                  - textbox "Fill Color" [ref=e882]: "#f8ddb0"
+            - generic [ref=e883]:
+              - generic [ref=e884]:
+                - generic [ref=e885]:
+                  - generic [ref=e886]: profile.active
+                  - generic [ref=e887]: core • mid • focus • orbit 0.54 • atmosphere 0.22 • key 1.36 • fill 0.54
+                - button "Preview State" [ref=e888]
+              - generic [ref=e889]:
+                - generic [ref=e890]:
+                  - text: Environment
+                  - combobox "Environment" [ref=e891]:
+                    - option "inherit"
+                    - option "bureau"
+                    - option "light"
+                    - option "mono"
+                    - option "glacier"
+                    - option "core" [selected]
+                    - option "dusk"
+                - generic [ref=e892]:
+                  - text: Camera
+                  - combobox "Camera" [ref=e893]:
+                    - option "inherit"
+                    - option "wide"
+                    - option "hero"
+                    - option "mid" [selected]
+                - generic [ref=e894]:
+                  - text: Screen
+                  - combobox "Screen" [ref=e895]:
+                    - option "base"
+                    - option "focus" [selected]
+                    - option "brief"
+                    - option "urgent"
+                    - option "success"
+                - generic [ref=e896]:
+                  - text: Atmosphere
+                  - spinbutton "Atmosphere" [ref=e897]: "0.22"
+                - generic [ref=e898]:
+                  - text: Orbit
+                  - spinbutton "Orbit" [ref=e899]: "0.54"
+                - generic [ref=e900]:
+                  - generic [ref=e901]:
+                    - checkbox "Beat Pulse" [checked] [ref=e902]
+                    - generic [ref=e903]: Beat Pulse
+                  - generic [ref=e904]:
+                    - checkbox "Ring Pulse" [checked] [ref=e905]
+                    - generic [ref=e906]: Ring Pulse
+                  - generic [ref=e907]:
+                    - checkbox "Ground Motion" [ref=e908]
+                    - generic [ref=e909]: Ground Motion
+                  - generic [ref=e910]:
+                    - checkbox "Model Float" [ref=e911]
+                    - generic [ref=e912]: Model Float
+                  - generic [ref=e913]:
+                    - checkbox "Hide Light" [checked] [ref=e914]
+                    - generic [ref=e915]: Hide Light
+              - generic [ref=e916]:
+                - generic [ref=e917]:
+                  - text: Key Light
+                  - spinbutton "Key Light" [ref=e918]: "1.36"
+                - generic [ref=e919]:
+                  - text: Fill Light
+                  - spinbutton "Fill Light" [ref=e920]: "0.54"
+                - generic [ref=e921]:
+                  - text: Key Color
+                  - textbox "Key Color" [ref=e922]: "#ffb446"
+                - generic [ref=e923]:
+                  - text: Fill Color
+                  - textbox "Fill Color" [ref=e924]: "#f8dd92"
+          - generic [ref=e925]:
+            - generic [ref=e926]:
+              - generic [ref=e927]: Light Presets
+              - generic [ref=e928]: 8 presets • 0 draft changes
+            - generic [ref=e929]:
+              - generic [ref=e930]:
+                - generic [ref=e931]:
+                  - generic [ref=e932]:
+                    - generic [ref=e933]: day
+                    - generic [ref=e934]: "key 1.12 • fill 0.44 • #f9c86f • #f4e3bc"
+                  - button "Apply To States" [ref=e936]
+                - generic [ref=e937]:
+                  - generic [ref=e938]:
+                    - text: Key Light
+                    - spinbutton "Key Light" [ref=e939]: "1.12"
+                  - generic [ref=e940]:
+                    - text: Fill Light
+                    - spinbutton "Fill Light" [ref=e941]: "0.44"
+                  - generic [ref=e942]:
+                    - text: Key Color
+                    - textbox "Key Color" [ref=e943]: "#f9c86f"
+                  - generic [ref=e944]:
+                    - text: Fill Color
+                    - textbox "Fill Color" [ref=e945]: "#f4e3bc"
+              - generic [ref=e946]:
+                - generic [ref=e947]:
+                  - generic [ref=e948]:
+                    - generic [ref=e949]: night
+                    - generic [ref=e950]: "key 0.76 • fill 0.18 • #d6b27a • #72809a"
+                  - button "Apply To States" [ref=e952]
+                - generic [ref=e953]:
+                  - generic [ref=e954]:
+                    - text: Key Light
+                    - spinbutton "Key Light" [ref=e955]: "0.76"
+                  - generic [ref=e956]:
+                    - text: Fill Light
+                    - spinbutton "Fill Light" [ref=e957]: "0.18"
+                  - generic [ref=e958]:
+                    - text: Key Color
+                    - textbox "Key Color" [ref=e959]: "#d6b27a"
+                  - generic [ref=e960]:
+                    - text: Fill Color
+                    - textbox "Fill Color" [ref=e961]: "#72809a"
+              - generic [ref=e962]:
+                - generic [ref=e963]:
+                  - generic [ref=e964]:
+                    - generic [ref=e965]: focus
+                    - generic [ref=e966]: "key 1.24 • fill 0.48 • #ffbf57 • #f8ddb0"
+                  - generic [ref=e967]:
+                    - button "Apply To States" [ref=e968]
+                    - button "Apply To Responses" [ref=e969]
+                - generic [ref=e970]:
+                  - generic [ref=e971]:
+                    - text: Key Light
+                    - spinbutton "Key Light" [ref=e972]: "1.24"
+                  - generic [ref=e973]:
+                    - text: Fill Light
+                    - spinbutton "Fill Light" [ref=e974]: "0.48"
+                  - generic [ref=e975]:
+                    - text: Key Color
+                    - textbox "Key Color" [ref=e976]: "#ffbf57"
+                  - generic [ref=e977]:
+                    - text: Fill Color
+                    - textbox "Fill Color" [ref=e978]: "#f8ddb0"
+              - generic [ref=e979]:
+                - generic [ref=e980]:
+                  - generic [ref=e981]:
+                    - generic [ref=e982]: active
+                    - generic [ref=e983]: "key 1.36 • fill 0.54 • #ffb446 • #f8dd92"
+                  - button "Apply To States" [ref=e985]
+                - generic [ref=e986]:
+                  - generic [ref=e987]:
+                    - text: Key Light
+                    - spinbutton "Key Light" [ref=e988]: "1.36"
+                  - generic [ref=e989]:
+                    - text: Fill Light
+                    - spinbutton "Fill Light" [ref=e990]: "0.54"
+                  - generic [ref=e991]:
+                    - text: Key Color
+                    - textbox "Key Color" [ref=e992]: "#ffb446"
+                  - generic [ref=e993]:
+                    - text: Fill Color
+                    - textbox "Fill Color" [ref=e994]: "#f8dd92"
+              - generic [ref=e995]:
+                - generic [ref=e997]:
+                  - generic [ref=e998]: base
+                  - generic [ref=e999]: "key 1.14 • fill 0.42 • #f5c26d • #f0dfbc"
+                - generic [ref=e1000]:
+                  - generic [ref=e1001]:
+                    - text: Key Light
+                    - spinbutton "Key Light" [ref=e1002]: "1.14"
+                  - generic [ref=e1003]:
+                    - text: Fill Light
+                    - spinbutton "Fill Light" [ref=e1004]: "0.42"
+                  - generic [ref=e1005]:
+                    - text: Key Color
+                    - textbox "Key Color" [ref=e1006]: "#f5c26d"
+                  - generic [ref=e1007]:
+                    - text: Fill Color
+                    - textbox "Fill Color" [ref=e1008]: "#f0dfbc"
+              - generic [ref=e1009]:
+                - generic [ref=e1010]:
+                  - generic [ref=e1011]:
+                    - generic [ref=e1012]: brief
+                    - generic [ref=e1013]: "key 1.18 • fill 0.52 • #c7e4ff • #d6e9ff"
+                  - button "Apply To Responses" [ref=e1015]
+                - generic [ref=e1016]:
+                  - generic [ref=e1017]:
+                    - text: Key Light
+                    - spinbutton "Key Light" [ref=e1018]: "1.18"
+                  - generic [ref=e1019]:
+                    - text: Fill Light
+                    - spinbutton "Fill Light" [ref=e1020]: "0.52"
+                  - generic [ref=e1021]:
+                    - text: Key Color
+                    - textbox "Key Color" [ref=e1022]: "#c7e4ff"
+                  - generic [ref=e1023]:
+                    - text: Fill Color
+                    - textbox "Fill Color" [ref=e1024]: "#d6e9ff"
+              - generic [ref=e1025]:
+                - generic [ref=e1026]:
+                  - generic [ref=e1027]:
+                    - generic [ref=e1028]: reward
+                    - generic [ref=e1029]: "key 1.44 • fill 0.64 • #ffd24d • #ffe6a3"
+                  - button "Apply To Responses" [ref=e1031]
+                - generic [ref=e1032]:
+                  - generic [ref=e1033]:
+                    - text: Key Light
+                    - spinbutton "Key Light" [ref=e1034]: "1.44"
+                  - generic [ref=e1035]:
+                    - text: Fill Light
+                    - spinbutton "Fill Light" [ref=e1036]: "0.64"
+                  - generic [ref=e1037]:
+                    - text: Key Color
+                    - textbox "Key Color" [ref=e1038]: "#ffd24d"
+                  - generic [ref=e1039]:
+                    - text: Fill Color
+                    - textbox "Fill Color" [ref=e1040]: "#ffe6a3"
+              - generic [ref=e1041]:
+                - generic [ref=e1042]:
+                  - generic [ref=e1043]:
+                    - generic [ref=e1044]: alert
+                    - generic [ref=e1045]: "key 1.52 • fill 0.52 • #ff8540 • #ffd0a3"
+                  - button "Apply To Responses" [ref=e1047]
+                - generic [ref=e1048]:
+                  - generic [ref=e1049]:
+                    - text: Key Light
+                    - spinbutton "Key Light" [ref=e1050]: "1.52"
+                  - generic [ref=e1051]:
+                    - text: Fill Light
+                    - spinbutton "Fill Light" [ref=e1052]: "0.52"
+                  - generic [ref=e1053]:
+                    - text: Key Color
+                    - textbox "Key Color" [ref=e1054]: "#ff8540"
+                  - generic [ref=e1055]:
+                    - text: Fill Color
+                    - textbox "Fill Color" [ref=e1056]: "#ffd0a3"
+          - generic [ref=e1057]:
+            - generic [ref=e1058]:
+              - generic [ref=e1059]: Motion Presets
+              - generic [ref=e1060]: 8 presets • 0 draft changes
+            - generic [ref=e1061]:
+              - generic [ref=e1062]:
+                - generic [ref=e1063]:
+                  - generic [ref=e1064]:
+                    - generic [ref=e1065]: day
+                    - generic [ref=e1066]: calm • orbit 0.36 • 1800ms
+                  - button "Apply To States" [ref=e1068]
+                - generic [ref=e1069]:
+                  - generic [ref=e1070]:
+                    - text: Transition
+                    - combobox "Transition" [ref=e1071]:
+                      - option "calm" [selected]
+                      - option "sharp"
+                      - option "surge"
+                  - generic [ref=e1072]:
+                    - text: Orbit
+                    - spinbutton "Orbit" [ref=e1073]: "0.36"
+                  - generic [ref=e1074]:
+                    - text: Duration
+                    - spinbutton "Duration" [ref=e1075]: "1800"
+              - generic [ref=e1076]:
+                - generic [ref=e1077]:
+                  - generic [ref=e1078]:
+                    - generic [ref=e1079]: night
+                    - generic [ref=e1080]: calm • orbit 0.28 • 2000ms
+                  - button "Apply To States" [ref=e1082]
+                - generic [ref=e1083]:
+                  - generic [ref=e1084]:
+                    - text: Transition
+                    - combobox "Transition" [ref=e1085]:
+                      - option "calm" [selected]
+                      - option "sharp"
+                      - option "surge"
+                  - generic [ref=e1086]:
+                    - text: Orbit
+                    - spinbutton "Orbit" [ref=e1087]: "0.28"
+                  - generic [ref=e1088]:
+                    - text: Duration
+                    - spinbutton "Duration" [ref=e1089]: "2000"
+              - generic [ref=e1090]:
+                - generic [ref=e1091]:
+                  - generic [ref=e1092]:
+                    - generic [ref=e1093]: focus
+                    - generic [ref=e1094]: calm • orbit 0.46 • 2000ms
+                  - generic [ref=e1095]:
+                    - button "Apply To States" [ref=e1096]
+                    - button "Apply To Responses" [ref=e1097]
+                - generic [ref=e1098]:
+                  - generic [ref=e1099]:
+                    - text: Transition
+                    - combobox "Transition" [ref=e1100]:
+                      - option "calm" [selected]
+                      - option "sharp"
+                      - option "surge"
+                  - generic [ref=e1101]:
+                    - text: Orbit
+                    - spinbutton "Orbit" [ref=e1102]: "0.46"
+                  - generic [ref=e1103]:
+                    - text: Duration
+                    - spinbutton "Duration" [ref=e1104]: "2000"
+              - generic [ref=e1105]:
+                - generic [ref=e1106]:
+                  - generic [ref=e1107]:
+                    - generic [ref=e1108]: active
+                    - generic [ref=e1109]: surge • orbit 0.54 • 2200ms
+                  - button "Apply To States" [ref=e1111]
+                - generic [ref=e1112]:
+                  - generic [ref=e1113]:
+                    - text: Transition
+                    - combobox "Transition" [ref=e1114]:
+                      - option "calm"
+                      - option "sharp"
+                      - option "surge" [selected]
+                  - generic [ref=e1115]:
+                    - text: Orbit
+                    - spinbutton "Orbit" [ref=e1116]: "0.54"
+                  - generic [ref=e1117]:
+                    - text: Duration
+                    - spinbutton "Duration" [ref=e1118]: "2200"
+              - generic [ref=e1119]:
+                - generic [ref=e1121]:
+                  - generic [ref=e1122]: base
+                  - generic [ref=e1123]: calm • orbit 0.38 • 1800ms
+                - generic [ref=e1124]:
+                  - generic [ref=e1125]:
+                    - text: Transition
+                    - combobox "Transition" [ref=e1126]:
+                      - option "calm" [selected]
+                      - option "sharp"
+                      - option "surge"
+                  - generic [ref=e1127]:
+                    - text: Orbit
+                    - spinbutton "Orbit" [ref=e1128]: "0.38"
+                  - generic [ref=e1129]:
+                    - text: Duration
+                    - spinbutton "Duration" [ref=e1130]: "1800"
+              - generic [ref=e1131]:
+                - generic [ref=e1132]:
+                  - generic [ref=e1133]:
+                    - generic [ref=e1134]: brief
+                    - generic [ref=e1135]: calm • orbit 0.5 • 2200ms
+                  - button "Apply To Responses" [ref=e1137]
+                - generic [ref=e1138]:
+                  - generic [ref=e1139]:
+                    - text: Transition
+                    - combobox "Transition" [ref=e1140]:
+                      - option "calm" [selected]
+                      - option "sharp"
+                      - option "surge"
+                  - generic [ref=e1141]:
+                    - text: Orbit
+                    - spinbutton "Orbit" [ref=e1142]: "0.5"
+                  - generic [ref=e1143]:
+                    - text: Duration
+                    - spinbutton "Duration" [ref=e1144]: "2200"
+              - generic [ref=e1145]:
+                - generic [ref=e1146]:
+                  - generic [ref=e1147]:
+                    - generic [ref=e1148]: reward
+                    - generic [ref=e1149]: surge • orbit 0.72 • 2800ms
+                  - button "Apply To Responses" [ref=e1151]
+                - generic [ref=e1152]:
+                  - generic [ref=e1153]:
+                    - text: Transition
+                    - combobox "Transition" [ref=e1154]:
+                      - option "calm"
+                      - option "sharp"
+                      - option "surge" [selected]
+                  - generic [ref=e1155]:
+                    - text: Orbit
+                    - spinbutton "Orbit" [ref=e1156]: "0.72"
+                  - generic [ref=e1157]:
+                    - text: Duration
+                    - spinbutton "Duration" [ref=e1158]: "2800"
+              - generic [ref=e1159]:
+                - generic [ref=e1160]:
+                  - generic [ref=e1161]:
+                    - generic [ref=e1162]: alert
+                    - generic [ref=e1163]: sharp • orbit 0 • 2600ms
+                  - button "Apply To Responses" [ref=e1165]
+                - generic [ref=e1166]:
+                  - generic [ref=e1167]:
+                    - text: Transition
+                    - combobox "Transition" [ref=e1168]:
+                      - option "calm"
+                      - option "sharp" [selected]
+                      - option "surge"
+                  - generic [ref=e1169]:
+                    - text: Orbit
+                    - spinbutton "Orbit" [ref=e1170]: "0"
+                  - generic [ref=e1171]:
+                    - text: Duration
+                    - spinbutton "Duration" [ref=e1172]: "2600"
+          - generic [ref=e1173]:
+            - generic [ref=e1174]:
+              - generic [ref=e1175]: Response Presets
+              - generic [ref=e1176]: 4 presets • 0 draft changes
+            - generic [ref=e1177]:
+              - generic [ref=e1178]:
+                - generic [ref=e1179]:
+                  - generic [ref=e1180]:
+                    - generic [ref=e1181]: focus
+                    - generic [ref=e1182]: bureau • mid • focus • calm • profile.active • key 1.24 • fill 0.48
+                  - generic [ref=e1183]:
+                    - button "Preview" [ref=e1184]:
+                      - img [ref=e1185]
+                      - text: Preview
+                    - button "Apply To Events" [ref=e1187]
+                - generic [ref=e1188]:
+                  - generic [ref=e1189]:
+                    - text: Environment
+                    - combobox "Environment" [ref=e1190]:
+                      - option "inherit"
+                      - option "bureau" [selected]
+                      - option "light"
+                      - option "mono"
+                      - option "glacier"
+                      - option "core"
+                      - option "dusk"
+                  - generic [ref=e1191]:
+                    - text: Camera
+                    - combobox "Camera" [ref=e1192]:
+                      - option "inherit"
+                      - option "wide"
+                      - option "hero"
+                      - option "mid" [selected]
+                  - generic [ref=e1193]:
+                    - text: Screen
+                    - combobox "Screen" [ref=e1194]:
+                      - option "base"
+                      - option "focus" [selected]
+                      - option "brief"
+                      - option "urgent"
+                      - option "success"
+                  - generic [ref=e1195]:
+                    - text: Transition
+                    - combobox "Transition" [ref=e1196]:
+                      - option "calm" [selected]
+                      - option "sharp"
+                      - option "surge"
+                  - generic [ref=e1197]:
+                    - text: Target State
+                    - combobox "Target State" [ref=e1198]:
+                      - option "profile.day"
+                      - option "profile.night"
+                      - option "profile.focus"
+                      - option "profile.active" [selected]
+                - generic [ref=e1199]:
+                  - generic [ref=e1200]:
+                    - text: Hold
+                    - spinbutton "Hold" [ref=e1201]: "18000"
+                  - generic [ref=e1202]:
+                    - text: Duration
+                    - spinbutton "Duration" [ref=e1203]: "2000"
+                  - generic [ref=e1204]:
+                    - text: Orbit
+                    - spinbutton "Orbit" [ref=e1205]: "0.42"
+                  - generic [ref=e1206]:
+                    - text: Key Light
+                    - spinbutton "Key Light" [ref=e1207]: "1.24"
+                  - generic [ref=e1208]:
+                    - text: Fill Light
+                    - spinbutton "Fill Light" [ref=e1209]: "0.48"
+                  - generic [ref=e1210]:
+                    - generic [ref=e1211]:
+                      - checkbox "Beat Pulse" [checked] [ref=e1212]
+                      - generic [ref=e1213]: Beat Pulse
+                    - generic [ref=e1214]:
+                      - checkbox "Ring Pulse" [checked] [ref=e1215]
+                      - generic [ref=e1216]: Ring Pulse
+                    - generic [ref=e1217]:
+                      - checkbox "Ground Motion" [ref=e1218]
+                      - generic [ref=e1219]: Ground Motion
+                    - generic [ref=e1220]:
+                      - generic [ref=e1221]: Atmosphere
+                      - spinbutton "Atmosphere" [ref=e1222]: "0.22"
+                - generic [ref=e1223]:
+                  - generic [ref=e1224]:
+                    - text: Key Color
+                    - textbox "Key Color" [ref=e1225]: "#ffbf57"
+                  - generic [ref=e1226]:
+                    - text: Fill Color
+                    - textbox "Fill Color" [ref=e1227]: "#f8ddb0"
+              - generic [ref=e1228]:
+                - generic [ref=e1229]:
+                  - generic [ref=e1230]:
+                    - generic [ref=e1231]: brief
+                    - generic [ref=e1232]: glacier • mid • brief • calm • profile.focus • key 1.18 • fill 0.52
+                  - generic [ref=e1233]:
+                    - button "Preview" [ref=e1234]:
+                      - img [ref=e1235]
+                      - text: Preview
+                    - button "Apply To Events" [ref=e1237]
+                - generic [ref=e1238]:
+                  - generic [ref=e1239]:
+                    - text: Environment
+                    - combobox "Environment" [ref=e1240]:
+                      - option "inherit"
+                      - option "bureau"
+                      - option "light"
+                      - option "mono"
+                      - option "glacier" [selected]
+                      - option "core"
+                      - option "dusk"
+                  - generic [ref=e1241]:
+                    - text: Camera
+                    - combobox "Camera" [ref=e1242]:
+                      - option "inherit"
+                      - option "wide"
+                      - option "hero"
+                      - option "mid" [selected]
+                  - generic [ref=e1243]:
+                    - text: Screen
+                    - combobox "Screen" [ref=e1244]:
+                      - option "base"
+                      - option "focus"
+                      - option "brief" [selected]
+                      - option "urgent"
+                      - option "success"
+                  - generic [ref=e1245]:
+                    - text: Transition
+                    - combobox "Transition" [ref=e1246]:
+                      - option "calm" [selected]
+                      - option "sharp"
+                      - option "surge"
+                  - generic [ref=e1247]:
+                    - text: Target State
+                    - combobox "Target State" [ref=e1248]:
+                      - option "profile.day"
+                      - option "profile.night"
+                      - option "profile.focus" [selected]
+                      - option "profile.active"
+                - generic [ref=e1249]:
+                  - generic [ref=e1250]:
+                    - text: Hold
+                    - spinbutton "Hold" [ref=e1251]: "16000"
+                  - generic [ref=e1252]:
+                    - text: Duration
+                    - spinbutton "Duration" [ref=e1253]: "2200"
+                  - generic [ref=e1254]:
+                    - text: Orbit
+                    - spinbutton "Orbit" [ref=e1255]: "0.5"
+                  - generic [ref=e1256]:
+                    - text: Key Light
+                    - spinbutton "Key Light" [ref=e1257]: "1.18"
+                  - generic [ref=e1258]:
+                    - text: Fill Light
+                    - spinbutton "Fill Light" [ref=e1259]: "0.52"
+                  - generic [ref=e1260]:
+                    - generic [ref=e1261]:
+                      - checkbox "Beat Pulse" [checked] [ref=e1262]
+                      - generic [ref=e1263]: Beat Pulse
+                    - generic [ref=e1264]:
+                      - checkbox "Ring Pulse" [checked] [ref=e1265]
+                      - generic [ref=e1266]: Ring Pulse
+                    - generic [ref=e1267]:
+                      - checkbox "Ground Motion" [ref=e1268]
+                      - generic [ref=e1269]: Ground Motion
+                    - generic [ref=e1270]:
+                      - generic [ref=e1271]: Atmosphere
+                      - spinbutton "Atmosphere" [ref=e1272]: "0.22"
+                - generic [ref=e1273]:
+                  - generic [ref=e1274]:
+                    - text: Key Color
+                    - textbox "Key Color" [ref=e1275]: "#c7e4ff"
+                  - generic [ref=e1276]:
+                    - text: Fill Color
+                    - textbox "Fill Color" [ref=e1277]: "#d6e9ff"
+              - generic [ref=e1278]:
+                - generic [ref=e1279]:
+                  - generic [ref=e1280]:
+                    - generic [ref=e1281]: reward
+                    - generic [ref=e1282]: core • hero • success • surge • profile.focus • key 1.44 • fill 0.64
+                  - generic [ref=e1283]:
+                    - button "Preview" [ref=e1284]:
+                      - img [ref=e1285]
+                      - text: Preview
+                    - button "Apply To Events" [ref=e1287]
+                - generic [ref=e1288]:
+                  - generic [ref=e1289]:
+                    - text: Environment
+                    - combobox "Environment" [ref=e1290]:
+                      - option "inherit"
+                      - option "bureau"
+                      - option "light"
+                      - option "mono"
+                      - option "glacier"
+                      - option "core" [selected]
+                      - option "dusk"
+                  - generic [ref=e1291]:
+                    - text: Camera
+                    - combobox "Camera" [ref=e1292]:
+                      - option "inherit"
+                      - option "wide"
+                      - option "hero" [selected]
+                      - option "mid"
+                  - generic [ref=e1293]:
+                    - text: Screen
+                    - combobox "Screen" [ref=e1294]:
+                      - option "base"
+                      - option "focus"
+                      - option "brief"
+                      - option "urgent"
+                      - option "success" [selected]
+                  - generic [ref=e1295]:
+                    - text: Transition
+                    - combobox "Transition" [ref=e1296]:
+                      - option "calm"
+                      - option "sharp"
+                      - option "surge" [selected]
+                  - generic [ref=e1297]:
+                    - text: Target State
+                    - combobox "Target State" [ref=e1298]:
+                      - option "profile.day"
+                      - option "profile.night"
+                      - option "profile.focus" [selected]
+                      - option "profile.active"
+                - generic [ref=e1299]:
+                  - generic [ref=e1300]:
+                    - text: Hold
+                    - spinbutton "Hold" [ref=e1301]: "12000"
+                  - generic [ref=e1302]:
+                    - text: Duration
+                    - spinbutton "Duration" [ref=e1303]: "2800"
+                  - generic [ref=e1304]:
+                    - text: Orbit
+                    - spinbutton "Orbit" [ref=e1305]: "0.72"
+                  - generic [ref=e1306]:
+                    - text: Key Light
+                    - spinbutton "Key Light" [ref=e1307]: "1.44"
+                  - generic [ref=e1308]:
+                    - text: Fill Light
+                    - spinbutton "Fill Light" [ref=e1309]: "0.64"
+                  - generic [ref=e1310]:
+                    - generic [ref=e1311]:
+                      - checkbox "Beat Pulse" [checked] [ref=e1312]
+                      - generic [ref=e1313]: Beat Pulse
+                    - generic [ref=e1314]:
+                      - checkbox "Ring Pulse" [checked] [ref=e1315]
+                      - generic [ref=e1316]: Ring Pulse
+                    - generic [ref=e1317]:
+                      - checkbox "Ground Motion" [checked] [ref=e1318]
+                      - generic [ref=e1319]: Ground Motion
+                    - generic [ref=e1320]:
+                      - generic [ref=e1321]: Atmosphere
+                      - spinbutton "Atmosphere" [ref=e1322]: "0.28"
+                - generic [ref=e1323]:
+                  - generic [ref=e1324]:
+                    - text: Key Color
+                    - textbox "Key Color" [ref=e1325]: "#ffd24d"
+                  - generic [ref=e1326]:
+                    - text: Fill Color
+                    - textbox "Fill Color" [ref=e1327]: "#ffe6a3"
+              - generic [ref=e1328]:
+                - generic [ref=e1329]:
+                  - generic [ref=e1330]:
+                    - generic [ref=e1331]: alert
+                    - generic [ref=e1332]: core • hero • urgent • sharp • profile.active • key 1.52 • fill 0.52
+                  - generic [ref=e1333]:
+                    - button "Preview" [ref=e1334]:
+                      - img [ref=e1335]
+                      - text: Preview
+                    - button "Apply To Events" [ref=e1337]
+                - generic [ref=e1338]:
+                  - generic [ref=e1339]:
+                    - text: Environment
+                    - combobox "Environment" [ref=e1340]:
+                      - option "inherit"
+                      - option "bureau"
+                      - option "light"
+                      - option "mono"
+                      - option "glacier"
+                      - option "core" [selected]
+                      - option "dusk"
+                  - generic [ref=e1341]:
+                    - text: Camera
+                    - combobox "Camera" [ref=e1342]:
+                      - option "inherit"
+                      - option "wide"
+                      - option "hero" [selected]
+                      - option "mid"
+                  - generic [ref=e1343]:
+                    - text: Screen
+                    - combobox "Screen" [ref=e1344]:
+                      - option "base"
+                      - option "focus"
+                      - option "brief"
+                      - option "urgent" [selected]
+                      - option "success"
+                  - generic [ref=e1345]:
+                    - text: Transition
+                    - combobox "Transition" [ref=e1346]:
+                      - option "calm"
+                      - option "sharp" [selected]
+                      - option "surge"
+                  - generic [ref=e1347]:
+                    - text: Target State
+                    - combobox "Target State" [ref=e1348]:
+                      - option "profile.day"
+                      - option "profile.night"
+                      - option "profile.focus"
+                      - option "profile.active" [selected]
+                - generic [ref=e1349]:
+                  - generic [ref=e1350]:
+                    - text: Hold
+                    - spinbutton "Hold" [ref=e1351]: "15000"
+                  - generic [ref=e1352]:
+                    - text: Duration
+                    - spinbutton "Duration" [ref=e1353]: "2600"
+                  - generic [ref=e1354]:
+                    - text: Orbit
+                    - spinbutton "Orbit" [ref=e1355]: "0.5"
+                  - generic [ref=e1356]:
+                    - text: Key Light
+                    - spinbutton "Key Light" [ref=e1357]: "1.52"
+                  - generic [ref=e1358]:
+                    - text: Fill Light
+                    - spinbutton "Fill Light" [ref=e1359]: "0.52"
+                  - generic [ref=e1360]:
+                    - generic [ref=e1361]:
+                      - checkbox "Beat Pulse" [checked] [ref=e1362]
+                      - generic [ref=e1363]: Beat Pulse
+                    - generic [ref=e1364]:
+                      - checkbox "Ring Pulse" [checked] [ref=e1365]
+                      - generic [ref=e1366]: Ring Pulse
+                    - generic [ref=e1367]:
+                      - checkbox "Ground Motion" [checked] [ref=e1368]
+                      - generic [ref=e1369]: Ground Motion
+                    - generic [ref=e1370]:
+                      - generic [ref=e1371]: Atmosphere
+                      - spinbutton "Atmosphere" [ref=e1372]: "0.3"
+                - generic [ref=e1373]:
+                  - generic [ref=e1374]:
+                    - text: Key Color
+                    - textbox "Key Color" [ref=e1375]: "#ff8540"
+                  - generic [ref=e1376]:
+                    - text: Fill Color
+                    - textbox "Fill Color" [ref=e1377]: "#ffd0a3"
+          - generic [ref=e1378]:
+            - generic [ref=e1379]:
+              - generic [ref=e1380]: Screen Presets
+              - generic [ref=e1381]: 5 modes • 0 draft changes
+            - generic [ref=e1382]:
+              - generic [ref=e1383]:
+                - generic [ref=e1384]:
+                  - generic [ref=e1385]:
+                    - generic [ref=e1386]: base
+                    - generic [ref=e1387]: MISSION • AVATAR • TRACE
+                  - button "Refresh Preview" [ref=e1388]
+                - generic [ref=e1389]:
+                  - generic [ref=e1390]:
+                    - text: Mission Label
+                    - textbox "Mission Label" [ref=e1391]: MISSION
+                  - generic [ref=e1392]:
+                    - text: Role Label
+                    - textbox "Role Label" [ref=e1393]: AVATAR
+                  - generic [ref=e1394]:
+                    - text: Trace Label
+                    - textbox "Trace Label" [ref=e1395]: TRACE
+                - generic [ref=e1396]:
+                  - generic [ref=e1397]:
+                    - text: Fallback Mission Text
+                    - textbox "Fallback Mission Text" [ref=e1398]: No active mission. Open Play to seed the next loop.
+                  - generic [ref=e1399]:
+                    - text: Fallback Role Text
+                    - textbox "Fallback Role Text" [ref=e1400]: Profile link online
+              - generic [ref=e1401]:
+                - generic [ref=e1402]:
+                  - generic [ref=e1403]:
+                    - generic [ref=e1404]: focus
+                    - generic [ref=e1405]: FOCUS • MODE • WINDOW
+                  - button "Refresh Preview" [ref=e1406]
+                - generic [ref=e1407]:
+                  - generic [ref=e1408]:
+                    - text: Mission Label
+                    - textbox "Mission Label" [ref=e1409]: FOCUS
+                  - generic [ref=e1410]:
+                    - text: Role Label
+                    - textbox "Role Label" [ref=e1411]: MODE
+                  - generic [ref=e1412]:
+                    - text: Trace Label
+                    - textbox "Trace Label" [ref=e1413]: WINDOW
+                - generic [ref=e1414]:
+                  - generic [ref=e1415]:
+                    - text: Fallback Mission Text
+                    - textbox "Fallback Mission Text" [ref=e1416]: Lock into the active loop. Keep the session clean and controlled.
+                  - generic [ref=e1417]:
+                    - text: Fallback Role Text
+                    - textbox "Fallback Role Text" [ref=e1418]: Focus lock active
+              - generic [ref=e1419]:
+                - generic [ref=e1420]:
+                  - generic [ref=e1421]:
+                    - generic [ref=e1422]: brief
+                    - generic [ref=e1423]: BRIEF • DUSK • INTEL
+                  - button "Refresh Preview" [ref=e1424]
+                - generic [ref=e1425]:
+                  - generic [ref=e1426]:
+                    - text: Mission Label
+                    - textbox "Mission Label" [ref=e1427]: BRIEF
+                  - generic [ref=e1428]:
+                    - text: Role Label
+                    - textbox "Role Label" [ref=e1429]: DUSK
+                  - generic [ref=e1430]:
+                    - text: Trace Label
+                    - textbox "Trace Label" [ref=e1431]: INTEL
+                - generic [ref=e1432]:
+                  - generic [ref=e1433]:
+                    - text: Fallback Mission Text
+                    - textbox "Fallback Mission Text" [ref=e1434]: Dusk relay loaded. Review the brief and route the next move.
+                  - generic [ref=e1435]:
+                    - text: Fallback Role Text
+                    - textbox "Fallback Role Text" [ref=e1436]: Relay channel online
+              - generic [ref=e1437]:
+                - generic [ref=e1438]:
+                  - generic [ref=e1439]:
+                    - generic [ref=e1440]: urgent
+                    - generic [ref=e1441]: URGENT • STATUS • ALERT
+                  - button "Refresh Preview" [ref=e1442]
+                - generic [ref=e1443]:
+                  - generic [ref=e1444]:
+                    - text: Mission Label
+                    - textbox "Mission Label" [ref=e1445]: URGENT
+                  - generic [ref=e1446]:
+                    - text: Role Label
+                    - textbox "Role Label" [ref=e1447]: STATUS
+                  - generic [ref=e1448]:
+                    - text: Trace Label
+                    - textbox "Trace Label" [ref=e1449]: ALERT
+                - generic [ref=e1450]:
+                  - generic [ref=e1451]:
+                    - text: Fallback Mission Text
+                    - textbox "Fallback Mission Text" [ref=e1452]: Immediate review required. Return to Play and resolve the pressure signal.
+                  - generic [ref=e1453]:
+                    - text: Fallback Role Text
+                    - textbox "Fallback Role Text" [ref=e1454]: Urgent watch active
+              - generic [ref=e1455]:
+                - generic [ref=e1456]:
+                  - generic [ref=e1457]:
+                    - generic [ref=e1458]: success
+                    - generic [ref=e1459]: COMPLETE • STATUS • REWARD
+                  - button "Refresh Preview" [ref=e1460]
+                - generic [ref=e1461]:
+                  - generic [ref=e1462]:
+                    - text: Mission Label
+                    - textbox "Mission Label" [ref=e1463]: COMPLETE
+                  - generic [ref=e1464]:
+                    - text: Role Label
+                    - textbox "Role Label" [ref=e1465]: STATUS
+                  - generic [ref=e1466]:
+                    - text: Trace Label
+                    - textbox "Trace Label" [ref=e1467]: REWARD
+                - generic [ref=e1468]:
+                  - generic [ref=e1469]:
+                    - text: Fallback Mission Text
+                    - textbox "Fallback Mission Text" [ref=e1470]: Objective confirmed. Reward and debrief ready.
+                  - generic [ref=e1471]:
+                    - text: Fallback Role Text
+                    - textbox "Fallback Role Text" [ref=e1472]: Completion signal locked
+          - generic [ref=e1473]:
+            - generic [ref=e1474]:
+              - generic [ref=e1475]: Avatar Packs
+              - generic [ref=e1476]: 3 authored presets • 0 draft changes
+            - generic [ref=e1477]:
+              - generic [ref=e1478]:
+                - generic [ref=e1479]:
+                  - generic [ref=e1480]:
+                    - generic [ref=e1481]: station
+                    - generic [ref=e1482]: Profile Deck • Profile Relay
+                  - button "Refresh Preview" [ref=e1483]
+                - generic [ref=e1484]:
+                  - generic [ref=e1485]:
+                    - text: Shell Label
+                    - textbox "Shell Label" [ref=e1486]: Profile Deck
+                  - generic [ref=e1487]:
+                    - text: Relay Label
+                    - textbox "Relay Label" [ref=e1488]: Profile Relay
+                  - generic [ref=e1489]:
+                    - text: Status Label
+                    - textbox "Status Label" [ref=e1490]: Scene Lobby
+                  - generic [ref=e1491]:
+                    - text: Loadout Title
+                    - textbox "Loadout Title" [ref=e1492]: System Loadout
+                  - generic [ref=e1493]:
+                    - text: Capability Label
+                    - textbox "Capability Label" [ref=e1494]: Station Assets
+                  - generic [ref=e1495]:
+                    - text: Role Fallback
+                    - textbox "Role Fallback" [ref=e1496]: Profile link online
+                  - generic [ref=e1497]:
+                    - text: Preview Role
+                    - textbox "Preview Role" [ref=e1498]: Station shell active
+                  - generic [ref=e1499]:
+                    - text: Deck Prompt
+                    - textbox "Deck Prompt" [ref=e1500]: Open the deck for identity, stats, and loadout.
+                  - generic [ref=e1501]:
+                    - text: Loadout Description
+                    - textbox "Loadout Description" [ref=e1502]: Active XTATION capabilities currently shaping this station.
+              - generic [ref=e1503]:
+                - generic [ref=e1504]:
+                  - generic [ref=e1505]:
+                    - generic [ref=e1506]: ops
+                    - generic [ref=e1507]: Operator Deck • Operator Relay
+                  - button "Refresh Preview" [ref=e1508]
+                - generic [ref=e1509]:
+                  - generic [ref=e1510]:
+                    - text: Shell Label
+                    - textbox "Shell Label" [ref=e1511]: Operator Deck
+                  - generic [ref=e1512]:
+                    - text: Relay Label
+                    - textbox "Relay Label" [ref=e1513]: Operator Relay
+                  - generic [ref=e1514]:
+                    - text: Status Label
+                    - textbox "Status Label" [ref=e1515]: Operator Lobby
+                  - generic [ref=e1516]:
+                    - text: Loadout Title
+                    - textbox "Loadout Title" [ref=e1517]: Field Loadout
+                  - generic [ref=e1518]:
+                    - text: Capability Label
+                    - textbox "Capability Label" [ref=e1519]: Field Assets
+                  - generic [ref=e1520]:
+                    - text: Role Fallback
+                    - textbox "Role Fallback" [ref=e1521]: Operator shell online
+                  - generic [ref=e1522]:
+                    - text: Preview Role
+                    - textbox "Preview Role" [ref=e1523]: Operator shell active
+                  - generic [ref=e1524]:
+                    - text: Deck Prompt
+                    - textbox "Deck Prompt" [ref=e1525]: Open the deck for operator status, field stats, and loadout.
+                  - generic [ref=e1526]:
+                    - text: Loadout Description
+                    - textbox "Loadout Description" [ref=e1527]: Active XTATION capabilities currently shaping this operator shell.
+              - generic [ref=e1528]:
+                - generic [ref=e1529]:
+                  - generic [ref=e1530]:
+                    - generic [ref=e1531]: minimal
+                    - generic [ref=e1532]: Identity Deck • Identity Relay
+                  - button "Refresh Preview" [ref=e1533]
+                - generic [ref=e1534]:
+                  - generic [ref=e1535]:
+                    - text: Shell Label
+                    - textbox "Shell Label" [ref=e1536]: Identity Deck
+                  - generic [ref=e1537]:
+                    - text: Relay Label
+                    - textbox "Relay Label" [ref=e1538]: Identity Relay
+                  - generic [ref=e1539]:
+                    - text: Status Label
+                    - textbox "Status Label" [ref=e1540]: Identity Lobby
+                  - generic [ref=e1541]:
+                    - text: Loadout Title
+                    - textbox "Loadout Title" [ref=e1542]: Carry Set
+                  - generic [ref=e1543]:
+                    - text: Capability Label
+                    - textbox "Capability Label" [ref=e1544]: Active Slots
+                  - generic [ref=e1545]:
+                    - text: Role Fallback
+                    - textbox "Role Fallback" [ref=e1546]: Minimal shell online
+                  - generic [ref=e1547]:
+                    - text: Preview Role
+                    - textbox "Preview Role" [ref=e1548]: Minimal shell active
+                  - generic [ref=e1549]:
+                    - text: Deck Prompt
+                    - textbox "Deck Prompt" [ref=e1550]: Open the deck for identity and current station state.
+                  - generic [ref=e1551]:
+                    - text: Loadout Description
+                    - textbox "Loadout Description" [ref=e1552]: Only the essential XTATION capabilities remain in this shell.
+          - generic [ref=e1553]:
+            - generic [ref=e1554]:
+              - generic [ref=e1555]: State Triggers
+              - generic [ref=e1556]: 5 authored event bindings
+            - generic [ref=e1557]:
+              - generic [ref=e1558]:
+                - generic [ref=e1559]:
+                  - generic [ref=e1560]: play.session.start
+                  - generic [ref=e1561]: profile.active • hold 18000ms
+                - button "Trigger" [ref=e1562]:
+                  - img [ref=e1563]
+                  - text: Trigger
+              - generic [ref=e1565]:
+                - generic [ref=e1566]:
+                  - text: Scene State
+                  - combobox "Scene State" [ref=e1567]:
+                    - option "profile.day"
+                    - option "profile.night"
+                    - option "profile.focus"
+                    - option "profile.active" [selected]
+                - generic [ref=e1568]:
+                  - text: Hold
+                  - spinbutton "Hold" [ref=e1569]: "18000"
+            - generic [ref=e1570]:
+              - generic [ref=e1571]:
+                - generic [ref=e1572]:
+                  - generic [ref=e1573]: dusk.brief.loaded
+                  - generic [ref=e1574]: profile.focus • hold 16000ms
+                - button "Trigger" [ref=e1575]:
+                  - img [ref=e1576]
+                  - text: Trigger
+              - generic [ref=e1578]:
+                - generic [ref=e1579]:
+                  - text: Scene State
+                  - combobox "Scene State" [ref=e1580]:
+                    - option "profile.day"
+                    - option "profile.night"
+                    - option "profile.focus" [selected]
+                    - option "profile.active"
+                - generic [ref=e1581]:
+                  - text: Hold
+                  - spinbutton "Hold" [ref=e1582]: "16000"
+            - generic [ref=e1583]:
+              - generic [ref=e1584]:
+                - generic [ref=e1585]:
+                  - generic [ref=e1586]: quest.completed
+                  - generic [ref=e1587]: profile.focus • hold 12000ms
+                - button "Trigger" [ref=e1588]:
+                  - img [ref=e1589]
+                  - text: Trigger
+              - generic [ref=e1591]:
+                - generic [ref=e1592]:
+                  - text: Scene State
+                  - combobox "Scene State" [ref=e1593]:
+                    - option "profile.day"
+                    - option "profile.night"
+                    - option "profile.focus" [selected]
+                    - option "profile.active"
+                - generic [ref=e1594]:
+                  - text: Hold
+                  - spinbutton "Hold" [ref=e1595]: "12000"
+            - generic [ref=e1596]:
+              - generic [ref=e1597]:
+                - generic [ref=e1598]:
+                  - generic [ref=e1599]: notification.urgent
+                  - generic [ref=e1600]: profile.active • hold 15000ms
+                - button "Trigger" [ref=e1601]:
+                  - img [ref=e1602]
+                  - text: Trigger
+              - generic [ref=e1604]:
+                - generic [ref=e1605]:
+                  - text: Scene State
+                  - combobox "Scene State" [ref=e1606]:
+                    - option "profile.day"
+                    - option "profile.night"
+                    - option "profile.focus"
+                    - option "profile.active" [selected]
+                - generic [ref=e1607]:
+                  - text: Hold
+                  - spinbutton "Hold" [ref=e1608]: "15000"
+            - generic [ref=e1609]:
+              - generic [ref=e1610]:
+                - generic [ref=e1611]:
+                  - generic [ref=e1612]: station.skin.fallback
+                  - generic [ref=e1613]: profile.focus • hold 10000ms
+                - button "Trigger" [ref=e1614]:
+                  - img [ref=e1615]
+                  - text: Trigger
+              - generic [ref=e1617]:
+                - generic [ref=e1618]:
+                  - text: Scene State
+                  - combobox "Scene State" [ref=e1619]:
+                    - option "profile.day"
+                    - option "profile.night"
+                    - option "profile.focus" [selected]
+                    - option "profile.active"
+                - generic [ref=e1620]:
+                  - text: Hold
+                  - spinbutton "Hold" [ref=e1621]: "10000"
+          - generic [ref=e1622]:
+            - generic [ref=e1623]:
+              - generic [ref=e1624]:
+                - generic [ref=e1625]:
+                  - generic [ref=e1626]: ambient.day.enter
+                  - generic [ref=e1627]: inherit • inherit • base • calm • orbit 0.5 • key 1.14 • fill 0.42 • 1800ms
+                - button "Trigger" [ref=e1628]:
+                  - img [ref=e1629]
+                  - text: Trigger
+              - generic [ref=e1631]:
+                - generic [ref=e1632]:
+                  - text: Environment
+                  - combobox "Environment" [ref=e1633]:
+                    - option "inherit" [selected]
+                    - option "bureau"
+                    - option "light"
+                    - option "mono"
+                    - option "glacier"
+                    - option "core"
+                    - option "dusk"
+                - generic [ref=e1634]:
+                  - text: Camera
+                  - combobox "Camera" [ref=e1635]:
+                    - option "inherit" [selected]
+                    - option "wide"
+                    - option "hero"
+                    - option "mid"
+                - generic [ref=e1636]:
+                  - text: Screen
+                  - combobox "Screen" [ref=e1637]:
+                    - option "base" [selected]
+                    - option "focus"
+                    - option "brief"
+                    - option "urgent"
+                    - option "success"
+                - generic [ref=e1638]:
+                  - text: Duration
+                  - spinbutton "Duration" [ref=e1639]: "1800"
+                - generic [ref=e1640]:
+                  - text: Transition
+                  - combobox "Transition" [ref=e1641]:
+                    - option "calm" [selected]
+                    - option "sharp"
+                    - option "surge"
+                - generic [ref=e1642]:
+                  - generic [ref=e1643]:
+                    - checkbox "Beat Pulse" [ref=e1644]
+                    - generic [ref=e1645]: Beat Pulse
+                  - generic [ref=e1646]:
+                    - checkbox "Ring Pulse" [ref=e1647]
+                    - generic [ref=e1648]: Ring Pulse
+                  - generic [ref=e1649]:
+                    - checkbox "Ground Motion" [ref=e1650]
+                    - generic [ref=e1651]: Ground Motion
+                  - generic [ref=e1652]:
+                    - generic [ref=e1653]: Atmosphere
+                    - spinbutton "Atmosphere" [ref=e1654]: "0.18"
+                  - generic [ref=e1655]:
+                    - generic [ref=e1656]: Orbit
+                    - spinbutton "Orbit" [ref=e1657]: "0.5"
+              - generic [ref=e1658]:
+                - generic [ref=e1659]:
+                  - text: Key Light
+                  - spinbutton "Key Light" [ref=e1660]: "1.14"
+                - generic [ref=e1661]:
+                  - text: Fill Light
+                  - spinbutton "Fill Light" [ref=e1662]: "0.42"
+                - generic [ref=e1663]:
+                  - text: Key Color
+                  - textbox "Key Color" [ref=e1664]: "#f5c26d"
+                - generic [ref=e1665]:
+                  - text: Fill Color
+                  - textbox "Fill Color" [ref=e1666]: "#f0dfbc"
+            - generic [ref=e1667]:
+              - generic [ref=e1668]:
+                - generic [ref=e1669]:
+                  - generic [ref=e1670]: ambient.night.enter
+                  - generic [ref=e1671]: mono • wide • base • calm • orbit 0.5 • key 0.76 • fill 0.18 • 3200ms
+                - button "Trigger" [ref=e1672]:
+                  - img [ref=e1673]
+                  - text: Trigger
+              - generic [ref=e1675]:
+                - generic [ref=e1676]:
+                  - text: Environment
+                  - combobox "Environment" [ref=e1677]:
+                    - option "inherit"
+                    - option "bureau"
+                    - option "light"
+                    - option "mono" [selected]
+                    - option "glacier"
+                    - option "core"
+                    - option "dusk"
+                - generic [ref=e1678]:
+                  - text: Camera
+                  - combobox "Camera" [ref=e1679]:
+                    - option "inherit"
+                    - option "wide" [selected]
+                    - option "hero"
+                    - option "mid"
+                - generic [ref=e1680]:
+                  - text: Screen
+                  - combobox "Screen" [ref=e1681]:
+                    - option "base" [selected]
+                    - option "focus"
+                    - option "brief"
+                    - option "urgent"
+                    - option "success"
+                - generic [ref=e1682]:
+                  - text: Duration
+                  - spinbutton "Duration" [ref=e1683]: "3200"
+                - generic [ref=e1684]:
+                  - text: Transition
+                  - combobox "Transition" [ref=e1685]:
+                    - option "calm" [selected]
+                    - option "sharp"
+                    - option "surge"
+                - generic [ref=e1686]:
+                  - generic [ref=e1687]:
+                    - checkbox "Beat Pulse" [ref=e1688]
+                    - generic [ref=e1689]: Beat Pulse
+                  - generic [ref=e1690]:
+                    - checkbox "Ring Pulse" [ref=e1691]
+                    - generic [ref=e1692]: Ring Pulse
+                  - generic [ref=e1693]:
+                    - checkbox "Ground Motion" [ref=e1694]
+                    - generic [ref=e1695]: Ground Motion
+                  - generic [ref=e1696]:
+                    - generic [ref=e1697]: Atmosphere
+                    - spinbutton "Atmosphere" [ref=e1698]: "0.12"
+                  - generic [ref=e1699]:
+                    - generic [ref=e1700]: Orbit
+                    - spinbutton "Orbit" [ref=e1701]: "0.5"
+              - generic [ref=e1702]:
+                - generic [ref=e1703]:
+                  - text: Key Light
+                  - spinbutton "Key Light" [ref=e1704]: "0.76"
+                - generic [ref=e1705]:
+                  - text: Fill Light
+                  - spinbutton "Fill Light" [ref=e1706]: "0.18"
+                - generic [ref=e1707]:
+                  - text: Key Color
+                  - textbox "Key Color" [ref=e1708]: "#d6b27a"
+                - generic [ref=e1709]:
+                  - text: Fill Color
+                  - textbox "Fill Color" [ref=e1710]: "#72809a"
+            - generic [ref=e1711]:
+              - generic [ref=e1712]:
+                - generic [ref=e1713]:
+                  - generic [ref=e1714]: dusk.brief.loaded
+                  - generic [ref=e1715]: glacier • mid • brief • calm • orbit 0.5 • key 1.18 • fill 0.52 • 2200ms
+                - button "Trigger" [ref=e1716]:
+                  - img [ref=e1717]
+                  - text: Trigger
+              - generic [ref=e1719]:
+                - generic [ref=e1720]:
+                  - text: Environment
+                  - combobox "Environment" [ref=e1721]:
+                    - option "inherit"
+                    - option "bureau"
+                    - option "light"
+                    - option "mono"
+                    - option "glacier" [selected]
+                    - option "core"
+                    - option "dusk"
+                - generic [ref=e1722]:
+                  - text: Camera
+                  - combobox "Camera" [ref=e1723]:
+                    - option "inherit"
+                    - option "wide"
+                    - option "hero"
+                    - option "mid" [selected]
+                - generic [ref=e1724]:
+                  - text: Screen
+                  - combobox "Screen" [ref=e1725]:
+                    - option "base"
+                    - option "focus"
+                    - option "brief" [selected]
+                    - option "urgent"
+                    - option "success"
+                - generic [ref=e1726]:
+                  - text: Duration
+                  - spinbutton "Duration" [ref=e1727]: "2200"
+                - generic [ref=e1728]:
+                  - text: Transition
+                  - combobox "Transition" [ref=e1729]:
+                    - option "calm" [selected]
+                    - option "sharp"
+                    - option "surge"
+                - generic [ref=e1730]:
+                  - generic [ref=e1731]:
+                    - checkbox "Beat Pulse" [checked] [ref=e1732]
+                    - generic [ref=e1733]: Beat Pulse
+                  - generic [ref=e1734]:
+                    - checkbox "Ring Pulse" [checked] [ref=e1735]
+                    - generic [ref=e1736]: Ring Pulse
+                  - generic [ref=e1737]:
+                    - checkbox "Ground Motion" [ref=e1738]
+                    - generic [ref=e1739]: Ground Motion
+                  - generic [ref=e1740]:
+                    - generic [ref=e1741]: Atmosphere
+                    - spinbutton "Atmosphere" [ref=e1742]: "0.22"
+                  - generic [ref=e1743]:
+                    - generic [ref=e1744]: Orbit
+                    - spinbutton "Orbit" [ref=e1745]: "0.5"
+              - generic [ref=e1746]:
+                - generic [ref=e1747]:
+                  - text: Key Light
+                  - spinbutton "Key Light" [ref=e1748]: "1.18"
+                - generic [ref=e1749]:
+                  - text: Fill Light
+                  - spinbutton "Fill Light" [ref=e1750]: "0.52"
+                - generic [ref=e1751]:
+                  - text: Key Color
+                  - textbox "Key Color" [ref=e1752]: "#c7e4ff"
+                - generic [ref=e1753]:
+                  - text: Fill Color
+                  - textbox "Fill Color" [ref=e1754]: "#d6e9ff"
+            - generic [ref=e1755]:
+              - generic [ref=e1756]:
+                - generic [ref=e1757]:
+                  - generic [ref=e1758]: nav.section.admin.open
+                  - generic [ref=e1759]: inherit • inherit • base • calm • orbit 0.5 • key 1.14 • fill 0.42 • 1800ms
+                - button "Trigger" [ref=e1760]:
+                  - img [ref=e1761]
+                  - text: Trigger
+              - generic [ref=e1763]:
+                - generic [ref=e1764]:
+                  - text: Environment
+                  - combobox "Environment" [ref=e1765]:
+                    - option "inherit" [selected]
+                    - option "bureau"
+                    - option "light"
+                    - option "mono"
+                    - option "glacier"
+                    - option "core"
+                    - option "dusk"
+                - generic [ref=e1766]:
+                  - text: Camera
+                  - combobox "Camera" [ref=e1767]:
+                    - option "inherit" [selected]
+                    - option "wide"
+                    - option "hero"
+                    - option "mid"
+                - generic [ref=e1768]:
+                  - text: Screen
+                  - combobox "Screen" [ref=e1769]:
+                    - option "base" [selected]
+                    - option "focus"
+                    - option "brief"
+                    - option "urgent"
+                    - option "success"
+                - generic [ref=e1770]:
+                  - text: Duration
+                  - spinbutton "Duration" [ref=e1771]: "1800"
+                - generic [ref=e1772]:
+                  - text: Transition
+                  - combobox "Transition" [ref=e1773]:
+                    - option "calm" [selected]
+                    - option "sharp"
+                    - option "surge"
+                - generic [ref=e1774]:
+                  - generic [ref=e1775]:
+                    - checkbox "Beat Pulse" [ref=e1776]
+                    - generic [ref=e1777]: Beat Pulse
+                  - generic [ref=e1778]:
+                    - checkbox "Ring Pulse" [ref=e1779]
+                    - generic [ref=e1780]: Ring Pulse
+                  - generic [ref=e1781]:
+                    - checkbox "Ground Motion" [ref=e1782]
+                    - generic [ref=e1783]: Ground Motion
+                  - generic [ref=e1784]:
+                    - generic [ref=e1785]: Atmosphere
+                    - spinbutton "Atmosphere" [ref=e1786]: "0.18"
+                  - generic [ref=e1787]:
+                    - generic [ref=e1788]: Orbit
+                    - spinbutton "Orbit" [ref=e1789]: "0.5"
+              - generic [ref=e1790]:
+                - generic [ref=e1791]:
+                  - text: Key Light
+                  - spinbutton "Key Light" [ref=e1792]: "1.14"
+                - generic [ref=e1793]:
+                  - text: Fill Light
+                  - spinbutton "Fill Light" [ref=e1794]: "0.42"
+                - generic [ref=e1795]:
+                  - text: Key Color
+                  - textbox "Key Color" [ref=e1796]: "#f5c26d"
+                - generic [ref=e1797]:
+                  - text: Fill Color
+                  - textbox "Fill Color" [ref=e1798]: "#f0dfbc"
+            - generic [ref=e1799]:
+              - generic [ref=e1800]:
+                - generic [ref=e1801]:
+                  - generic [ref=e1802]: nav.section.lab.open
+                  - generic [ref=e1803]: inherit • inherit • base • calm • orbit 0.5 • key 1.14 • fill 0.42 • 1800ms
+                - button "Trigger" [ref=e1804]:
+                  - img [ref=e1805]
+                  - text: Trigger
+              - generic [ref=e1807]:
+                - generic [ref=e1808]:
+                  - text: Environment
+                  - combobox "Environment" [ref=e1809]:
+                    - option "inherit" [selected]
+                    - option "bureau"
+                    - option "light"
+                    - option "mono"
+                    - option "glacier"
+                    - option "core"
+                    - option "dusk"
+                - generic [ref=e1810]:
+                  - text: Camera
+                  - combobox "Camera" [ref=e1811]:
+                    - option "inherit" [selected]
+                    - option "wide"
+                    - option "hero"
+                    - option "mid"
+                - generic [ref=e1812]:
+                  - text: Screen
+                  - combobox "Screen" [ref=e1813]:
+                    - option "base" [selected]
+                    - option "focus"
+                    - option "brief"
+                    - option "urgent"
+                    - option "success"
+                - generic [ref=e1814]:
+                  - text: Duration
+                  - spinbutton "Duration" [ref=e1815]: "1800"
+                - generic [ref=e1816]:
+                  - text: Transition
+                  - combobox "Transition" [ref=e1817]:
+                    - option "calm" [selected]
+                    - option "sharp"
+                    - option "surge"
+                - generic [ref=e1818]:
+                  - generic [ref=e1819]:
+                    - checkbox "Beat Pulse" [ref=e1820]
+                    - generic [ref=e1821]: Beat Pulse
+                  - generic [ref=e1822]:
+                    - checkbox "Ring Pulse" [ref=e1823]
+                    - generic [ref=e1824]: Ring Pulse
+                  - generic [ref=e1825]:
+                    - checkbox "Ground Motion" [ref=e1826]
+                    - generic [ref=e1827]: Ground Motion
+                  - generic [ref=e1828]:
+                    - generic [ref=e1829]: Atmosphere
+                    - spinbutton "Atmosphere" [ref=e1830]: "0.18"
+                  - generic [ref=e1831]:
+                    - generic [ref=e1832]: Orbit
+                    - spinbutton "Orbit" [ref=e1833]: "0.5"
+              - generic [ref=e1834]:
+                - generic [ref=e1835]:
+                  - text: Key Light
+                  - spinbutton "Key Light" [ref=e1836]: "1.14"
+                - generic [ref=e1837]:
+                  - text: Fill Light
+                  - spinbutton "Fill Light" [ref=e1838]: "0.42"
+                - generic [ref=e1839]:
+                  - text: Key Color
+                  - textbox "Key Color" [ref=e1840]: "#f5c26d"
+                - generic [ref=e1841]:
+                  - text: Fill Color
+                  - textbox "Fill Color" [ref=e1842]: "#f0dfbc"
+            - generic [ref=e1843]:
+              - generic [ref=e1844]:
+                - generic [ref=e1845]:
+                  - generic [ref=e1846]: nav.section.lobby.open
+                  - generic [ref=e1847]: inherit • inherit • base • calm • orbit 0.5 • key 1.14 • fill 0.42 • 1800ms
+                - button "Trigger" [ref=e1848]:
+                  - img [ref=e1849]
+                  - text: Trigger
+              - generic [ref=e1851]:
+                - generic [ref=e1852]:
+                  - text: Environment
+                  - combobox "Environment" [ref=e1853]:
+                    - option "inherit" [selected]
+                    - option "bureau"
+                    - option "light"
+                    - option "mono"
+                    - option "glacier"
+                    - option "core"
+                    - option "dusk"
+                - generic [ref=e1854]:
+                  - text: Camera
+                  - combobox "Camera" [ref=e1855]:
+                    - option "inherit" [selected]
+                    - option "wide"
+                    - option "hero"
+                    - option "mid"
+                - generic [ref=e1856]:
+                  - text: Screen
+                  - combobox "Screen" [ref=e1857]:
+                    - option "base" [selected]
+                    - option "focus"
+                    - option "brief"
+                    - option "urgent"
+                    - option "success"
+                - generic [ref=e1858]:
+                  - text: Duration
+                  - spinbutton "Duration" [ref=e1859]: "1800"
+                - generic [ref=e1860]:
+                  - text: Transition
+                  - combobox "Transition" [ref=e1861]:
+                    - option "calm" [selected]
+                    - option "sharp"
+                    - option "surge"
+                - generic [ref=e1862]:
+                  - generic [ref=e1863]:
+                    - checkbox "Beat Pulse" [ref=e1864]
+                    - generic [ref=e1865]: Beat Pulse
+                  - generic [ref=e1866]:
+                    - checkbox "Ring Pulse" [ref=e1867]
+                    - generic [ref=e1868]: Ring Pulse
+                  - generic [ref=e1869]:
+                    - checkbox "Ground Motion" [ref=e1870]
+                    - generic [ref=e1871]: Ground Motion
+                  - generic [ref=e1872]:
+                    - generic [ref=e1873]: Atmosphere
+                    - spinbutton "Atmosphere" [ref=e1874]: "0.18"
+                  - generic [ref=e1875]:
+                    - generic [ref=e1876]: Orbit
+                    - spinbutton "Orbit" [ref=e1877]: "0.5"
+              - generic [ref=e1878]:
+                - generic [ref=e1879]:
+                  - text: Key Light
+                  - spinbutton "Key Light" [ref=e1880]: "1.14"
+                - generic [ref=e1881]:
+                  - text: Fill Light
+                  - spinbutton "Fill Light" [ref=e1882]: "0.42"
+                - generic [ref=e1883]:
+                  - text: Key Color
+                  - textbox "Key Color" [ref=e1884]: "#f5c26d"
+                - generic [ref=e1885]:
+                  - text: Fill Color
+                  - textbox "Fill Color" [ref=e1886]: "#f0dfbc"
+            - generic [ref=e1887]:
+              - generic [ref=e1888]:
+                - generic [ref=e1889]:
+                  - generic [ref=e1890]: nav.section.play.open
+                  - generic [ref=e1891]: inherit • inherit • base • calm • orbit 0.5 • key 1.14 • fill 0.42 • 1800ms
+                - button "Trigger" [ref=e1892]:
+                  - img [ref=e1893]
+                  - text: Trigger
+              - generic [ref=e1895]:
+                - generic [ref=e1896]:
+                  - text: Environment
+                  - combobox "Environment" [ref=e1897]:
+                    - option "inherit" [selected]
+                    - option "bureau"
+                    - option "light"
+                    - option "mono"
+                    - option "glacier"
+                    - option "core"
+                    - option "dusk"
+                - generic [ref=e1898]:
+                  - text: Camera
+                  - combobox "Camera" [ref=e1899]:
+                    - option "inherit" [selected]
+                    - option "wide"
+                    - option "hero"
+                    - option "mid"
+                - generic [ref=e1900]:
+                  - text: Screen
+                  - combobox "Screen" [ref=e1901]:
+                    - option "base" [selected]
+                    - option "focus"
+                    - option "brief"
+                    - option "urgent"
+                    - option "success"
+                - generic [ref=e1902]:
+                  - text: Duration
+                  - spinbutton "Duration" [ref=e1903]: "1800"
+                - generic [ref=e1904]:
+                  - text: Transition
+                  - combobox "Transition" [ref=e1905]:
+                    - option "calm" [selected]
+                    - option "sharp"
+                    - option "surge"
+                - generic [ref=e1906]:
+                  - generic [ref=e1907]:
+                    - checkbox "Beat Pulse" [ref=e1908]
+                    - generic [ref=e1909]: Beat Pulse
+                  - generic [ref=e1910]:
+                    - checkbox "Ring Pulse" [ref=e1911]
+                    - generic [ref=e1912]: Ring Pulse
+                  - generic [ref=e1913]:
+                    - checkbox "Ground Motion" [ref=e1914]
+                    - generic [ref=e1915]: Ground Motion
+                  - generic [ref=e1916]:
+                    - generic [ref=e1917]: Atmosphere
+                    - spinbutton "Atmosphere" [ref=e1918]: "0.18"
+                  - generic [ref=e1919]:
+                    - generic [ref=e1920]: Orbit
+                    - spinbutton "Orbit" [ref=e1921]: "0.5"
+              - generic [ref=e1922]:
+                - generic [ref=e1923]:
+                  - text: Key Light
+                  - spinbutton "Key Light" [ref=e1924]: "1.14"
+                - generic [ref=e1925]:
+                  - text: Fill Light
+                  - spinbutton "Fill Light" [ref=e1926]: "0.42"
+                - generic [ref=e1927]:
+                  - text: Key Color
+                  - textbox "Key Color" [ref=e1928]: "#f5c26d"
+                - generic [ref=e1929]:
+                  - text: Fill Color
+                  - textbox "Fill Color" [ref=e1930]: "#f0dfbc"
+            - generic [ref=e1931]:
+              - generic [ref=e1932]:
+                - generic [ref=e1933]:
+                  - generic [ref=e1934]: nav.section.profile.open
+                  - generic [ref=e1935]: bureau • hero • base • calm • orbit 0.5 • key 1.14 • fill 0.42 • 1600ms
+                - button "Trigger" [ref=e1936]:
+                  - img [ref=e1937]
+                  - text: Trigger
+              - generic [ref=e1939]:
+                - generic [ref=e1940]:
+                  - text: Environment
+                  - combobox "Environment" [ref=e1941]:
+                    - option "inherit"
+                    - option "bureau" [selected]
+                    - option "light"
+                    - option "mono"
+                    - option "glacier"
+                    - option "core"
+                    - option "dusk"
+                - generic [ref=e1942]:
+                  - text: Camera
+                  - combobox "Camera" [ref=e1943]:
+                    - option "inherit"
+                    - option "wide"
+                    - option "hero" [selected]
+                    - option "mid"
+                - generic [ref=e1944]:
+                  - text: Screen
+                  - combobox "Screen" [ref=e1945]:
+                    - option "base" [selected]
+                    - option "focus"
+                    - option "brief"
+                    - option "urgent"
+                    - option "success"
+                - generic [ref=e1946]:
+                  - text: Duration
+                  - spinbutton "Duration" [ref=e1947]: "1600"
+                - generic [ref=e1948]:
+                  - text: Transition
+                  - combobox "Transition" [ref=e1949]:
+                    - option "calm" [selected]
+                    - option "sharp"
+                    - option "surge"
+                - generic [ref=e1950]:
+                  - generic [ref=e1951]:
+                    - checkbox "Beat Pulse" [ref=e1952]
+                    - generic [ref=e1953]: Beat Pulse
+                  - generic [ref=e1954]:
+                    - checkbox "Ring Pulse" [checked] [ref=e1955]
+                    - generic [ref=e1956]: Ring Pulse
+                  - generic [ref=e1957]:
+                    - checkbox "Ground Motion" [ref=e1958]
+                    - generic [ref=e1959]: Ground Motion
+                  - generic [ref=e1960]:
+                    - generic [ref=e1961]: Atmosphere
+                    - spinbutton "Atmosphere" [ref=e1962]: "0.18"
+                  - generic [ref=e1963]:
+                    - generic [ref=e1964]: Orbit
+                    - spinbutton "Orbit" [ref=e1965]: "0.5"
+              - generic [ref=e1966]:
+                - generic [ref=e1967]:
+                  - text: Key Light
+                  - spinbutton "Key Light" [ref=e1968]: "1.14"
+                - generic [ref=e1969]:
+                  - text: Fill Light
+                  - spinbutton "Fill Light" [ref=e1970]: "0.42"
+                - generic [ref=e1971]:
+                  - text: Key Color
+                  - textbox "Key Color" [ref=e1972]: "#f5c26d"
+                - generic [ref=e1973]:
+                  - text: Fill Color
+                  - textbox "Fill Color" [ref=e1974]: "#f0dfbc"
+            - generic [ref=e1975]:
+              - generic [ref=e1976]:
+                - generic [ref=e1977]:
+                  - generic [ref=e1978]: notification.urgent
+                  - generic [ref=e1979]: core • hero • urgent • calm • orbit 0.5 • key 1.52 • fill 0.52 • 2600ms
+                - button "Trigger" [ref=e1980]:
+                  - img [ref=e1981]
+                  - text: Trigger
+              - generic [ref=e1983]:
+                - generic [ref=e1984]:
+                  - text: Environment
+                  - combobox "Environment" [ref=e1985]:
+                    - option "inherit"
+                    - option "bureau"
+                    - option "light"
+                    - option "mono"
+                    - option "glacier"
+                    - option "core" [selected]
+                    - option "dusk"
+                - generic [ref=e1986]:
+                  - text: Camera
+                  - combobox "Camera" [ref=e1987]:
+                    - option "inherit"
+                    - option "wide"
+                    - option "hero" [selected]
+                    - option "mid"
+                - generic [ref=e1988]:
+                  - text: Screen
+                  - combobox "Screen" [ref=e1989]:
+                    - option "base"
+                    - option "focus"
+                    - option "brief"
+                    - option "urgent" [selected]
+                    - option "success"
+                - generic [ref=e1990]:
+                  - text: Duration
+                  - spinbutton "Duration" [ref=e1991]: "2600"
+                - generic [ref=e1992]:
+                  - text: Transition
+                  - combobox "Transition" [ref=e1993]:
+                    - option "calm" [selected]
+                    - option "sharp"
+                    - option "surge"
+                - generic [ref=e1994]:
+                  - generic [ref=e1995]:
+                    - checkbox "Beat Pulse" [checked] [ref=e1996]
+                    - generic [ref=e1997]: Beat Pulse
+                  - generic [ref=e1998]:
+                    - checkbox "Ring Pulse" [checked] [ref=e1999]
+                    - generic [ref=e2000]: Ring Pulse
+                  - generic [ref=e2001]:
+                    - checkbox "Ground Motion" [checked] [ref=e2002]
+                    - generic [ref=e2003]: Ground Motion
+                  - generic [ref=e2004]:
+                    - generic [ref=e2005]: Atmosphere
+                    - spinbutton "Atmosphere" [ref=e2006]: "0.3"
+                  - generic [ref=e2007]:
+                    - generic [ref=e2008]: Orbit
+                    - spinbutton "Orbit" [ref=e2009]: "0.5"
+              - generic [ref=e2010]:
+                - generic [ref=e2011]:
+                  - text: Key Light
+                  - spinbutton "Key Light" [ref=e2012]: "1.52"
+                - generic [ref=e2013]:
+                  - text: Fill Light
+                  - spinbutton "Fill Light" [ref=e2014]: "0.52"
+                - generic [ref=e2015]:
+                  - text: Key Color
+                  - textbox "Key Color" [ref=e2016]: "#ff8540"
+                - generic [ref=e2017]:
+                  - text: Fill Color
+                  - textbox "Fill Color" [ref=e2018]: "#ffd0a3"
+            - generic [ref=e2019]:
+              - generic [ref=e2020]:
+                - generic [ref=e2021]:
+                  - generic [ref=e2022]: play.session.start
+                  - generic [ref=e2023]: bureau • mid • focus • calm • orbit 0.5 • key 1.24 • fill 0.48 • 2000ms
+                - button "Trigger" [ref=e2024]:
+                  - img [ref=e2025]
+                  - text: Trigger
+              - generic [ref=e2027]:
+                - generic [ref=e2028]:
+                  - text: Environment
+                  - combobox "Environment" [ref=e2029]:
+                    - option "inherit"
+                    - option "bureau" [selected]
+                    - option "light"
+                    - option "mono"
+                    - option "glacier"
+                    - option "core"
+                    - option "dusk"
+                - generic [ref=e2030]:
+                  - text: Camera
+                  - combobox "Camera" [ref=e2031]:
+                    - option "inherit"
+                    - option "wide"
+                    - option "hero"
+                    - option "mid" [selected]
+                - generic [ref=e2032]:
+                  - text: Screen
+                  - combobox "Screen" [ref=e2033]:
+                    - option "base"
+                    - option "focus" [selected]
+                    - option "brief"
+                    - option "urgent"
+                    - option "success"
+                - generic [ref=e2034]:
+                  - text: Duration
+                  - spinbutton "Duration" [ref=e2035]: "2000"
+                - generic [ref=e2036]:
+                  - text: Transition
+                  - combobox "Transition" [ref=e2037]:
+                    - option "calm" [selected]
+                    - option "sharp"
+                    - option "surge"
+                - generic [ref=e2038]:
+                  - generic [ref=e2039]:
+                    - checkbox "Beat Pulse" [checked] [ref=e2040]
+                    - generic [ref=e2041]: Beat Pulse
+                  - generic [ref=e2042]:
+                    - checkbox "Ring Pulse" [checked] [ref=e2043]
+                    - generic [ref=e2044]: Ring Pulse
+                  - generic [ref=e2045]:
+                    - checkbox "Ground Motion" [ref=e2046]
+                    - generic [ref=e2047]: Ground Motion
+                  - generic [ref=e2048]:
+                    - generic [ref=e2049]: Atmosphere
+                    - spinbutton "Atmosphere" [ref=e2050]: "0.22"
+                  - generic [ref=e2051]:
+                    - generic [ref=e2052]: Orbit
+                    - spinbutton "Orbit" [ref=e2053]: "0.5"
+              - generic [ref=e2054]:
+                - generic [ref=e2055]:
+                  - text: Key Light
+                  - spinbutton "Key Light" [ref=e2056]: "1.24"
+                - generic [ref=e2057]:
+                  - text: Fill Light
+                  - spinbutton "Fill Light" [ref=e2058]: "0.48"
+                - generic [ref=e2059]:
+                  - text: Key Color
+                  - textbox "Key Color" [ref=e2060]: "#ffbf57"
+                - generic [ref=e2061]:
+                  - text: Fill Color
+                  - textbox "Fill Color" [ref=e2062]: "#f8ddb0"
+            - generic [ref=e2063]:
+              - generic [ref=e2064]:
+                - generic [ref=e2065]:
+                  - generic [ref=e2066]: profile.deck.close
+                  - generic [ref=e2067]: inherit • inherit • base • calm • orbit 0.5 • key 1.14 • fill 0.42 • 1800ms
+                - button "Trigger" [ref=e2068]:
+                  - img [ref=e2069]
+                  - text: Trigger
+              - generic [ref=e2071]:
+                - generic [ref=e2072]:
+                  - text: Environment
+                  - combobox "Environment" [ref=e2073]:
+                    - option "inherit" [selected]
+                    - option "bureau"
+                    - option "light"
+                    - option "mono"
+                    - option "glacier"
+                    - option "core"
+                    - option "dusk"
+                - generic [ref=e2074]:
+                  - text: Camera
+                  - combobox "Camera" [ref=e2075]:
+                    - option "inherit" [selected]
+                    - option "wide"
+                    - option "hero"
+                    - option "mid"
+                - generic [ref=e2076]:
+                  - text: Screen
+                  - combobox "Screen" [ref=e2077]:
+                    - option "base" [selected]
+                    - option "focus"
+                    - option "brief"
+                    - option "urgent"
+                    - option "success"
+                - generic [ref=e2078]:
+                  - text: Duration
+                  - spinbutton "Duration" [ref=e2079]: "1800"
+                - generic [ref=e2080]:
+                  - text: Transition
+                  - combobox "Transition" [ref=e2081]:
+                    - option "calm" [selected]
+                    - option "sharp"
+                    - option "surge"
+                - generic [ref=e2082]:
+                  - generic [ref=e2083]:
+                    - checkbox "Beat Pulse" [ref=e2084]
+                    - generic [ref=e2085]: Beat Pulse
+                  - generic [ref=e2086]:
+                    - checkbox "Ring Pulse" [ref=e2087]
+                    - generic [ref=e2088]: Ring Pulse
+                  - generic [ref=e2089]:
+                    - checkbox "Ground Motion" [ref=e2090]
+                    - generic [ref=e2091]: Ground Motion
+                  - generic [ref=e2092]:
+                    - generic [ref=e2093]: Atmosphere
+                    - spinbutton "Atmosphere" [ref=e2094]: "0.18"
+                  - generic [ref=e2095]:
+                    - generic [ref=e2096]: Orbit
+                    - spinbutton "Orbit" [ref=e2097]: "0.5"
+              - generic [ref=e2098]:
+                - generic [ref=e2099]:
+                  - text: Key Light
+                  - spinbutton "Key Light" [ref=e2100]: "1.14"
+                - generic [ref=e2101]:
+                  - text: Fill Light
+                  - spinbutton "Fill Light" [ref=e2102]: "0.42"
+                - generic [ref=e2103]:
+                  - text: Key Color
+                  - textbox "Key Color" [ref=e2104]: "#f5c26d"
+                - generic [ref=e2105]:
+                  - text: Fill Color
+                  - textbox "Fill Color" [ref=e2106]: "#f0dfbc"
+            - generic [ref=e2107]:
+              - generic [ref=e2108]:
+                - generic [ref=e2109]:
+                  - generic [ref=e2110]: profile.deck.open
+                  - generic [ref=e2111]: bureau • mid • focus • calm • orbit 0.5 • key 1.24 • fill 0.48 • 1400ms
+                - button "Trigger" [ref=e2112]:
+                  - img [ref=e2113]
+                  - text: Trigger
+              - generic [ref=e2115]:
+                - generic [ref=e2116]:
+                  - text: Environment
+                  - combobox "Environment" [ref=e2117]:
+                    - option "inherit"
+                    - option "bureau" [selected]
+                    - option "light"
+                    - option "mono"
+                    - option "glacier"
+                    - option "core"
+                    - option "dusk"
+                - generic [ref=e2118]:
+                  - text: Camera
+                  - combobox "Camera" [ref=e2119]:
+                    - option "inherit"
+                    - option "wide"
+                    - option "hero"
+                    - option "mid" [selected]
+                - generic [ref=e2120]:
+                  - text: Screen
+                  - combobox "Screen" [ref=e2121]:
+                    - option "base"
+                    - option "focus" [selected]
+                    - option "brief"
+                    - option "urgent"
+                    - option "success"
+                - generic [ref=e2122]:
+                  - text: Duration
+                  - spinbutton "Duration" [ref=e2123]: "1400"
+                - generic [ref=e2124]:
+                  - text: Transition
+                  - combobox "Transition" [ref=e2125]:
+                    - option "calm" [selected]
+                    - option "sharp"
+                    - option "surge"
+                - generic [ref=e2126]:
+                  - generic [ref=e2127]:
+                    - checkbox "Beat Pulse" [ref=e2128]
+                    - generic [ref=e2129]: Beat Pulse
+                  - generic [ref=e2130]:
+                    - checkbox "Ring Pulse" [checked] [ref=e2131]
+                    - generic [ref=e2132]: Ring Pulse
+                  - generic [ref=e2133]:
+                    - checkbox "Ground Motion" [ref=e2134]
+                    - generic [ref=e2135]: Ground Motion
+                  - generic [ref=e2136]:
+                    - generic [ref=e2137]: Atmosphere
+                    - spinbutton "Atmosphere" [ref=e2138]: "0.2"
+                  - generic [ref=e2139]:
+                    - generic [ref=e2140]: Orbit
+                    - spinbutton "Orbit" [ref=e2141]: "0.5"
+              - generic [ref=e2142]:
+                - generic [ref=e2143]:
+                  - text: Key Light
+                  - spinbutton "Key Light" [ref=e2144]: "1.24"
+                - generic [ref=e2145]:
+                  - text: Fill Light
+                  - spinbutton "Fill Light" [ref=e2146]: "0.48"
+                - generic [ref=e2147]:
+                  - text: Key Color
+                  - textbox "Key Color" [ref=e2148]: "#ffbf57"
+                - generic [ref=e2149]:
+                  - text: Fill Color
+                  - textbox "Fill Color" [ref=e2150]: "#f8ddb0"
+        - generic [ref=e2151]:
+          - generic [ref=e2152]:
+            - generic [ref=e2153]:
+              - generic [ref=e2154]: Preview Compare
+              - generic [ref=e2155]: Review exactly which semantic events differ between draft authoring and the published runtime before you push a new pack live.
+            - generic [ref=e2156]: 32 changed items
+          - generic [ref=e2157]:
+            - generic [ref=e2158]:
+              - generic [ref=e2159]:
+                - generic [ref=e2160]: Trigger Diff
+                - generic [ref=e2161]: 0 bindings
+              - generic [ref=e2163]: Draft state triggers match the published bindings.
+              - generic [ref=e2164]:
+                - generic [ref=e2165]: Live Runtime
+                - generic [ref=e2166]: profile.focus
+                - generic [ref=e2167]: bureau • focus • base
+                - generic [ref=e2168]: avatar • station / Profile Deck / Profile Relay
+                - generic [ref=e2169]: labels • FOCUS / MODE / WINDOW
+                - generic [ref=e2170]: status • Scene Lobby
+            - generic [ref=e2171]:
+              - generic [ref=e2172]:
+                - generic [ref=e2173]: State Diff
+                - generic [ref=e2174]: 0 states
+              - generic [ref=e2176]: Draft scene states match the published base pack.
+            - generic [ref=e2177]:
+              - generic [ref=e2178]:
+                - generic [ref=e2179]: Light Preset Diff
+                - generic [ref=e2180]: 0 presets
+              - generic [ref=e2182]: Draft light presets match the published pack.
+            - generic [ref=e2183]:
+              - generic [ref=e2184]:
+                - generic [ref=e2185]: Motion Preset Diff
+                - generic [ref=e2186]: 0 presets
+              - generic [ref=e2188]: Draft motion presets match the published pack.
+            - generic [ref=e2189]:
+              - generic [ref=e2190]:
+                - generic [ref=e2191]: Response Diff
+                - generic [ref=e2192]: 0 presets
+              - generic [ref=e2194]: Draft response presets match the published pack behavior.
+            - generic [ref=e2195]:
+              - generic [ref=e2196]:
+                - generic [ref=e2197]: Screen Diff
+                - generic [ref=e2198]: 0 presets
+              - generic [ref=e2200]: Draft screen presets match the published screen layer.
+            - generic [ref=e2201]:
+              - generic [ref=e2202]:
+                - generic [ref=e2203]: Avatar Diff
+                - generic [ref=e2204]: 0 presets
+              - generic [ref=e2206]: Draft avatar packs match the published identity layer.
+            - generic [ref=e2207]:
+              - generic [ref=e2208]:
+                - generic [ref=e2209]: Scene Diff
+                - generic [ref=e2210]: 15 events
+              - generic [ref=e2211]:
+                - generic [ref=e2213]:
+                  - generic [ref=e2214]:
+                    - generic [ref=e2215]: ambient.day.enter
+                    - generic [ref=e2216]: new cue
+                  - button "Trigger" [ref=e2217]
+                - generic [ref=e2219]:
+                  - generic [ref=e2220]:
+                    - generic [ref=e2221]: nav.section.admin.open
+                    - generic [ref=e2222]: new cue
+                  - button "Trigger" [ref=e2223]
+                - generic [ref=e2225]:
+                  - generic [ref=e2226]:
+                    - generic [ref=e2227]: nav.section.lab.open
+                    - generic [ref=e2228]: new cue
+                  - button "Trigger" [ref=e2229]
+                - generic [ref=e2231]:
+                  - generic [ref=e2232]:
+                    - generic [ref=e2233]: nav.section.lobby.open
+                    - generic [ref=e2234]: new cue
+                  - button "Trigger" [ref=e2235]
+                - generic [ref=e2237]:
+                  - generic [ref=e2238]:
+                    - generic [ref=e2239]: nav.section.play.open
+                    - generic [ref=e2240]: new cue
+                  - button "Trigger" [ref=e2241]
+                - generic [ref=e2243]:
+                  - generic [ref=e2244]:
+                    - generic [ref=e2245]: profile.deck.close
+                    - generic [ref=e2246]: new cue
+                  - button "Trigger" [ref=e2247]
+                - generic [ref=e2249]:
+                  - generic [ref=e2250]:
+                    - generic [ref=e2251]: profile.panel.identity.open
+                    - generic [ref=e2252]: new cue
+                  - button "Trigger" [ref=e2253]
+                - generic [ref=e2255]:
+                  - generic [ref=e2256]:
+                    - generic [ref=e2257]: profile.panel.stats.open
+                    - generic [ref=e2258]: new cue
+                  - button "Trigger" [ref=e2259]
+            - generic [ref=e2260]:
+              - generic [ref=e2261]:
+                - generic [ref=e2262]: Audio Diff
+                - generic [ref=e2263]: 17 events
+              - generic [ref=e2264]:
+                - generic [ref=e2266]:
+                  - generic [ref=e2267]:
+                    - generic [ref=e2268]: ambient.day.enter
+                    - generic [ref=e2269]: new mapping
+                  - button "Trigger" [ref=e2270]
+                - generic [ref=e2272]:
+                  - generic [ref=e2273]:
+                    - generic [ref=e2274]: ambient.night.enter
+                    - generic [ref=e2275]: new mapping
+                  - button "Trigger" [ref=e2276]
+                - generic [ref=e2278]:
+                  - generic [ref=e2279]:
+                    - generic [ref=e2280]: nav.section.admin.open
+                    - generic [ref=e2281]: new mapping
+                  - button "Trigger" [ref=e2282]
+                - generic [ref=e2284]:
+                  - generic [ref=e2285]:
+                    - generic [ref=e2286]: nav.section.lobby.open
+                    - generic [ref=e2287]: new mapping
+                  - button "Trigger" [ref=e2288]
+                - generic [ref=e2290]:
+                  - generic [ref=e2291]:
+                    - generic [ref=e2292]: nav.section.play.open
+                    - generic [ref=e2293]: new mapping
+                  - button "Trigger" [ref=e2294]
+                - generic [ref=e2296]:
+                  - generic [ref=e2297]:
+                    - generic [ref=e2298]: notification.urgent
+                    - generic [ref=e2299]: new mapping
+                  - button "Trigger" [ref=e2300]
+                - generic [ref=e2302]:
+                  - generic [ref=e2303]:
+                    - generic [ref=e2304]: play.session.start
+                    - generic [ref=e2305]: new mapping
+                  - button "Trigger" [ref=e2306]
+                - generic [ref=e2308]:
+                  - generic [ref=e2309]:
+                    - generic [ref=e2310]: profile.deck.close
+                    - generic [ref=e2311]: new mapping
+                  - button "Trigger" [ref=e2312]
+      - generic [ref=e2313]:
+        - generic [ref=e2314]:
+          - generic [ref=e2315]:
+            - generic [ref=e2316]:
+              - generic [ref=e2317]: Event Family Coverage
+              - generic [ref=e2318]: Highest-volume semantic families in the current XTATION runtime.
+            - generic [ref=e2319]: last • profile.scene.sync
+          - generic [ref=e2320]:
+            - generic [ref=e2321]:
+              - generic [ref=e2322]: profile
+              - generic [ref=e2323]: "4"
+              - generic [ref=e2324]: "Last event: 3/10/2026, 3:18:34 PM"
+            - generic [ref=e2325]:
+              - generic [ref=e2326]: nav
+              - generic [ref=e2327]: "3"
+              - generic [ref=e2328]: "Last event: 3/10/2026, 3:18:10 PM"
+            - generic [ref=e2329]:
+              - generic [ref=e2330]: ambient
+              - generic [ref=e2331]: "1"
+              - generic [ref=e2332]: "Last event: 3/10/2026, 3:18:34 PM"
+        - generic [ref=e2333]:
+          - generic [ref=e2334]:
+            - generic [ref=e2335]:
+              - generic [ref=e2336]: Audio Studio Event Map
+              - generic [ref=e2337]: Assign sound cues to semantic XTATION events. Upload per event, preview instantly, and keep sound behavior tied to meaning.
+            - generic [ref=e2338]: 6 mapped
+          - generic [ref=e2339]:
+            - generic [ref=e2340]:
+              - generic [ref=e2341]:
+                - generic [ref=e2342]:
+                  - generic [ref=e2343]:
+                    - img [ref=e2344]
+                    - generic [ref=e2348]: ambient.day.enter
+                  - generic [ref=e2349]: ambient • volume 72% • cooldown 180ms
+                  - generic [ref=e2350]: No sound cue assigned yet.
+                - generic [ref=e2351]:
+                  - button "Asset" [ref=e2352]:
+                    - img [ref=e2353]
+                    - text: Asset
+                  - button "Trigger" [ref=e2355]:
+                    - img [ref=e2356]
+                    - text: Trigger
+                  - button "Upload" [ref=e2358]:
+                    - img [ref=e2359]
+                    - text: Upload
+                  - button "Clear" [ref=e2362]
+              - generic [ref=e2363]:
+                - generic [ref=e2364]:
+                  - text: Sound
+                  - combobox "Sound" [ref=e2365]:
+                    - option "Unassigned" [selected]
+                    - option "UI Select Tone"
+                    - option "Panel Open Sweep"
+                - generic [ref=e2366]:
+                  - text: Mix Group
+                  - combobox "Mix Group" [ref=e2367]:
+                    - option "ui"
+                    - option "notifications"
+                    - option "quest"
+                    - option "dusk"
+                    - option "ambient" [selected]
+                    - option "music"
+                    - option "scene_fx"
+                - generic [ref=e2368]:
+                  - text: Volume
+                  - spinbutton "Volume" [ref=e2369]: "72"
+                - generic [ref=e2370]:
+                  - text: Cooldown
+                  - spinbutton "Cooldown" [ref=e2371]: "180"
+            - generic [ref=e2372]:
+              - generic [ref=e2373]:
+                - generic [ref=e2374]:
+                  - generic [ref=e2375]:
+                    - img [ref=e2376]
+                    - generic [ref=e2380]: ambient.night.enter
+                  - generic [ref=e2381]: ambient • volume 72% • cooldown 180ms
+                  - generic [ref=e2382]: No sound cue assigned yet.
+                - generic [ref=e2383]:
+                  - button "Asset" [ref=e2384]:
+                    - img [ref=e2385]
+                    - text: Asset
+                  - button "Trigger" [ref=e2387]:
+                    - img [ref=e2388]
+                    - text: Trigger
+                  - button "Upload" [ref=e2390]:
+                    - img [ref=e2391]
+                    - text: Upload
+                  - button "Clear" [ref=e2394]
+              - generic [ref=e2395]:
+                - generic [ref=e2396]:
+                  - text: Sound
+                  - combobox "Sound" [ref=e2397]:
+                    - option "Unassigned" [selected]
+                    - option "UI Select Tone"
+                    - option "Panel Open Sweep"
+                - generic [ref=e2398]:
+                  - text: Mix Group
+                  - combobox "Mix Group" [ref=e2399]:
+                    - option "ui"
+                    - option "notifications"
+                    - option "quest"
+                    - option "dusk"
+                    - option "ambient" [selected]
+                    - option "music"
+                    - option "scene_fx"
+                - generic [ref=e2400]:
+                  - text: Volume
+                  - spinbutton "Volume" [ref=e2401]: "72"
+                - generic [ref=e2402]:
+                  - text: Cooldown
+                  - spinbutton "Cooldown" [ref=e2403]: "180"
+            - generic [ref=e2404]:
+              - generic [ref=e2405]:
+                - generic [ref=e2406]:
+                  - generic [ref=e2407]:
+                    - img [ref=e2408]
+                    - generic [ref=e2412]: dusk.brief.loaded
+                  - generic [ref=e2413]: dusk • volume 74% • cooldown 220ms
+                  - generic [ref=e2414]: Dusk Relay Tone • builtin
+                - generic [ref=e2415]:
+                  - button "Asset" [ref=e2416]:
+                    - img [ref=e2417]
+                    - text: Asset
+                  - button "Trigger" [ref=e2419]:
+                    - img [ref=e2420]
+                    - text: Trigger
+                  - button "Upload" [ref=e2422]:
+                    - img [ref=e2423]
+                    - text: Upload
+                  - button "Clear" [ref=e2426]
+              - generic [ref=e2427]:
+                - generic [ref=e2428]:
+                  - text: Sound
+                  - combobox "Sound" [ref=e2429]:
+                    - option "Unassigned"
+                    - option "UI Select Tone"
+                    - option "Panel Open Sweep"
+                    - option "Dusk Relay Tone" [selected]
+                - generic [ref=e2430]:
+                  - text: Mix Group
+                  - combobox "Mix Group" [ref=e2431]:
+                    - option "ui"
+                    - option "notifications"
+                    - option "quest"
+                    - option "dusk" [selected]
+                    - option "ambient"
+                    - option "music"
+                    - option "scene_fx"
+                - generic [ref=e2432]:
+                  - text: Volume
+                  - spinbutton "Volume" [ref=e2433]: "74"
+                - generic [ref=e2434]:
+                  - text: Cooldown
+                  - spinbutton "Cooldown" [ref=e2435]: "220"
+            - generic [ref=e2436]:
+              - generic [ref=e2437]:
+                - generic [ref=e2438]:
+                  - generic [ref=e2439]:
+                    - img [ref=e2440]
+                    - generic [ref=e2444]: nav.section.admin.open
+                  - generic [ref=e2445]: ui • volume 72% • cooldown 180ms
+                  - generic [ref=e2446]: No sound cue assigned yet.
+                - generic [ref=e2447]:
+                  - button "Asset" [ref=e2448]:
+                    - img [ref=e2449]
+                    - text: Asset
+                  - button "Trigger" [ref=e2451]:
+                    - img [ref=e2452]
+                    - text: Trigger
+                  - button "Upload" [ref=e2454]:
+                    - img [ref=e2455]
+                    - text: Upload
+                  - button "Clear" [ref=e2458]
+              - generic [ref=e2459]:
+                - generic [ref=e2460]:
+                  - text: Sound
+                  - combobox "Sound" [ref=e2461]:
+                    - option "Unassigned" [selected]
+                    - option "UI Select Tone"
+                    - option "Panel Open Sweep"
+                - generic [ref=e2462]:
+                  - text: Mix Group
+                  - combobox "Mix Group" [ref=e2463]:
+                    - option "ui" [selected]
+                    - option "notifications"
+                    - option "quest"
+                    - option "dusk"
+                    - option "ambient"
+                    - option "music"
+                    - option "scene_fx"
+                - generic [ref=e2464]:
+                  - text: Volume
+                  - spinbutton "Volume" [ref=e2465]: "72"
+                - generic [ref=e2466]:
+                  - text: Cooldown
+                  - spinbutton "Cooldown" [ref=e2467]: "180"
+            - generic [ref=e2468]:
+              - generic [ref=e2469]:
+                - generic [ref=e2470]:
+                  - generic [ref=e2471]:
+                    - img [ref=e2472]
+                    - generic [ref=e2476]: nav.section.lab.open
+                  - generic [ref=e2477]: ui • volume 74% • cooldown 120ms
+                  - generic [ref=e2478]: UI Select Tone • builtin
+                - generic [ref=e2479]:
+                  - button "Asset" [ref=e2480]:
+                    - img [ref=e2481]
+                    - text: Asset
+                  - button "Trigger" [ref=e2483]:
+                    - img [ref=e2484]
+                    - text: Trigger
+                  - button "Upload" [ref=e2486]:
+                    - img [ref=e2487]
+                    - text: Upload
+                  - button "Clear" [ref=e2490]
+              - generic [ref=e2491]:
+                - generic [ref=e2492]:
+                  - text: Sound
+                  - combobox "Sound" [ref=e2493]:
+                    - option "Unassigned"
+                    - option "UI Select Tone" [selected]
+                    - option "Panel Open Sweep"
+                - generic [ref=e2494]:
+                  - text: Mix Group
+                  - combobox "Mix Group" [ref=e2495]:
+                    - option "ui" [selected]
+                    - option "notifications"
+                    - option "quest"
+                    - option "dusk"
+                    - option "ambient"
+                    - option "music"
+                    - option "scene_fx"
+                - generic [ref=e2496]:
+                  - text: Volume
+                  - spinbutton "Volume" [ref=e2497]: "74"
+                - generic [ref=e2498]:
+                  - text: Cooldown
+                  - spinbutton "Cooldown" [ref=e2499]: "120"
+            - generic [ref=e2500]:
+              - generic [ref=e2501]:
+                - generic [ref=e2502]:
+                  - generic [ref=e2503]:
+                    - img [ref=e2504]
+                    - generic [ref=e2508]: nav.section.lobby.open
+                  - generic [ref=e2509]: ui • volume 72% • cooldown 180ms
+                  - generic [ref=e2510]: No sound cue assigned yet.
+                - generic [ref=e2511]:
+                  - button "Asset" [ref=e2512]:
+                    - img [ref=e2513]
+                    - text: Asset
+                  - button "Trigger" [ref=e2515]:
+                    - img [ref=e2516]
+                    - text: Trigger
+                  - button "Upload" [ref=e2518]:
+                    - img [ref=e2519]
+                    - text: Upload
+                  - button "Clear" [ref=e2522]
+              - generic [ref=e2523]:
+                - generic [ref=e2524]:
+                  - text: Sound
+                  - combobox "Sound" [ref=e2525]:
+                    - option "Unassigned" [selected]
+                    - option "UI Select Tone"
+                    - option "Panel Open Sweep"
+                - generic [ref=e2526]:
+                  - text: Mix Group
+                  - combobox "Mix Group" [ref=e2527]:
+                    - option "ui" [selected]
+                    - option "notifications"
+                    - option "quest"
+                    - option "dusk"
+                    - option "ambient"
+                    - option "music"
+                    - option "scene_fx"
+                - generic [ref=e2528]:
+                  - text: Volume
+                  - spinbutton "Volume" [ref=e2529]: "72"
+                - generic [ref=e2530]:
+                  - text: Cooldown
+                  - spinbutton "Cooldown" [ref=e2531]: "180"
+            - generic [ref=e2532]:
+              - generic [ref=e2533]:
+                - generic [ref=e2534]:
+                  - generic [ref=e2535]:
+                    - img [ref=e2536]
+                    - generic [ref=e2540]: nav.section.play.open
+                  - generic [ref=e2541]: ui • volume 72% • cooldown 180ms
+                  - generic [ref=e2542]: No sound cue assigned yet.
+                - generic [ref=e2543]:
+                  - button "Asset" [ref=e2544]:
+                    - img [ref=e2545]
+                    - text: Asset
+                  - button "Trigger" [ref=e2547]:
+                    - img [ref=e2548]
+                    - text: Trigger
+                  - button "Upload" [ref=e2550]:
+                    - img [ref=e2551]
+                    - text: Upload
+                  - button "Clear" [ref=e2554]
+              - generic [ref=e2555]:
+                - generic [ref=e2556]:
+                  - text: Sound
+                  - combobox "Sound" [ref=e2557]:
+                    - option "Unassigned" [selected]
+                    - option "UI Select Tone"
+                    - option "Panel Open Sweep"
+                - generic [ref=e2558]:
+                  - text: Mix Group
+                  - combobox "Mix Group" [ref=e2559]:
+                    - option "ui" [selected]
+                    - option "notifications"
+                    - option "quest"
+                    - option "dusk"
+                    - option "ambient"
+                    - option "music"
+                    - option "scene_fx"
+                - generic [ref=e2560]:
+                  - text: Volume
+                  - spinbutton "Volume" [ref=e2561]: "72"
+                - generic [ref=e2562]:
+                  - text: Cooldown
+                  - spinbutton "Cooldown" [ref=e2563]: "180"
+            - generic [ref=e2564]:
+              - generic [ref=e2565]:
+                - generic [ref=e2566]:
+                  - generic [ref=e2567]:
+                    - img [ref=e2568]
+                    - generic [ref=e2572]: nav.section.profile.open
+                  - generic [ref=e2573]: ui • volume 74% • cooldown 120ms
+                  - generic [ref=e2574]: UI Select Tone • builtin
+                - generic [ref=e2575]:
+                  - button "Asset" [ref=e2576]:
+                    - img [ref=e2577]
+                    - text: Asset
+                  - button "Trigger" [ref=e2579]:
+                    - img [ref=e2580]
+                    - text: Trigger
+                  - button "Upload" [ref=e2582]:
+                    - img [ref=e2583]
+                    - text: Upload
+                  - button "Clear" [ref=e2586]
+              - generic [ref=e2587]:
+                - generic [ref=e2588]:
+                  - text: Sound
+                  - combobox "Sound" [ref=e2589]:
+                    - option "Unassigned"
+                    - option "UI Select Tone" [selected]
+                    - option "Panel Open Sweep"
+                - generic [ref=e2590]:
+                  - text: Mix Group
+                  - combobox "Mix Group" [ref=e2591]:
+                    - option "ui" [selected]
+                    - option "notifications"
+                    - option "quest"
+                    - option "dusk"
+                    - option "ambient"
+                    - option "music"
+                    - option "scene_fx"
+                - generic [ref=e2592]:
+                  - text: Volume
+                  - spinbutton "Volume" [ref=e2593]: "74"
+                - generic [ref=e2594]:
+                  - text: Cooldown
+                  - spinbutton "Cooldown" [ref=e2595]: "120"
+            - generic [ref=e2596]:
+              - generic [ref=e2597]:
+                - generic [ref=e2598]:
+                  - generic [ref=e2599]:
+                    - img [ref=e2600]
+                    - generic [ref=e2604]: notification.urgent
+                  - generic [ref=e2605]: notifications • volume 72% • cooldown 180ms
+                  - generic [ref=e2606]: No sound cue assigned yet.
+                - generic [ref=e2607]:
+                  - button "Asset" [ref=e2608]:
+                    - img [ref=e2609]
+                    - text: Asset
+                  - button "Trigger" [ref=e2611]:
+                    - img [ref=e2612]
+                    - text: Trigger
+                  - button "Upload" [ref=e2614]:
+                    - img [ref=e2615]
+                    - text: Upload
+                  - button "Clear" [ref=e2618]
+              - generic [ref=e2619]:
+                - generic [ref=e2620]:
+                  - text: Sound
+                  - combobox "Sound" [ref=e2621]:
+                    - option "Unassigned" [selected]
+                    - option "UI Select Tone"
+                    - option "Panel Open Sweep"
+                    - option "Soft Notification Ping"
+                - generic [ref=e2622]:
+                  - text: Mix Group
+                  - combobox "Mix Group" [ref=e2623]:
+                    - option "ui"
+                    - option "notifications" [selected]
+                    - option "quest"
+                    - option "dusk"
+                    - option "ambient"
+                    - option "music"
+                    - option "scene_fx"
+                - generic [ref=e2624]:
+                  - text: Volume
+                  - spinbutton "Volume" [ref=e2625]: "72"
+                - generic [ref=e2626]:
+                  - text: Cooldown
+                  - spinbutton "Cooldown" [ref=e2627]: "180"
+            - generic [ref=e2628]:
+              - generic [ref=e2629]:
+                - generic [ref=e2630]:
+                  - generic [ref=e2631]:
+                    - img [ref=e2632]
+                    - generic [ref=e2636]: play.session.start
+                  - generic [ref=e2637]: quest • volume 72% • cooldown 180ms
+                  - generic [ref=e2638]: No sound cue assigned yet.
+                - generic [ref=e2639]:
+                  - button "Asset" [ref=e2640]:
+                    - img [ref=e2641]
+                    - text: Asset
+                  - button "Trigger" [ref=e2643]:
+                    - img [ref=e2644]
+                    - text: Trigger
+                  - button "Upload" [ref=e2646]:
+                    - img [ref=e2647]
+                    - text: Upload
+                  - button "Clear" [ref=e2650]
+              - generic [ref=e2651]:
+                - generic [ref=e2652]:
+                  - text: Sound
+                  - combobox "Sound" [ref=e2653]:
+                    - option "Unassigned" [selected]
+                    - option "UI Select Tone"
+                    - option "Panel Open Sweep"
+                    - option "Quest Complete Signal"
+                - generic [ref=e2654]:
+                  - text: Mix Group
+                  - combobox "Mix Group" [ref=e2655]:
+                    - option "ui"
+                    - option "notifications"
+                    - option "quest" [selected]
+                    - option "dusk"
+                    - option "ambient"
+                    - option "music"
+                    - option "scene_fx"
+                - generic [ref=e2656]:
+                  - text: Volume
+                  - spinbutton "Volume" [ref=e2657]: "72"
+                - generic [ref=e2658]:
+                  - text: Cooldown
+                  - spinbutton "Cooldown" [ref=e2659]: "180"
+            - generic [ref=e2660]:
+              - generic [ref=e2661]:
+                - generic [ref=e2662]:
+                  - generic [ref=e2663]:
+                    - img [ref=e2664]
+                    - generic [ref=e2668]: profile.deck.close
+                  - generic [ref=e2669]: ui • volume 72% • cooldown 180ms
+                  - generic [ref=e2670]: No sound cue assigned yet.
+                - generic [ref=e2671]:
+                  - button "Asset" [ref=e2672]:
+                    - img [ref=e2673]
+                    - text: Asset
+                  - button "Trigger" [ref=e2675]:
+                    - img [ref=e2676]
+                    - text: Trigger
+                  - button "Upload" [ref=e2678]:
+                    - img [ref=e2679]
+                    - text: Upload
+                  - button "Clear" [ref=e2682]
+              - generic [ref=e2683]:
+                - generic [ref=e2684]:
+                  - text: Sound
+                  - combobox "Sound" [ref=e2685]:
+                    - option "Unassigned" [selected]
+                    - option "UI Select Tone"
+                    - option "Panel Open Sweep"
+                - generic [ref=e2686]:
+                  - text: Mix Group
+                  - combobox "Mix Group" [ref=e2687]:
+                    - option "ui" [selected]
+                    - option "notifications"
+                    - option "quest"
+                    - option "dusk"
+                    - option "ambient"
+                    - option "music"
+                    - option "scene_fx"
+                - generic [ref=e2688]:
+                  - text: Volume
+                  - spinbutton "Volume" [ref=e2689]: "72"
+                - generic [ref=e2690]:
+                  - text: Cooldown
+                  - spinbutton "Cooldown" [ref=e2691]: "180"
+            - generic [ref=e2692]:
+              - generic [ref=e2693]:
+                - generic [ref=e2694]:
+                  - generic [ref=e2695]:
+                    - img [ref=e2696]
+                    - generic [ref=e2700]: profile.deck.open
+                  - generic [ref=e2701]: scene_fx • volume 78% • cooldown 180ms
+                  - generic [ref=e2702]: Panel Open Sweep • builtin
+                - generic [ref=e2703]:
+                  - button "Asset" [ref=e2704]:
+                    - img [ref=e2705]
+                    - text: Asset
+                  - button "Trigger" [ref=e2707]:
+                    - img [ref=e2708]
+                    - text: Trigger
+                  - button "Upload" [ref=e2710]:
+                    - img [ref=e2711]
+                    - text: Upload
+                  - button "Clear" [ref=e2714]
+              - generic [ref=e2715]:
+                - generic [ref=e2716]:
+                  - text: Sound
+                  - combobox "Sound" [ref=e2717]:
+                    - option "Unassigned"
+                    - option "UI Select Tone"
+                    - option "Panel Open Sweep" [selected]
+                - generic [ref=e2718]:
+                  - text: Mix Group
+                  - combobox "Mix Group" [ref=e2719]:
+                    - option "ui"
+                    - option "notifications"
+                    - option "quest"
+                    - option "dusk"
+                    - option "ambient"
+                    - option "music"
+                    - option "scene_fx" [selected]
+                - generic [ref=e2720]:
+                  - text: Volume
+                  - spinbutton "Volume" [ref=e2721]: "78"
+                - generic [ref=e2722]:
+                  - text: Cooldown
+                  - spinbutton "Cooldown" [ref=e2723]: "180"
+            - generic [ref=e2724]:
+              - generic [ref=e2725]:
+                - generic [ref=e2726]:
+                  - generic [ref=e2727]:
+                    - img [ref=e2728]
+                    - generic [ref=e2732]: profile.panel.identity.open
+                  - generic [ref=e2733]: ui • volume 72% • cooldown 180ms
+                  - generic [ref=e2734]: No sound cue assigned yet.
+                - generic [ref=e2735]:
+                  - button "Asset" [ref=e2736]:
+                    - img [ref=e2737]
+                    - text: Asset
+                  - button "Trigger" [ref=e2739]:
+                    - img [ref=e2740]
+                    - text: Trigger
+                  - button "Upload" [ref=e2742]:
+                    - img [ref=e2743]
+                    - text: Upload
+                  - button "Clear" [ref=e2746]
+              - generic [ref=e2747]:
+                - generic [ref=e2748]:
+                  - text: Sound
+                  - combobox "Sound" [ref=e2749]:
+                    - option "Unassigned" [selected]
+                    - option "UI Select Tone"
+                    - option "Panel Open Sweep"
+                - generic [ref=e2750]:
+                  - text: Mix Group
+                  - combobox "Mix Group" [ref=e2751]:
+                    - option "ui" [selected]
+                    - option "notifications"
+                    - option "quest"
+                    - option "dusk"
+                    - option "ambient"
+                    - option "music"
+                    - option "scene_fx"
+                - generic [ref=e2752]:
+                  - text: Volume
+                  - spinbutton "Volume" [ref=e2753]: "72"
+                - generic [ref=e2754]:
+                  - text: Cooldown
+                  - spinbutton "Cooldown" [ref=e2755]: "180"
+            - generic [ref=e2756]:
+              - generic [ref=e2757]:
+                - generic [ref=e2758]:
+                  - generic [ref=e2759]:
+                    - img [ref=e2760]
+                    - generic [ref=e2764]: profile.panel.stats.open
+                  - generic [ref=e2765]: ui • volume 72% • cooldown 180ms
+                  - generic [ref=e2766]: No sound cue assigned yet.
+                - generic [ref=e2767]:
+                  - button "Asset" [ref=e2768]:
+                    - img [ref=e2769]
+                    - text: Asset
+                  - button "Trigger" [ref=e2771]:
+                    - img [ref=e2772]
+                    - text: Trigger
+                  - button "Upload" [ref=e2774]:
+                    - img [ref=e2775]
+                    - text: Upload
+                  - button "Clear" [ref=e2778]
+              - generic [ref=e2779]:
+                - generic [ref=e2780]:
+                  - text: Sound
+                  - combobox "Sound" [ref=e2781]:
+                    - option "Unassigned" [selected]
+                    - option "UI Select Tone"
+                    - option "Panel Open Sweep"
+                - generic [ref=e2782]:
+                  - text: Mix Group
+                  - combobox "Mix Group" [ref=e2783]:
+                    - option "ui" [selected]
+                    - option "notifications"
+                    - option "quest"
+                    - option "dusk"
+                    - option "ambient"
+                    - option "music"
+                    - option "scene_fx"
+                - generic [ref=e2784]:
+                  - text: Volume
+                  - spinbutton "Volume" [ref=e2785]: "72"
+                - generic [ref=e2786]:
+                  - text: Cooldown
+                  - spinbutton "Cooldown" [ref=e2787]: "180"
+            - generic [ref=e2788]:
+              - generic [ref=e2789]:
+                - generic [ref=e2790]:
+                  - generic [ref=e2791]:
+                    - img [ref=e2792]
+                    - generic [ref=e2796]: profile.scene.connected
+                  - generic [ref=e2797]: scene_fx • volume 72% • cooldown 180ms
+                  - generic [ref=e2798]: No sound cue assigned yet.
+                - generic [ref=e2799]:
+                  - button "Asset" [ref=e2800]:
+                    - img [ref=e2801]
+                    - text: Asset
+                  - button "Trigger" [ref=e2803]:
+                    - img [ref=e2804]
+                    - text: Trigger
+                  - button "Upload" [ref=e2806]:
+                    - img [ref=e2807]
+                    - text: Upload
+                  - button "Clear" [ref=e2810]
+              - generic [ref=e2811]:
+                - generic [ref=e2812]:
+                  - text: Sound
+                  - combobox "Sound" [ref=e2813]:
+                    - option "Unassigned" [selected]
+                    - option "UI Select Tone"
+                    - option "Panel Open Sweep"
+                - generic [ref=e2814]:
+                  - text: Mix Group
+                  - combobox "Mix Group" [ref=e2815]:
+                    - option "ui"
+                    - option "notifications"
+                    - option "quest"
+                    - option "dusk"
+                    - option "ambient"
+                    - option "music"
+                    - option "scene_fx" [selected]
+                - generic [ref=e2816]:
+                  - text: Volume
+                  - spinbutton "Volume" [ref=e2817]: "72"
+                - generic [ref=e2818]:
+                  - text: Cooldown
+                  - spinbutton "Cooldown" [ref=e2819]: "180"
+            - generic [ref=e2820]:
+              - generic [ref=e2821]:
+                - generic [ref=e2822]:
+                  - generic [ref=e2823]:
+                    - img [ref=e2824]
+                    - generic [ref=e2828]: profile.scene.load
+                  - generic [ref=e2829]: scene_fx • volume 72% • cooldown 180ms
+                  - generic [ref=e2830]: No sound cue assigned yet.
+                - generic [ref=e2831]:
+                  - button "Asset" [ref=e2832]:
+                    - img [ref=e2833]
+                    - text: Asset
+                  - button "Trigger" [ref=e2835]:
+                    - img [ref=e2836]
+                    - text: Trigger
+                  - button "Upload" [ref=e2838]:
+                    - img [ref=e2839]
+                    - text: Upload
+                  - button "Clear" [ref=e2842]
+              - generic [ref=e2843]:
+                - generic [ref=e2844]:
+                  - text: Sound
+                  - combobox "Sound" [ref=e2845]:
+                    - option "Unassigned" [selected]
+                    - option "UI Select Tone"
+                    - option "Panel Open Sweep"
+                - generic [ref=e2846]:
+                  - text: Mix Group
+                  - combobox "Mix Group" [ref=e2847]:
+                    - option "ui"
+                    - option "notifications"
+                    - option "quest"
+                    - option "dusk"
+                    - option "ambient"
+                    - option "music"
+                    - option "scene_fx" [selected]
+                - generic [ref=e2848]:
+                  - text: Volume
+                  - spinbutton "Volume" [ref=e2849]: "72"
+                - generic [ref=e2850]:
+                  - text: Cooldown
+                  - spinbutton "Cooldown" [ref=e2851]: "180"
+            - generic [ref=e2852]:
+              - generic [ref=e2853]:
+                - generic [ref=e2854]:
+                  - generic [ref=e2855]:
+                    - img [ref=e2856]
+                    - generic [ref=e2860]: profile.scene.reload
+                  - generic [ref=e2861]: scene_fx • volume 72% • cooldown 180ms
+                  - generic [ref=e2862]: No sound cue assigned yet.
+                - generic [ref=e2863]:
+                  - button "Asset" [ref=e2864]:
+                    - img [ref=e2865]
+                    - text: Asset
+                  - button "Trigger" [ref=e2867]:
+                    - img [ref=e2868]
+                    - text: Trigger
+                  - button "Upload" [ref=e2870]:
+                    - img [ref=e2871]
+                    - text: Upload
+                  - button "Clear" [ref=e2874]
+              - generic [ref=e2875]:
+                - generic [ref=e2876]:
+                  - text: Sound
+                  - combobox "Sound" [ref=e2877]:
+                    - option "Unassigned" [selected]
+                    - option "UI Select Tone"
+                    - option "Panel Open Sweep"
+                - generic [ref=e2878]:
+                  - text: Mix Group
+                  - combobox "Mix Group" [ref=e2879]:
+                    - option "ui"
+                    - option "notifications"
+                    - option "quest"
+                    - option "dusk"
+                    - option "ambient"
+                    - option "music"
+                    - option "scene_fx" [selected]
+                - generic [ref=e2880]:
+                  - text: Volume
+                  - spinbutton "Volume" [ref=e2881]: "72"
+                - generic [ref=e2882]:
+                  - text: Cooldown
+                  - spinbutton "Cooldown" [ref=e2883]: "180"
+            - generic [ref=e2884]:
+              - generic [ref=e2885]:
+                - generic [ref=e2886]:
+                  - generic [ref=e2887]:
+                    - img [ref=e2888]
+                    - generic [ref=e2892]: profile.scene.runtime.ready
+                  - generic [ref=e2893]: scene_fx • volume 72% • cooldown 180ms
+                  - generic [ref=e2894]: No sound cue assigned yet.
+                - generic [ref=e2895]:
+                  - button "Asset" [ref=e2896]:
+                    - img [ref=e2897]
+                    - text: Asset
+                  - button "Trigger" [ref=e2899]:
+                    - img [ref=e2900]
+                    - text: Trigger
+                  - button "Upload" [ref=e2902]:
+                    - img [ref=e2903]
+                    - text: Upload
+                  - button "Clear" [ref=e2906]
+              - generic [ref=e2907]:
+                - generic [ref=e2908]:
+                  - text: Sound
+                  - combobox "Sound" [ref=e2909]:
+                    - option "Unassigned" [selected]
+                    - option "UI Select Tone"
+                    - option "Panel Open Sweep"
+                - generic [ref=e2910]:
+                  - text: Mix Group
+                  - combobox "Mix Group" [ref=e2911]:
+                    - option "ui"
+                    - option "notifications"
+                    - option "quest"
+                    - option "dusk"
+                    - option "ambient"
+                    - option "music"
+                    - option "scene_fx" [selected]
+                - generic [ref=e2912]:
+                  - text: Volume
+                  - spinbutton "Volume" [ref=e2913]: "72"
+                - generic [ref=e2914]:
+                  - text: Cooldown
+                  - spinbutton "Cooldown" [ref=e2915]: "180"
+          - generic [ref=e2917]:
+            - generic [ref=e2918]:
+              - text: "Draft vs published:"
+              - generic [ref=e2919]: 17 sound mappings changed
+            - button "Restore Published Sound Pack" [ref=e2920]
+        - generic [ref=e2921]:
+          - generic [ref=e2922]:
+            - generic [ref=e2923]:
+              - generic [ref=e2924]: Sound Library
+              - generic [ref=e2925]: Current cue assets available to the Audio Studio. Uploaded files stay local-first for now.
+            - generic [ref=e2926]: 5 assets
+          - generic [ref=e2927]:
+            - generic [ref=e2929]:
+              - generic [ref=e2930]:
+                - generic [ref=e2931]: UI Select Tone
+                - generic [ref=e2932]: ui • builtin
+                - generic [ref=e2933]: Built-in XTATION preview asset
+              - button "Preview" [ref=e2934]:
+                - img [ref=e2935]
+                - text: Preview
+            - generic [ref=e2938]:
+              - generic [ref=e2939]:
+                - generic [ref=e2940]: Panel Open Sweep
+                - generic [ref=e2941]: scene_fx • builtin
+                - generic [ref=e2942]: Built-in XTATION preview asset
+              - button "Preview" [ref=e2943]:
+                - img [ref=e2944]
+                - text: Preview
+            - generic [ref=e2947]:
+              - generic [ref=e2948]:
+                - generic [ref=e2949]: Quest Complete Signal
+                - generic [ref=e2950]: quest • builtin
+                - generic [ref=e2951]: Built-in XTATION preview asset
+              - button "Preview" [ref=e2952]:
+                - img [ref=e2953]
+                - text: Preview
+            - generic [ref=e2956]:
+              - generic [ref=e2957]:
+                - generic [ref=e2958]: Soft Notification Ping
+                - generic [ref=e2959]: notifications • builtin
+                - generic [ref=e2960]: Built-in XTATION preview asset
+              - button "Preview" [ref=e2961]:
+                - img [ref=e2962]
+                - text: Preview
+            - generic [ref=e2965]:
+              - generic [ref=e2966]:
+                - generic [ref=e2967]: Dusk Relay Tone
+                - generic [ref=e2968]: dusk • builtin
+                - generic [ref=e2969]: Built-in XTATION preview asset
+              - button "Preview" [ref=e2970]:
+                - img [ref=e2971]
+                - text: Preview
+          - generic [ref=e2974]:
+            - img [ref=e2975]
+            - generic [ref=e2978]: Admin owns authoring here. Users should only consume published skins and simple volume controls in normal Settings.
+        - generic [ref=e2979]:
+          - generic [ref=e2980]:
+            - generic [ref=e2981]:
+              - generic [ref=e2982]: Publish Log
+              - generic [ref=e2983]: Recent scene and skin publishing actions for this station scope.
+            - generic [ref=e2984]: 0 records
+          - generic [ref=e2986]: No creative publishing activity yet.
+  - button [ref=e224]:
+    - img [ref=e225]

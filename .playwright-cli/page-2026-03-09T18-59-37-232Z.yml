@@ -1,0 +1,85 @@
+- generic [ref=e3]:
+  - generic [ref=e4]:
+    - generic [ref=e5]:
+      - button "Play" [ref=e6]:
+        - generic [ref=e7]: Play
+      - button "Lab" [ref=e8]
+      - button "Multiplayer" [ref=e9]
+      - button "Profile" [ref=e10]
+      - button "Inventory" [ref=e11]
+      - button "Store" [ref=e12]:
+        - generic [ref=e13]: Store
+      - button "Settings" [ref=e14]
+    - generic [ref=e15]:
+      - button "DUSK" [ref=e16]:
+        - img [ref=e17]
+        - text: DUSK
+      - generic [ref=e20]:
+        - generic [ref=e21]: Today
+        - generic [ref=e22]:
+          - text: "0"
+          - generic [ref=e23]: / 960
+        - generic [ref=e24]: 0 MIN
+      - generic [ref=e25]: …
+      - button "⌘K" [ref=e26]
+      - generic [ref=e27]:
+        - generic "Player Level (0 total XP)" [ref=e28]:
+          - img [ref=e29]
+          - generic [ref=e35]: LV 0
+        - button [ref=e36]:
+          - img [ref=e37]
+        - button [ref=e40]:
+          - img [ref=e41]
+  - generic [ref=e50]:
+    - generic [ref=e51]:
+      - generic [ref=e52]:
+        - generic [ref=e53]:
+          - generic [ref=e54]: Play / Action Room
+          - heading "Ready for the next operation" [level=1] [ref=e55]
+          - paragraph [ref=e56]: Create one clear quest, start a session, and let Xtation turn execution into visible progress.
+        - button "New Quest" [ref=e58]:
+          - img [ref=e59]
+          - text: New Quest
+      - generic [ref=e60]:
+        - generic [ref=e62]:
+          - generic [ref=e63]: No quest selected
+          - heading "Build the first operation" [level=2] [ref=e64]
+          - paragraph [ref=e65]: Start with one clear quest. Once it exists, Play becomes the live execution room for timing, steps, debrief, and momentum.
+          - button "Create First Quest" [ref=e66]:
+            - img [ref=e67]
+            - text: Create First Quest
+        - generic [ref=e68]:
+          - generic [ref=e69]:
+            - generic [ref=e70]: Today Pulse
+            - generic [ref=e71]:
+              - generic [ref=e72]:
+                - generic [ref=e73]: 0 min
+                - generic [ref=e74]: Tracked
+              - generic [ref=e75]:
+                - generic [ref=e76]: "0"
+                - generic [ref=e77]: XP Today
+              - generic [ref=e78]:
+                - generic [ref=e79]: "0"
+                - generic [ref=e80]: Completed
+              - generic [ref=e81]:
+                - generic [ref=e82]: "0"
+                - generic [ref=e83]: Active Days
+            - generic [ref=e84]:
+              - generic [ref=e85]:
+                - img [ref=e86]
+                - text: Momentum
+              - generic [ref=e92]: 0 day streak · x1.00
+              - generic [ref=e93]: Player level 0 · 0 total XP
+          - generic [ref=e94]:
+            - generic [ref=e95]: Project Context
+            - generic [ref=e96]: This quest is running standalone. Link it to a project when you want campaign-level structure and milestone tracking.
+          - generic [ref=e97]:
+            - generic [ref=e98]: Recent Output
+            - generic [ref=e100]: No activity yet today. The next clean session will start building the trace.
+    - generic [ref=e101]:
+      - generic [ref=e102]:
+        - generic [ref=e103]:
+          - generic [ref=e104]: Quest Queue
+          - generic [ref=e105]: Select the next operation, or switch live if something else is more urgent.
+        - generic [ref=e106]: 0 active
+      - generic [ref=e108]: No active quests yet. Start with one concrete objective and the rest of Play will open up around it.

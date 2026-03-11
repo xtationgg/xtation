@@ -1,0 +1,140 @@
+- generic [ref=e93]:
+  - generic [ref=e94]:
+    - generic [ref=e95]:
+      - button "Play" [ref=e96]
+      - button "Lab" [ref=e97]
+      - button "Multiplayer" [ref=e98]
+      - button "Profile" [ref=e99]
+      - button "Inventory" [ref=e100]
+      - button "Store" [ref=e101]
+      - button "Settings" [ref=e102]
+      - button "Admin" [ref=e103]:
+        - generic [ref=e104]: Admin
+    - generic [ref=e105]:
+      - button "DUSK" [ref=e106]:
+        - img [ref=e107]
+        - text: DUSK
+      - generic [ref=e110]:
+        - generic [ref=e111]: Today
+        - generic [ref=e112]:
+          - text: "0"
+          - generic [ref=e113]: / 960
+        - generic [ref=e114]: 0 MIN
+      - generic [ref=e115]:
+        - generic [ref=e116]: Local Mode
+        - generic [ref=e117]:
+          - text: trial•internal•
+          - generic [ref=e118]: 14d
+        - button "CONNECT" [ref=e119]
+      - button "⌘K" [ref=e120]
+      - button "Exit" [ref=e121]
+      - generic [ref=e122]:
+        - generic "Player Level (0 total XP)" [ref=e123]:
+          - img [ref=e124]
+          - generic [ref=e130]: LV 0
+        - button [ref=e131]:
+          - img [ref=e132]
+        - button [ref=e135]:
+          - img [ref=e136]
+  - generic [ref=e142]:
+    - generic [ref=e145]:
+      - generic [ref=e146]:
+        - generic [ref=e147]: Operator Console
+        - heading "Run XTATION like a real platform." [level=1] [ref=e148]
+        - paragraph [ref=e149]: "This surface owns rollout state, support diagnostics, test cohorts, and audit. It stays deliberately narrow: no fake backend power, only controls the current client can actually honor safely."
+      - generic [ref=e150]:
+        - generic [ref=e151]: Local preview operator
+        - generic [ref=e152]: super admin
+    - generic [ref=e153]:
+      - button "Overview" [ref=e154]:
+        - img [ref=e155]
+        - text: Overview
+      - button "Rollout" [ref=e160]:
+        - img [ref=e161]
+        - text: Rollout
+      - button "Support" [active] [ref=e163]:
+        - img [ref=e164]
+        - text: Support
+      - button "Catalog" [ref=e171]:
+        - img [ref=e172]
+        - text: Catalog
+      - button "Audit" [ref=e182]:
+        - img [ref=e183]
+        - text: Audit
+      - button "Test Lab" [ref=e185]:
+        - img [ref=e186]
+        - text: Test Lab
+    - generic [ref=e188]:
+      - generic [ref=e189]:
+        - generic [ref=e190]: Continuity Diagnostics
+        - generic [ref=e191]:
+          - generic [ref=e192]:
+            - generic [ref=e193]:
+              - img [ref=e194]
+              - text: Guest import recovery
+            - generic [ref=e199]: No guest handoff recovery snapshot stored for this account.
+          - generic [ref=e200]:
+            - generic [ref=e201]:
+              - img [ref=e202]
+              - text: Restore safeguard
+            - generic [ref=e207]: No restore safeguard snapshot stored for the current station.
+          - generic [ref=e208]:
+            - generic [ref=e209]: Quick jump
+            - generic [ref=e210]:
+              - button "Open Settings" [ref=e211]
+              - button "Open Lab" [ref=e212]
+              - button "Open Play" [ref=e213]
+          - generic [ref=e214]:
+            - generic [ref=e215]:
+              - generic [ref=e216]:
+                - generic [ref=e217]: Cloud Account Lookup
+                - generic [ref=e218]: Search signed-in account profiles from Supabase. This stays read-only and opens a loud support lens instead of silent impersonation.
+              - img [ref=e219]
+            - generic [ref=e221]:
+              - textbox "Search by email, user id, or cohort" [ref=e222]
+              - generic [ref=e223]:
+                - button "Search" [ref=e224]:
+                  - img [ref=e225]
+                  - text: Search
+                - button "Recent" [ref=e228]
+            - generic [ref=e229]:
+              - generic [ref=e230]: Operator claim status
+              - generic [ref=e231]: no xtation_rolelookup blocked
+              - generic [ref=e232]: Sign in with an operator account to unlock cloud lookup.
+      - generic [ref=e233]:
+        - generic [ref=e234]:
+          - generic [ref=e235]:
+            - generic [ref=e236]: Support Lens
+            - generic [ref=e237]: Use a loud, explicit lens instead of silent impersonation.
+          - button "Start Lens" [ref=e238]
+        - generic [ref=e239]:
+          - generic [ref=e240]: Support Notes
+          - textbox "Capture support context, rollout notes, or recovery instructions." [ref=e241]: This station is running local-first without a signed-in account.
+        - generic [ref=e242]:
+          - generic [ref=e243]: Latest Dusk Brief
+          - generic [ref=e244]: No stored Dusk brief yet.
+  - button [ref=e247]:
+    - img [ref=e248]
+  - generic [ref=e252]:
+    - generic [ref=e253]:
+      - generic [ref=e254]: Developer HUD
+      - button "Min" [ref=e255]
+    - generic [ref=e256]:
+      - generic [ref=e257]:
+        - text: AuthNot signed inUser IDanonLedger KeyxpLedger_v2:anonLedger Sourceanon-localCloud StatusidleLast Sync-Counts
+        - generic [ref=e258]: 0 tasks / 0 sessions / 0 challenges
+        - text: RunningnoneToday
+        - generic [ref=e259]: 0/960 (Bronze)
+      - generic [ref=e260]:
+        - button "Run Checks" [ref=e261]
+        - button "Repair Links" [ref=e262]
+        - button "Export Ledger JSON" [ref=e263]
+        - button "Reset Local Data" [ref=e264]
+        - button "Reset Cloud Data (This Account)" [disabled] [ref=e265]
+      - generic [ref=e266]:
+        - generic [ref=e267]: Cloud reset
+        - generic [ref=e268]: Idle
+      - 'button "Health: OKShow" [ref=e270]':
+        - generic [ref=e271]: "Health: OK"
+        - text: Show
+      - generic [ref=e272]: Health checks OK

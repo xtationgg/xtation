@@ -1,3 +1,7 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 /* Xtation global theme tokens (single source of truth) */
 
 :root {
@@ -1038,8 +1042,8 @@
   border-radius: 9999px !important;
 }
 
-/* QUESTS button in topbar */
-[data-theme='void'] #hextech-assistant-toggle {
+/* DUSK button in topbar */
+[data-theme='void'] :is(#dusk-assistant-toggle, #hextech-assistant-toggle) {
   --cut: 6px;
   clip-path: polygon(
     var(--cut) 0, calc(100% - var(--cut)) 0,
@@ -1055,16 +1059,16 @@
    black ops dossiers, government records. Max contrast, zero radius, red accent.
    ─────────────────────────────────────────────────────────────────────────── */
 [data-theme='bureau'] {
-  --app-bg: #0a0a0a;
-  --app-panel: #111111;
-  --app-panel-2: #1a1a1a;
-  --app-border: rgba(255, 255, 255, 0.1);
-  --app-text: #f0ede8;
-  --app-muted: #6a6560;
-  --app-accent: #cc1111;
+  --app-bg: #0b0d10;
+  --app-panel: #121417;
+  --app-panel-2: #181c21;
+  --app-border: rgba(244, 239, 230, 0.1);
+  --app-text: #f4efe6;
+  --app-muted: #8a8377;
+  --app-accent: #d6a45d;
   --app-accent-weak: color-mix(in srgb, var(--app-accent) 12%, transparent);
   --app-focus-ring: color-mix(in srgb, var(--app-accent) 38%, transparent);
-  --app-danger: #cc1111;
+  --app-danger: #d06757;
   --app-radius-sm: 0px;
   --app-radius-md: 0px;
   --app-radius-lg: 0px;
@@ -1072,31 +1076,37 @@
   --app-cut-md: 0px;
   --app-cut-lg: 0px;
   --app-stroke: 1px;
-  --app-shadow-soft: 0 4px 20px rgba(0, 0, 0, 0.7), inset 0 1px 0 rgba(255, 255, 255, 0.04);
-  --app-shadow-strong: 0 8px 40px rgba(0, 0, 0, 0.88);
-  --app-glow-accent: inset 0 0 0 1px rgba(204, 17, 17, 0.55);
+  --app-shadow-soft: 0 10px 32px rgba(0, 0, 0, 0.56), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  --app-shadow-strong: 0 20px 58px rgba(0, 0, 0, 0.74);
+  --app-glow-accent: inset 0 0 0 1px color-mix(in srgb, var(--app-accent) 56%, transparent);
   --app-glow-strength: 0;
   --app-hover-glow-base: 0%;
   --app-noise-opacity: 0;
   --app-glass-opacity: 0;
   --app-blur: 0px;
-  --app-panel-rgb: 17 17 17;
-  --app-panel-2-rgb: 26 26 26;
-  --app-bg-overlay: none;
-  --app-motion-fast: 90ms;
-  --app-motion-med: 130ms;
-  --app-motion-slow: 190ms;
+  --app-panel-rgb: 18 20 23;
+  --app-panel-2-rgb: 24 28 33;
+  --app-bg-overlay:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.018), transparent 14%),
+    radial-gradient(120% 100% at 50% -10%, rgba(214, 164, 93, 0.05), transparent 52%);
+  --app-motion-fast: 95ms;
+  --app-motion-med: 135ms;
+  --app-motion-slow: 200ms;
   --app-ease: cubic-bezier(0.16, 1, 0.3, 1);
   --app-hover-lift-y: 0px;
   --app-hover-scale: 1;
-  --app-body-letter-spacing: 0.016em;
+  --app-body-letter-spacing: 0.014em;
   --app-clip-all: none;
   --app-clip-right: none;
   --app-clip-left: none;
   --app-clip-card: none;
   --app-clip-pill: none;
-  --bureau-red: #cc1111;
-  --bureau-amber: #c9920a;
+  --bureau-paper: #f4efe6;
+  --bureau-ink: #0b0d10;
+  --bureau-signal: var(--app-accent);
+  --bureau-signal-strong: color-mix(in srgb, var(--app-accent) 82%, #f4d4a1);
+  --bureau-signal-soft: color-mix(in srgb, var(--app-accent) 16%, transparent);
+  --bureau-edge: rgba(244, 239, 230, 0.12);
 }
 
 [data-theme='bureau'] {
@@ -1121,16 +1131,16 @@
   pointer-events: none;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='250' height='250'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.78' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='250' height='250' filter='url(%23n)'/%3E%3C/svg%3E");
   background-size: 250px 250px;
-  opacity: 0.042;
-  mix-blend-mode: overlay;
+  opacity: 0.024;
+  mix-blend-mode: soft-light;
 }
 
 /* ── Bureau: topbar — solid black, red left binding line ─────────────────── */
 [data-theme='bureau'] .xt-topbar {
-  background: #0a0a0a !important;
+  background: color-mix(in srgb, var(--app-bg) 94%, #000) !important;
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border-bottom: 1px solid var(--bureau-edge) !important;
   box-shadow: none !important;
 }
 
@@ -1140,8 +1150,8 @@
   left: 0;
   top: 0;
   bottom: 0;
-  width: 3px;
-  background: var(--bureau-red);
+  width: 2px;
+  background: var(--bureau-signal);
   z-index: 10;
 }
 
@@ -1173,17 +1183,17 @@
 }
 
 [data-theme='bureau'] .xt-nav-tab[data-active='false'] {
-  color: #5a5550 !important;
+  color: #7a7468 !important;
 }
 
 [data-theme='bureau'] .xt-nav-tab[data-active='false']:hover {
-  color: #f0ede8 !important;
-  background: rgba(255, 255, 255, 0.04) !important;
+  color: var(--bureau-paper) !important;
+  background: rgba(255, 255, 255, 0.035) !important;
 }
 
 [data-theme='bureau'] .xt-nav-tab[data-active='true'] {
-  background: #f0ede8 !important;
-  color: #0a0a0a !important;
+  background: var(--bureau-paper) !important;
+  color: var(--bureau-ink) !important;
   font-weight: 900 !important;
   letter-spacing: 0.19em !important;
 }
@@ -1203,29 +1213,29 @@
 
 [data-theme='bureau'] .ui-glow {
   box-shadow:
-    inset 0 0 0 1px rgba(204, 17, 17, 0.6),
-    0 0 12px rgba(204, 17, 17, 0.2) !important;
+    inset 0 0 0 1px color-mix(in srgb, var(--bureau-signal) 62%, transparent),
+    0 0 12px color-mix(in srgb, var(--bureau-signal) 18%, transparent) !important;
 }
 
 [data-theme='bureau'] .ui-panel-surface {
-  background: #111111 !important;
+  background: color-mix(in srgb, var(--app-panel) 96%, #000) !important;
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06),
-              0 1px 0 rgba(0, 0, 0, 0.5) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.045),
+              0 1px 0 rgba(0, 0, 0, 0.42) !important;
 }
 
 /* ── Bureau: quest panel ─────────────────────────────────────────────────── */
 [data-theme='bureau'] .xt-quest-panel {
-  background: #0a0a0a !important;
+  background: color-mix(in srgb, var(--app-bg) 94%, #000) !important;
   background-image: none !important;
-  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  border: 1px solid var(--bureau-edge) !important;
   box-shadow: none !important;
   position: relative !important;
   /* 4-corner bracket treatment — same technique as Settings HexPanel */
   --bkt: 2px;
   --bkt-sz: 14px;
-  --bkt-col: rgba(255, 255, 255, 0.35);
+  --bkt-col: rgba(244, 239, 230, 0.28);
 }
 
 /* corner brackets via background multi-gradient */
@@ -1274,15 +1284,15 @@
   font-size: 7px;
   font-weight: 700;
   letter-spacing: 0.4em;
-  color: rgba(204, 17, 17, 0.45);
+  color: color-mix(in srgb, var(--bureau-signal) 62%, transparent);
   pointer-events: none;
   z-index: 1;
   text-transform: uppercase;
 }
 
 [data-theme='bureau'] .xt-quest-header-btn {
-  color: #f0ede8 !important;
-  border-bottom: 1px dashed rgba(255, 255, 255, 0.12) !important;
+  color: var(--bureau-paper) !important;
+  border-bottom: 1px dashed var(--bureau-edge) !important;
   letter-spacing: 0.32em !important;
   font-size: 10px !important;
   position: relative !important;
@@ -1295,21 +1305,21 @@
 
 /* Active session bar — RED ALERT */
 [data-theme='bureau'] .xt-session-bar {
-  background: rgba(204, 17, 17, 0.1) !important;
-  border-top: 1px solid rgba(204, 17, 17, 0.35) !important;
+  background: color-mix(in srgb, var(--bureau-signal) 10%, transparent) !important;
+  border-top: 1px solid color-mix(in srgb, var(--bureau-signal) 32%, transparent) !important;
 }
 
 [data-theme='bureau'] .xt-session-bar > div > span:first-child {
-  background-color: var(--bureau-red) !important;
+  background-color: var(--bureau-signal) !important;
 }
 
 [data-theme='bureau'] .xt-session-bar span.font-mono {
-  color: var(--bureau-red) !important;
+  color: var(--bureau-signal) !important;
 }
 
 [data-theme='bureau'] .xt-session-bar span[class*="text-[#f3f0e8]"],
 [data-theme='bureau'] .xt-session-bar span[class*="text-\[\#f3f0e8\]"] {
-  color: #f0ede8 !important;
+  color: var(--bureau-paper) !important;
 }
 
 /* Quest panel inner content — above ::before brackets */
@@ -1320,18 +1330,18 @@
 
 /* ── Bureau: quest cards with priority left strip ────────────────────────── */
 [data-theme='bureau'] .xt-quest-card {
-  background: #111111 !important;
-  border: 1px solid rgba(255, 255, 255, 0.08) !important;
-  border-left: 4px solid rgba(255, 255, 255, 0.18) !important;
+  background: color-mix(in srgb, var(--app-panel) 96%, #000) !important;
+  border: 1px solid rgba(244, 239, 230, 0.08) !important;
+  border-left: 4px solid rgba(244, 239, 230, 0.18) !important;
   box-shadow: none !important;
 }
 
 [data-theme='bureau'] .xt-quest-card[data-priority='urgent'] {
-  border-left-color: var(--bureau-red) !important;
+  border-left-color: var(--bureau-signal) !important;
 }
 
 [data-theme='bureau'] .xt-quest-card[data-priority='high'] {
-  border-left-color: var(--bureau-amber) !important;
+  border-left-color: color-mix(in srgb, var(--bureau-signal) 78%, var(--bureau-paper)) !important;
 }
 
 [data-theme='bureau'] .xt-quest-card[data-priority='normal'] {
@@ -1340,30 +1350,30 @@
 
 /* Remap orange accent to red inside quest cards */
 [data-theme='bureau'] .xt-quest-card .text-\[\#f46a2e\] {
-  color: var(--bureau-red) !important;
+  color: var(--bureau-signal) !important;
 }
 
 [data-theme='bureau'] .xt-quest-card .border-\[\#f46a2e\]\/50 {
-  border-color: rgba(204, 17, 17, 0.5) !important;
+  border-color: color-mix(in srgb, var(--bureau-signal) 52%, transparent) !important;
 }
 
 [data-theme='bureau'] .xt-quest-card .hover\:bg-\[\#f46a2e\]\/10:hover {
-  background-color: rgba(204, 17, 17, 0.1) !important;
+  background-color: color-mix(in srgb, var(--bureau-signal) 10%, transparent) !important;
 }
 
 /* Icon holder in quest card */
 [data-theme='bureau'] .xt-quest-card .bg-\[\#1a1a1d\] {
-  background: #1a1a1a !important;
+  background: color-mix(in srgb, var(--app-panel-2) 94%, #000) !important;
 }
 
 /* Running clock section */
 [data-theme='bureau'] .xt-quest-card .text-\[\#f3f0e8\] {
-  color: #f0ede8 !important;
+  color: var(--bureau-paper) !important;
 }
 
 [data-theme='bureau'] .xt-quest-card .text-\[\#8b847a\],
 [data-theme='bureau'] .xt-quest-card .text-\[\#9a9288\] {
-  color: #6a6560 !important;
+  color: var(--app-muted) !important;
 }
 
 /* ── Bureau: glitch animation for active session timer ───────────────────── */
@@ -1394,7 +1404,7 @@
 /* Remove background gradient from any gradient-to-b panels */
 [data-theme='bureau'] .bg-gradient-to-b {
   background-image: none !important;
-  background-color: #111111 !important;
+  background-color: var(--app-panel) !important;
 }
 
 /* Bureau override for borders — all use the token color, which is rgba(255,255,255,0.1) */
@@ -1406,7 +1416,7 @@
 }
 
 [data-theme='bureau'] ::-webkit-scrollbar-track {
-  background: #0a0a0a;
+  background: var(--app-bg);
 }
 
 [data-theme='bureau'] ::-webkit-scrollbar-thumb {
@@ -1419,25 +1429,25 @@
 
 /* ── Bureau: calendar today-cell inverse highlight ───────────────────────── */
 [data-theme='bureau'] [data-today='true'] {
-  background: #f0ede8 !important;
-  color: #0a0a0a !important;
+  background: var(--bureau-paper) !important;
+  color: var(--bureau-ink) !important;
 }
 
 [data-theme='bureau'] [data-today='true'] * {
-  color: #0a0a0a !important;
+  color: var(--bureau-ink) !important;
 }
 
 /* ── Bureau: focus states ────────────────────────────────────────────────── */
 [data-theme='bureau'] *:focus-visible {
-  outline: 1px solid rgba(204, 17, 17, 0.7) !important;
+  outline: 1px solid color-mix(in srgb, var(--bureau-signal) 76%, transparent) !important;
   outline-offset: 2px !important;
   box-shadow: none !important;
 }
 
 /* ── Bureau: selection ───────────────────────────────────────────────────── */
 [data-theme='bureau'] ::selection {
-  background: rgba(204, 17, 17, 0.3);
-  color: #f0ede8;
+  background: color-mix(in srgb, var(--bureau-signal) 24%, transparent);
+  color: var(--bureau-paper);
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -1446,8 +1456,8 @@
 
 /* ── Profile tab bar — flat ruled divider, no gradient wings ──────────────── */
 [data-theme='bureau'] .xt-profile-tabs-bar {
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1) !important;
-  background: #0a0a0a !important;
+  border-bottom: 1px solid var(--bureau-edge) !important;
+  background: var(--app-bg) !important;
 }
 
 /* hide the decorative gradient lines flanking the tab pill */
@@ -1458,7 +1468,7 @@
 /* The tab pill itself — flat rectangle, dashed border */
 [data-theme='bureau'] .xt-profile-tabs-bar .flex.items-center.gap-1 {
   background: transparent !important;
-  border: 1px dashed rgba(255, 255, 255, 0.12) !important;
+  border: 1px dashed var(--bureau-edge) !important;
   border-radius: 0 !important;
   padding: 0 !important;
   gap: 0 !important;
@@ -1473,7 +1483,7 @@
   letter-spacing: 0.28em !important;
   font-weight: 600 !important;
   transition: background 0.15s, color 0.15s !important;
-  color: rgba(240, 237, 232, 0.35) !important;
+  color: rgba(244, 239, 230, 0.35) !important;
 }
 
 [data-theme='bureau'] .xt-profile-tabs-bar .flex.items-center.gap-1 > button:last-child {
@@ -1482,19 +1492,19 @@
 
 /* Active profile tab — white inverse */
 [data-theme='bureau'] .xt-profile-tabs-bar .flex.items-center.gap-1 > button[data-active='true'] {
-  background: #f0ede8 !important;
-  color: #0a0a0a !important;
+  background: var(--bureau-paper) !important;
+  color: var(--bureau-ink) !important;
   border-color: transparent !important;
   box-shadow: none !important;
 }
 
 [data-theme='bureau'] .xt-profile-tabs-bar .flex.items-center.gap-1 > button[data-active='true'] span {
-  color: #0a0a0a !important;
+  color: var(--bureau-ink) !important;
 }
 
 /* ── Stage background — desaturate glow, add scanline intensity ───────────── */
 [data-theme='bureau'] .xt-profile-stage-bg .stage-bg-breathe {
-  opacity: 0.15 !important;
+  opacity: 0.1 !important;
   animation: none !important;
 }
 
@@ -1513,115 +1523,687 @@
     0deg,
     transparent,
     transparent 2px,
-    rgba(0, 0, 0, 0.08) 2px,
-    rgba(0, 0, 0, 0.08) 3px
+    rgba(0, 0, 0, 0.06) 2px,
+    rgba(0, 0, 0, 0.06) 3px
   );
 }
 
-/* ── Lobby card — case-file dossier aesthetic ─────────────────────────────── */
+/* ── Profile command shell ───────────────────────────────────────────────── */
+.xt-profile-wrapper {
+  height: 100%;
+  min-height: 100%;
+  display: flex;
+  overflow: hidden;
+}
+
+.xt-profile-main {
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.xt-profile-content-frame {
+  flex: 1 1 auto;
+  min-height: 0;
+  position: relative;
+  overflow: hidden;
+}
+
+.xt-profile-stage-wrapper {
+  height: 100%;
+  min-height: 0;
+  isolation: isolate;
+}
+
+.xt-profile-scene-shell {
+  background:
+    radial-gradient(circle at 50% 18%, rgba(255, 255, 255, 0.035), transparent 28%),
+    linear-gradient(180deg, rgba(6, 8, 12, 0.06), rgba(2, 3, 6, 0.18));
+}
+
+.xt-profile-scene-iframe {
+  filter: brightness(1.16) contrast(1.1) saturate(0.92);
+}
+
+.xt-profile-scene-spotlight,
+.xt-profile-scene-silhouette-glow,
+.xt-profile-scene-floor-glow,
+.xt-profile-scene-focus-frame,
+.xt-profile-scene-focus-core {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+}
+
+.xt-profile-scene-spotlight {
+  width: min(34vw, 400px);
+  height: min(72vh, 700px);
+  border-radius: 44%;
+  background:
+    radial-gradient(ellipse at 50% 14%, rgba(255, 255, 255, 0.18) 0%, color-mix(in srgb, var(--app-accent) 14%, transparent) 24%, transparent 68%);
+  filter: blur(34px);
+  opacity: 0.78;
+}
+
+.xt-profile-scene-silhouette-glow {
+  width: min(15vw, 170px);
+  height: min(52vh, 500px);
+  border-radius: 48%;
+  background:
+    radial-gradient(ellipse at center, color-mix(in srgb, var(--app-accent) 22%, rgba(255, 255, 255, 0.12)) 0%, color-mix(in srgb, var(--app-accent) 14%, transparent) 38%, transparent 76%);
+  filter: blur(20px);
+  opacity: 0.82;
+}
+
+.xt-profile-scene-focus-frame {
+  width: min(32vw, 360px);
+  height: min(64vh, 640px);
+  border-radius: 40px;
+  border: 1px solid color-mix(in srgb, var(--app-accent) 14%, transparent);
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--app-accent) 6%, transparent), transparent 18%, transparent 82%, color-mix(in srgb, var(--app-accent) 5%, transparent)),
+    radial-gradient(circle at center, color-mix(in srgb, var(--app-accent) 3%, transparent) 0%, transparent 68%);
+  box-shadow:
+    inset 0 0 0 1px rgba(255, 255, 255, 0.02),
+    0 0 0 1px rgba(0, 0, 0, 0.2);
+  opacity: 0.3;
+}
+
+.xt-profile-scene-focus-core {
+  width: min(16vw, 170px);
+  height: min(44vh, 420px);
+  border-radius: 50%;
+  background: radial-gradient(circle at center, color-mix(in srgb, var(--app-accent) 20%, rgba(255, 255, 255, 0.08)) 0%, transparent 74%);
+  filter: blur(18px);
+  opacity: 0.74;
+}
+
+.xt-profile-scene-floor-glow {
+  top: auto;
+  bottom: 8%;
+  width: min(28vw, 320px);
+  height: 84px;
+  border-radius: 999px;
+  background: radial-gradient(ellipse at center, color-mix(in srgb, var(--app-accent) 18%, transparent) 0%, transparent 74%);
+  filter: blur(20px);
+  opacity: 0.82;
+}
+
+.xt-profile-compact-anchor {
+  position: absolute;
+  left: 20px;
+  bottom: 20px;
+  max-width: min(320px, calc(100% - 40px));
+}
+
+.xt-profile-lobby-outer {
+  position: absolute;
+  left: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+  max-height: calc(100% - 40px);
+  max-width: calc(100% - 40px);
+}
+
+.xt-profile-compact-card {
+  display: flex;
+  max-width: 320px;
+  align-items: center;
+  gap: 14px;
+  border-radius: 8px;
+  border: 1px solid color-mix(in srgb, var(--app-accent) 24%, rgba(255, 255, 255, 0.06));
+  background: rgba(5, 8, 14, 0.82);
+  padding: 14px 16px;
+  text-align: left;
+  backdrop-filter: blur(18px);
+  box-shadow: 0 32px 72px -32px rgba(0, 0, 0, 0.88);
+  transition: border-color 240ms ease-out, background 240ms ease-out, transform 240ms ease-out;
+}
+
+.xt-profile-compact-card:hover {
+  border-color: color-mix(in srgb, var(--app-accent) 52%, transparent);
+  background: rgba(7, 11, 18, 0.92);
+  transform: translateY(-1px);
+}
+
+.xt-profile-compact-portrait {
+  display: flex;
+  height: 52px;
+  width: 52px;
+  flex-shrink: 0;
+  overflow: hidden;
+  border-radius: 6px;
+  border: 1px solid color-mix(in srgb, var(--app-accent) 28%, transparent);
+  background: color-mix(in srgb, var(--app-accent) 14%, #04070d);
+}
+
+.xt-profile-compact-portrait-fallback {
+  display: flex;
+  height: 100%;
+  width: 100%;
+  align-items: center;
+  justify-content: center;
+  color: var(--app-accent);
+}
+
+.xt-profile-compact-copy {
+  min-width: 0;
+  flex: 1;
+}
+
+.xt-profile-compact-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.xt-profile-compact-kicker,
+.xt-profile-lobby-command-kicker,
+.xt-profile-lobby-panel-title {
+  color: var(--app-accent);
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+}
+
+.xt-profile-compact-title,
+.xt-profile-lobby-command-title {
+  padding-top: 6px;
+  color: #fff;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+.xt-profile-compact-detail,
+.xt-profile-lobby-command-detail {
+  padding-top: 6px;
+  max-width: 46ch;
+  color: rgba(255, 255, 255, 0.62);
+  font-size: 11px;
+  line-height: 1.55;
+}
+
+.xt-profile-compact-detail {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.xt-profile-compact-open {
+  border-radius: 4px;
+  border: 1px solid color-mix(in srgb, var(--app-accent) 18%, rgba(255, 255, 255, 0.1));
+  padding: 7px 9px;
+  color: rgba(255, 255, 255, 0.74);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  transition: border-color 240ms ease-out, color 240ms ease-out, background 240ms ease-out;
+}
+
+.xt-profile-compact-card:hover .xt-profile-compact-open {
+  border-color: color-mix(in srgb, var(--app-accent) 44%, transparent);
+  color: #fff;
+  background: color-mix(in srgb, var(--app-accent) 10%, transparent);
+}
+
+.xt-profile-lobby-card {
+  background: linear-gradient(180deg, rgba(17, 21, 28, 0.98), rgba(8, 10, 16, 0.98));
+  border: 1px solid color-mix(in srgb, var(--app-accent) 18%, rgba(255, 255, 255, 0.06));
+  border-radius: 8px;
+  padding: 1px;
+  box-shadow: 0 28px 88px -36px rgba(0, 0, 0, 0.92);
+}
+
+.xt-profile-lobby-card--scene {
+  width: min(340px, calc(100vw - 40px), calc(100% - 40px));
+  height: min(680px, calc(100% - 40px));
+}
+
+.xt-profile-lobby-inner {
+  background: linear-gradient(180deg, rgba(8, 10, 16, 0.98), rgba(5, 7, 12, 0.98));
+  border-radius: 7px;
+}
+
+.xt-profile-dock {
+  background: linear-gradient(180deg, rgba(11, 14, 22, 0.98), rgba(7, 9, 15, 0.98));
+  border-right: 1px solid color-mix(in srgb, var(--app-accent) 14%, rgba(255, 255, 255, 0.04));
+  border-radius: 7px 0 0 7px;
+}
+
+.xt-profile-dock-home,
+.xt-profile-dock-collapse,
+.xt-dock-btn {
+  display: flex;
+  width: 38px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  border: 1px solid transparent;
+  background: rgba(255, 255, 255, 0.03);
+  color: rgba(255, 255, 255, 0.72);
+  transition: border-color 220ms ease-out, background 220ms ease-out, color 220ms ease-out, transform 220ms ease-out;
+}
+
+.xt-profile-dock-home {
+  height: 38px;
+  margin-bottom: 6px;
+  overflow: hidden;
+}
+
+.xt-profile-dock-home[data-active='true'] {
+  border-color: color-mix(in srgb, var(--app-accent) 48%, transparent);
+  background: color-mix(in srgb, var(--app-accent) 18%, rgba(255, 255, 255, 0.03));
+  color: #fff;
+}
+
+.xt-profile-dock-home-icon {
+  color: currentColor;
+}
+
+.xt-profile-dock-collapse {
+  height: 34px;
+  margin-bottom: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.xt-profile-dock-mark {
+  display: flex;
+  height: 38px;
+  width: 38px;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255, 255, 255, 0.34);
+  transition: transform 300ms ease-out, color 220ms ease-out;
+}
+
+.xt-profile-dock-mark:hover {
+  transform: translateY(-1px);
+  color: rgba(255, 255, 255, 0.54);
+}
+
+.xt-dock-btn {
+  height: 46px;
+  flex-direction: column;
+  gap: 3px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.xt-dock-btn-icon {
+  color: var(--app-accent);
+  opacity: 0.74;
+  transition: color 220ms ease-out, opacity 220ms ease-out;
+}
+
+.xt-dock-btn-label {
+  color: rgba(255, 255, 255, 0.68);
+  font-size: 7.5px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  transition: color 220ms ease-out, opacity 220ms ease-out;
+}
+
+.xt-profile-dock-home:hover,
+.xt-profile-dock-collapse:hover,
+.xt-dock-btn:hover {
+  border-color: color-mix(in srgb, var(--app-accent) 34%, transparent);
+  background: rgba(255, 255, 255, 0.06);
+  color: #fff;
+}
+
+.xt-dock-btn:hover .xt-dock-btn-icon,
+.xt-dock-btn:hover .xt-dock-btn-label {
+  opacity: 1;
+}
+
+.xt-dock-btn[data-active='true'] {
+  border-color: color-mix(in srgb, var(--app-accent) 48%, transparent);
+  background: color-mix(in srgb, var(--app-accent) 18%, rgba(255, 255, 255, 0.03));
+}
+
+.xt-dock-btn[data-active='true'] .xt-dock-btn-icon,
+.xt-dock-btn[data-active='true'] .xt-dock-btn-label {
+  color: #fff;
+  opacity: 1;
+}
+
+.xt-profile-lobby-home {
+  gap: 14px;
+  padding: 18px;
+}
+
+.xt-profile-lobby-command {
+  padding: 14px;
+}
+
+.xt-runtime-console--profile-command {
+  margin-top: 0;
+}
+
+.xt-profile-lobby-command-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.xt-profile-lobby-command-copy {
+  min-width: 0;
+  flex: 1;
+}
+
+.xt-profile-lobby-command-tags {
+  margin-top: 12px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.xt-profile-lobby-portrait {
+  width: 100%;
+  aspect-ratio: 1 / 0.72;
+  border-radius: 8px;
+  border: 1px solid color-mix(in srgb, var(--app-accent) 16%, rgba(255, 255, 255, 0.06));
+  background: color-mix(in srgb, var(--app-accent) 10%, var(--app-bg));
+}
+
+.xt-profile-lobby-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.xt-profile-runtime-grid {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.xt-profile-runtime-card {
+  min-width: 0;
+  padding: 12px;
+}
+
+.xt-profile-runtime-value {
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+.xt-profile-runtime-detail {
+  margin-top: 10px;
+  font-size: 11px;
+  line-height: 1.45;
+  max-width: 26ch;
+}
+
+.xt-profile-runtime-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  border-top: 1px solid color-mix(in srgb, var(--app-accent) 14%, rgba(255, 255, 255, 0.05));
+  border-bottom: 1px solid color-mix(in srgb, var(--app-accent) 14%, rgba(255, 255, 255, 0.05));
+  padding: 10px 0;
+}
+
+.xt-profile-runtime-meta-row {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.xt-profile-runtime-meta-label {
+  min-width: 52px;
+  color: rgba(255, 255, 255, 0.34);
+  font-size: 9px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.xt-profile-runtime-meta-value {
+  min-width: 0;
+  flex: 1;
+  color: rgba(255, 255, 255, 0.78);
+  font-size: 12px;
+}
+
+.xt-profile-runtime-block {
+  border: 1px solid color-mix(in srgb, var(--app-accent) 10%, rgba(255, 255, 255, 0.06));
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0.01));
+  border-radius: 8px;
+  padding: 12px;
+}
+
+.xt-profile-runtime-block--timer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.xt-profile-lobby-field-row {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  padding-bottom: 8px;
+}
+
+.xt-profile-lobby-field-label {
+  min-width: 52px;
+  color: rgba(255, 255, 255, 0.34);
+  font-size: 9px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.xt-profile-lobby-field-value {
+  min-width: 0;
+  flex: 1;
+  color: rgba(255, 255, 255, 0.78);
+  font-size: 12px;
+}
+
+.xt-profile-lobby-timer {
+  margin: auto 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 8px 0;
+}
+
+.xt-profile-lobby-timer-visual {
+  height: 120px;
+  width: 120px;
+}
+
+.xt-profile-lobby-timer-label {
+  margin-top: 8px;
+  color: var(--app-accent);
+  font-family: var(--app-font-mono, 'IBM Plex Mono', monospace);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.xt-profile-lobby-stats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  border: 1px solid color-mix(in srgb, var(--app-accent) 10%, rgba(255, 255, 255, 0.06));
+  border-radius: 8px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0.01));
+  padding: 12px;
+}
+
+.xt-profile-lobby-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.xt-profile-lobby-stat + .xt-profile-lobby-stat {
+  border-left: 1px solid color-mix(in srgb, var(--app-accent) 12%, rgba(255, 255, 255, 0.04));
+}
+
+.xt-profile-lobby-stat-label {
+  color: rgba(255, 255, 255, 0.34);
+  font-size: 8px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.xt-profile-lobby-stat-value {
+  color: var(--app-text);
+  font-family: var(--app-font-mono, 'IBM Plex Mono', monospace);
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.xt-profile-lobby-session {
+  border: 1px solid color-mix(in srgb, var(--app-accent) 10%, rgba(255, 255, 255, 0.06));
+  border-radius: 8px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0.01));
+  padding: 12px;
+}
+
+.xt-profile-lobby-session-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.xt-profile-lobby-session-label {
+  color: rgba(255, 255, 255, 0.62);
+  font-size: 10px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.xt-profile-lobby-session-toggle {
+  display: flex;
+  height: 24px;
+  width: 24px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--app-accent) 34%, transparent);
+  background: color-mix(in srgb, var(--app-accent) 14%, var(--app-bg));
+  transition: transform 220ms ease-out, border-color 220ms ease-out, background 220ms ease-out;
+}
+
+.xt-profile-lobby-session-toggle[data-running='true'] {
+  background: var(--app-accent);
+}
+
+.xt-profile-lobby-session-toggle:hover {
+  transform: scale(1.06);
+  border-color: color-mix(in srgb, var(--app-accent) 52%, transparent);
+}
+
+.xt-profile-lobby-session-bar {
+  height: 4px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.xt-profile-lobby-session-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, color-mix(in srgb, var(--app-accent) 92%, #fff), color-mix(in srgb, var(--app-accent) 72%, #573778));
+}
+
+.xt-profile-lobby-session-progress {
+  margin-top: 6px;
+  text-align: right;
+  color: var(--app-accent);
+  font-family: var(--app-font-mono, 'IBM Plex Mono', monospace);
+  font-size: 9px;
+}
+
+.xt-profile-lobby-panel {
+  background: linear-gradient(180deg, rgba(6, 8, 13, 0.98), rgba(4, 5, 9, 0.98));
+  padding: 20px 18px;
+}
+
+.xt-profile-lobby-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 18px;
+  border-bottom: 1px solid color-mix(in srgb, var(--app-accent) 12%, rgba(255, 255, 255, 0.04));
+  padding-bottom: 12px;
+}
+
+.xt-profile-lobby-panel-close {
+  color: var(--app-muted);
+  transition: color 180ms ease-out;
+}
+
+.xt-profile-lobby-panel-close:hover {
+  color: var(--app-text);
+}
+
+@media (max-height: 860px), (max-width: 900px) {
+  .xt-profile-compact-anchor {
+    top: 20px;
+    bottom: auto;
+  }
+
+  .xt-profile-lobby-outer {
+    top: 20px;
+    transform: none;
+  }
+
+  .xt-profile-lobby-card--scene {
+    height: min(680px, calc(100vh - 152px), calc(100% - 40px));
+  }
+}
+
 [data-theme='bureau'] .xt-profile-lobby-card {
-  background: #f0ede8 !important;   /* white parchment outer border */
-  border-radius: 0 !important;
-  padding: 2px !important;
-  box-shadow: 6px 6px 0 rgba(0, 0, 0, 0.8), 12px 12px 0 rgba(0, 0, 0, 0.3) !important;
+  background: linear-gradient(180deg, rgba(13, 15, 20, 0.98), rgba(7, 8, 12, 0.98));
+  border-color: color-mix(in srgb, var(--bureau-signal) 22%, rgba(255, 255, 255, 0.08));
 }
 
 [data-theme='bureau'] .xt-profile-lobby-inner {
-  background-color: #0a0a0a !important;
-  border-radius: 0 !important;
-  /* corner bracket inset using 4-corner multi-gradient */
-  background-image:
-    linear-gradient(#f0ede8, #f0ede8),
-    linear-gradient(#f0ede8, #f0ede8),
-    linear-gradient(#f0ede8, #f0ede8),
-    linear-gradient(#f0ede8, #f0ede8),
-    linear-gradient(#f0ede8, #f0ede8),
-    linear-gradient(#f0ede8, #f0ede8),
-    linear-gradient(#f0ede8, #f0ede8),
-    linear-gradient(#f0ede8, #f0ede8) !important;
-  background-size:
-    2px 16px,
-    16px 2px,
-    2px 16px,
-    16px 2px,
-    2px 16px,
-    16px 2px,
-    2px 16px,
-    16px 2px !important;
-  background-position:
-    top 6px left 6px,
-    top 6px left 6px,
-    top 6px right 6px,
-    top 6px right 6px,
-    bottom 6px left 6px,
-    bottom 6px left 6px,
-    bottom 6px right 6px,
-    bottom 6px right 6px !important;
-  background-repeat: no-repeat !important;
+  background: linear-gradient(180deg, rgba(10, 12, 16, 0.98), rgba(6, 7, 11, 0.98));
 }
 
-/* ── Dock — vertical index spine ─────────────────────────────────────────── */
 [data-theme='bureau'] .xt-profile-dock {
-  background: #111111 !important;
-  border-radius: 0 !important;
-  border-right: 1px solid rgba(255, 255, 255, 0.1) !important;
+  background: linear-gradient(180deg, rgba(16, 18, 24, 0.98), rgba(9, 11, 16, 0.98));
 }
 
-/* Home avatar button in dock */
-[data-theme='bureau'] .xt-profile-dock > button:first-child {
-  border-radius: 0 !important;
-  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+[data-theme='bureau'] .xt-profile-dock-mark svg {
+  stroke: color-mix(in srgb, var(--bureau-signal) 38%, rgba(255, 255, 255, 0.3)) !important;
 }
 
-[data-theme='bureau'] .xt-dock-btn {
-  border-radius: 0 !important;
-  border: 1px solid transparent !important;
-  transition: background 0.15s, border-color 0.15s !important;
-  box-shadow: none !important;
-  transform: none !important;
-}
-
-[data-theme='bureau'] .xt-dock-btn:hover {
-  background: rgba(255, 255, 255, 0.06) !important;
-  border-color: rgba(255, 255, 255, 0.12) !important;
-  box-shadow: none !important;
-  transform: none !important;
-}
-
-/* Active dock button — white inverse block */
-[data-theme='bureau'] .xt-dock-btn[data-active='true'] {
-  background: #f0ede8 !important;
-  box-shadow: none !important;
-  transform: none !important;
-}
-
-[data-theme='bureau'] .xt-dock-btn[data-active='true'] span {
-  color: #0a0a0a !important;
-  opacity: 1 !important;
-}
-
-[data-theme='bureau'] .xt-dock-btn[data-active='false'] {
-  background: rgba(255, 255, 255, 0.04) !important;
-}
-
-/* Hex logo in dock */
-[data-theme='bureau'] .xt-profile-dock svg {
-  stroke: rgba(240, 237, 232, 0.25) !important;
-}
-
-/* Corner cut accent triangle — replace with right-angle notch in bureau */
 [data-theme='bureau'] .xt-profile-lobby-inner > div[style*="clipPath"] {
-  background: rgba(255, 255, 255, 0.08) !important;
+  background: color-mix(in srgb, var(--bureau-signal) 22%, transparent) !important;
 }
 
 /* Panel overlay header (key name + close X) */
 [data-theme='bureau'] .xt-profile-lobby-inner .text-\[var\(--app-accent\)\] {
-  color: #cc1111 !important;
+  color: var(--bureau-signal) !important;
 }
 
 /* Stats row inside lobby card */
 [data-theme='bureau'] .xt-profile-lobby-inner [style*="borderTop"][style*="accent"] {
-  border-color: rgba(255, 255, 255, 0.1) !important;
+  border-color: var(--bureau-edge) !important;
 }
 
 /* Circular timer ring — in bureau, desaturate glow */
@@ -1630,9 +2212,1822 @@
   filter: none !important;
 }
 
+/* ═══════════════════════════════════════════════════════════════════════════
+   SHARED RUNTIME SURFACES
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.xt-runtime-hud {
+  display: flex;
+  min-width: min(100%, 248px);
+  max-width: 280px;
+}
+
+.xt-runtime-hud--compact {
+  min-width: min(100%, 220px);
+  max-width: 240px;
+}
+
+.xt-runtime-hud-card,
+.xt-runtime-relay,
+.xt-runtime-console,
+.xt-runtime-package-card,
+.xt-runtime-monitor {
+  border-radius: 8px;
+  border: 1px solid color-mix(in srgb, var(--app-accent) 12%, rgba(255, 255, 255, 0.06));
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--app-panel-2) 88%, rgba(4, 6, 10, 0.8)),
+    color-mix(in srgb, var(--app-panel) 82%, rgba(3, 4, 8, 0.92))
+  );
+  box-shadow: 0 24px 84px -42px rgba(0, 0, 0, 0.82);
+  backdrop-filter: blur(16px);
+}
+
+.xt-runtime-hud-card {
+  width: 100%;
+  padding: 10px 12px;
+}
+
+.xt-runtime-hud-card--compact {
+  padding: 8px 10px;
+}
+
+.xt-runtime-hud-card[data-tone='ready'] {
+  border-color: color-mix(in srgb, var(--app-accent) 34%, transparent);
+}
+
+.xt-runtime-hud-card[data-tone='error'] {
+  border-color: rgba(248, 113, 113, 0.42);
+  background: linear-gradient(180deg, rgba(38, 10, 10, 0.9), rgba(16, 6, 6, 0.94));
+}
+
+.xt-runtime-hud-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.xt-runtime-hud-label,
+.xt-runtime-console-kicker,
+.xt-runtime-relay-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--app-accent);
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+}
+
+.xt-runtime-hud-chip,
+.xt-runtime-console-indicator,
+.xt-runtime-package-badge,
+.xt-runtime-relay-badge,
+.xt-runtime-relay-tag,
+.xt-runtime-scenario-state {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  border: 1px solid color-mix(in srgb, var(--app-accent) 22%, transparent);
+  background: color-mix(in srgb, var(--app-accent) 10%, transparent);
+  padding: 6px 9px;
+  color: var(--app-accent);
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.xt-runtime-hud-status,
+.xt-runtime-monitor-title,
+.xt-runtime-package-title,
+.xt-runtime-relay-title {
+  margin-top: 8px;
+  color: var(--app-text);
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+.xt-runtime-hud-meta,
+.xt-runtime-relay-meta,
+.xt-runtime-monitor-subtitle,
+.xt-runtime-monitor-row,
+.xt-runtime-package-copy,
+.xt-runtime-console-copy,
+.xt-runtime-scenario-detail,
+.xt-runtime-scenario-time,
+.xt-runtime-expected {
+  margin-top: 8px;
+  color: var(--app-muted);
+  font-size: 11px;
+  line-height: 1.55;
+}
+
+.xt-runtime-hud-meta,
+.xt-runtime-hud-meta--subtle,
+.xt-runtime-relay-meta,
+.xt-runtime-relay-meta--subtle {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.xt-runtime-hud-meta,
+.xt-runtime-relay-badge {
+  margin-top: 10px;
+}
+
+.xt-runtime-hud-meta--compact {
+  margin-top: 6px;
+  gap: 8px;
+  font-size: 10px;
+  line-height: 1.35;
+}
+
+.xt-runtime-hud-meta--subtle,
+.xt-runtime-relay-meta--subtle {
+  color: color-mix(in srgb, var(--app-text) 44%, transparent);
+}
+
+.xt-runtime-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  border: 1px solid color-mix(in srgb, var(--app-accent) 16%, rgba(255, 255, 255, 0.08));
+  background: linear-gradient(180deg, rgba(9, 11, 18, 0.86), rgba(5, 7, 12, 0.92));
+  padding: 10px 12px;
+  color: rgba(255, 255, 255, 0.76);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  transition: border-color 220ms ease-out, background 220ms ease-out, color 220ms ease-out, transform 220ms ease-out;
+}
+
+.xt-runtime-action:hover {
+  transform: translateY(-1px);
+  border-color: color-mix(in srgb, var(--app-accent) 34%, transparent);
+  color: var(--app-accent);
+}
+
+.xt-runtime-action--compact {
+  min-width: 34px;
+  min-height: 34px;
+  padding: 0;
+}
+
+.xt-runtime-relay {
+  max-width: 296px;
+  padding: 11px 12px;
+  pointer-events: auto;
+}
+
+.xt-runtime-relay-copy {
+  margin-top: 6px;
+  color: color-mix(in srgb, var(--app-text) 64%, transparent);
+  font-size: 10px;
+  line-height: 1.45;
+}
+
+.xt-runtime-console,
+.xt-runtime-monitor {
+  padding: 16px;
+}
+
+.xt-runtime-console--summary {
+  padding: 18px;
+}
+
+.xt-runtime-console--inline {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.xt-runtime-console-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.xt-runtime-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.xt-runtime-field {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--app-muted);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.xt-runtime-field--push {
+  margin-left: auto;
+}
+
+.xt-runtime-select {
+  border-radius: 6px;
+  border: 1px solid color-mix(in srgb, var(--app-accent) 12%, rgba(255, 255, 255, 0.08));
+  background: linear-gradient(180deg, rgba(10, 12, 18, 0.9), rgba(6, 8, 12, 0.96));
+  padding: 7px 10px;
+  color: var(--app-text);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  outline: none;
+  transition: border-color 220ms ease-out, color 220ms ease-out, background 220ms ease-out;
+}
+
+.xt-runtime-select:hover,
+.xt-runtime-select:focus {
+  border-color: color-mix(in srgb, var(--app-accent) 28%, transparent);
+}
+
+.xt-runtime-console-grid,
+.xt-runtime-package-grid {
+  margin-top: 16px;
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.xt-runtime-summary-grid {
+  margin-top: 16px;
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.xt-runtime-summary-grid--package {
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.xt-runtime-summary-grid--runtime {
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+}
+
+.xt-runtime-summary-card {
+  border-radius: 8px;
+  border: 1px solid color-mix(in srgb, var(--app-accent) 10%, rgba(255, 255, 255, 0.08));
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.025), rgba(255, 255, 255, 0.012));
+  padding: 16px;
+}
+
+.xt-runtime-summary-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.xt-runtime-summary-icon {
+  display: inline-flex;
+  height: 36px;
+  width: 36px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  border: 1px solid color-mix(in srgb, var(--app-accent) 18%, rgba(255, 255, 255, 0.06));
+  background: color-mix(in srgb, var(--app-accent) 10%, transparent);
+  color: var(--app-accent);
+}
+
+.xt-runtime-summary-label {
+  color: var(--app-muted);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+.xt-runtime-summary-value {
+  margin-top: 6px;
+  color: var(--app-text);
+  font-size: 17px;
+  font-weight: 600;
+}
+
+.xt-runtime-summary-detail {
+  margin-top: 12px;
+  color: var(--app-muted);
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.xt-workspace-cue__checkpoint {
+  gap: 10px;
+}
+
+.xt-workspace-cue__checkpoint-meta {
+  margin-left: auto;
+  color: var(--app-muted);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.xt-workspace-cue__checkpoint-outcome,
+.xt-shell-transition-note__checkpoint-outcome {
+  display: grid;
+  gap: 4px;
+  padding: 10px 12px;
+  border-radius: 6px;
+  border: 1px solid color-mix(in srgb, var(--app-accent) 14%, rgba(255, 255, 255, 0.08));
+  background: color-mix(in srgb, var(--app-accent) 8%, transparent);
+}
+
+.xt-workspace-cue__checkpoint-outcome-label,
+.xt-shell-transition-note__checkpoint-outcome-label {
+  color: var(--app-accent);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+.xt-workspace-cue__checkpoint-outcome-detail,
+.xt-shell-transition-note__checkpoint-outcome-detail {
+  color: var(--app-text);
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.xt-workspace-cue__action-confirmation {
+  border-color: color-mix(in srgb, var(--app-accent) 16%, rgba(255, 255, 255, 0.08));
+  background: linear-gradient(180deg, color-mix(in srgb, var(--app-accent) 8%, rgba(255, 255, 255, 0.02)), rgba(255, 255, 255, 0.012));
+}
+
+.xt-workspace-cue__checkpoint-bar,
+.xt-shell-transition-note__checkpoint-bar {
+  overflow: hidden;
+  height: 6px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--app-muted) 16%, transparent);
+}
+
+.xt-workspace-cue__checkpoint-fill,
+.xt-shell-transition-note__checkpoint-fill {
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, color-mix(in srgb, var(--app-accent) 54%, transparent), var(--app-accent));
+}
+
+.xt-runtime-director {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: minmax(0, 1.2fr) minmax(320px, 0.88fr);
+  align-items: start;
+}
+
+.xt-runtime-stage-column,
+.xt-runtime-console-stack {
+  display: grid;
+  gap: 16px;
+}
+
+.xt-runtime-stage-shell {
+  display: grid;
+  gap: 14px;
+}
+
+.xt-runtime-stage-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.xt-runtime-package-strip {
+  margin-top: 16px;
+  display: grid;
+  gap: 12px;
+  border: 1px solid color-mix(in srgb, var(--app-accent) 10%, rgba(255, 255, 255, 0.08));
+  border-radius: 8px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.025), rgba(255, 255, 255, 0.012));
+  padding: 14px 16px;
+}
+
+.xt-runtime-package-strip-head {
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+}
+
+.xt-runtime-package-strip-tags,
+.xt-runtime-stage-tags,
+.xt-runtime-chip-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.xt-runtime-scenario-card {
+  border-radius: 8px;
+  border: 1px solid color-mix(in srgb, var(--app-accent) 10%, rgba(255, 255, 255, 0.08));
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.015));
+  padding: 14px;
+  text-align: left;
+  transition: border-color 220ms ease-out, background 220ms ease-out, transform 220ms ease-out;
+}
+
+.xt-runtime-scenario-card:hover {
+  transform: translateY(-1px);
+  border-color: color-mix(in srgb, var(--app-accent) 24%, transparent);
+}
+
+.xt-runtime-scenario-card.is-active,
+.xt-runtime-scenario-card.is-ready {
+  border-color: color-mix(in srgb, var(--app-accent) 34%, transparent);
+  background: color-mix(in srgb, var(--app-accent) 10%, transparent);
+}
+
+.xt-runtime-scenario-card--capture {
+  background: linear-gradient(180deg, color-mix(in srgb, var(--app-panel-2) 78%, transparent), rgba(255, 255, 255, 0.015));
+}
+
+.xt-runtime-scenario-title {
+  color: var(--app-text);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.xt-runtime-scenario-event {
+  margin-top: 8px;
+  color: var(--app-accent);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.xt-runtime-checklist {
+  margin-top: 12px;
+  display: grid;
+  gap: 4px;
+  color: var(--app-muted);
+  font-size: 12px;
+}
+
+.xt-runtime-monitor-row--warning {
+  color: #ffb39c;
+}
+
+.xt-admin-preview-stage {
+  position: relative;
+  border-radius: 8px;
+  border: 1px solid color-mix(in srgb, var(--app-accent) 18%, rgba(255, 255, 255, 0.08));
+  background:
+    radial-gradient(circle at top left, color-mix(in srgb, var(--app-accent) 8%, transparent), transparent 34%),
+    linear-gradient(180deg, rgba(6, 8, 12, 0.94), rgba(3, 4, 7, 0.98));
+  box-shadow: 0 30px 92px -44px rgba(0, 0, 0, 0.88);
+}
+
+@media (max-width: 1180px) {
+  .xt-runtime-director {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   ADMIN / CREATIVE OPS COMMAND SURFACES
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.xt-admin-shell {
+  background:
+    radial-gradient(circle at top left, color-mix(in srgb, var(--app-accent) 6%, transparent), transparent 28%),
+    linear-gradient(180deg, rgba(8, 10, 16, 0.76), rgba(4, 5, 9, 0));
+}
+
+.xt-admin-card {
+  border-radius: 8px;
+  border: 1px solid color-mix(in srgb, var(--app-accent) 12%, rgba(255, 255, 255, 0.06));
+  background: linear-gradient(180deg, color-mix(in srgb, var(--app-panel-2) 88%, transparent), color-mix(in srgb, var(--app-panel) 80%, transparent));
+  box-shadow: 0 24px 84px -42px rgba(0, 0, 0, 0.82);
+}
+
+.xt-admin-summary-icon {
+  display: flex;
+  height: 40px;
+  width: 40px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  border: 1px solid color-mix(in srgb, var(--app-accent) 18%, rgba(255, 255, 255, 0.06));
+  background: color-mix(in srgb, var(--app-panel-2) 94%, transparent);
+  color: var(--app-accent);
+}
+
+.xt-admin-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  border: 1px solid color-mix(in srgb, var(--app-accent) 12%, rgba(255, 255, 255, 0.08));
+  padding: 8px 12px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  transition: border-color 220ms ease-out, background 220ms ease-out, color 220ms ease-out, transform 220ms ease-out;
+}
+
+.xt-admin-pill:hover {
+  transform: translateY(-1px);
+}
+
+.xt-admin-chip {
+  border-radius: 4px;
+  border: 1px solid var(--app-border);
+  background: color-mix(in srgb, var(--app-panel) 74%, transparent);
+  padding: 8px 12px;
+  color: var(--app-text);
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+.xt-admin-chip--accent {
+  border-color: color-mix(in srgb, var(--app-accent) 42%, transparent);
+  background: color-mix(in srgb, var(--app-accent) 12%, transparent);
+  color: var(--app-accent);
+}
+
+.xt-admin-lens,
+.xt-admin-preview-stage,
+.xt-admin-list-row {
+  border-radius: 8px;
+}
+
+.xt-admin-tabbar {
+  align-items: center;
+  border-bottom: 1px solid color-mix(in srgb, var(--app-accent) 12%, rgba(255, 255, 255, 0.04));
+  padding-bottom: 12px;
+}
+
+.xt-admin-hero {
+  border-color: color-mix(in srgb, var(--app-accent) 18%, rgba(255, 255, 255, 0.06));
+}
+
+.xt-admin-hero-inner {
+  background:
+    radial-gradient(circle at top left, color-mix(in srgb, var(--app-accent) 16%, transparent), transparent 34%),
+    linear-gradient(135deg, color-mix(in srgb, var(--app-panel-2) 92%, transparent), color-mix(in srgb, var(--app-panel) 78%, transparent));
+}
+
+.xt-creative-card {
+  border-radius: 8px;
+  border: 1px solid color-mix(in srgb, var(--app-accent) 10%, rgba(255, 255, 255, 0.08));
+  background: linear-gradient(180deg, color-mix(in srgb, var(--app-panel-2) 88%, transparent), color-mix(in srgb, var(--app-panel) 82%, transparent));
+  padding: 16px;
+  transition: border-color 220ms ease-out, background 220ms ease-out;
+}
+
+.xt-creative-card--selected {
+  border-color: color-mix(in srgb, var(--app-accent) 44%, transparent);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--app-accent) 12%, transparent), color-mix(in srgb, var(--app-panel) 82%, transparent));
+}
+
+.xt-creative-card-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.xt-creative-card-title {
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--app-text);
+}
+
+.xt-creative-card-kicker {
+  margin-top: 4px;
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--app-muted);
+}
+
+.xt-creative-card-copy,
+.xt-creative-card-runtime,
+.xt-creative-note {
+  margin-top: 12px;
+  max-width: 68ch;
+  font-size: 13px;
+  line-height: 1.7;
+  color: var(--app-muted);
+}
+
+.xt-creative-card-runtime {
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.xt-creative-field-grid {
+  display: grid;
+  gap: 12px;
+  margin-top: 16px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.xt-creative-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--app-muted);
+}
+
+.xt-creative-select {
+  border-radius: 6px;
+  border: 1px solid color-mix(in srgb, var(--app-accent) 10%, rgba(255, 255, 255, 0.08));
+  background: color-mix(in srgb, var(--app-panel) 94%, transparent);
+  padding: 10px 12px;
+  font-size: 13px;
+  color: var(--app-text);
+  outline: none;
+  transition: border-color 220ms ease-out, background 220ms ease-out;
+}
+
+.xt-creative-select:hover,
+.xt-creative-select:focus {
+  border-color: color-mix(in srgb, var(--app-accent) 38%, transparent);
+  background: color-mix(in srgb, var(--app-panel) 98%, transparent);
+}
+
+.xt-creative-action-row,
+.xt-creative-tag-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.xt-creative-tag {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  border: 1px solid var(--app-border);
+  padding: 6px 10px;
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--app-text);
+}
+
+.xt-creative-tag--accent {
+  border-color: color-mix(in srgb, var(--app-accent) 42%, transparent);
+  color: var(--app-accent);
+}
+
+.xt-creative-tag--warn {
+  border-color: rgba(251, 191, 36, 0.4);
+  color: #fbd38d;
+}
+
+.xt-creative-note {
+  border-radius: 8px;
+  border: 1px solid color-mix(in srgb, var(--app-accent) 10%, rgba(255, 255, 255, 0.08));
+  background: color-mix(in srgb, var(--app-panel-2) 76%, transparent);
+  padding: 14px 16px;
+}
+
+@media (max-width: 960px) {
+  .xt-creative-field-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   LAB COMMAND SURFACES
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.xt-lab-shell {
+  background:
+    radial-gradient(circle at top left, color-mix(in srgb, var(--app-accent) 8%, transparent), transparent 28%),
+    linear-gradient(180deg, rgba(10, 12, 18, 0.96), rgba(9, 10, 15, 0.98));
+}
+
+.xt-lab-card {
+  border-radius: 8px;
+  border: 1px solid color-mix(in srgb, var(--app-accent) 12%, rgba(255, 255, 255, 0.06));
+  background: linear-gradient(180deg, color-mix(in srgb, var(--app-panel-2) 88%, transparent), color-mix(in srgb, var(--app-panel) 80%, transparent));
+  box-shadow: 0 24px 84px -42px rgba(0, 0, 0, 0.82);
+}
+
+.xt-lab-hero {
+  border-radius: 8px;
+  border: 1px solid color-mix(in srgb, var(--app-accent) 16%, rgba(255, 255, 255, 0.06));
+  background:
+    radial-gradient(circle at top left, color-mix(in srgb, var(--app-accent) 14%, transparent), transparent 34%),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0.01));
+  box-shadow: 0 28px 84px -40px rgba(0, 0, 0, 0.88);
+}
+
+.xt-lab-summary,
+.xt-lab-mini-stat,
+.xt-lab-worktile,
+.xt-lab-brief {
+  border-radius: 8px;
+  border: 1px solid color-mix(in srgb, var(--app-accent) 10%, rgba(255, 255, 255, 0.06));
+  background: color-mix(in srgb, var(--app-panel-2) 78%, transparent);
+}
+
+.xt-lab-summary-icon {
+  display: inline-flex;
+  height: 40px;
+  width: 40px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  border: 1px solid color-mix(in srgb, var(--app-accent) 24%, transparent);
+  background: color-mix(in srgb, var(--app-accent) 12%, transparent);
+  color: var(--app-accent);
+}
+
+.xt-lab-section-pill {
+  border-radius: 8px;
+}
+
+.xt-lab-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  padding: 8px 12px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  transition: border-color 220ms ease-out, background 220ms ease-out, color 220ms ease-out, transform 220ms ease-out;
+}
+
+.xt-lab-action:hover {
+  transform: translateY(-1px);
+}
+
+.xt-lab-detail-card,
+.xt-lab-detail-panel {
+  border-radius: 8px;
+  border: 1px solid color-mix(in srgb, var(--app-accent) 10%, rgba(255, 255, 255, 0.06));
+  background: linear-gradient(180deg, color-mix(in srgb, var(--app-panel-2) 82%, transparent), color-mix(in srgb, var(--app-panel) 78%, transparent));
+  box-shadow: 0 22px 72px -44px rgba(0, 0, 0, 0.82);
+}
+
+.xt-lab-list-card {
+  border-radius: 8px;
+  border: 1px solid color-mix(in srgb, var(--app-accent) 10%, rgba(255, 255, 255, 0.06));
+  background: color-mix(in srgb, var(--app-panel-2) 74%, transparent);
+  transition: border-color 220ms ease-out, background 220ms ease-out, transform 220ms ease-out;
+}
+
+.xt-lab-list-card:hover {
+  border-color: color-mix(in srgb, var(--app-accent) 24%, rgba(255, 255, 255, 0.08));
+  transform: translateY(-1px);
+}
+
+.xt-lab-list-card.is-active {
+  border-color: color-mix(in srgb, var(--app-accent) 48%, transparent);
+  background: color-mix(in srgb, var(--app-accent) 12%, transparent);
+}
+
+.xt-lab-icon-button {
+  display: inline-flex;
+  height: 40px;
+  width: 40px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  border: 1px solid color-mix(in srgb, var(--app-accent) 12%, rgba(255, 255, 255, 0.06));
+  background: color-mix(in srgb, var(--app-panel-2) 72%, transparent);
+  color: var(--app-muted);
+  transition: border-color 220ms ease-out, color 220ms ease-out, background 220ms ease-out, transform 220ms ease-out;
+}
+
+.xt-lab-icon-button:hover {
+  border-color: color-mix(in srgb, var(--app-accent) 28%, transparent);
+  color: var(--app-accent);
+  transform: translateY(-1px);
+}
+
+.xt-lab-input,
+.xt-lab-textarea {
+  border-radius: 6px;
+  border: 1px solid color-mix(in srgb, var(--app-accent) 10%, rgba(255, 255, 255, 0.06));
+  background: color-mix(in srgb, var(--app-panel) 80%, transparent);
+  padding: 10px 12px;
+  font-size: 13px;
+  color: var(--app-text);
+  outline: none;
+  transition: border-color 220ms ease-out, background 220ms ease-out, box-shadow 220ms ease-out;
+}
+
+.xt-lab-input:focus,
+.xt-lab-textarea:focus {
+  border-color: color-mix(in srgb, var(--app-accent) 44%, transparent);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--app-accent) 20%, transparent);
+}
+
+.xt-lab-textarea {
+  line-height: 1.7;
+  resize: vertical;
+}
+
+.xt-lab-inline-chip {
+  border-radius: 6px;
+  border: 1px solid color-mix(in srgb, var(--app-accent) 12%, rgba(255, 255, 255, 0.06));
+  background: color-mix(in srgb, var(--app-panel-2) 74%, transparent);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   SETTINGS COMMAND SURFACES
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.xt-settings-shell {
+  background:
+    radial-gradient(circle at top left, color-mix(in srgb, var(--app-accent) 6%, transparent), transparent 28%),
+    linear-gradient(180deg, rgba(8, 10, 16, 0.72), rgba(4, 5, 9, 0));
+}
+
+.xt-settings-hero {
+  border-bottom: 1px solid color-mix(in srgb, var(--app-accent) 12%, rgba(255, 255, 255, 0.04));
+}
+
+.xt-settings-hero-icon,
+.xt-settings-card,
+.xt-settings-panel {
+  border-radius: 8px;
+  border: 1px solid color-mix(in srgb, var(--app-accent) 12%, rgba(255, 255, 255, 0.06));
+}
+
+.xt-settings-hero-icon {
+  background: color-mix(in srgb, var(--app-panel-2) 86%, transparent);
+}
+
+.xt-settings-card {
+  background: color-mix(in srgb, var(--app-panel-2) 78%, transparent);
+}
+
+.xt-settings-panel {
+  box-shadow: 0 24px 84px -42px rgba(0, 0, 0, 0.82);
+}
+
+.xt-settings-pill,
+.xt-settings-chip {
+  border-radius: 6px;
+  padding: 8px 12px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.xt-settings-pill {
+  transition: border-color 220ms ease-out, background 220ms ease-out, color 220ms ease-out, transform 220ms ease-out;
+}
+
+.xt-settings-pill:hover {
+  transform: translateY(-1px);
+}
+
+.xt-settings-shell .ui-pressable {
+  border-radius: 6px;
+  transition: border-color 220ms ease-out, background 220ms ease-out, color 220ms ease-out, transform 220ms ease-out;
+}
+
+.xt-settings-shell .ui-pressable:hover {
+  transform: translateY(-1px);
+}
+
+.xt-settings-shell input:not([type='checkbox']):not([type='radio']):not([type='file']),
+.xt-settings-shell select,
+.xt-settings-shell textarea {
+  border-radius: 6px !important;
+  border-color: color-mix(in srgb, var(--app-accent) 10%, rgba(255, 255, 255, 0.06)) !important;
+  background: color-mix(in srgb, var(--app-panel) 82%, transparent) !important;
+  color: var(--app-text) !important;
+  transition: border-color 220ms ease-out, background 220ms ease-out, box-shadow 220ms ease-out, transform 220ms ease-out;
+}
+
+.xt-settings-shell input:not([type='checkbox']):not([type='radio']):not([type='file']):focus,
+.xt-settings-shell select:focus,
+.xt-settings-shell textarea:focus {
+  border-color: color-mix(in srgb, var(--app-accent) 40%, transparent) !important;
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--app-accent) 18%, transparent);
+}
+
+.xt-settings-shell textarea {
+  line-height: 1.7;
+}
+
+.xt-settings-shell [class*='border-dashed'] {
+  border-color: color-mix(in srgb, var(--app-accent) 16%, rgba(255, 255, 255, 0.08)) !important;
+}
+
+.xt-settings-shell [class*='bg-[var(--app-panel-2)]'],
+.xt-settings-shell [class*='bg-[var(--app-panel)]'] {
+  box-shadow: 0 18px 56px -40px rgba(0, 0, 0, 0.78);
+}
+
+.xt-settings-chip {
+  border: 1px solid var(--app-border);
+  color: var(--app-muted);
+}
+
+.xt-settings-chip--accent {
+  border-color: color-mix(in srgb, var(--app-accent) 40%, transparent);
+  color: var(--app-accent);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   STORE COMMAND SURFACES
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.xt-store-shell {
+  background:
+    radial-gradient(circle at top left, color-mix(in srgb, var(--app-accent) 10%, transparent), transparent 26%),
+    linear-gradient(180deg, rgba(10, 12, 18, 0.96), rgba(9, 10, 15, 0.98));
+}
+
+.xt-store-hero,
+.xt-store-card,
+.xt-store-stat,
+.xt-store-bar,
+.xt-store-item,
+.xt-store-modal {
+  border-radius: 8px;
+  border: 1px solid color-mix(in srgb, var(--app-accent) 12%, rgba(255, 255, 255, 0.06));
+  background: linear-gradient(180deg, color-mix(in srgb, var(--app-panel-2) 86%, transparent), color-mix(in srgb, var(--app-panel) 80%, transparent));
+}
+
+.xt-store-hero,
+.xt-store-modal {
+  box-shadow: 0 28px 84px -40px rgba(0, 0, 0, 0.86);
+}
+
+.xt-store-item {
+  transition: border-color 220ms ease-out, transform 220ms ease-out, background 220ms ease-out;
+}
+
+.xt-store-item:hover {
+  border-color: color-mix(in srgb, var(--app-accent) 24%, rgba(255, 255, 255, 0.08));
+  transform: translateY(-1px);
+}
+
+.xt-store-chip {
+  border-radius: 6px;
+}
+
+.xt-store-action {
+  border-radius: 6px;
+  transition: border-color 220ms ease-out, background 220ms ease-out, color 220ms ease-out, transform 220ms ease-out;
+}
+
+.xt-store-action:hover {
+  transform: translateY(-1px);
+}
+
+.xt-store-input {
+  color: var(--app-text);
+}
+
+.xt-store-input::placeholder {
+  color: var(--app-muted);
+}
+
+.xt-store-icon-btn {
+  border-radius: 6px;
+  border: 1px solid color-mix(in srgb, var(--app-border) 72%, transparent);
+  background: color-mix(in srgb, var(--app-panel) 84%, black 16%);
+  transition: border-color 220ms ease-out, color 220ms ease-out, background 220ms ease-out;
+}
+
+.xt-store-icon-btn:hover {
+  border-color: color-mix(in srgb, var(--app-accent) 28%, transparent);
+  background: color-mix(in srgb, var(--app-panel-2) 62%, white 4%);
+}
+
+.xt-store-link {
+  transition: color 220ms ease-out, opacity 220ms ease-out;
+}
+
+.xt-store-link:hover {
+  color: var(--app-text);
+}
+
+.xt-store-highlight {
+  border-radius: 6px;
+  border: 1px solid color-mix(in srgb, var(--app-border) 70%, transparent);
+  background: color-mix(in srgb, var(--app-panel-2) 76%, black 24%);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   INVENTORY COMMAND SURFACES
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.xt-inventory-shell {
+  background:
+    radial-gradient(circle at top left, color-mix(in srgb, var(--app-accent) 7%, transparent), transparent 24%),
+    linear-gradient(180deg, rgba(8, 10, 16, 0.78), rgba(4, 5, 9, 0));
+}
+
+.xt-inventory-header {
+  border-bottom: 1px solid color-mix(in srgb, var(--app-accent) 12%, rgba(255, 255, 255, 0.05));
+}
+
+.xt-inventory-nav {
+  gap: 12px;
+}
+
+.xt-inventory-nav-btn,
+.xt-inventory-icon-btn,
+.xt-inventory-chip,
+.xt-inventory-ledger-row,
+.xt-inventory-system-item,
+.xt-inventory-preview,
+.xt-inventory-detail-card,
+.xt-inventory-system-card,
+.xt-inventory-viewer {
+  border-radius: 8px;
+}
+
+.xt-inventory-nav-btn,
+.xt-inventory-preview,
+.xt-inventory-detail-card,
+.xt-inventory-system-card,
+.xt-inventory-system-item,
+.xt-inventory-viewer,
+.xt-inventory-ledger-row {
+  border: 1px solid color-mix(in srgb, var(--app-accent) 10%, rgba(255, 255, 255, 0.06)) !important;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--app-panel-2) 82%, transparent), color-mix(in srgb, var(--app-panel) 78%, transparent)) !important;
+  box-shadow: 0 20px 64px -44px rgba(0, 0, 0, 0.82);
+}
+
+.xt-inventory-nav-btn {
+  transition: border-color 220ms ease-out, color 220ms ease-out, background 220ms ease-out, transform 220ms ease-out;
+}
+
+.xt-inventory-nav-btn:hover,
+.xt-inventory-icon-btn:hover {
+  transform: translateY(-1px);
+}
+
+.xt-inventory-icon-btn {
+  border-radius: 6px;
+  border: 1px solid color-mix(in srgb, var(--app-accent) 10%, rgba(255, 255, 255, 0.06));
+  background: color-mix(in srgb, var(--app-panel-2) 78%, transparent);
+  transition: border-color 220ms ease-out, color 220ms ease-out, background 220ms ease-out, transform 220ms ease-out;
+}
+
+.xt-inventory-icon-btn:hover {
+  border-color: color-mix(in srgb, var(--app-accent) 28%, rgba(255, 255, 255, 0.08));
+  color: var(--app-accent);
+}
+
+.xt-inventory-input {
+  border-radius: 6px;
+  border: 1px solid color-mix(in srgb, var(--app-accent) 10%, rgba(255, 255, 255, 0.06));
+  background: color-mix(in srgb, var(--app-panel) 82%, transparent);
+  outline: none;
+  transition: border-color 220ms ease-out, box-shadow 220ms ease-out;
+}
+
+.xt-inventory-input:focus {
+  border-color: color-mix(in srgb, var(--app-accent) 42%, transparent);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--app-accent) 18%, transparent);
+}
+
+.xt-inventory-chip {
+  border: 1px solid color-mix(in srgb, var(--app-accent) 10%, rgba(255, 255, 255, 0.06));
+  background: color-mix(in srgb, var(--app-panel-2) 74%, transparent);
+}
+
+.xt-inventory-textarea {
+  min-height: 112px;
+  resize: vertical;
+}
+
+.xt-inventory-action {
+  border-radius: 6px;
+  border: 1px solid color-mix(in srgb, var(--app-border) 72%, transparent);
+  background: color-mix(in srgb, var(--app-panel) 84%, black 16%);
+  transition: border-color 220ms ease-out, color 220ms ease-out, background 220ms ease-out, transform 220ms ease-out;
+}
+
+.xt-inventory-action:hover {
+  border-color: color-mix(in srgb, var(--app-accent) 28%, rgba(255, 255, 255, 0.08));
+  background: color-mix(in srgb, var(--app-panel-2) 62%, white 4%);
+  transform: translateY(-1px);
+}
+
+.xt-inventory-attachment {
+  border-radius: 8px;
+  border: 1px solid color-mix(in srgb, var(--app-border) 72%, transparent);
+  background: color-mix(in srgb, var(--app-panel) 82%, black 18%);
+  transition: border-color 220ms ease-out, background 220ms ease-out, transform 220ms ease-out;
+}
+
+.xt-inventory-attachment:hover {
+  border-color: color-mix(in srgb, var(--app-accent) 22%, rgba(255, 255, 255, 0.08));
+  background: color-mix(in srgb, var(--app-panel-2) 62%, white 4%);
+  transform: translateY(-1px);
+}
+
+/* DUSK COMMAND SURFACES */
+
+.xt-dusk-shell {
+  border-left: 1px solid color-mix(in srgb, var(--app-border) 72%, transparent);
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--app-bg) 94%, black 6%) 0%, color-mix(in srgb, #050608 92%, var(--app-bg) 8%) 100%);
+  box-shadow: -18px 0 44px rgba(0, 0, 0, 0.34);
+  backdrop-filter: blur(10px);
+}
+
+.xt-dusk-header {
+  border-bottom: 1px solid color-mix(in srgb, var(--app-border) 74%, transparent);
+  background: color-mix(in srgb, var(--app-panel) 84%, black 16%);
+}
+
+.xt-dusk-section,
+.xt-dusk-subcard,
+.xt-dusk-filterbar,
+.xt-dusk-empty,
+.xt-dusk-toast {
+  border-radius: 8px;
+  border: 1px solid color-mix(in srgb, var(--app-border) 74%, transparent);
+  background: color-mix(in srgb, var(--app-panel) 82%, black 18%);
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.18);
+}
+
+.xt-dusk-section--accent {
+  border-color: color-mix(in srgb, var(--app-accent) 24%, transparent);
+  background: color-mix(in srgb, var(--app-panel) 72%, var(--app-accent) 8%);
+}
+
+.xt-dusk-subcard {
+  background: color-mix(in srgb, var(--app-panel-2) 78%, black 22%);
+}
+
+.xt-dusk-subcard--action:hover {
+  border-color: color-mix(in srgb, var(--app-border) 96%, transparent);
+  background: color-mix(in srgb, var(--app-panel-2) 62%, white 4%);
+}
+
+.xt-dusk-subcard--accent {
+  border-color: color-mix(in srgb, var(--app-accent) 32%, transparent);
+  background: color-mix(in srgb, var(--app-panel) 70%, var(--app-accent) 10%);
+}
+
+.xt-dusk-subcard--accent:hover {
+  background: color-mix(in srgb, var(--app-panel) 62%, var(--app-accent) 14%);
+}
+
+.xt-dusk-subcard--alert {
+  border-color: color-mix(in srgb, #ff6b6b 28%, transparent);
+  background: color-mix(in srgb, var(--app-panel) 78%, #7b1113 16%);
+}
+
+.xt-dusk-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.3rem;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--app-border) 70%, transparent);
+  background: color-mix(in srgb, var(--app-panel) 86%, black 14%);
+  padding: 0.28rem 0.65rem;
+  font-size: 10px;
+  line-height: 1;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--app-muted);
+}
+
+.xt-dusk-chip--accent {
+  border-color: color-mix(in srgb, var(--app-accent) 28%, transparent);
+  background: color-mix(in srgb, var(--app-panel) 72%, var(--app-accent) 10%);
+  color: var(--app-text);
+}
+
+.xt-dusk-btn,
+.xt-dusk-icon-btn,
+.xt-dusk-filter {
+  border-radius: 6px;
+  border: 1px solid color-mix(in srgb, var(--app-border) 74%, transparent);
+  background: color-mix(in srgb, var(--app-panel) 86%, black 14%);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.02);
+  transition:
+    border-color 220ms ease-out,
+    background-color 220ms ease-out,
+    color 220ms ease-out,
+    transform 220ms ease-out;
+}
+
+.xt-dusk-btn:hover,
+.xt-dusk-icon-btn:hover,
+.xt-dusk-filter:hover {
+  border-color: color-mix(in srgb, var(--app-border) 96%, transparent);
+  background: color-mix(in srgb, var(--app-panel-2) 60%, white 4%);
+}
+
+.xt-dusk-btn--accent {
+  border-color: color-mix(in srgb, var(--app-accent) 38%, transparent);
+  background: color-mix(in srgb, var(--app-panel) 68%, var(--app-accent) 12%);
+}
+
+.xt-dusk-btn--accent:hover {
+  background: color-mix(in srgb, var(--app-panel) 60%, var(--app-accent) 16%);
+}
+
+.xt-dusk-icon-btn {
+  background: color-mix(in srgb, var(--app-panel-2) 78%, black 22%);
+}
+
+.xt-dusk-filterbar {
+  background: color-mix(in srgb, var(--app-panel) 72%, black 28%);
+}
+
+.xt-dusk-filter {
+  background: transparent;
+  color: var(--app-muted);
+}
+
+.xt-dusk-filter.is-active {
+  border-color: color-mix(in srgb, var(--app-accent) 32%, transparent);
+  background: color-mix(in srgb, var(--app-panel) 62%, var(--app-accent) 14%);
+  color: var(--app-text);
+}
+
+.xt-dusk-textarea {
+  border-radius: 8px;
+  border: 1px solid color-mix(in srgb, var(--app-border) 74%, transparent);
+  background: color-mix(in srgb, var(--app-panel) 88%, black 12%);
+}
+
+.xt-dusk-textarea:focus {
+  border-color: color-mix(in srgb, var(--app-accent) 52%, transparent);
+}
+
+.xt-dusk-section-label {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  color: color-mix(in srgb, var(--app-muted) 88%, white 12%);
+}
+
+.xt-dusk-empty {
+  border-style: dashed;
+  background: color-mix(in srgb, var(--app-panel-2) 76%, black 24%);
+}
+
+.xt-dusk-toast {
+  background: color-mix(in srgb, var(--app-panel) 90%, black 10%);
+}
+
+/* SHARED CLIENT CHROME */
+
+.xt-topbar-shell {
+  background: color-mix(in srgb, var(--app-panel) 88%, black 12%);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-bottom: 1px solid color-mix(in srgb, var(--app-border) 74%, transparent);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.16);
+}
+
+.xt-topbar-rail {
+  border-left: 1px solid color-mix(in srgb, var(--app-border) 72%, transparent);
+  background: color-mix(in srgb, var(--app-panel) 84%, black 16%);
+}
+
+.xt-topbar-pill,
+.xt-topbar-keycap,
+.xt-topbar-btn,
+.xt-topbar-summary,
+.xt-topbar-status,
+.xt-topbar-avatar {
+  border-radius: 6px;
+  border: 1px solid color-mix(in srgb, var(--app-border) 72%, transparent);
+  background: color-mix(in srgb, var(--app-panel-2) 74%, black 26%);
+}
+
+.xt-topbar-dusk {
+  border-radius: 6px;
+}
+
+.xt-topbar-btn,
+.xt-topbar-keycap,
+.xt-topbar-icon {
+  transition: border-color 220ms ease-out, color 220ms ease-out, background 220ms ease-out, transform 220ms ease-out;
+}
+
+.xt-topbar-btn:hover,
+.xt-topbar-keycap:hover,
+.xt-topbar-icon:hover {
+  background: color-mix(in srgb, var(--app-panel-2) 60%, white 4%);
+}
+
+.xt-topbar-avatar {
+  border-color: color-mix(in srgb, var(--app-border) 72%, var(--app-text));
+}
+
+.xt-topbar-icon {
+  border-radius: 6px;
+}
+
+.xt-topbar-divider {
+  background: color-mix(in srgb, var(--app-border) 82%, transparent);
+}
+
+.xt-nav-tabs {
+  gap: 0;
+}
+
+.xt-nav-tab {
+  min-width: fit-content;
+  background: transparent;
+  color: var(--app-muted);
+  transition: background-color 220ms ease-out, color 220ms ease-out, border-color 220ms ease-out;
+}
+
+.xt-nav-tab[data-active='false']:hover {
+  color: var(--app-text);
+  background: color-mix(in srgb, var(--app-panel-2) 52%, white 2%);
+}
+
+.xt-nav-tab[data-active='true'] {
+  color: var(--app-text);
+  background: color-mix(in srgb, var(--app-panel) 58%, var(--app-accent) 12%);
+}
+
+.xt-nav-label {
+  white-space: nowrap;
+}
+
+.xt-nav-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 999px;
+  background: var(--app-accent);
+  box-shadow: 0 0 10px color-mix(in srgb, var(--app-accent) 32%, transparent);
+}
+
+.xt-nav-dot--idle {
+  background: color-mix(in srgb, var(--app-border) 88%, transparent);
+  box-shadow: none;
+}
+
+.xt-nav-rule {
+  background: color-mix(in srgb, var(--app-border) 78%, transparent);
+}
+
+.xt-nav-tab[data-active='true'] .xt-nav-rule {
+  background: color-mix(in srgb, var(--app-accent) 38%, transparent);
+}
+
+.xt-command-shell {
+  border-radius: 8px;
+  border: 1px solid color-mix(in srgb, var(--app-border) 72%, transparent);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--app-panel) 90%, black 10%), color-mix(in srgb, var(--app-panel-2) 86%, black 14%));
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.42);
+}
+
+.xt-command-header,
+.xt-command-footer {
+  border-bottom: 1px solid color-mix(in srgb, var(--app-border) 68%, transparent);
+}
+
+.xt-command-footer {
+  border-bottom: none;
+  border-top: 1px solid color-mix(in srgb, var(--app-border) 68%, transparent);
+  background: color-mix(in srgb, var(--app-panel) 84%, black 16%);
+}
+
+.xt-command-mark {
+  color: var(--app-accent);
+}
+
+.xt-command-key {
+  border-radius: 4px;
+  border: 1px solid color-mix(in srgb, var(--app-border) 72%, transparent);
+  background: color-mix(in srgb, var(--app-panel) 80%, black 20%);
+}
+
+.xt-command-group {
+  color: color-mix(in srgb, var(--app-muted) 88%, white 12%);
+}
+
+.xt-command-item {
+  position: relative;
+}
+
+.xt-command-item:hover {
+  background: color-mix(in srgb, var(--app-panel-2) 58%, white 3%);
+}
+
+.xt-command-item.is-active {
+  background: color-mix(in srgb, var(--app-panel) 60%, var(--app-accent) 14%);
+}
+
+.xt-command-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 999px;
+  background: var(--app-accent);
+}
+
+.xt-command-dot--idle {
+  background: transparent;
+}
+
+/* SHARED SHELL MOTION */
+
+.xt-shell-root {
+  transition:
+    background-image var(--app-motion-slow) var(--app-ease),
+    background-color var(--app-motion-slow) var(--app-ease),
+    color var(--app-motion-fast) var(--app-ease);
+}
+
+.xt-shell-main,
+.xt-shell-viewport {
+  transition: background-color var(--app-motion-med) var(--app-ease);
+}
+
+.xt-shell-stage {
+  height: 100%;
+  min-height: 100%;
+  width: 100%;
+}
+
+.xt-shell-transition-note {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 14px 18px;
+  align-items: center;
+  border-radius: 8px;
+  border: 1px solid color-mix(in srgb, var(--app-border) 82%, transparent);
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--app-panel) 92%, #050505), color-mix(in srgb, var(--app-panel-2) 84%, #040404));
+  box-shadow: 0 14px 42px rgba(0, 0, 0, 0.18);
+  padding: 12px 14px;
+}
+
+.xt-shell-transition-note--accent {
+  border-color: color-mix(in srgb, var(--app-accent) 34%, transparent);
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--app-accent) 10%, var(--app-panel)), color-mix(in srgb, var(--app-panel-2) 86%, #050505));
+}
+
+.xt-shell-transition-note--compact {
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px 14px;
+  padding: 10px 12px;
+}
+
+.xt-shell-transition-wrap--scene {
+  display: flex;
+  justify-content: flex-end;
+  padding: 12px 16px 0;
+  pointer-events: none;
+}
+
+.xt-shell-transition-wrap--scene .xt-shell-transition-note {
+  pointer-events: auto;
+}
+
+.xt-shell-transition-note--scene {
+  width: min(540px, 100%);
+  gap: 8px 14px;
+  padding: 10px 12px;
+  border-color: color-mix(in srgb, var(--app-border) 72%, transparent);
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--app-panel) 95%, #030303), color-mix(in srgb, var(--app-panel-2) 90%, #020202));
+  box-shadow: 0 18px 38px rgba(0, 0, 0, 0.22);
+}
+
+.xt-shell-transition-note__meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.xt-shell-transition-note__eyebrow,
+.xt-shell-transition-note__workspace,
+.xt-shell-transition-note__chip,
+.xt-shell-transition-note__dismiss {
+  font-size: 9px;
+  line-height: 1;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+}
+
+.xt-shell-transition-note__eyebrow {
+  color: var(--app-accent);
+}
+
+.xt-shell-transition-note__workspace {
+  color: var(--app-text);
+  padding-left: 10px;
+  border-left: 1px solid color-mix(in srgb, var(--app-border) 78%, transparent);
+}
+
+.xt-shell-transition-note__body {
+  min-width: 0;
+}
+
+.xt-shell-transition-note__title {
+  font-size: 13px;
+  line-height: 1.3;
+  font-weight: 600;
+  color: var(--app-text);
+}
+
+.xt-shell-transition-note__detail {
+  margin-top: 4px;
+  max-width: 84ch;
+  font-size: 11px;
+  line-height: 1.6;
+  color: var(--app-muted);
+}
+
+.xt-shell-transition-note--compact .xt-shell-transition-note__detail {
+  margin-top: 2px;
+  max-width: 48ch;
+  font-size: 10px;
+  line-height: 1.45;
+}
+
+.xt-shell-transition-note--scene .xt-shell-transition-note__title {
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.xt-shell-transition-note--scene .xt-shell-transition-note__workspace {
+  color: color-mix(in srgb, var(--app-accent) 82%, var(--app-text));
+}
+
+.xt-shell-transition-note--scene .xt-shell-transition-note__actions {
+  gap: 6px;
+}
+
+.xt-shell-transition-note__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  grid-column: 1 / 2;
+}
+
+.xt-shell-transition-note--compact .xt-shell-transition-note__chips {
+  gap: 6px;
+  align-items: center;
+}
+
+.xt-shell-transition-note__checkpoint {
+  display: grid;
+  gap: 8px;
+  grid-column: 1 / 2;
+  padding: 12px 14px;
+  border-radius: 8px;
+  border: 1px solid color-mix(in srgb, var(--app-accent) 12%, rgba(255, 255, 255, 0.08));
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.025), rgba(255, 255, 255, 0.012));
+}
+
+.xt-shell-transition-note__checkpoint-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.xt-shell-transition-note__checkpoint-label,
+.xt-shell-transition-note__checkpoint-meta {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.xt-shell-transition-note__checkpoint-label {
+  color: var(--app-text);
+}
+
+.xt-shell-transition-note__checkpoint-meta {
+  color: var(--app-muted);
+}
+
+.xt-shell-transition-note__checkpoint-detail {
+  color: var(--app-muted);
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.xt-shell-transition-note__chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  padding: 0 10px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--app-border) 74%, transparent);
+  background: color-mix(in srgb, var(--app-panel-2) 76%, #040404);
+  color: var(--app-muted);
+}
+
+.xt-shell-transition-note__actions {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.xt-shell-transition-note--compact .xt-shell-transition-note__actions {
+  gap: 6px;
+}
+
+.xt-shell-transition-note__action,
+.xt-shell-transition-note__dismiss {
+  align-self: stretch;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 104px;
+  padding: 0 12px;
+  border-radius: 6px;
+  border: 1px solid color-mix(in srgb, var(--app-border) 82%, transparent);
+  background: color-mix(in srgb, var(--app-panel-2) 88%, #050505);
+  color: var(--app-text);
+  transition:
+    border-color 220ms ease-out,
+    color 220ms ease-out,
+    background-color 220ms ease-out;
+}
+
+.xt-shell-transition-note--compact .xt-shell-transition-note__action,
+.xt-shell-transition-note--compact .xt-shell-transition-note__dismiss {
+  min-width: 88px;
+  padding: 0 10px;
+}
+
+.xt-shell-transition-note--scene .xt-shell-transition-note__action,
+.xt-shell-transition-note--scene .xt-shell-transition-note__dismiss {
+  min-width: 78px;
+  padding: 0 10px;
+}
+
+.xt-shell-transition-note__action {
+  letter-spacing: 0.18em;
+}
+
+.xt-shell-transition-note__action--primary {
+  border-color: color-mix(in srgb, var(--app-accent) 48%, transparent);
+  color: var(--app-accent);
+}
+
+.xt-shell-transition-note__action:hover,
+.xt-shell-transition-note__dismiss:hover {
+  border-color: color-mix(in srgb, var(--app-accent) 52%, transparent);
+  color: var(--app-accent);
+}
+
+@media (max-width: 900px) {
+  .xt-shell-transition-note {
+    grid-template-columns: 1fr;
+  }
+
+  .xt-shell-transition-note__actions {
+    justify-content: stretch;
+  }
+
+  .xt-shell-transition-note__action,
+  .xt-shell-transition-note__dismiss {
+    justify-self: stretch;
+    flex: 1 1 100%;
+  }
+}
+
+@keyframes xt-shell-section-in {
+  0% {
+    opacity: 0;
+    transform: translateY(8px);
+    filter: saturate(0.96);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+    filter: saturate(1);
+  }
+}
+
+.xt-shell-section-a,
+.xt-shell-section-b {
+  animation: xt-shell-section-in 280ms var(--app-ease) both;
+}
+
+.xt-shell-loading-card {
+  border-radius: 8px;
+  border: 1px solid color-mix(in srgb, var(--app-border) 74%, transparent);
+  background: color-mix(in srgb, var(--app-panel) 86%, black 14%);
+  box-shadow: 0 28px 90px rgba(0, 0, 0, 0.28);
+}
+
+@keyframes xt-shell-dot-pulse {
+  0%, 100% {
+    opacity: 0.4;
+    transform: scale(0.92);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.xt-shell-dot,
+.xt-shell-bar {
+  animation: xt-shell-dot-pulse 1.25s ease-out infinite;
+}
+
+.xt-shell-dot--2,
+.xt-shell-bar--2 {
+  animation-delay: 120ms;
+}
+
+.xt-shell-dot--3,
+.xt-shell-bar--3 {
+  animation-delay: 240ms;
+}
+
+@keyframes xt-topbar-live-pulse {
+  0%, 100% {
+    opacity: 0.68;
+    transform: scale(0.92);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes xt-topbar-idle-pulse {
+  0%, 100% {
+    opacity: 0.28;
+    transform: translateY(0);
+  }
+  50% {
+    opacity: 0.7;
+    transform: translateY(-1px);
+  }
+}
+
+.xt-topbar-dusk-pulse {
+  animation: xt-topbar-live-pulse 1.3s ease-out infinite;
+}
+
+.xt-topbar-live-dot {
+  animation: xt-topbar-live-pulse 1.2s ease-out infinite;
+}
+
+.xt-topbar-idle-dot {
+  animation: xt-topbar-idle-pulse 1.1s ease-out infinite;
+}
+
+.xt-topbar-idle-dot--2 {
+  animation-delay: 120ms;
+}
+
+.xt-topbar-idle-dot--3 {
+  animation-delay: 240ms;
+}
+
 /* Session progress bar */
 [data-theme='bureau'] .xt-profile-lobby-inner [style*="levelProgress"] {
-  background: #f0ede8 !important;
+  background: var(--bureau-paper) !important;
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -1642,8 +4037,8 @@
 /* Calendar grid — remove gap, replace with dashed grid lines */
 [data-theme='bureau'] .xt-cal-grid {
   gap: 0 !important;
-  border-left: 1px dashed rgba(255, 255, 255, 0.12) !important;
-  border-top: 1px dashed rgba(255, 255, 255, 0.12) !important;
+  border-left: 1px dashed var(--bureau-edge) !important;
+  border-top: 1px dashed var(--bureau-edge) !important;
 }
 
 /* Each calendar cell — equal-height box, hard dashed borders */
@@ -1651,10 +4046,10 @@
   min-height: 0 !important;
   height: 88px !important;
   border: none !important;
-  border-right: 1px dashed rgba(255, 255, 255, 0.12) !important;
-  border-bottom: 1px dashed rgba(255, 255, 255, 0.12) !important;
+  border-right: 1px dashed var(--bureau-edge) !important;
+  border-bottom: 1px dashed var(--bureau-edge) !important;
   border-radius: 0 !important;
-  background: #0a0a0a !important;
+  background: var(--app-bg) !important;
   padding: 6px 5px !important;
   transition: background 0.1s !important;
 }
@@ -1666,25 +4061,25 @@
 
 /* Today cell — white inverse */
 [data-theme='bureau'] .xt-cal-cell.xt-cal-cell--today {
-  background: #f0ede8 !important;
-  border-color: rgba(255, 255, 255, 0.3) !important;
+  background: var(--bureau-paper) !important;
+  border-color: rgba(244, 239, 230, 0.28) !important;
 }
 
 [data-theme='bureau'] .xt-cal-cell.xt-cal-cell--today * {
-  color: #0a0a0a !important;
+  color: var(--bureau-ink) !important;
 }
 
 /* Today circular date badge — now a square badge */
 [data-theme='bureau'] .xt-cal-cell.xt-cal-cell--today span.rounded-full {
-  background: #0a0a0a !important;
-  color: #f0ede8 !important;
+  background: var(--bureau-ink) !important;
+  color: var(--bureau-paper) !important;
   border-radius: 0 !important;
 }
 
 /* Selected cell — red left stripe instead of accent border */
 [data-theme='bureau'] .xt-cal-cell.border-l-2 {
-  border-left: 3px solid var(--bureau-red) !important;
-  background: rgba(204, 17, 17, 0.04) !important;
+  border-left: 3px solid var(--bureau-signal) !important;
+  background: color-mix(in srgb, var(--bureau-signal) 6%, transparent) !important;
 }
 
 /* Out-of-month cells — heavily dimmed */
@@ -1703,7 +4098,7 @@
 [data-theme='bureau'] .xt-cal-cell.ring-1 {
   ring: none !important;
   box-shadow: none !important;
-  border-color: rgba(204, 17, 17, 0.5) !important;
+  border-color: color-mix(in srgb, var(--bureau-signal) 48%, transparent) !important;
 }
 
 /* ── Bureau: inactive profile tabs ────────────────────────────────────────── */
@@ -1715,7 +4110,7 @@
 
 [data-theme='bureau'] .xt-profile-tabs-bar button[data-active='false']:hover {
   background: rgba(255, 255, 255, 0.04) !important;
-  color: #f0ede8 !important;
+  color: var(--bureau-paper) !important;
 }
 
 [data-accent='neutral'] {
@@ -1731,9 +4126,1421 @@
 }
 
 [data-accent='amber'] {
-  --app-accent: #d3a45a;
+  --app-accent: #d6a45d;
   --app-accent-weak: color-mix(in srgb, var(--app-accent) 20%, transparent);
   --app-focus-ring: color-mix(in srgb, var(--app-accent) 42%, transparent);
+}
+
+.xt-mp-shell {
+  position: relative;
+  color: var(--app-text);
+}
+
+.xt-mp-shell::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(90deg, transparent 0, transparent calc(33.333% - 0.5px), color-mix(in srgb, var(--app-text) 4%, transparent) calc(33.333% - 0.5px), color-mix(in srgb, var(--app-text) 4%, transparent) calc(33.333% + 0.5px), transparent calc(33.333% + 0.5px), transparent calc(66.666% - 0.5px), color-mix(in srgb, var(--app-text) 4%, transparent) calc(66.666% - 0.5px), color-mix(in srgb, var(--app-text) 4%, transparent) calc(66.666% + 0.5px), transparent calc(66.666% + 0.5px)),
+    linear-gradient(180deg, color-mix(in srgb, var(--app-accent) 5%, transparent), transparent 240px);
+  opacity: 0.55;
+}
+
+.xt-mp-layout {
+  display: grid;
+  gap: 20px;
+}
+
+.xt-mp-sidebar,
+.xt-mp-main,
+.xt-mp-intel {
+  min-width: 0;
+}
+
+.xt-mp-brand,
+.xt-mp-panel,
+.xt-mp-commandbar,
+.xt-mp-metric,
+.xt-mp-command-stat {
+  position: relative;
+  border: 1px solid color-mix(in srgb, var(--app-text) 10%, transparent);
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--app-panel) 92%, #050505);
+  box-shadow: 0 18px 32px rgba(0, 0, 0, 0.22);
+  overflow: hidden;
+}
+
+.xt-mp-brand::before,
+.xt-mp-panel::before,
+.xt-mp-commandbar::before,
+.xt-mp-metric::before,
+.xt-mp-command-stat::before {
+  content: '';
+  position: absolute;
+  inset: 0 auto auto 0;
+  width: 72px;
+  height: 1px;
+  background: color-mix(in srgb, var(--app-accent) 65%, transparent);
+}
+
+.xt-mp-brand {
+  padding: 18px 16px 16px;
+}
+
+.xt-mp-brand-kicker,
+.xt-mp-panel-kicker,
+.xt-mp-command-kicker,
+.xt-mp-sidebar-label,
+.xt-mp-command-search-label,
+.xt-mp-metric-label,
+.xt-mp-command-stat-label {
+  font-size: 10px;
+  line-height: 1.2;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--app-text) 48%, transparent);
+}
+
+.xt-mp-brand-title,
+.xt-mp-command-title {
+  margin-top: 14px;
+  font-size: clamp(28px, 4vw, 46px);
+  line-height: 0.95;
+  letter-spacing: 0.02em;
+  font-weight: 800;
+  text-transform: uppercase;
+  color: var(--app-text);
+}
+
+.xt-mp-brand-copy,
+.xt-mp-command-copy,
+.xt-mp-sidebar-copy,
+.xt-mp-panel-subtitle,
+.xt-mp-metric-detail,
+.xt-mp-command-stat-hint,
+.xt-mp-list-detail,
+.xt-mp-rail-meta {
+  margin-top: 10px;
+  font-size: 11px;
+  line-height: 1.55;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--app-text) 56%, transparent);
+}
+
+.xt-mp-sidebar-foot {
+  padding: 14px 2px 0;
+}
+
+.xt-mp-commandbar {
+  padding: 18px;
+}
+
+.xt-mp-commandbar-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.xt-mp-command-tools {
+  width: min(100%, 360px);
+  display: grid;
+  gap: 12px;
+}
+
+.xt-mp-command-search {
+  display: grid;
+  gap: 10px;
+}
+
+.xt-mp-input,
+.xt-mp-shell input,
+.xt-mp-shell select,
+.xt-mp-shell textarea {
+  width: 100%;
+  border-radius: 6px !important;
+  border: 1px solid color-mix(in srgb, var(--app-text) 10%, transparent) !important;
+  background: color-mix(in srgb, var(--app-panel-2) 88%, #060606) !important;
+  color: var(--app-text) !important;
+  box-shadow: none !important;
+  transition: border-color 240ms var(--app-ease), background 240ms var(--app-ease);
+}
+
+.xt-mp-input:focus,
+.xt-mp-shell input:focus,
+.xt-mp-shell select:focus,
+.xt-mp-shell textarea:focus {
+  outline: none;
+  border-color: color-mix(in srgb, var(--app-accent) 52%, transparent) !important;
+}
+
+.xt-mp-command-strip {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.xt-mp-command-stat {
+  padding: 14px 14px 12px;
+}
+
+.xt-mp-command-stat-value {
+  margin-top: 10px;
+  font-size: 24px;
+  line-height: 1;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--app-text);
+}
+
+.xt-mp-mode-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.xt-mp-workspace {
+  display: block;
+}
+
+.xt-mp-panel-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px;
+  border-bottom: 1px solid color-mix(in srgb, var(--app-text) 8%, transparent);
+}
+
+.xt-mp-panel-body {
+  padding: 16px;
+}
+
+.xt-mp-panel-action {
+  flex-shrink: 0;
+}
+
+.xt-mp-badge {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 5px;
+  border: 1px solid color-mix(in srgb, var(--app-text) 12%, transparent);
+  background: color-mix(in srgb, var(--app-panel-2) 82%, #050505);
+  padding: 6px 8px;
+  font-size: 10px;
+  line-height: 1;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--app-text) 70%, transparent);
+}
+
+.xt-mp-badge[data-tone='accent'] {
+  border-color: color-mix(in srgb, var(--app-accent) 34%, transparent);
+  background: color-mix(in srgb, var(--app-accent) 10%, var(--app-panel));
+  color: var(--app-text);
+}
+
+.xt-mp-badge[data-tone='alert'] {
+  border-color: rgba(196, 59, 37, 0.42);
+  background: rgba(196, 59, 37, 0.1);
+  color: #f2d9d3;
+}
+
+.xt-mp-metric {
+  padding: 16px;
+}
+
+.xt-mp-metric-value {
+  margin-top: 10px;
+  font-size: clamp(26px, 3vw, 34px);
+  line-height: 0.94;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--app-text);
+}
+
+.xt-mp-metric-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 6px;
+  border: 1px solid color-mix(in srgb, var(--app-accent) 26%, transparent);
+  color: var(--app-accent);
+  background: color-mix(in srgb, var(--app-accent) 8%, var(--app-panel));
+}
+
+.xt-mp-nav-btn,
+.xt-mp-mode-btn,
+.xt-mp-list-row,
+.xt-mp-action-btn,
+.xt-mp-shell .ui-pressable {
+  transition:
+    border-color 260ms var(--app-ease),
+    background 260ms var(--app-ease),
+    color 260ms var(--app-ease),
+    transform 260ms var(--app-ease);
+}
+
+.xt-mp-nav-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border-radius: 6px;
+  border: 1px solid color-mix(in srgb, var(--app-text) 10%, transparent);
+  background: color-mix(in srgb, var(--app-panel) 82%, #040404);
+  padding: 13px 12px;
+  text-align: left;
+}
+
+.xt-mp-nav-btn:hover,
+.xt-mp-list-row:hover,
+.xt-mp-mode-btn:hover,
+.xt-mp-shell .ui-pressable:hover {
+  border-color: color-mix(in srgb, var(--app-accent) 28%, transparent) !important;
+  background: color-mix(in srgb, var(--app-panel-2) 76%, #050505) !important;
+  transform: translateY(-1px);
+}
+
+.xt-mp-nav-btn[data-active='true'],
+.xt-mp-list-row[data-active='true'],
+.xt-mp-mode-btn[data-active='true'] {
+  border-color: color-mix(in srgb, var(--app-accent) 44%, transparent) !important;
+  background: color-mix(in srgb, var(--app-accent) 9%, var(--app-panel)) !important;
+}
+
+.xt-mp-nav-icon {
+  color: var(--app-accent);
+}
+
+.xt-mp-nav-label,
+.xt-mp-list-title {
+  font-size: 12px;
+  line-height: 1.35;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--app-text);
+}
+
+.xt-mp-nav-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  height: 20px;
+  border-radius: 5px;
+  border: 1px solid color-mix(in srgb, var(--app-accent) 28%, transparent);
+  background: color-mix(in srgb, var(--app-accent) 14%, var(--app-panel));
+  padding: 0 6px;
+  font-size: 10px;
+  line-height: 1;
+  font-weight: 700;
+  color: var(--app-text);
+}
+
+.xt-mp-mode-btn {
+  border-radius: 6px;
+  border: 1px solid color-mix(in srgb, var(--app-text) 10%, transparent);
+  background: color-mix(in srgb, var(--app-panel-2) 74%, #050505);
+  padding: 8px 12px;
+  font-size: 10px;
+  line-height: 1;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--app-text) 68%, transparent);
+}
+
+.xt-mp-list-row {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  border-radius: 6px;
+  border: 1px solid color-mix(in srgb, var(--app-text) 10%, transparent);
+  background: color-mix(in srgb, var(--app-panel-2) 76%, #050505);
+  padding: 12px;
+  text-align: left;
+}
+
+.xt-mp-section-header {
+  display: grid;
+  gap: 18px;
+  border-top: 1px solid color-mix(in srgb, var(--app-accent) 22%, transparent);
+  padding-top: 16px;
+}
+
+.xt-mp-section-copy {
+  min-width: 0;
+}
+
+.xt-mp-section-eyebrow {
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--app-text) 46%, transparent);
+}
+
+.xt-mp-section-title {
+  margin-top: 8px;
+  font-size: clamp(28px, 3vw, 42px);
+  line-height: 0.96;
+  letter-spacing: -0.04em;
+  text-transform: uppercase;
+  color: var(--app-text);
+}
+
+.xt-mp-section-detail {
+  margin-top: 10px;
+  max-width: 70ch;
+  font-size: 11px;
+  line-height: 1.6;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--app-text) 56%, transparent);
+}
+
+.xt-mp-section-side {
+  display: grid;
+  gap: 12px;
+}
+
+.xt-mp-section-stats {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+}
+
+.xt-mp-section-stats--wide {
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+}
+
+.xt-mp-section-stat {
+  border: 1px solid color-mix(in srgb, var(--app-text) 10%, transparent);
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--app-panel-2) 76%, #050505);
+  padding: 12px;
+}
+
+.xt-mp-section-stat-label {
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--app-text) 50%, transparent);
+}
+
+.xt-mp-section-stat-value {
+  margin-top: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--app-text);
+}
+
+.xt-mp-section-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.xt-mp-action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border-radius: 6px;
+  border: 1px solid color-mix(in srgb, var(--app-text) 10%, transparent);
+  background: color-mix(in srgb, var(--app-panel-2) 74%, #050505);
+  padding: 8px 12px;
+  font-size: 10px;
+  line-height: 1;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--app-text) 74%, transparent);
+  white-space: nowrap;
+}
+
+.xt-mp-action-btn[data-tone='accent'] {
+  border-color: color-mix(in srgb, var(--app-accent) 28%, transparent);
+  background: color-mix(in srgb, var(--app-accent) 10%, var(--app-panel));
+  color: var(--app-text);
+}
+
+.xt-mp-action-icon {
+  display: inline-flex;
+  color: var(--app-accent);
+}
+
+.xt-mp-list-row[data-tone='alert'] {
+  border-color: rgba(196, 59, 37, 0.28);
+  background: rgba(196, 59, 37, 0.08);
+}
+
+.xt-mp-info-block {
+  border: 1px solid color-mix(in srgb, var(--app-text) 10%, transparent);
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--app-panel-2) 76%, #050505);
+  padding: 12px;
+}
+
+.xt-mp-info-value {
+  margin-top: 8px;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--app-text);
+}
+
+.xt-mp-info-detail {
+  margin-top: 8px;
+  font-size: 11px;
+  line-height: 1.5;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--app-text) 55%, transparent);
+}
+
+.xt-mp-message-card {
+  border: 1px solid color-mix(in srgb, var(--app-text) 10%, transparent);
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--app-panel-2) 76%, #050505);
+  padding: 12px;
+  max-width: min(100%, 640px);
+}
+
+.xt-mp-message-card[data-own='true'] {
+  margin-left: auto;
+  border-color: color-mix(in srgb, var(--app-accent) 26%, transparent);
+  background: color-mix(in srgb, var(--app-accent) 8%, var(--app-panel));
+}
+
+.xt-mp-transcript {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.xt-mp-message-body {
+  margin-top: 10px;
+  font-size: 12px;
+  line-height: 1.6;
+  color: color-mix(in srgb, var(--app-text) 88%, transparent);
+}
+
+.xt-mp-rail-meta {
+  margin-top: 0;
+  white-space: nowrap;
+}
+
+.xt-mp-identity-block {
+  border: 1px solid color-mix(in srgb, var(--app-text) 10%, transparent);
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--app-panel-2) 78%, #050505);
+  padding: 12px;
+}
+
+.xt-mp-readiness {
+  display: grid;
+  gap: 10px;
+}
+
+.xt-mp-readiness-bar {
+  position: relative;
+  height: 6px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--app-text) 8%, transparent);
+  overflow: hidden;
+}
+
+.xt-mp-readiness-bar > span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, color-mix(in srgb, var(--app-accent) 40%, #7f2d18), var(--app-accent));
+}
+
+.xt-mp-empty-block {
+  border: 1px dashed color-mix(in srgb, var(--app-text) 12%, transparent);
+  border-radius: 6px;
+  padding: 14px 12px;
+  font-size: 11px;
+  line-height: 1.5;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--app-text) 50%, transparent);
+}
+
+.xt-mp-shell details {
+  border-radius: 6px !important;
+}
+
+.xt-mp-shell .rounded-full,
+.xt-mp-shell .rounded-xl,
+.xt-mp-shell .rounded-2xl,
+.xt-mp-shell .rounded-lg {
+  border-radius: 6px !important;
+}
+
+.xt-mp-shell .shadow-sm,
+.xt-mp-shell .shadow-lg {
+  box-shadow: 0 16px 28px rgba(0, 0, 0, 0.18) !important;
+}
+
+.xt-mp-shell .ui-pressable:active {
+  transform: translateY(0);
+}
+
+.xt-mp-shell summary {
+  letter-spacing: 0.16em;
+}
+
+.xt-play-shell {
+  min-height: 100%;
+  width: 100%;
+  overflow-y: auto;
+  background:
+    radial-gradient(circle at top, color-mix(in srgb, var(--app-accent) 14%, transparent), transparent 34%),
+    linear-gradient(180deg, #0a0a0b, #09090a 44%, #060607 100%);
+  padding: 20px 16px 28px;
+}
+
+.xt-play-frame {
+  margin: 0 auto;
+  display: flex;
+  width: 100%;
+  max-width: 1500px;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.xt-play-command {
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--app-accent) 22%, transparent);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0)),
+    linear-gradient(180deg, rgba(11,11,12,0.96), rgba(8,8,9,0.98));
+  box-shadow: 0 28px 80px rgba(0, 0, 0, 0.42);
+  padding: 22px;
+}
+
+.xt-play-grid {
+  display: grid;
+  gap: 20px;
+}
+
+.xt-play-hero {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  border-bottom: 1px solid color-mix(in srgb, var(--app-text) 8%, transparent);
+  padding-bottom: 16px;
+}
+
+.xt-play-kicker,
+.xt-play-panel-eyebrow {
+  font-size: 10px;
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--app-accent) 88%, white 12%);
+}
+
+.xt-play-title {
+  margin-top: 10px;
+  font-size: clamp(34px, 4vw, 56px);
+  line-height: 0.94;
+  letter-spacing: -0.05em;
+  text-transform: uppercase;
+  color: var(--app-text);
+}
+
+.xt-play-detail {
+  margin-top: 12px;
+  max-width: 76ch;
+  font-size: 12px;
+  line-height: 1.7;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--app-text) 64%, transparent);
+}
+
+.xt-play-panel {
+  border: 1px solid color-mix(in srgb, var(--app-text) 10%, transparent);
+  background: color-mix(in srgb, var(--app-panel) 90%, #060607);
+  padding: 16px;
+}
+
+.xt-play-panel-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.xt-play-panel-subtitle {
+  margin-top: 8px;
+  font-size: 11px;
+  line-height: 1.6;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--app-text) 56%, transparent);
+}
+
+.xt-play-panel-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.xt-play-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid color-mix(in srgb, var(--app-text) 10%, transparent);
+  background: color-mix(in srgb, var(--app-panel-2) 76%, #050505);
+  padding: 10px 14px;
+  font-size: 10px;
+  line-height: 1;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--app-text) 78%, transparent);
+  white-space: nowrap;
+}
+
+.xt-play-action[data-tone='accent'] {
+  border-color: color-mix(in srgb, var(--app-accent) 30%, transparent);
+  background: color-mix(in srgb, var(--app-accent) 12%, var(--app-panel));
+  color: var(--app-text);
+}
+
+.xt-play-action[data-tone='success'] {
+  border-color: rgba(67, 211, 158, 0.34);
+  background: rgba(67, 211, 158, 0.12);
+  color: #b5f2d7;
+}
+
+.xt-play-action[data-tone='muted'] {
+  color: color-mix(in srgb, var(--app-text) 56%, transparent);
+}
+
+.xt-play-action-icon {
+  display: inline-flex;
+  color: var(--app-accent);
+}
+
+.xt-play-callout {
+  border: 1px solid color-mix(in srgb, var(--app-accent) 22%, transparent);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--app-accent) 10%, transparent), rgba(255,255,255,0.01));
+  padding: 16px;
+}
+
+.xt-play-empty {
+  display: flex;
+  min-height: 360px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border: 1px dashed color-mix(in srgb, var(--app-text) 12%, transparent);
+  background: color-mix(in srgb, var(--app-panel) 78%, transparent);
+  padding: 24px;
+  text-align: center;
+}
+
+.xt-play-chip {
+  border: 1px solid color-mix(in srgb, var(--app-text) 10%, transparent);
+  background: color-mix(in srgb, var(--app-panel-2) 76%, #050505);
+  padding: 8px 12px;
+  font-size: 10px;
+  line-height: 1;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--app-text) 58%, transparent);
+}
+
+.xt-play-summary-cell {
+  border: 1px solid color-mix(in srgb, var(--app-text) 10%, transparent);
+  background: color-mix(in srgb, var(--app-panel-2) 76%, #050505);
+  padding: 12px;
+}
+
+.xt-play-summary-value {
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.xt-play-summary-label {
+  margin-top: 4px;
+  font-size: 9px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--app-text) 48%, transparent);
+}
+
+.xt-play-tag {
+  border: 1px solid color-mix(in srgb, var(--app-text) 10%, transparent);
+  padding: 6px 10px;
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--app-text) 64%, transparent);
+}
+
+.xt-play-tag--accent {
+  border-color: color-mix(in srgb, var(--app-accent) 36%, transparent);
+  background: color-mix(in srgb, var(--app-accent) 12%, transparent);
+  color: var(--app-accent);
+}
+
+.xt-play-starter-checkpoint {
+  margin-top: 16px;
+  border: 1px solid color-mix(in srgb, var(--app-accent) 16%, var(--app-border));
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--app-panel-2) 82%, transparent),
+    color-mix(in srgb, var(--app-panel) 92%, transparent)
+  );
+  padding: 14px 16px;
+}
+
+.xt-play-starter-progress {
+  position: relative;
+  overflow: hidden;
+  height: 6px;
+  background: color-mix(in srgb, var(--app-border) 82%, transparent);
+}
+
+.xt-play-starter-progress__fill {
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--app-accent) 68%, transparent),
+    var(--app-accent)
+  );
+  transition: width var(--app-motion-med) var(--app-ease);
+}
+
+.xt-play-queue-item {
+  border: 1px solid color-mix(in srgb, var(--app-text) 10%, transparent);
+  background: color-mix(in srgb, var(--app-panel-2) 74%, #050505);
+  padding: 16px;
+  text-align: left;
+  transition: border-color 220ms ease-out, background-color 220ms ease-out;
+}
+
+.xt-play-queue-item:hover {
+  border-color: color-mix(in srgb, var(--app-accent) 34%, transparent);
+}
+
+.xt-play-queue-item--selected {
+  border-color: color-mix(in srgb, var(--app-accent) 42%, transparent);
+  background: color-mix(in srgb, var(--app-accent) 10%, var(--app-panel));
+}
+
+.xt-play-queue-meta {
+  margin-top: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--app-text) 54%, transparent);
+}
+
+.xt-play-subpanel {
+  border: 1px solid color-mix(in srgb, var(--app-text) 10%, transparent);
+  background: color-mix(in srgb, var(--app-panel-2) 74%, #050505);
+  padding: 14px;
+}
+
+.xt-play-list-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border: 1px solid color-mix(in srgb, var(--app-text) 10%, transparent);
+  background: color-mix(in srgb, var(--app-panel) 72%, #060607);
+  padding: 10px 12px;
+}
+
+.xt-welcome-shell {
+  position: relative;
+  min-height: 100dvh;
+  overflow: hidden;
+  background: linear-gradient(180deg, #090909 0%, #0b0b0c 48%, #060607 100%);
+  color: var(--app-text);
+}
+
+.xt-welcome-backdrop {
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(90deg, color-mix(in srgb, var(--app-accent) 4%, transparent) 0, transparent 18%),
+    linear-gradient(180deg, transparent 0, rgba(255,255,255,0.015) 1px, transparent 1px),
+    linear-gradient(90deg, transparent 0, rgba(255,255,255,0.012) 1px, transparent 1px);
+  background-size: auto, 100% 48px, 48px 100%;
+  mask-image: linear-gradient(180deg, rgba(0,0,0,0.9), rgba(0,0,0,0.45));
+  opacity: 0.8;
+}
+
+.xt-welcome-frame {
+  position: relative;
+  z-index: 1;
+  margin: 0 auto;
+  display: flex;
+  min-height: 100dvh;
+  width: 100%;
+  max-width: 1520px;
+  flex-direction: column;
+  gap: 28px;
+  padding: 20px 16px 32px;
+}
+
+.xt-welcome-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  border-bottom: 1px solid color-mix(in srgb, var(--app-text) 8%, transparent);
+  padding-bottom: 18px;
+}
+
+.xt-welcome-kicker,
+.xt-welcome-panel-eyebrow,
+.xt-auth-eyebrow {
+  font-size: 10px;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--app-accent) 90%, white 10%);
+}
+
+.xt-welcome-header-detail {
+  margin-top: 8px;
+  font-size: 11px;
+  line-height: 1.6;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--app-text) 54%, transparent);
+}
+
+.xt-welcome-layout {
+  display: grid;
+  flex: 1;
+  gap: 24px;
+}
+
+.xt-welcome-chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.xt-welcome-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid color-mix(in srgb, var(--app-text) 10%, transparent);
+  background: color-mix(in srgb, var(--app-panel-2) 78%, #050505);
+  padding: 8px 12px;
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--app-text) 58%, transparent);
+}
+
+.xt-welcome-chip--accent {
+  border-color: color-mix(in srgb, var(--app-accent) 28%, transparent);
+  background: color-mix(in srgb, var(--app-accent) 10%, var(--app-panel));
+  color: var(--app-text);
+}
+
+.xt-welcome-title {
+  margin-top: 18px;
+  font-size: clamp(42px, 5vw, 86px);
+  line-height: 0.92;
+  letter-spacing: -0.06em;
+  text-transform: uppercase;
+  color: var(--app-text);
+}
+
+.xt-welcome-detail {
+  margin-top: 18px;
+  max-width: 70ch;
+  font-size: 12px;
+  line-height: 1.8;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--app-text) 64%, transparent);
+}
+
+.xt-welcome-cards {
+  display: grid;
+  gap: 12px;
+}
+
+.xt-welcome-card,
+.xt-welcome-panel,
+.xt-auth-shell {
+  border: 1px solid color-mix(in srgb, var(--app-text) 10%, transparent);
+  background: color-mix(in srgb, var(--app-panel) 88%, #060607);
+  padding: 18px;
+}
+
+.xt-welcome-card-title {
+  font-size: 11px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--app-text);
+}
+
+.xt-welcome-card-detail,
+.xt-welcome-offline-copy {
+  margin-top: 14px;
+  font-size: 12px;
+  line-height: 1.8;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--app-text) 60%, transparent);
+}
+
+.xt-welcome-station-head {
+  display: grid;
+  gap: 14px;
+  border-top: 1px solid color-mix(in srgb, var(--app-text) 8%, transparent);
+  border-bottom: 1px solid color-mix(in srgb, var(--app-text) 8%, transparent);
+  margin-top: 12px;
+  padding: 14px 0;
+}
+
+.xt-welcome-station-title {
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--app-text);
+}
+
+.xt-welcome-station-detail {
+  margin-top: 8px;
+  max-width: 42ch;
+  font-size: 11px;
+  line-height: 1.8;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--app-text) 58%, transparent);
+}
+
+.xt-welcome-station-status {
+  min-width: 0;
+  border: 1px solid color-mix(in srgb, var(--app-accent) 16%, transparent);
+  background: color-mix(in srgb, var(--app-panel-2) 76%, #050505);
+  padding: 12px;
+}
+
+.xt-welcome-station-path {
+  margin-top: 14px;
+  display: grid;
+  gap: 8px;
+  border-top: 1px solid color-mix(in srgb, var(--app-text) 8%, transparent);
+  border-bottom: 1px solid color-mix(in srgb, var(--app-text) 8%, transparent);
+  padding: 12px 0;
+}
+
+.xt-welcome-station-path-row,
+.auth-station-brief-path-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--app-text) 54%, transparent);
+}
+
+.xt-welcome-station-path-row span:last-child,
+.auth-station-brief-path-row span:last-child {
+  max-width: 55%;
+  text-align: right;
+  color: var(--app-text);
+}
+
+.xt-welcome-station-status-label {
+  font-size: 9px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--app-text) 42%, transparent);
+}
+
+.xt-welcome-station-status-value {
+  margin-top: 8px;
+  font-size: 12px;
+  line-height: 1.5;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--app-text);
+}
+
+.xt-welcome-station-metrics {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.xt-welcome-station-activity {
+  margin-top: 16px;
+  border-top: 1px solid color-mix(in srgb, var(--app-border) 78%, transparent);
+  padding-top: 14px;
+}
+
+.xt-welcome-station-activity-list {
+  display: grid;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.xt-welcome-station-activity-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.xt-welcome-station-activity-title {
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--app-text);
+}
+
+.xt-welcome-station-activity-detail {
+  margin-top: 4px;
+  font-size: 10px;
+  line-height: 1.7;
+  color: color-mix(in srgb, var(--app-text) 60%, var(--app-muted));
+}
+
+.xt-welcome-station-activity-time {
+  font-family: var(--app-font-mono);
+  font-size: 9px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--app-text) 42%, transparent);
+  white-space: nowrap;
+}
+
+.xt-welcome-station-metric {
+  border: 1px solid color-mix(in srgb, var(--app-text) 9%, transparent);
+  background: color-mix(in srgb, var(--app-panel-2) 76%, #050505);
+  padding: 12px;
+}
+
+.xt-welcome-station-metric-value {
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: -0.04em;
+  color: var(--app-text);
+}
+
+.xt-welcome-station-metric-label {
+  margin-top: 6px;
+  font-size: 9px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--app-text) 42%, transparent);
+}
+
+.xt-welcome-station-connect-copy {
+  margin-top: 14px;
+  font-size: 10px;
+  line-height: 1.85;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--app-text) 54%, transparent);
+}
+
+.xt-welcome-signal {
+  border: 1px solid color-mix(in srgb, var(--app-text) 10%, transparent);
+  background: color-mix(in srgb, var(--app-panel-2) 74%, #050505);
+  padding: 12px;
+  font-size: 11px;
+  line-height: 1.7;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--app-text) 58%, transparent);
+}
+
+.xt-welcome-primary {
+  margin-top: 20px;
+  display: inline-flex;
+  height: 46px;
+  width: 100%;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  border: 1px solid color-mix(in srgb, var(--app-accent) 36%, transparent);
+  background: color-mix(in srgb, var(--app-accent) 14%, var(--app-panel));
+  padding: 0 16px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--app-text);
+}
+
+.xt-auth-title {
+  font-size: 30px;
+  font-weight: 600;
+  letter-spacing: -0.04em;
+  text-transform: uppercase;
+  color: var(--app-text);
+}
+
+.xt-auth-description {
+  max-width: 42ch;
+  font-size: 11px;
+  line-height: 1.8;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--app-text) 58%, transparent);
+}
+
+.xt-auth-continuity {
+  display: grid;
+  gap: 10px;
+  border: 1px solid color-mix(in srgb, var(--app-text) 8%, transparent);
+  background: color-mix(in srgb, var(--app-panel-2) 72%, #050505);
+  padding: 12px 14px;
+}
+
+.xt-auth-continuity__eyebrow {
+  font-size: 9px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--app-accent);
+}
+
+.xt-auth-continuity__title {
+  font-size: 11px;
+  line-height: 1.5;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--app-text);
+}
+
+.xt-auth-continuity__detail {
+  font-size: 10px;
+  line-height: 1.8;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--app-text) 62%, transparent);
+}
+
+.xt-auth-continuity__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.xt-auth-continuity__chip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 22px;
+  padding: 0 10px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--app-border) 74%, transparent);
+  background: color-mix(in srgb, var(--app-panel) 68%, #060606);
+  font-size: 9px;
+  line-height: 1;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--app-text) 72%, transparent);
+}
+
+.xt-auth-continuity__chip--accent {
+  border-color: color-mix(in srgb, var(--app-accent) 46%, var(--app-border));
+  background: color-mix(in srgb, var(--app-accent) 14%, var(--app-panel));
+  color: var(--app-text);
+}
+
+.xt-auth-continuity__entry {
+  display: grid;
+  gap: 8px;
+  border-top: 1px solid color-mix(in srgb, var(--app-border) 74%, transparent);
+  padding-top: 10px;
+}
+
+.xt-auth-continuity__entry-kicker {
+  font-size: 9px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--app-accent);
+}
+
+.xt-auth-continuity__entry-title {
+  font-size: 11px;
+  line-height: 1.5;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--app-text);
+}
+
+.xt-auth-continuity__entry-detail {
+  font-size: 10px;
+  line-height: 1.75;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--app-text) 60%, transparent);
+}
+
+.xt-auth-continuity__list {
+  display: grid;
+  gap: 8px;
+}
+
+.xt-auth-continuity__item {
+  position: relative;
+  padding-left: 14px;
+  font-size: 10px;
+  line-height: 1.75;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--app-text) 60%, transparent);
+}
+
+.xt-auth-continuity__item::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.72em;
+  width: 5px;
+  height: 5px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--app-accent) 84%, white 16%);
+}
+
+.xt-auth-mode,
+.xt-auth-input,
+.xt-auth-primary,
+.xt-auth-secondary {
+  border-radius: 6px;
+}
+
+.xt-auth-input {
+  background: color-mix(in srgb, var(--app-panel-2) 76%, #050505);
+}
+
+.xt-auth-primary {
+  background: color-mix(in srgb, var(--app-accent) 18%, var(--app-panel));
+}
+
+.xt-auth-secondary:hover,
+.xt-auth-primary:hover {
+  border-color: var(--app-accent);
+}
+
+@media (min-width: 1080px) {
+  .xt-mp-section-header {
+    grid-template-columns: minmax(0, 1.15fr) minmax(300px, 0.85fr);
+    align-items: end;
+  }
+}
+
+@media (min-width: 1024px) {
+  .xt-welcome-frame {
+    padding: 24px 24px 36px;
+  }
+
+  .xt-welcome-layout {
+    grid-template-columns: minmax(0, 1.18fr) minmax(360px, 440px);
+    align-items: start;
+  }
+
+  .xt-welcome-station-head {
+    grid-template-columns: minmax(0, 1fr) minmax(148px, 168px);
+    align-items: start;
+  }
+
+  .xt-welcome-cards {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .xt-play-shell {
+    padding: 24px 24px 32px;
+  }
+
+  .xt-play-command {
+    padding: 26px;
+  }
+
+  .xt-play-grid {
+    grid-template-columns: minmax(0, 1.55fr) minmax(340px, 0.95fr);
+    align-items: start;
+  }
+
+  .xt-mp-layout {
+    grid-template-columns: 220px minmax(0, 1fr);
+    align-items: start;
+  }
+
+  .xt-mp-intel {
+    grid-column: 2;
+  }
+}
+
+@media (min-width: 1400px) {
+  .xt-mp-layout {
+    grid-template-columns: 228px minmax(0, 1fr) 300px;
+    align-items: start;
+  }
+
+  .xt-mp-intel {
+    grid-column: auto;
+  }
+}
+
+@media (max-width: 1023px) {
+  .xt-mp-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 900px) {
+  .xt-mp-command-strip {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .xt-mp-command-strip {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+[data-theme='bureau'][data-accent='amber'] {
+  --app-text: #f6f0e7;
+  --app-muted: #978f81;
+  --bureau-edge: rgba(246, 240, 231, 0.13);
+  --bureau-paper: #f6f0e7;
+  --app-bg-overlay:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.02), transparent 13%),
+    radial-gradient(130% 100% at 50% -8%, rgba(214, 164, 93, 0.07), transparent 48%);
 }
 
 [data-accent='teal'] {
@@ -2291,11 +6098,11 @@
 @keyframes authCenterIn {
   from {
     opacity: 0;
-    transform: translate(-50%, -47%) scale(0.985);
+    filter: blur(6px);
   }
   to {
     opacity: 1;
-    transform: translate(-50%, -50%) scale(1);
+    filter: blur(0);
   }
 }
 
@@ -2418,6 +6225,190 @@
   transition: transform var(--ui-motion-med) var(--ui-ease);
 }
 
+.auth-station-brief {
+  border: 1px solid color-mix(in srgb, var(--app-accent) 16%, var(--app-border));
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--app-panel) 88%, rgba(6, 7, 10, 0.18)), color-mix(in srgb, var(--app-panel) 92%, rgba(6, 7, 10, 0.24))),
+    radial-gradient(circle at top left, color-mix(in srgb, var(--app-accent) 11%, transparent), transparent 48%);
+  box-shadow: 0 18px 60px rgba(0, 0, 0, 0.28);
+  padding: 18px 18px 16px;
+  backdrop-filter: blur(12px);
+}
+
+.auth-station-brief-eyebrow,
+.auth-station-brief-rule-head {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--app-accent) 82%, var(--app-text));
+}
+
+.auth-station-brief-title {
+  margin-top: 12px;
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--app-text);
+}
+
+.auth-station-brief-detail {
+  margin-top: 10px;
+  font-size: 12px;
+  line-height: 1.75;
+  color: color-mix(in srgb, var(--app-text) 72%, var(--app-muted));
+}
+
+.auth-station-brief-path {
+  margin-top: 12px;
+  display: grid;
+  gap: 8px;
+  border-top: 1px solid color-mix(in srgb, var(--app-border) 78%, transparent);
+  border-bottom: 1px solid color-mix(in srgb, var(--app-border) 78%, transparent);
+  padding: 12px 0;
+}
+
+.auth-station-brief-status {
+  margin-top: 16px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  border-top: 1px solid color-mix(in srgb, var(--app-border) 78%, transparent);
+  border-bottom: 1px solid color-mix(in srgb, var(--app-border) 78%, transparent);
+  padding: 14px 0;
+}
+
+.auth-station-brief-status-label,
+.auth-station-brief-metric-label {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--app-muted);
+}
+
+.auth-station-brief-status-value {
+  margin-top: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--app-text);
+}
+
+.auth-station-brief-status-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: 1px solid color-mix(in srgb, var(--app-accent) 22%, var(--app-border));
+  color: var(--app-accent);
+}
+
+.auth-station-brief-chip-row {
+  margin-top: 12px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.auth-station-brief-chip {
+  padding: 6px 10px;
+  border: 1px solid color-mix(in srgb, var(--app-border) 84%, transparent);
+  background: color-mix(in srgb, var(--app-panel) 84%, transparent);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--app-text) 76%, var(--app-muted));
+}
+
+.auth-station-brief-chip--accent {
+  border-color: color-mix(in srgb, var(--app-accent) 44%, var(--app-border));
+  background: color-mix(in srgb, var(--app-accent) 14%, var(--app-panel));
+  color: var(--app-text);
+}
+
+.auth-station-brief-metrics {
+  margin-top: 14px;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.auth-station-brief-activity {
+  margin-top: 14px;
+  border-top: 1px solid color-mix(in srgb, var(--app-border) 78%, transparent);
+  padding-top: 14px;
+}
+
+.auth-station-brief-activity-list {
+  display: grid;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.auth-station-brief-activity-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.auth-station-brief-activity-title {
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--app-text);
+}
+
+.auth-station-brief-activity-detail {
+  margin-top: 3px;
+  font-size: 10px;
+  line-height: 1.55;
+  color: color-mix(in srgb, var(--app-text) 68%, var(--app-muted));
+}
+
+.auth-station-brief-activity-time {
+  font-family: var(--app-font-mono);
+  font-size: 9px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--app-text) 42%, transparent);
+  white-space: nowrap;
+}
+
+.auth-station-brief-metric {
+  border: 1px solid color-mix(in srgb, var(--app-border) 84%, transparent);
+  background: color-mix(in srgb, var(--app-panel) 84%, transparent);
+  padding: 10px 10px 9px;
+}
+
+.auth-station-brief-metric-value {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--app-text);
+}
+
+.auth-station-brief-rule {
+  margin-top: 14px;
+  border-top: 1px solid color-mix(in srgb, var(--app-border) 78%, transparent);
+  padding-top: 14px;
+}
+
+.auth-station-brief-rule-copy {
+  margin-top: 10px;
+  font-size: 11px;
+  line-height: 1.75;
+  color: color-mix(in srgb, var(--app-text) 70%, var(--app-muted));
+}
+
 @keyframes authChevronPulse {
   0%,
   100% {
@@ -2456,6 +6447,12 @@
   .auth-skel-date-text {
     opacity: 0;
   }
+
+  .auth-station-brief {
+    left: 51.5% !important;
+    top: 56.2% !important;
+    width: 35.8% !important;
+  }
 }
 
 @media (max-width: 768px) {
@@ -2482,7 +6479,8 @@
   .auth-skel-rail-pattern,
   .auth-skel-day-text,
   .auth-skel-date-text,
-  .auth-center-divider {
+  .auth-center-divider,
+  .auth-station-brief {
     display: none !important;
   }
 

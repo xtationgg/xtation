@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 import { Camera, Edit2, Check, X, Upload, Box, User, Activity, Award, BarChart2, Sword, Zap, Link2, FileText, Shield } from 'lucide-react';
 import { ProfilePanel } from '../UI/ProfilePanel';
 import { EyeOrb } from '../UI/EyeOrb';
@@ -11,6 +11,40 @@ import { useXP } from '../XP/xpStore';
 import { LogCalendar } from '../XP/LogCalendar';
 import { DayTimeline } from '../XP/DayTimeline';
 import { Activity as ProfileActivity } from './Activity';
+import { ClientView } from '../../types';
+import { useXtationSettings } from '../../src/settings/SettingsProvider';
+import { useTheme } from '../../src/theme/ThemeProvider';
+import {
+  assignCapabilityItemsToLoadoutSlots,
+  getActiveCapabilityItems,
+  summarizeCapabilityLoadoutAssignments,
+} from '../../src/inventory/models';
+import { useOptionalAdminConsole } from '../../src/admin/AdminConsoleProvider';
+import {
+  clearPendingStarterWorkspaceAction,
+  clearPendingStarterWorkspaceCue,
+  describeStarterWorkspaceAction,
+  dismissStarterWorkspaceCue,
+  formatStarterWorkspaceCueEyebrow,
+  openStarterWorkspaceAction,
+  readPendingStarterWorkspaceAction,
+  STARTER_WORKSPACE_DISMISS_EVENT,
+  STARTER_WORKSPACE_ACTION_EVENT,
+  readPendingStarterWorkspaceCue,
+  STARTER_WORKSPACE_CUE_EVENT,
+  type XtationStarterWorkspaceActionTarget,
+  type XtationStarterWorkspaceCue,
+} from '../../src/onboarding/workspaceCue';
+import { openPlayNavigation } from '../../src/play/bridge';
+import {
+  readCreativeOpsStateSnapshot,
+  resolveCreativeAvatarPresencePreset,
+  resolveCreativeSceneAvatarPreset,
+  resolvePublishedCreativeSkin,
+} from '../../src/admin/creativeOps';
+import { useAuth } from '../../src/auth/AuthProvider';
+import { usePresentationEvents } from '../../src/presentation/PresentationEventsProvider';
+import { ProfileLobbyScene } from './ProfileLobbyScene';
 import './ProfileHUD.css';
 
 declare global {
@@ -194,15 +228,106 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
     return { HEAD: null, UPPER: null, LOWER: null, FEET: null, ACCESSORY_1: null, ACCESSORY_2: null };
   });
   const objectUrlRef = useRef<string | null>(null);
-  const CHARACTER_PLACEHOLDER_SRC = '/characters/placeholder.svg';
-
   const { stats: xpStats, legacyXP, tasks, selectors, dateKey, startSession, stopSession } = useXP();
+  const { settings } = useXtationSettings();
+  const { theme } = useTheme();
+  const adminConsole = useOptionalAdminConsole();
+  const { user } = useAuth();
+  const { emitEvent } = usePresentationEvents();
+  const creativeState = useMemo(
+    () => readCreativeOpsStateSnapshot(user?.id || null),
+    [settings.unlocks.activeThemeId, settings.unlocks.activeSoundPackId, user?.id]
+  );
+  const resolvedCreativeSkin = useMemo(
+    () =>
+      resolvePublishedCreativeSkin(
+        creativeState,
+        settings.unlocks.activeThemeId?.startsWith('creative:')
+          ? settings.unlocks.activeThemeId.slice('creative:'.length)
+          : undefined,
+        settings.unlocks.activeSoundPackId
+      ),
+    [creativeState, settings.unlocks.activeSoundPackId, settings.unlocks.activeThemeId]
+  );
+  const activeAvatarPreset = useMemo(
+    () =>
+      resolveCreativeSceneAvatarPreset(
+        creativeState,
+        resolvedCreativeSkin?.avatarProfile,
+        resolvedCreativeSkin?.sceneProfile,
+        'published'
+      ),
+    [creativeState, resolvedCreativeSkin?.avatarProfile, resolvedCreativeSkin?.sceneProfile]
+  );
+  const activeAvatarLoadoutSlots = useMemo(
+    () =>
+      activeAvatarPreset?.loadoutSlots?.length
+        ? activeAvatarPreset.loadoutSlots
+        : [
+            { id: 'fallback-core', label: 'core', icon: '⚙', equipped: true, binding: 'theme' },
+            { id: 'fallback-kit', label: 'kit', icon: '🧰', equipped: true, binding: 'module' },
+            { id: 'fallback-relay', label: 'relay', icon: '📶', equipped: true, binding: 'sound' },
+            { id: 'fallback-vault', label: 'vault', icon: '🗂', equipped: false, binding: 'any' },
+            { id: 'fallback-signal', label: 'signal', icon: '✦', equipped: true, binding: 'widget' },
+            { id: 'fallback-mod', label: 'mod', icon: '🔌', equipped: false, binding: 'any' },
+          ],
+    [activeAvatarPreset]
+  );
+  const activeAvatarIdentityBadge = activeAvatarPreset?.identityBadge || 'Station Shell';
+  const activeCapabilityItems = useMemo(
+    () => getActiveCapabilityItems(settings, theme).slice(0, 4),
+    [settings, theme]
+  );
+  const activeAvatarLoadoutAssignments = useMemo(
+    () => assignCapabilityItemsToLoadoutSlots(activeAvatarLoadoutSlots, activeCapabilityItems),
+    [activeAvatarLoadoutSlots, activeCapabilityItems]
+  );
+  const activeAvatarLoadoutSummary = useMemo(
+    () => summarizeCapabilityLoadoutAssignments(activeAvatarLoadoutAssignments),
+    [activeAvatarLoadoutAssignments]
+  );
+  const activeAvatarPresencePreset = useMemo(
+    () => resolveCreativeAvatarPresencePreset(activeAvatarPreset, activeAvatarLoadoutSummary.state),
+    [activeAvatarLoadoutSummary.state, activeAvatarPreset]
+  );
+  const currentStationLabel = adminConsole?.currentStation.label ?? 'Local Station';
+  const currentStationPlan = adminConsole?.currentStation.plan ?? 'free';
 
   useEffect(() => {
     try {
       window.sessionStorage.setItem('profileActiveTab', activeTab);
     } catch {}
   }, [activeTab]);
+  useEffect(() => {
+    emitEvent(`profile.tab.${activeTab.toLowerCase()}.open`, {
+      source: 'profile',
+      metadata: {
+        tab: activeTab,
+        calendarSubView,
+      },
+    });
+  }, [activeTab, calendarSubView, emitEvent]);
+  useEffect(() => {
+    emitEvent(`profile.avatar.loadout.${activeAvatarLoadoutSummary.state}`, {
+      source: 'profile',
+      metadata: {
+        state: activeAvatarLoadoutSummary.state,
+        occupiedSlots: activeAvatarLoadoutSummary.occupiedSlots,
+        totalSlots: activeAvatarLoadoutSummary.totalSlots,
+        missingBindings: activeAvatarLoadoutSummary.missingBindings,
+        matchedBindings: activeAvatarLoadoutSummary.matchedBindings,
+        avatarProfile: resolvedCreativeSkin?.avatarProfile || null,
+        sceneProfile: resolvedCreativeSkin?.sceneProfile || null,
+        identityBadge: activeAvatarIdentityBadge,
+      },
+    });
+  }, [
+    activeAvatarIdentityBadge,
+    activeAvatarLoadoutSummary,
+    emitEvent,
+    resolvedCreativeSkin?.avatarProfile,
+    resolvedCreativeSkin?.sceneProfile,
+  ]);
   useEffect(() => localStorage.setItem('profileName', summonerName), [summonerName]);
   useEffect(() => localStorage.setItem('profileRole', roleText), [roleText]);
   useEffect(() => { try { localStorage.setItem('profileCoverType', coverType); } catch {} }, [coverType]);
@@ -292,8 +417,6 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
     } catch {}
     return [];
   });
-  const stageInnerRef = useRef<HTMLDivElement>(null);
-
   useEffect(() => {
     try { localStorage.setItem('xtation_profile_skills_v1', JSON.stringify(lobbySkills)); } catch {}
   }, [lobbySkills]);
@@ -301,19 +424,117 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
     try { localStorage.setItem('xtation_profile_links_v1', JSON.stringify(lobbyLinks)); } catch {}
   }, [lobbyLinks]);
 
-  // ── Character Upload state ───────────────────────────────────────────
-  const [stageImage, setStageImage] = useState<string>(() => {
-    try { return localStorage.getItem('xtation_stage_img_v1') || ''; } catch { return ''; }
-  });
-  const [stageGlbKey, setStageGlbKey] = useState<string>(() => {
-    try { return localStorage.getItem('xtation_stage_glb_key_v1') || ''; } catch { return ''; }
-  });
-  const [stageGlbName, setStageGlbName] = useState<string>(() => {
-    try { return localStorage.getItem('xtation_stage_glb_name_v1') || ''; } catch { return ''; }
-  });
-  const [stageGlbUrl, setStageGlbUrl] = useState<string>('');
-  const stageImageInputRef = useRef<HTMLInputElement>(null);
-  const stageGlbInputRef = useRef<HTMLInputElement>(null);
+  const [sceneLobbyExpanded, setSceneLobbyExpanded] = useState(false);
+  const [starterWorkspaceCue, setStarterWorkspaceCue] = useState<XtationStarterWorkspaceCue | null>(null);
+  const [starterWorkspaceActionNotice, setStarterWorkspaceActionNotice] = useState<{
+    title: string;
+    detail: string;
+  } | null>(null);
+  const applyStarterWorkspaceAction = useCallback((target: XtationStarterWorkspaceActionTarget) => {
+    if (target === 'profile:stats') {
+      setLobbyOpenPanel('stats');
+      return;
+    }
+
+    if (target === 'profile:loadout') {
+      setLobbyOpenPanel('loadout');
+      return;
+    }
+
+    setLobbyOpenPanel(null);
+  }, []);
+  useEffect(() => {
+    setSceneLobbyExpanded(false);
+  }, []);
+  useEffect(() => {
+    const consumeCue = (cue?: XtationStarterWorkspaceCue | null) => {
+      if (!cue || cue.workspaceView !== ClientView.PROFILE) return;
+      setStarterWorkspaceCue(cue);
+      setLobbyOpenPanel(null);
+      setSceneLobbyExpanded(true);
+      clearPendingStarterWorkspaceCue();
+    };
+
+    consumeCue(readPendingStarterWorkspaceCue());
+
+    const handleStarterWorkspaceCue = (event: Event) => {
+      consumeCue((event as CustomEvent<XtationStarterWorkspaceCue>).detail);
+    };
+
+    window.addEventListener(STARTER_WORKSPACE_CUE_EVENT, handleStarterWorkspaceCue as EventListener);
+    return () => window.removeEventListener(STARTER_WORKSPACE_CUE_EVENT, handleStarterWorkspaceCue as EventListener);
+  }, []);
+  useEffect(() => {
+    const consumeAction = (
+      action?: { workspaceView: ClientView.PROFILE | ClientView.LAB; target: XtationStarterWorkspaceActionTarget } | null
+    ) => {
+      if (!action || action.workspaceView !== ClientView.PROFILE) return;
+      const actionDescriptor = describeStarterWorkspaceAction(starterWorkspaceCue, action.target);
+      applyStarterWorkspaceAction(action.target);
+      setStarterWorkspaceActionNotice(actionDescriptor);
+      clearPendingStarterWorkspaceAction();
+    };
+
+    consumeAction(readPendingStarterWorkspaceAction());
+
+    const handleStarterWorkspaceAction = (event: Event) => {
+      consumeAction(
+        (event as CustomEvent<{
+          workspaceView: ClientView.PROFILE | ClientView.LAB;
+          target: XtationStarterWorkspaceActionTarget;
+        }>).detail
+      );
+    };
+
+    window.addEventListener(STARTER_WORKSPACE_ACTION_EVENT, handleStarterWorkspaceAction as EventListener);
+    return () =>
+      window.removeEventListener(STARTER_WORKSPACE_ACTION_EVENT, handleStarterWorkspaceAction as EventListener);
+  }, [applyStarterWorkspaceAction, starterWorkspaceCue]);
+  useEffect(() => {
+    const handleStarterWorkspaceDismiss = () => {
+      setStarterWorkspaceCue(null);
+      setStarterWorkspaceActionNotice(null);
+    };
+
+    window.addEventListener(STARTER_WORKSPACE_DISMISS_EVENT, handleStarterWorkspaceDismiss as EventListener);
+    return () =>
+      window.removeEventListener(STARTER_WORKSPACE_DISMISS_EVENT, handleStarterWorkspaceDismiss as EventListener);
+  }, []);
+  useEffect(() => {
+    emitEvent(sceneLobbyExpanded ? 'profile.deck.open' : 'profile.deck.close', {
+      source: 'profile',
+      metadata: {
+        panel: lobbyOpenPanel,
+      },
+    });
+  }, [emitEvent, lobbyOpenPanel, sceneLobbyExpanded]);
+  useEffect(() => {
+    if (!lobbyOpenPanel) {
+      emitEvent('profile.panel.close', {
+        source: 'profile',
+        metadata: {
+          expanded: sceneLobbyExpanded,
+        },
+      });
+      return;
+    }
+    emitEvent(`profile.panel.${lobbyOpenPanel}.open`, {
+      source: 'profile',
+      metadata: {
+        expanded: sceneLobbyExpanded,
+      },
+    });
+  }, [emitEvent, lobbyOpenPanel, sceneLobbyExpanded]);
+  useEffect(() => {
+    try {
+      [
+        'xtation_stage_img_v1',
+        'xtation_stage_glb_key_v1',
+        'xtation_stage_glb_name_v1',
+        'xtation_profile_stage_mode_v1',
+      ].forEach((key) => localStorage.removeItem(key));
+    } catch {}
+  }, []);
 
   const addSkill = () => {
     const v = newSkillInput.trim();
@@ -431,43 +652,6 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
   const cancelEdit = () => { playClickSound(); setIsEditingName(false); };
   const saveRole = () => { if (roleText.trim()) { setRoleText(roleText.trim()); playSuccessSound(); } setIsEditingRole(false); };
 
-  // Load persisted GLB from IndexedDB on mount
-  useEffect(() => {
-    if (!stageGlbKey) return;
-    loadGlbFromDB(stageGlbKey).then(url => {
-      if (url) setStageGlbUrl(url);
-    }).catch(() => {});
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [stageGlbKey]);
-
-  const handleStageImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    e.target.value = '';
-    try {
-      const url = await readFileAsDataUrl(file);
-      setStageImage(url);
-      try { localStorage.setItem('xtation_stage_img_v1', url); } catch {}
-      playSuccessSound();
-    } catch {}
-  };
-
-  const handleStageGlbUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    e.target.value = '';
-    try {
-      const key = await saveGlbToDB(file);
-      const blobUrl = URL.createObjectURL(file);
-      setStageGlbKey(key);
-      setStageGlbName(file.name);
-      setStageGlbUrl(blobUrl);
-      try { localStorage.setItem('xtation_stage_glb_key_v1', key); } catch {}
-      try { localStorage.setItem('xtation_stage_glb_name_v1', file.name); } catch {}
-      playSuccessSound();
-    } catch {}
-  };
-
   const openModelDB = () => new Promise<IDBDatabase>((resolve, reject) => {
     const req = indexedDB.open('ProfileModelDB', 1);
     req.onupgradeneeded = () => {
@@ -477,29 +661,6 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
     req.onsuccess = () => resolve(req.result);
     req.onerror = () => reject(req.error);
   });
-
-  const saveGlbToDB = async (file: File): Promise<string> => {
-    const db = await openModelDB();
-    const key = `stage-glb-${Date.now()}`;
-    const tx = db.transaction('models', 'readwrite');
-    tx.objectStore('models').put(file, key);
-    await new Promise<void>((resolve, reject) => {
-      tx.oncomplete = () => resolve();
-      tx.onerror = () => reject(tx.error);
-    });
-    return key;
-  };
-
-  const loadGlbFromDB = async (key: string): Promise<string | null> => {
-    const db = await openModelDB();
-    const tx = db.transaction('models', 'readonly');
-    const req = tx.objectStore('models').get(key);
-    const blob: Blob | undefined = await new Promise((resolve, reject) => {
-      req.onsuccess = () => resolve(req.result as Blob | undefined);
-      req.onerror = () => reject(req.error);
-    });
-    return blob ? URL.createObjectURL(blob) : null;
-  };
 
   const openHealthDB = () => new Promise<IDBDatabase>((resolve, reject) => {
     const req = indexedDB.open('ProfileHealthMediaDB', 2);
@@ -1187,18 +1348,25 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
       }
       case 'loadout':
         return (
-          <div>
+          <div className="space-y-[14px]">
+            <div className="flex items-center justify-between gap-3 rounded-[14px] border border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-[rgba(255,255,255,0.02)] px-3 py-2.5">
+              <div>
+                <div className="text-[9px] uppercase tracking-[1.5px] text-[var(--app-muted)]">Identity Badge</div>
+                <div className="mt-1 text-[12px] font-semibold text-[var(--app-text)]">{activeAvatarIdentityBadge}</div>
+                {activeAvatarPresencePreset?.label ? (
+                  <div className="mt-1 text-[10px] uppercase tracking-[0.16em] text-[var(--app-muted)]">
+                    {activeAvatarPresencePreset.label}
+                  </div>
+                ) : null}
+              </div>
+              <div className="rounded-full border border-[color-mix(in_srgb,var(--app-accent)_28%,transparent)] px-2.5 py-1 text-[8px] uppercase tracking-[1.2px] text-[var(--app-accent)]">
+                {activeAvatarPreset?.relayLabel || 'Profile Relay'}
+              </div>
+            </div>
             <div className="grid grid-cols-3 gap-2">
-              {[
-                { icon: '⚔', label: 'weapon', equipped: true },
-                { icon: '🛡', label: 'armor',  equipped: true },
-                { icon: '💎', label: 'ring',   equipped: false },
-                { icon: '⚡', label: 'boost',  equipped: true },
-                { icon: '🏆', label: 'relic',  equipped: false },
-                { icon: '🔌', label: 'mod',    equipped: false },
-              ].map(slot => (
+              {activeAvatarLoadoutAssignments.map(({ slot, item }) => (
                 <div
-                  key={slot.label}
+                  key={slot.id}
                   className="aspect-square rounded-[10px] flex flex-col items-center justify-center gap-[5px] cursor-pointer transition-all hover:-translate-y-[3px] hover:shadow-[0_8px_20px_color-mix(in_srgb,var(--app-accent)_20%,transparent)]"
                   style={{
                     background: slot.equipped ? 'color-mix(in_srgb,var(--app-accent)_8%,var(--app-panel))' : 'rgba(255,255,255,0.02)',
@@ -1207,10 +1375,74 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
                 >
                   <span className="text-[22px]" style={{ opacity: slot.equipped ? 1 : 0.5 }}>{slot.icon}</span>
                   <span className="text-[8px] uppercase tracking-[1px] text-[var(--app-muted)]">{slot.label}</span>
+                  <span className="max-w-[68px] truncate text-[7px] uppercase tracking-[0.12em] text-[var(--app-accent)]">
+                    {item?.kind || slot.binding}
+                  </span>
                 </div>
               ))}
             </div>
-            <div className="text-[9px] text-[var(--app-muted)] text-center mt-3">Inventory equip coming soon.</div>
+            <div className="text-[9px] text-[var(--app-muted)] text-center mt-3">
+              Avatar pack controls this slot layout. Inventory equip wiring follows the authored shell.
+            </div>
+
+            <div className="rounded-[14px] border border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-[rgba(255,255,255,0.02)] p-3">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <div className="text-[9px] uppercase tracking-[1.5px] text-[var(--app-muted)]">
+                    {activeAvatarPreset?.loadoutTitle || 'System Loadout'}
+                  </div>
+                  <div className="mt-1 text-[12px] text-[var(--app-text)]">
+                    {activeAvatarPresencePreset?.deckPrompt ||
+                      activeAvatarPreset?.loadoutDescription ||
+                      'Active XTATION capabilities currently shaping this station.'}
+                  </div>
+                </div>
+                <div className="rounded-full border border-[color-mix(in_srgb,var(--app-accent)_34%,transparent)] px-2.5 py-1 text-[9px] uppercase tracking-[1.4px] text-[var(--app-accent)]">
+                  {activeCapabilityItems.length} {activeAvatarPreset?.capabilityLabel || 'active'}
+                </div>
+              </div>
+
+              <div className="mt-3 space-y-2">
+                {activeAvatarLoadoutAssignments.map(({ slot, item }) => (
+                  <div
+                    key={`${slot.id}:${item?.id || 'empty'}`}
+                    className="rounded-[12px] border border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-[color-mix(in_srgb,var(--app-panel)_84%,transparent)] px-3 py-2.5"
+                  >
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="min-w-0">
+                        <div className="text-[12px] font-semibold text-[var(--app-text)]">
+                          {slot.icon} {slot.label}
+                          {item ? ` • ${item.title}` : ''}
+                        </div>
+                        <div className="mt-1 text-[9px] uppercase tracking-[1.4px] text-[var(--app-muted)]">
+                          {slot.binding} slot{item ? ` • ${item.kind} • ${item.sourceLabel}` : ' • unassigned'}
+                        </div>
+                      </div>
+                      <div className="rounded-full border border-[color-mix(in_srgb,var(--app-accent)_28%,transparent)] px-2 py-1 text-[8px] uppercase tracking-[1.3px] text-[var(--app-accent)]">
+                        {item ? 'equipped' : 'standby'}
+                      </div>
+                    </div>
+                    <div className="mt-2 text-[11px] leading-5 text-[var(--app-muted)]">
+                      {item
+                        ? item.description
+                        : `This ${slot.binding} slot is authored by the active avatar pack and will light up when a matching XTATION capability is available.`}
+                    </div>
+                    {item?.highlights.length ? (
+                      <div className="mt-2 flex flex-wrap gap-1.5">
+                        {item.highlights.slice(0, 3).map((highlight) => (
+                          <span
+                            key={highlight}
+                            className="rounded-full border border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] px-2 py-[3px] text-[8px] uppercase tracking-[1.2px] text-[var(--app-muted)]"
+                          >
+                            {highlight}
+                          </span>
+                        ))}
+                      </div>
+                    ) : null}
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
         );
       case 'skills':
@@ -1410,36 +1642,71 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
               type="button"
               onClick={() => setLobbyOpenPanel(p => p === btn.key ? null : btn.key)}
               data-active={active}
-              className="xt-dock-btn w-12 h-[46px] rounded-[10px] flex flex-col items-center justify-center gap-[3px] cursor-pointer select-none transition-[transform,box-shadow,background]"
-              style={{
-                background: active
-                  ? 'var(--app-accent)'
-                  : 'color-mix(in_srgb,var(--app-accent)_35%,black)',
-                boxShadow: active
-                  ? '0 0 24px color-mix(in_srgb,var(--app-accent)_45%,transparent),0 0 8px color-mix(in_srgb,var(--app-accent)_30%,transparent)'
-                  : 'none',
-                transform: active ? 'scale(1.08)' : 'scale(1)',
-                transitionTimingFunction: 'cubic-bezier(0.34,1.56,0.64,1)',
-                transitionDuration: '350ms',
-              }}
+              className="xt-dock-btn"
             >
-              <span style={{ color: active ? '#fff' : 'var(--app-accent)', opacity: active ? 1 : 0.7, transition: 'opacity 0.3s' }}>
+              <span className="xt-dock-btn-icon">
                 {btn.icon}
               </span>
-              <span className="text-[7.5px] font-medium tracking-[0.4px] lowercase" style={{ color: active ? '#fff' : 'var(--app-text)', opacity: active ? 1 : 0.7, transition: 'opacity 0.3s' }}>
+              <span className="xt-dock-btn-label">
                 {btn.label}
               </span>
             </button>
           );
         };
 
-        const stageSrc = stageImage || CHARACTER_PLACEHOLDER_SRC;
-
         const bgCfg = {
           active:     { glowOpacity: 1,    animDuration: '3.5s', glowStrength: '32%' },
           productive: { glowOpacity: 0.85, animDuration: '6s',   glowStrength: '22%' },
           idle:       { glowOpacity: 0.3,  animDuration: '11s',  glowStrength: '10%' },
         }[stageState];
+
+        const currentDeckPrompt =
+          (() => {
+            const prompt =
+              currentMission?.title ??
+              activeAvatarPresencePreset?.deckPrompt ??
+              activeAvatarPreset?.deckPrompt ??
+              'Open deck for identity and loadout.';
+            return prompt.length > 64 ? `${prompt.slice(0, 63).trimEnd()}…` : prompt;
+          })();
+
+        const currentCreativeSkinName = resolvedCreativeSkin?.name || 'Bureau Station';
+        const currentSceneProfile = resolvedCreativeSkin?.sceneProfile || 'bureau';
+        const currentMotionProfile = resolvedCreativeSkin?.motionProfile || 'calm';
+        const currentScreenProfile = resolvedCreativeSkin?.screenProfile || 'bureau';
+        const currentAvatarProfile = resolvedCreativeSkin?.avatarProfile || 'station';
+        const profileRuntimeCards = [
+          {
+            key: 'station',
+            icon: <Box size={16} />,
+            label: 'station lane',
+            value: currentStationLabel,
+            detail: `${currentStationPlan.toUpperCase()} • ${activeAvatarLoadoutSummary.state.toUpperCase()} loadout`,
+          },
+          {
+            key: 'skin',
+            icon: <Activity size={16} />,
+            label: 'skin package',
+            value: currentCreativeSkinName,
+            detail: `${currentSceneProfile.toUpperCase()} scene • ${currentMotionProfile.toUpperCase()} motion`,
+          },
+          {
+            key: 'avatar',
+            icon: <User size={16} />,
+            label: 'avatar shell',
+            value: activeAvatarIdentityBadge,
+            detail: `${activeAvatarPreset?.shellLabel || 'Profile deck'} • ${currentAvatarProfile.toUpperCase()} avatar`,
+          },
+          {
+            key: 'loadout',
+            icon: <Zap size={16} />,
+            label: 'loadout sync',
+            value: `${activeAvatarLoadoutSummary.occupiedSlots}/${activeAvatarLoadoutSummary.totalSlots} slots`,
+            detail: activeAvatarLoadoutSummary.missingBindings.length
+              ? `${activeAvatarLoadoutSummary.missingBindings.length} bindings missing`
+              : 'All bindings mapped',
+          },
+        ] as const;
 
         return (
           <div className="xt-profile-stage-wrapper h-full relative overflow-hidden">
@@ -1488,61 +1755,23 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
                 />
               )}
 
-              {/* === Character === */}
-              <div
-                className="absolute inset-0"
-                style={stageGlbUrl ? undefined : { perspective: '1100px' }}
-                onMouseMove={stageGlbUrl ? undefined : e => {
-                  const rect = e.currentTarget.getBoundingClientRect();
-                  const x = ((e.clientX - rect.left) / rect.width - 0.5) * 2;
-                  const y = ((e.clientY - rect.top) / rect.height - 0.5) * 2;
-                  if (stageInnerRef.current) {
-                    stageInnerRef.current.style.transform = `rotateY(${x * 6}deg) rotateX(${-y * 4}deg)`;
-                  }
-                }}
-                onMouseLeave={stageGlbUrl ? undefined : () => {
-                  if (stageInnerRef.current) {
-                    stageInnerRef.current.style.transform = 'rotateY(0deg) rotateX(0deg)';
-                  }
-                }}
-              >
-                <div
-                  ref={stageInnerRef}
-                  className={`w-full h-full flex items-center justify-center transition-transform duration-150 ease-out${stageGlbUrl ? '' : ` stage-pose-${stageState}`}`}
-                >
-                  <div
-                    className="absolute inset-x-0 top-0 h-1/2 pointer-events-none"
-                    style={{ background: 'radial-gradient(ellipse 60% 55% at 50% 0%, color-mix(in_srgb,var(--app-accent)_14%,transparent) 0%, transparent 70%)' }}
-                  />
-                  {stageGlbUrl ? (
-                    <model-viewer
-                      src={stageGlbUrl}
-                      autoplay
-                      camera-controls
-                      disable-zoom
-                      interaction-prompt="none"
-                      shadow-intensity="0"
-                      exposure="1"
-                      environment-image="neutral"
-                      camera-orbit="0deg 85deg auto"
-                      style={{ width: '100%', height: '100%', display: 'block', background: 'transparent' } as React.CSSProperties}
-                    />
-                  ) : (
-                    <img
-                      src={stageSrc}
-                      alt="Character"
-                      className="max-h-full max-w-full object-contain block"
-                      draggable={false}
-                    />
-                  )}
-                  <div className="absolute bottom-0 inset-x-0 flex justify-center pointer-events-none">
-                    <div
-                      className="rounded-full blur-3xl"
-                      style={{ width: '60%', height: '48px', background: 'color-mix(in_srgb,var(--app-accent)_40%,transparent)' }}
-                    />
-                  </div>
-                </div>
-              </div>
+              <ProfileLobbyScene
+                displayName={summonerName}
+                roleText={roleText}
+                theme={theme}
+                stageState={stageState}
+                totalXP={totalXP}
+                completedToday={completedToday}
+                currentMissionTitle={currentMission?.title ?? null}
+                activeSessionLabel={activeSession ? 'Session live now' : null}
+                stationLabel={currentStationLabel}
+                plan={currentStationPlan}
+                capabilityHighlights={activeCapabilityItems.flatMap((item) => item.highlights).slice(0, 4)}
+                loadoutOccupancyState={activeAvatarLoadoutSummary.state}
+                occupiedLoadoutSlots={activeAvatarLoadoutSummary.occupiedSlots}
+                totalLoadoutSlots={activeAvatarLoadoutSummary.totalSlots}
+                missingLoadoutBindings={activeAvatarLoadoutSummary.missingBindings}
+              />
 
               {/* === EyeOrb — bottom right corner === */}
               <div className="absolute bottom-4 right-4 z-20">
@@ -1556,69 +1785,56 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
                 />
               </div>
 
-              {/* === Character upload buttons — top right === */}
-              <div className="absolute top-3 right-3 z-20 flex flex-col gap-1.5">
-                <button
-                  type="button"
-                  title="Upload character image (PNG/JPG)"
-                  onClick={() => stageImageInputRef.current?.click()}
-                  className="group h-7 w-7 rounded-lg bg-black/55 backdrop-blur-sm border border-white/10 hover:border-[color-mix(in_srgb,var(--app-accent)_55%,transparent)] flex items-center justify-center transition-all hover:scale-105"
-                >
-                  <Camera size={12} className="text-white/50 group-hover:text-[var(--app-accent)]" />
-                </button>
-                <button
-                  type="button"
-                  title="Upload 3D model (.glb)"
-                  onClick={() => stageGlbInputRef.current?.click()}
-                  className="group h-7 w-7 rounded-lg bg-black/55 backdrop-blur-sm border border-white/10 hover:border-[color-mix(in_srgb,var(--app-accent)_55%,transparent)] flex items-center justify-center transition-all hover:scale-105"
-                >
-                  <Box size={12} className="text-white/50 group-hover:text-[var(--app-accent)]" />
-                </button>
-              </div>
-
-              {/* === GLB indicator — top left === */}
-              {stageGlbName && (
-                <div className="absolute top-3 left-3 z-20 flex items-center gap-1.5 bg-black/60 backdrop-blur-sm rounded-lg px-2 py-1 border border-[color-mix(in_srgb,var(--app-accent)_30%,transparent)]">
-                  <Box size={10} className="text-[var(--app-accent)] shrink-0" />
-                  <span className="text-[9px] uppercase tracking-[0.1em] text-[var(--app-accent)] truncate max-w-[120px]">{stageGlbName}</span>
-                  <button
-                    type="button"
-                    title="Replace 3D model"
-                    onClick={() => stageGlbInputRef.current?.click()}
-                    className="text-white/40 hover:text-white ml-0.5 leading-none"
-                  >↺</button>
-                </div>
-              )}
-
-              {/* Hidden character file inputs */}
-              <input ref={stageImageInputRef} type="file" className="hidden" accept="image/png,image/jpeg,image/jpg" onChange={handleStageImageUpload} />
-              <input ref={stageGlbInputRef} type="file" className="hidden" accept=".glb" onChange={handleStageGlbUpload} />
               {/* Hidden profile/cover inputs (kept in DOM) */}
               <input ref={fileInputRef} type="file" className="hidden" accept="image/png,image/jpeg,image/gif,image/jpg" onChange={handleFileChange} />
               <input ref={coverInputRef} type="file" className="hidden" accept="image/png,image/jpeg,image/jpg,image/gif,image/svg+xml,video/mp4" onChange={handleCoverChange} />
             </div>
 
+            {!sceneLobbyExpanded ? (
+              <div className="xt-profile-compact-anchor z-30">
+                <button
+                  type="button"
+                  onClick={() => setSceneLobbyExpanded(true)}
+                  className="xt-profile-compact-card group"
+                >
+                  <div className="xt-profile-compact-portrait">
+                    {profileImage && profileImage !== ASSETS.PROFILE_ICON ? (
+                      <img src={profileImage} alt="Profile" className="h-full w-full object-cover" draggable={false} />
+                    ) : (
+                      <div className="xt-profile-compact-portrait-fallback">
+                        <User size={20} />
+                      </div>
+                    )}
+                  </div>
+                  <div className="xt-profile-compact-copy">
+                    <div className="xt-profile-compact-kicker">
+                      {activeAvatarPreset?.shellLabel || 'Profile deck'}
+                    </div>
+                    <div className="xt-profile-compact-title">{summonerName}</div>
+                    <div className="xt-profile-compact-detail">
+                      {currentDeckPrompt}
+                    </div>
+                    <div className="xt-profile-compact-tags">
+                      <span className="xt-runtime-relay-badge">{activeAvatarIdentityBadge}</span>
+                      <span className="xt-runtime-relay-tag">{currentCreativeSkinName}</span>
+                      <span className="xt-runtime-relay-tag">{activeAvatarLoadoutSummary.state.toUpperCase()}</span>
+                    </div>
+                  </div>
+                  <div className="xt-profile-compact-open">
+                    Deck
+                  </div>
+                </button>
+              </div>
+            ) : null}
+
             {/* ── Floating lobby card — left side ── */}
-            <div
-              className="xt-profile-lobby-outer absolute top-1/2 -translate-y-1/2 z-30"
-              style={{ left: 20 }}
-            >
+            {sceneLobbyExpanded ? (
+            <div className="xt-profile-lobby-outer z-30">
               {/* Card shell */}
-              <div
-                className="xt-profile-lobby-card relative flex shrink-0"
-                style={{
-                  width: 340,
-                  height: 'min(680px, calc(100vh - 80px))',
-                  background: 'var(--app-accent)',
-                  borderRadius: 16,
-                  padding: 4,
-                  boxShadow: '0 30px 80px -20px rgba(0,0,0,.8), 0 0 60px -15px color-mix(in_srgb,var(--app-accent)_30%,transparent)',
-                }}
-              >
+              <div className="xt-profile-lobby-card xt-profile-lobby-card--scene relative flex shrink-0">
                 {/* Card inner */}
                 <div
                   className="xt-profile-lobby-inner flex-1 flex overflow-hidden relative"
-                  style={{ background: 'var(--app-bg)', borderRadius: 12 }}
                 >
                   {/* Corner cut accent */}
                   <div
@@ -1633,27 +1849,19 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
                   {/* ── Dock ── */}
                   <div
                     className="xt-profile-dock shrink-0 flex flex-col items-center gap-[6px] relative z-10"
-                    style={{
-                      width: 58,
-                      padding: '10px 5px 12px',
-                      background: 'color-mix(in_srgb,var(--app-accent)_75%,black)',
-                      borderRadius: '10px 0 0 10px',
-                    }}
+                    style={{ width: 58, padding: '10px 5px 12px' }}
                   >
                     {/* Home / avatar button */}
                     <button
                       type="button"
                       onClick={() => setLobbyOpenPanel(null)}
                       title="Home"
-                      className="w-[38px] h-[38px] rounded-[10px] flex items-center justify-center mb-1.5 cursor-pointer overflow-hidden shrink-0 transition-all duration-300"
-                      style={{
-                        background: lobbyOpenPanel === null ? 'var(--app-accent)' : 'color-mix(in_srgb,var(--app-accent)_35%,black)',
-                        boxShadow: lobbyOpenPanel === null ? '0 0 20px color-mix(in_srgb,var(--app-accent)_45%,transparent)' : 'none',
-                      }}
+                      data-active={lobbyOpenPanel === null}
+                      className="xt-profile-dock-home"
                     >
                       <img src={profileImage} alt="Profile" className="w-full h-full object-cover" style={{ display: profileImage && profileImage !== ASSETS.PROFILE_ICON ? 'block' : 'none' }} />
                       {(!profileImage || profileImage === ASSETS.PROFILE_ICON) && (
-                        <User size={18} style={{ color: lobbyOpenPanel === null ? '#fff' : 'var(--app-accent)' }} />
+                        <User size={18} className="xt-profile-dock-home-icon" />
                       )}
                     </button>
 
@@ -1663,8 +1871,17 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
                     {/* Spacer */}
                     <div className="flex-1" />
 
+                    <button
+                      type="button"
+                      onClick={() => setSceneLobbyExpanded(false)}
+                      title="Collapse profile deck"
+                      className="xt-profile-dock-collapse"
+                    >
+                      Min
+                    </button>
+
                     {/* Hex logo */}
-                    <div className="w-[38px] h-[38px] flex items-center justify-center cursor-pointer transition-transform duration-500 hover:scale-110 hover:rotate-[15deg]">
+                    <div className="xt-profile-dock-mark">
                       <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="color-mix(in_srgb,var(--app-accent)_90%,white)" strokeWidth="1.2" strokeLinejoin="round">
                         <path d="M12 2l8.5 5v10L12 22l-8.5-5V7L12 2z"/>
                         <path d="M12 2v7.5M12 22v-7.5M3.5 7l8.5 5M20.5 7l-8.5 5M3.5 17l8.5-5M20.5 17l-8.5-5" opacity=".6"/>
@@ -1677,22 +1894,151 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
 
                     {/* Home view */}
                     <div
-                      className="flex-1 flex flex-col overflow-y-auto xt-scroll"
+                      className="xt-profile-lobby-home flex-1 flex flex-col overflow-y-auto xt-scroll"
                       style={{
-                        padding: '16px 18px 16px',
                         opacity: lobbyOpenPanel !== null ? 0 : 1,
                         pointerEvents: lobbyOpenPanel !== null ? 'none' : 'auto',
                         transition: 'opacity 0.25s ease',
                       }}
                     >
+                      {starterWorkspaceCue ? (
+                        <div className="xt-workspace-cue xt-runtime-console xt-runtime-console--profile-command mb-4">
+                          <div className="xt-runtime-console-head">
+                            <div className="xt-runtime-console-copy">
+                              <div className="xt-runtime-console-kicker">{formatStarterWorkspaceCueEyebrow(starterWorkspaceCue)}</div>
+                              <div className="xt-runtime-relay-title">{starterWorkspaceCue.title}</div>
+                              <div className="xt-runtime-relay-copy">{starterWorkspaceCue.detail}</div>
+                            </div>
+                            <button
+                              type="button"
+                              className="xt-runtime-action"
+                              onClick={() => dismissStarterWorkspaceCue()}
+                            >
+                              Dismiss
+                            </button>
+                          </div>
+                          <div className="xt-runtime-toolbar mt-4">
+                            <span className="xt-runtime-relay-badge">{starterWorkspaceCue.questTitle}</span>
+                            {starterWorkspaceCue.chips.map((chip) => (
+                              <span key={`profile-starter-${chip}`} className="xt-runtime-relay-tag">
+                                {chip}
+                              </span>
+                            ))}
+                          </div>
+                          <div className="xt-runtime-summary-card mt-4">
+                            <div className="xt-runtime-summary-label">Recommended next move</div>
+                            <div className="xt-runtime-summary-value">{starterWorkspaceCue.recommendedLabel}</div>
+                            <div className="xt-runtime-summary-detail">{starterWorkspaceCue.recommendedDetail}</div>
+                            <div className="xt-runtime-toolbar mt-4">
+                              <button
+                                type="button"
+                                className="xt-runtime-action"
+                                onClick={() =>
+                                  openStarterWorkspaceAction({
+                                    workspaceView: ClientView.PROFILE,
+                                    target: starterWorkspaceCue.recommendedActionTarget,
+                                    source: 'profile',
+                                  })
+                                }
+                              >
+                                {starterWorkspaceCue.recommendedActionLabel}
+                              </button>
+                            </div>
+                          </div>
+                          {starterWorkspaceCue.mode === 'checkpoint' && starterWorkspaceCue.checkpointLabel ? (
+                            <div className="xt-runtime-summary-card xt-workspace-cue__checkpoint mt-4">
+                              <div className="xt-runtime-summary-head">
+                                <div>
+                                  <div className="xt-runtime-summary-label">Checkpoint status</div>
+                                  <div className="xt-runtime-summary-value">{starterWorkspaceCue.checkpointLabel}</div>
+                                </div>
+                                {starterWorkspaceCue.checkpointTrackedLabel ? (
+                                  <div className="xt-workspace-cue__checkpoint-meta">
+                                    {starterWorkspaceCue.checkpointTrackedLabel}
+                                  </div>
+                                ) : null}
+                              </div>
+                              {starterWorkspaceCue.checkpointDetail ? (
+                                <div className="xt-runtime-summary-detail">{starterWorkspaceCue.checkpointDetail}</div>
+                              ) : null}
+                              {starterWorkspaceCue.checkpointOutcomeLabel ? (
+                                <div className="xt-workspace-cue__checkpoint-outcome">
+                                  <div className="xt-workspace-cue__checkpoint-outcome-label">
+                                    {starterWorkspaceCue.checkpointOutcomeLabel}
+                                  </div>
+                                  {starterWorkspaceCue.checkpointOutcomeDetail ? (
+                                    <div className="xt-workspace-cue__checkpoint-outcome-detail">
+                                      {starterWorkspaceCue.checkpointOutcomeDetail}
+                                    </div>
+                                  ) : null}
+                                </div>
+                              ) : null}
+                              <div className="xt-workspace-cue__checkpoint-bar">
+                                <div
+                                  className="xt-workspace-cue__checkpoint-fill"
+                                  style={{ width: `${Math.round((starterWorkspaceCue.checkpointProgress ?? 0) * 100)}%` }}
+                                />
+                              </div>
+                            </div>
+                          ) : null}
+                          <div className="xt-runtime-toolbar mt-4">
+                            <button
+                              type="button"
+                              className="xt-runtime-action"
+                              onClick={() => openPlayNavigation({ taskId: starterWorkspaceCue.questId, requestedBy: 'profile' })}
+                            >
+                              Open Quest
+                            </button>
+                            <button
+                              type="button"
+                              className="xt-runtime-action"
+                              onClick={() =>
+                                openDuskBrief({
+                                  title: `Starter handoff: ${starterWorkspaceCue.questTitle}`,
+                                  body: `${starterWorkspaceCue.detail}\n\nRoute steps:\n${starterWorkspaceCue.steps
+                                    .map((step, index) => `${index + 1}. ${step}`)
+                                    .join('\n')}`,
+                                  source: 'profile',
+                                  tags: ['starter-handoff', starterWorkspaceCue.track, starterWorkspaceCue.branch.toLowerCase()],
+                                  linkedQuestIds: [starterWorkspaceCue.questId],
+                                  createdAt: starterWorkspaceCue.createdAt,
+                                })
+                              }
+                            >
+                              Brief Dusk
+                            </button>
+                          </div>
+                        </div>
+                      ) : null}
+                      {starterWorkspaceActionNotice ? (
+                        <div className="xt-runtime-summary-card xt-workspace-cue__action-confirmation mb-4">
+                          <div className="xt-runtime-summary-label">Starter action confirmed</div>
+                          <div className="xt-runtime-summary-value">{starterWorkspaceActionNotice.title}</div>
+                          <div className="xt-runtime-summary-detail">{starterWorkspaceActionNotice.detail}</div>
+                        </div>
+                      ) : null}
+                      <div className="xt-profile-lobby-command xt-runtime-console xt-runtime-console--profile-command">
+                        <div className="xt-profile-lobby-command-head">
+                          <div className="xt-profile-lobby-command-copy">
+                            <div className="xt-profile-lobby-command-kicker">
+                              {activeAvatarPreset?.shellLabel || 'Profile deck'}
+                            </div>
+                            <div className="xt-profile-lobby-command-title">{summonerName}</div>
+                            <div className="xt-profile-lobby-command-detail">{currentDeckPrompt}</div>
+                          </div>
+                          <div className="xt-runtime-package-badge">{activeAvatarIdentityBadge}</div>
+                        </div>
+                        <div className="xt-profile-lobby-command-tags">
+                          <span className="xt-runtime-relay-tag">{currentCreativeSkinName}</span>
+                          <span className="xt-runtime-relay-tag">{currentSceneProfile.toUpperCase()}</span>
+                          <span className="xt-runtime-relay-tag">{currentStationPlan.toUpperCase()}</span>
+                          <span className="xt-runtime-relay-tag">{activeAvatarLoadoutSummary.state.toUpperCase()}</span>
+                        </div>
+                      </div>
+
                       {/* Profile picture box */}
                       <div
-                        className="relative rounded-[10px] mb-3 shrink-0 overflow-hidden cursor-pointer group"
-                        style={{
-                          width: '100%',
-                          aspectRatio: '1/0.72',
-                          background: 'color-mix(in_srgb,var(--app-accent)_12%,var(--app-bg))',
-                        }}
+                        className="xt-profile-lobby-portrait relative shrink-0 overflow-hidden cursor-pointer group"
                         onClick={handleImageClick}
                         title="Change profile picture"
                       >
@@ -1716,23 +2062,37 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
                         </div>
                       </div>
 
-                      {/* Profile fields */}
-                      <div className="flex flex-col gap-2 mb-3 shrink-0">
+                      <div className="xt-profile-runtime-grid">
+                        {profileRuntimeCards.map((card) => (
+                          <div key={card.key} className="xt-runtime-summary-card xt-profile-runtime-card">
+                            <div className="xt-runtime-summary-head">
+                              <div className="xt-runtime-summary-icon">{card.icon}</div>
+                              <div className="min-w-0">
+                                <div className="xt-runtime-summary-label">{card.label}</div>
+                                <div className="xt-runtime-summary-value xt-profile-runtime-value">{card.value}</div>
+                              </div>
+                            </div>
+                            <div className="xt-runtime-summary-detail xt-profile-runtime-detail">{card.detail}</div>
+                          </div>
+                        ))}
+                      </div>
+
+                      <div className="xt-profile-runtime-meta">
                         {([
-                          { label: 'name',  value: summonerName },
-                          { label: 'role',  value: roleText },
-                          { label: 'id',    value: profileId.split('//')[0].trim() },
+                          { label: 'role', value: roleText },
+                          { label: 'id', value: profileId.split('//')[0].trim() },
                           { label: 'email', value: bioStats.email || '—' },
                         ] as { label: string; value: string }[]).map(({ label, value }) => (
-                          <div key={label} className="flex items-baseline gap-2.5">
-                            <span className="text-[9px] min-w-[46px] tracking-[0.3px]" style={{ color: 'rgba(255,255,255,0.3)' }}>{label}</span>
-                            <span className="text-[12px] truncate" style={{ color: 'rgba(255,255,255,0.72)', fontWeight: 400 }}>{value}</span>
+                          <div key={label} className="xt-profile-runtime-meta-row">
+                            <span className="xt-profile-runtime-meta-label">{label}</span>
+                            <span className="xt-profile-runtime-meta-value">{value}</span>
                           </div>
                         ))}
                       </div>
 
                       {/* Circular timer ring */}
-                      {(() => {
+                      <div className="xt-profile-runtime-block xt-profile-runtime-block--timer">
+                        {(() => {
                         const now = new Date();
                         const currentHour = now.getHours();
                         const minutesLeft = 24 * 60 - (now.getHours() * 60 + now.getMinutes());
@@ -1760,8 +2120,8 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
                           return { x1, y1, x2, y2, color, bright };
                         });
                         return (
-                          <div className="flex flex-col items-center shrink-0 py-2" style={{ margin: 'auto 0' }}>
-                            <div className="relative" style={{ width: 120, height: 120 }}>
+                          <div className="xt-profile-lobby-timer shrink-0">
+                            <div className="xt-profile-lobby-timer-visual relative">
                               {/* Outer segment ring */}
                               <div className="absolute" style={{ inset: -11, width: 'calc(100% + 22px)', height: 'calc(100% + 22px)' }}>
                                 <svg viewBox="0 0 198 198" style={{ width: '100%', height: '100%', transform: 'rotate(-90deg)' }}>
@@ -1807,35 +2167,30 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
                                 />
                               </div>
                             </div>
-                            <div className="mt-2 font-mono text-[10px] tracking-[0.5px]" style={{ color: 'var(--app-accent)' }}>
+                            <div className="xt-profile-lobby-timer-label">
                               {h}:{String(m).padStart(2, '0')} left for the day
                             </div>
                           </div>
                         );
-                      })()}
+                        })()}
+                      </div>
 
                       {/* Stats row */}
-                      <div
-                        className="flex shrink-0 my-2"
-                        style={{
-                          borderTop: '1px solid color-mix(in_srgb,var(--app-accent)_18%,transparent)',
-                          borderBottom: '1px solid color-mix(in_srgb,var(--app-accent)_18%,transparent)',
-                        }}
-                      >
-                        <div className="flex-1 text-center py-2">
-                          <div className="text-[8px] uppercase tracking-[1px] mb-1" style={{ color: 'rgba(255,255,255,0.3)' }}>XP</div>
-                          <div className="text-[16px] font-semibold font-mono" style={{ color: 'var(--app-text)' }}>{totalXP}</div>
+                      <div className="xt-profile-lobby-stats shrink-0">
+                        <div className="xt-profile-lobby-stat">
+                          <div className="xt-profile-lobby-stat-label">XP</div>
+                          <div className="xt-profile-lobby-stat-value">{totalXP}</div>
                         </div>
-                        <div className="flex-1 text-center py-2" style={{ borderLeft: '1px solid color-mix(in_srgb,var(--app-accent)_20%,transparent)' }}>
-                          <div className="text-[8px] uppercase tracking-[1px] mb-1" style={{ color: 'rgba(255,255,255,0.3)' }}>Done Today</div>
-                          <div className="text-[16px] font-semibold font-mono" style={{ color: 'var(--app-text)' }}>{completedToday}</div>
+                        <div className="xt-profile-lobby-stat">
+                          <div className="xt-profile-lobby-stat-label">Done Today</div>
+                          <div className="xt-profile-lobby-stat-value">{completedToday}</div>
                         </div>
                       </div>
 
                       {/* Session bar */}
-                      <div className="pt-2 shrink-0 mt-auto">
-                        <div className="flex items-center justify-between mb-2">
-                          <div className="text-[10px]" style={{ color: 'rgba(255,255,255,0.6)', letterSpacing: '0.2px' }}>
+                      <div className="xt-profile-lobby-session shrink-0 mt-auto">
+                        <div className="xt-profile-lobby-session-head">
+                          <div className="xt-profile-lobby-session-label">
                             {activeSession ? 'Session running' : 'No active session'}
                           </div>
                           <button
@@ -1844,12 +2199,8 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
                               playClickSound();
                               if (activeSession) { stopSession(); } else { startSession({ title: 'Quick session', tag: 'stage', source: 'timer', linkedTaskIds: [] }); }
                             }}
-                            className="h-5 w-5 rounded-full flex items-center justify-center transition-all hover:scale-110"
-                            style={{
-                              background: activeSession ? 'var(--app-accent)' : 'color-mix(in_srgb,var(--app-accent)_18%,var(--app-bg))',
-                              border: '1px solid color-mix(in_srgb,var(--app-accent)_40%,transparent)',
-                              boxShadow: activeSession ? '0 0 10px color-mix(in_srgb,var(--app-accent)_40%,transparent)' : 'none',
-                            }}
+                            data-running={activeSession ? 'true' : 'false'}
+                            className="xt-profile-lobby-session-toggle"
                           >
                             <svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke={activeSession ? '#fff' : 'var(--app-accent)'} strokeWidth="2.2">
                               {activeSession
@@ -1859,13 +2210,13 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
                             </svg>
                           </button>
                         </div>
-                        <div className="rounded-[3px] overflow-hidden" style={{ height: 4, background: 'rgba(255,255,255,0.06)' }}>
+                        <div className="xt-profile-lobby-session-bar">
                           <div
-                            className="h-full rounded-[3px] transition-[width] duration-[1800ms]"
-                            style={{ width: `${levelProgress}%`, background: 'color-mix(in_srgb,var(--app-accent)_80%,#573778)' }}
+                            className="xt-profile-lobby-session-fill transition-[width] duration-[1800ms]"
+                            style={{ width: `${levelProgress}%` }}
                           />
                         </div>
-                        <div className="text-right mt-1 font-mono text-[9px]" style={{ color: 'var(--app-accent)' }}>{levelProgress}%</div>
+                        <div className="xt-profile-lobby-session-progress">{levelProgress}%</div>
                       </div>
                     </div>
 
@@ -1874,10 +2225,8 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
                       {(['identity', 'stats', 'loadout', 'skills', 'titles', 'links', 'notes', 'privacy'] as LobbyPanelKey[]).map(key => (
                         <div
                           key={key}
-                          className="absolute inset-0 overflow-y-auto xt-scroll"
+                          className="xt-profile-lobby-panel absolute inset-0 overflow-y-auto xt-scroll"
                           style={{
-                            background: 'var(--app-bg)',
-                            padding: '20px 18px',
                             opacity: lobbyOpenPanel === key ? 1 : 0,
                             visibility: lobbyOpenPanel === key ? 'visible' : 'hidden',
                             pointerEvents: lobbyOpenPanel === key ? 'auto' : 'none',
@@ -1889,14 +2238,14 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
                           }}
                         >
                           {/* Panel header */}
-                          <div className="flex items-center justify-between mb-[18px]">
-                            <div className="text-[11px] font-semibold uppercase tracking-[2px]" style={{ color: 'var(--app-accent)' }}>
+                          <div className="xt-profile-lobby-panel-header">
+                            <div className="xt-profile-lobby-panel-title">
                               {key.charAt(0).toUpperCase() + key.slice(1)}
                             </div>
                             <button
                               type="button"
                               onClick={() => setLobbyOpenPanel(null)}
-                              className="text-[var(--app-muted)] hover:text-[var(--app-text)] transition-colors"
+                              className="xt-profile-lobby-panel-close"
                               aria-label="Close panel"
                             >
                               <X size={13} />
@@ -1911,6 +2260,7 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
                 </div>
               </div>
             </div>
+            ) : null}
           </div>
         );
       }
@@ -2189,7 +2539,7 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
   return (
     <div className="xt-profile-wrapper h-full overflow-hidden flex bg-[var(--app-bg)] text-[var(--app-text)]">
       {/* Main area */}
-      <div className="flex-1 flex flex-col overflow-hidden min-w-0">
+      <div className="xt-profile-main flex-1 flex flex-col overflow-hidden min-w-0">
         {/* Game HUD tab bar */}
         <div className="xt-profile-tabs-bar flex items-center justify-center py-2 shrink-0 border-b border-[color-mix(in_srgb,var(--app-text)_8%,transparent)] px-4 gap-3">
           <div className="flex-1 h-px bg-gradient-to-r from-transparent to-[color-mix(in_srgb,var(--app-accent)_30%,transparent)]" />
@@ -2204,7 +2554,7 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
         </div>
 
         {/* Fixed content area — each tab manages its own scroll */}
-        <div className="flex-1 overflow-hidden relative">
+        <div className="xt-profile-content-frame flex-1 overflow-hidden relative">
           {renderTabContent()}
         </div>
       </div>

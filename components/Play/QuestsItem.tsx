@@ -3,6 +3,7 @@ import { Task, TaskPriority } from '../XP/xpTypes';
 import { useXP } from '../XP/xpStore';
 import { Flag, Shield, Star, Sword, Zap, Clock, Info } from 'lucide-react';
 import { QuestDetailPanel } from './QuestDetailPanel';
+import { getQuestStepCounts, stripQuestStepsBlock } from '../../src/lib/quests/steps';
 
 interface QuestsItemProps {
   tasks: Task[];
@@ -12,25 +13,6 @@ const priorityOrder: Record<TaskPriority, number> = {
   urgent: 0,
   high: 1,
   normal: 2
-};
-
-const STEPS_BLOCK_REGEX = /\n?---\s*\n\[xstation_steps_v1\]\s*\n([\s\S]*?)\n---\s*$/;
-
-const stripStepsBlock = (details?: string): string =>
-  details ? details.replace(STEPS_BLOCK_REGEX, '').trim() : '';
-
-const getStepCounts = (details?: string): { total: number; done: number } | null => {
-  if (!details) return null;
-  const match = details.match(STEPS_BLOCK_REGEX);
-  if (!match) return null;
-  try {
-    const parsed = JSON.parse(match[1]?.trim());
-    const steps = Array.isArray(parsed?.steps) ? parsed.steps : [];
-    if (steps.length === 0) return null;
-    return { total: steps.length, done: steps.filter((s: { done?: boolean }) => s.done).length };
-  } catch {
-    return null;
-  }
 };
 
 const iconMap: Record<Task['icon'], React.ReactNode> = {
@@ -176,7 +158,7 @@ export const QuestsItem: React.FC<QuestsItemProps> = ({ tasks }) => {
                         </span>
                       </div>
                       <div className="flex items-center gap-2">
-                        {(() => { const s = getStepCounts(mission.details); return s ? (
+                        {(() => { const s = getQuestStepCounts(mission.details); return s ? (
                           <span className="text-[9px] tracking-[0.18em] text-[#8b847a]">{s.done}/{s.total}</span>
                         ) : null; })()}
                         <span className="text-[9px] uppercase tracking-[0.28em] text-[#f46a2e]">
@@ -194,7 +176,7 @@ export const QuestsItem: React.FC<QuestsItemProps> = ({ tasks }) => {
                     </div>
                     <div className="flex items-center justify-between text-[9px] uppercase tracking-[0.24em] text-[#8b847a]">
                       {(() => {
-                        const notes = stripStepsBlock(mission.details);
+                        const notes = stripQuestStepsBlock(mission.details);
                         return notes ? <span className="truncate max-w-[120px]">{notes}</span> : null;
                       })()}
                       {totalElapsedSeconds > 0 && (

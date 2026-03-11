@@ -1,0 +1,66 @@
+{
+  "channel": "xtation.scene",
+  "apiVersion": "1.0",
+  "supportedApiVersions": ["1.0"],
+  "domain": "scene",
+  "kinds": ["command", "response", "event"],
+  "commands": [
+    "hello",
+    "getState",
+    "getCapabilities",
+    "setStatePartial",
+    "applyPreset",
+    "setEnvironmentMode",
+    "setHdriProfile",
+    "setCameraShot",
+    "setCameraMotion",
+    "setLight",
+    "setScreen",
+    "setScreenMedia",
+    "setScreenAudio",
+    "playPauseMedia",
+    "captureStill",
+    "exportPack"
+  ],
+  "events": [
+    "ready",
+    "stateChanged",
+    "commandAccepted",
+    "commandCompleted",
+    "commandFailed",
+    "screenMediaChanged",
+    "screenRemoved",
+    "providerPlaybackSync",
+    "providerMuteSync",
+    "providerReady",
+    "providerLoading",
+    "providerState",
+    "mediaError"
+  ],
+  "errors": [
+    "INVALID_REQUEST",
+    "UNSUPPORTED_COMMAND",
+    "VALIDATION_FAILED",
+    "UNAUTHORIZED_ORIGIN",
+    "RATE_LIMITED",
+    "BUSY",
+    "TIMEOUT",
+    "CORS_BLOCKED",
+    "MEDIA_UNSUPPORTED",
+    "INTERNAL_ERROR"
+  ],
+  "execution": {
+    "minTimeoutMs": 250,
+    "defaultTimeoutMs": 12000,
+    "maxTimeoutMs": 120000,
+    "maxRetryCount": 6,
+    "idempotencyTtlMs": 45000
+  },
+  "notes": [
+    "Run hello first and persist returned sessionId for all non-hello commands.",
+    "Use expectedStateVersion for optimistic concurrency on mutating commands.",
+    "Use idempotencyKey for side-effect commands such as captureStill/exportPack.",
+    "Command lifecycle emits commandAccepted/commandCompleted/commandFailed.",
+    "Check capabilities.featureFlags.serverMediaResolver before using integrated provider media workflows."
+  ]
+}

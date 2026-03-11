@@ -1,0 +1,113 @@
+- generic [ref=e94]:
+  - generic [ref=e95]:
+    - generic [ref=e96]:
+      - button "Play" [ref=e97]:
+        - generic [ref=e98]: Play
+      - button "Lab" [ref=e101]:
+        - generic [ref=e102]: Lab
+      - button "Multiplayer" [ref=e105]:
+        - generic [ref=e106]: Multiplayer
+      - button "Profile" [ref=e109]:
+        - generic [ref=e110]: Profile
+      - button "Inventory" [ref=e113]:
+        - generic [ref=e114]: Inventory
+      - button "Store" [ref=e117]:
+        - generic [ref=e118]: Store
+      - button "Settings" [ref=e121]:
+        - generic [ref=e122]: Settings
+      - button "Admin" [ref=e125]:
+        - generic [ref=e126]: Admin
+    - generic [ref=e129]:
+      - button "DUSK" [ref=e130]:
+        - img [ref=e131]
+        - generic [ref=e134]: DUSK
+      - generic [ref=e135]:
+        - generic [ref=e136]: Today
+        - generic [ref=e137]:
+          - text: "0"
+          - generic [ref=e138]: / 960
+        - generic [ref=e139]: 0 MIN
+      - generic [ref=e140]:
+        - generic [ref=e141]: Local Mode
+        - generic [ref=e142]:
+          - generic [ref=e143]: trial
+          - generic [ref=e144]: •
+          - generic [ref=e145]: internal
+          - generic [ref=e146]: •
+          - generic [ref=e147]: 14d
+        - button "CONNECT" [ref=e148]
+      - button "⌘K" [ref=e149]
+      - button "Exit" [ref=e151]
+      - generic [ref=e152]:
+        - generic "Player Level (0 total XP)" [ref=e153]:
+          - img [ref=e154]
+          - generic [ref=e160]: LV 0
+        - button [ref=e161]:
+          - img [ref=e162]
+        - button [ref=e165]:
+          - img [ref=e166]
+  - generic [ref=e384]:
+    - generic [ref=e386]:
+      - button "PROFILE" [ref=e387]:
+        - img [ref=e389]
+        - text: PROFILE
+      - button "HEALTH" [ref=e392]:
+        - img [ref=e394]
+        - text: HEALTH
+      - button "ACHIEVEMENTS" [ref=e396]:
+        - img [ref=e398]
+        - text: ACHIEVEMENTS
+      - button "ACTIVITY" [ref=e401]:
+        - img [ref=e403]
+        - text: ACTIVITY
+      - button "LOG" [ref=e405]:
+        - img [ref=e407]
+        - text: LOG
+    - generic:
+      - generic:
+        - generic:
+          - generic:
+            - generic:
+              - iframe
+            - generic [ref=e410]:
+              - generic [ref=e412]:
+                - generic [ref=e413]:
+                  - generic [ref=e414]:
+                    - img [ref=e415]
+                    - generic [ref=e418]: Shell Aligning
+                  - generic [ref=e419]: 16 commands
+                - generic [ref=e420]: Scene synced.
+                - generic [ref=e421]:
+                  - generic [ref=e422]: bureau
+                  - generic [ref=e423]: mid
+                  - generic [ref=e424]: brief
+                - generic [ref=e426]: state • profile.focus • base
+              - button "Reload Scene" [ref=e428]:
+                - generic [ref=e429]:
+                  - img [ref=e430]
+                  - text: Reload Scene
+            - generic [ref=e435]:
+              - generic [ref=e436]: Profile Relay
+              - generic [ref=e437]: Bureau Station
+              - generic [ref=e438]: shell aligning
+              - generic [ref=e439]: Standby station
+              - generic [ref=e440]: Plan TRIAL • Local Station
+              - generic [ref=e441]: scene state • profile.focus • base layer
+              - generic [ref=e442]: loadout • 2/6 slots • partial
+              - generic [ref=e443]: missing • widget • module
+              - generic [ref=e444]: presence mode • profile.focus • brief
+              - generic [ref=e445]: last event • stateChanged
+          - button "Play" [ref=e447]
+        - button "Bureau Station • Profile Deck Summoner Name The station shell is aligning. Finish the missing bindings to stabilize the bureau prof… Bureau / Amber TRIAL PARTIAL Open" [ref=e470]:
+          - img [ref=e473]
+          - generic [ref=e476]:
+            - generic [ref=e477]: Bureau Station • Profile Deck
+            - generic [ref=e478]: Summoner Name
+            - generic [ref=e479]: The station shell is aligning. Finish the missing bindings to stabilize the bureau prof…
+            - generic [ref=e480]:
+              - generic [ref=e481]: Bureau / Amber
+              - generic [ref=e482]: TRIAL
+              - generic [ref=e483]: PARTIAL
+          - generic [ref=e484]: Open
+  - button [ref=e263]:
+    - img [ref=e264]

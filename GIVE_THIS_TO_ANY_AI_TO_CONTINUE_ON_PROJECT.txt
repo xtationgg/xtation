@@ -1,0 +1,338 @@
+GIVE THIS TO ANY AI TO CONTINUE ON XTATION
+==========================================
+
+Project path:
+/Users/sarynass/dyad-apps/CLient-D82pm
+
+What this is:
+- XTATION is a personal operating system with a game-client interaction model.
+- Main sections:
+  - Play
+  - Profile
+  - Lab
+  - Multiplayer
+  - Inventory
+  - Store
+  - Settings
+- Shared deep systems:
+  - Dusk
+  - Creative Ops
+  - Avatar / Scene
+  - Presentation Events
+
+IMPORTANT: READ THESE FILES FIRST
+---------------------------------
+1. /Users/sarynass/dyad-apps/CLient-D82pm/XTATION_CONTINUATION_MAP_V1.md
+2. /Users/sarynass/dyad-apps/CLient-D82pm/XTATION_NOW.md
+3. /Users/sarynass/dyad-apps/CLient-D82pm/XTATION_SPEC_INDEX.md
+
+After that, inspect these implementation files:
+- /Users/sarynass/dyad-apps/CLient-D82pm/App.tsx
+- /Users/sarynass/dyad-apps/CLient-D82pm/components/Views/Play.tsx
+- /Users/sarynass/dyad-apps/CLient-D82pm/components/Views/Profile.tsx
+- /Users/sarynass/dyad-apps/CLient-D82pm/components/Views/ProfileLobbyScene.tsx
+- /Users/sarynass/dyad-apps/CLient-D82pm/components/Views/Lab.tsx
+- /Users/sarynass/dyad-apps/CLient-D82pm/components/Features/HextechAssistant.tsx
+- /Users/sarynass/dyad-apps/CLient-D82pm/components/Views/Admin.tsx
+- /Users/sarynass/dyad-apps/CLient-D82pm/components/Admin/CreativeOpsPanel.tsx
+- /Users/sarynass/dyad-apps/CLient-D82pm/components/Views/MultiplayerNew.tsx
+- /Users/sarynass/dyad-apps/CLient-D82pm/components/Views/Settings.tsx
+- /Users/sarynass/dyad-apps/CLient-D82pm/components/Views/Inventory.tsx
+- /Users/sarynass/dyad-apps/CLient-D82pm/components/Views/Store.tsx
+- /Users/sarynass/dyad-apps/CLient-D82pm/index.css
+
+DO NOT CASUALLY RE-DECIDE THESE THINGS
+--------------------------------------
+- Dusk is the assistant / command layer, not the user avatar.
+- The user avatar and 3D scene are separate from Dusk.
+- Skins change presentation only:
+  - theme
+  - motion
+  - sound
+  - scene behavior
+  - screen voice
+  - avatar presentation
+- Skins must not change XTATION core logic.
+- Admin owns creative authoring.
+- Users consume published skins and simple settings.
+- Presentation behavior uses semantic events, not button-id hacks.
+- The main local app is the authoritative review path.
+
+CURRENT MAIN FRONTIER
+---------------------
+Right now the strongest active work loop is:
+- profile scene readability and stage presence
+- closed-beta account/station coherence
+- persistent station activity / continuity history
+- Dusk managed planning
+- Lab baselines
+- provenance / compare-anchor continuity between Dusk and Lab
+- user-facing skin and sound runtime coherence
+
+Current stop point:
+- the Profile 3D stage is working again and the active pass is now visual/product-facing:
+  - overlay language compressed
+  - relay simplified
+  - compact deck shortened
+  - stage framing strengthened with a central focus frame and lighter edge vignettes
+  - host camera defaults to a `hero` shot now, not a `wide` fallback
+  - base orbit is calmer so the character reads more centrally
+  - the hero shot is now closer and more portrait-driven
+  - the avatar is rotated toward the viewer instead of staying in the stronger side-profile pose
+  - the heavier amber column was replaced by a softer centered halo
+- accepted Dusk plans can be promoted into Lab baseline notes
+- baseline notes preserve accepted plan provenance
+- Lab can send baseline compare context back into Dusk
+- Dusk treats baseline compare as first-class planning context
+- managed sessions persist baseline compare context on revise/accept
+- Settings now exposes master + per-mix-group audio control
+- Settings now surfaces active sound-pack identity and active skin-runtime identity
+- presentation audio and legacy UI sounds now both obey the same device audio state
+- Store now surfaces companion audio routes for published skin/theme packages
+- Store now supports:
+  - Sync Audio
+  - Apply + Sync Audio
+  - Apply Skin Package
+- Apply Skin Package now syncs theme + accent + sound pack + active creative skin runtime
+- guest-mode CONNECT now shows a local station continuity panel before sign-in
+- Welcome and the guest connect drawer now both surface:
+  - resume workspace
+  - starter relay title when present
+  - clearer connect-now continuity hints
+- Welcome and the guest connect drawer now share one continuity panel component and wording, so local-station state reads the same before sign-in
+- after keep/import/return, the shell now shows a session-scoped station transition notice with:
+  - destination workspace
+  - whether cloud state changed
+  - whether recovery was saved
+  - whether the guest station stayed local
+- those station transition notices now carry the destination view and offer direct shell actions:
+  - open destination workspace
+  - review settings
+  - dismiss
+- station activity now persists safely for both guest and account scope, even when browser storage is partial
+- Settings now shows recent station activity so continuity/history does not disappear after the banner is dismissed
+- Welcome and the guest connect drawer now also show the newest continuity history before sign-in
+- guest-mode auth forms now state the continuity guarantee before sign-in:
+  - no overwrite without review
+  - keep account / import local / return local remains explicit
+  - XTATION confirms the active workspace after sign-in
+- auth cards now use the same transition language the shell uses after sign-in:
+  - password sign-in
+  - account creation
+  - Google sign-in
+  - workspace target
+  - continuity-review expectation when a local station exists
+- TopBar and Settings now share a persistent station identity readout for:
+  - local station
+  - account station
+  - imported local station
+  - active workspace destination
+- signed-in guest/account conflicts now open a clearer decision panel showing:
+  - account resume workspace
+  - guest resume workspace
+  - import target workspace
+  - explicit keep/import/return consequences
+  - carried starter relay / continuity context
+- importing a guest station into an account now also preserves:
+  - guest last workspace
+  - guest onboarding state
+  - guest starter relay handoff
+  - imported view restore into the account scope
+- the shell now uses that same shared auth-transition descriptor after auth succeeds:
+  - clearer account-created vs account-connected vs Google-account-active language
+  - same workspace-target phrasing as the auth card
+  - same guest-continuity wording as the auth card
+- Settings > Platform Status now keeps the latest station transition outcome visible even after the shell banner is dismissed
+- Play starter relay now writes a one-shot routed workspace cue before opening Profile or Lab
+- Profile and Lab now consume that cue and explain:
+  - why the user landed there
+  - which quest/track/branch triggered the route
+  - the immediate route steps for that workspace
+- those destination handoff cards now also give direct actions:
+  - Open Quest
+  - Brief Dusk
+- cross-section quest return to Play is now handled by:
+  - /Users/sarynass/dyad-apps/CLient-D82pm/src/play/bridge.ts
+- those destination handoff cards now also tell the user the single recommended next move in that workspace:
+  - Profile:
+    - mission -> Open Loadout
+    - practice -> Open Stats
+  - Lab:
+    - system -> Open Knowledge
+- the shell now mirrors that routed handoff with a `Starter Route` strip that shows:
+  - routed workspace
+  - current station identity
+  - starter quest
+  - one-click recommended next move
+- once the first real starter action lands, XTATION now raises an automatic `Starter checkpoint` cue so the handoff continues instead of disappearing
+- `Starter checkpoint` now means a real milestone, not any tiny activity blip:
+  - session starters wait for meaningful tracked work
+  - instant starters can checkpoint on first real activation
+- the Play starter relay now shows checkpoint progress/status directly, so the user can see when the first real session has actually landed
+- routed `Starter checkpoint` cues now carry the same confirmed milestone into:
+  - the shell strip
+  - Profile starter cards
+  - Lab starter cards
+  so the first-session checkpoint stays visible after leaving Play
+- those routed checkpoint cues now also carry an explicit route-live confirmation:
+  - `Profile route live`
+  - `Lab route live`
+  with track-aware confirmation detail, so the first landed session reads as a milestone instead of only a progress bar
+- once the routed recommended action is actually taken, XTATION now shows a shared `Starter action confirmed` state in:
+  - the shell
+  - Profile
+  - Lab
+  so the handoff ends with an explicit outcome instead of silently clearing itself
+- that confirmed starter action is now also written into station activity/history using the same shared wording, so Welcome/Settings continuity surfaces can reflect the first real routed action too
+- the newest starter-loop milestone is now surfaced explicitly in:
+  - Welcome
+  - shared StationContinuityPanel
+  - Settings > Platform Status
+  by reading station activity instead of inventing another onboarding store
+- once relay state is cleared, local-station status can now become `Continue Starter Loop` instead of falling back to a generic `Resume Local Station`
+- those starter checkpoints are also written into station activity/history, so the handoff survives beyond the live shell strip
+- `Enter Local Station` now really resumes the stored local workspace instead of always resetting to Play
+- if XTATION says `Continue Starter Loop`, local entry now actually resumes into that starter workspace instead of only using the stored last-view fallback
+- skipping guided setup now writes a real `Starter setup skipped` transition instead of leaving the shell on stale `Guided setup opened` state
+- the shell transition banner now suppresses duplicate `Recent continuity` rows when the newest activity entry is already the active banner event
+- the topbar guest `CONNECT` drawer now reads full station activity for starter-loop continuity, so it no longer drops the starter-loop state just because the newest two activity rows are unrelated
+- the topbar guest continuity drawer now also renders the same dedicated starter-loop summary block that Welcome and Settings show
+- Welcome, the guest `CONNECT` drawer, and Settings now also share one explicit `Latest transition outcome` summary instead of only burying transition state inside generic recent activity
+- starter-loop milestones are now excluded from `Latest transition outcome`, so keep/import/return/account-state continuity does not get mixed up with first-loop progress
+- the main local-station CTA/status model now also uses the latest real transition when no relay or starter-loop milestone is active, so the primary entry wording and the visible transition summary no longer drift apart
+- the shell station identity crash is fixed:
+  - `App.tsx` must use the top-level `currentStation` from `useAdminConsole()`
+  - `src/station/stationIdentity.ts` now safely tolerates missing station data during boot
+- starter recommended actions now run through one shared storage-backed action bridge:
+  - shell CTA
+  - Profile CTA
+  - Lab CTA
+- taking that recommended action clears the shell strip automatically
+- dismissing the starter cue in Profile or Lab also dismisses the shell strip
+- first-run setup now previews the routed starter flow before quest creation:
+  - destination workspace
+  - recommended first local action
+  - starter route steps
+- seeding the first station loop now writes a real `Starter loop seeded` transition, so the shell no longer stays on the older `Guided setup resumed` message after quest creation
+- that seeded transition is shared through `buildStarterSeededTransition(...)`, so shell + station activity wording stay aligned
+- once `Start First Session` is triggered on the seeded starter quest, XTATION now writes a real `First session live` transition and starter-loop activity instead of leaving the shell on the older seeded message
+- `First session live` is now treated as a real starter-loop status across:
+  - shell transition banner
+  - Welcome / guest CONNECT / Settings continuity
+  - main local-station CTA
+  - starter-flow summaries
+- guest continuity is now being centralized instead of rebuilt per surface:
+  - `src/station/continuityContext.ts`
+  - `src/welcome/guestContinuity.ts`
+- `Settings > Platform Status` now exposes the same `Return to Guided Setup` action as:
+  - Welcome
+  - the guest `CONNECT` drawer
+  - the shell transition banner
+- that guided-setup return action was verified live in the browser through:
+  - `Start Guided Setup`
+  - `Skip for now`
+  - `Settings`
+  - `Return to Guided Setup`
+
+BEST NEXT MOVE
+--------------
+Stay on broader closed-beta readiness instead of opening a new subsystem:
+1. use the now-coherent skin/audio runtime as the baseline
+2. avoid deepening the Dusk/Lab operating loop again unless it unlocks direct user-facing value
+3. the guest/account/imported continuity-action surfaces are now largely aligned, so the strongest immediate move shifts back to visible product work
+4. the best next frontier is `Profile` scene presence:
+  - stronger avatar silhouette
+  - stronger scene-side lighting
+  - less overlay competition
+  - more obvious “main character space” feeling
+5. only return to continuity micro-fixes if a real browser journey exposes a mismatch
+
+HOW TO VERIFY THE CURRENT STATE
+-------------------------------
+From the repo root run:
+
+cd /Users/sarynass/dyad-apps/CLient-D82pm
+npm run build
+npm test
+
+Latest verified state:
+- `npm run build` passed
+- `npm test` passed `183/183`
+
+Latest verified state:
+- `npm run build` passed
+- `npm test` passed `168/168`
+
+At the time this file was last updated, the current verified state was:
+- npm run build -> passed
+- npm test -> 166/166 passed
+
+LOCAL REVIEW
+------------
+Main local app:
+- http://localhost:5176/
+- http://127.0.0.1:5176/
+- LAN review:
+  - http://192.168.1.3:5176/
+
+If the local app is not running, start it from the repo root with:
+- npm run dev -- --host 0.0.0.0 --port 5176
+
+THINGS EASY TO MISS
+-------------------
+1. The local app is the main source of truth for review, not old public preview links.
+2. The 3D profile scene used by XTATION is embedded in the repo here:
+   - /Users/sarynass/dyad-apps/CLient-D82pm/public/avatar-lobby/index.html
+   And the editable source snapshot is now also inside the repo here:
+   - /Users/sarynass/dyad-apps/CLient-D82pm/scene-source/avatar-lobby/README.md
+   - /Users/sarynass/dyad-apps/CLient-D82pm/scene-source/avatar-lobby/demo.tsx
+   - /Users/sarynass/dyad-apps/CLient-D82pm/scene-source/avatar-lobby/halide-topo-hero.tsx
+3. The Dusk managed-provider route is not fully available in normal Vite dev unless:
+   - the app is deployed with the server route
+   - or VITE_MANAGED_DUSK_PROVIDER_LOCAL=1 is set
+4. Real cloud admin/operator behavior depends on Supabase setup:
+   - /Users/sarynass/dyad-apps/CLient-D82pm/supabase/xtation_cloud_stack.sql
+   - /Users/sarynass/dyad-apps/CLient-D82pm/XTATION_OPERATOR_SETUP_V1.md
+5. Use `npm test` as the real test command. Do not assume custom Vitest flags are supported here.
+6. The shell transition banner, station identity, recent continuity rows, the explicit `Next local resume` readout, and the guest auth-card continuity preview are now normalized through the same access rules as Welcome/Settings; do not reintroduce raw target views that can say `Admin` while XTATION must reopen `Play`.
+
+BACKUPS
+-------
+Backups are stored here:
+- /Users/sarynass/Desktop/html/backups
+
+Backup policy:
+- do not create a backup every session
+- create one about every 5 hours of active work
+- also create one before risky refactors or important handoff milestones
+
+Latest known source backup when this file was created:
+- /Users/sarynass/Desktop/html/backups/xtation-source-backup-20260311-174419.zip
+
+LOW-COST CONTINUITY RULE
+------------------------
+Do not rewrite all docs every session.
+
+Use:
+- XTATION_CONTINUATION_MAP_V1.md for big structural changes only
+- XTATION_NOW.md for fast rolling checkpoint updates
+
+If token budget is low:
+1. update XTATION_NOW.md
+2. mention the new stop point
+3. mention the next move
+4. verify if practical
+
+SHORT INSTRUCTION TO A NEW AI
+-----------------------------
+If you are a new AI taking over XTATION:
+1. Read XTATION_CONTINUATION_MAP_V1.md first.
+2. Read XTATION_NOW.md second.
+3. Follow XTATION_SPEC_INDEX.md.
+4. Verify build and tests.
+5. Review the local app.
+6. Continue from the current frontier instead of reopening architecture.
+
+Current verified state:
+- npm run build passed
+- npm test passed 177/177

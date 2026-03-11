@@ -2,6 +2,13 @@ const USER_SCOPE_CHANGE_EVENT = 'dusk:user-scope-change';
 
 let activeUserId: string | null = null;
 
+const getStorage = () => {
+  if (typeof window === 'undefined') return null;
+  const storage = window.localStorage as Partial<Storage> | undefined;
+  if (!storage) return null;
+  return storage;
+};
+
 const normalizeUserId = (userId?: string | null) => {
   if (!userId || typeof userId !== 'string') return null;
   const trimmed = userId.trim();
@@ -30,10 +37,11 @@ export const getUserScopedKey = (baseKey: string, userId?: string | null): strin
 };
 
 export const clearUserScopedKey = (baseKey: string, userId?: string | null) => {
-  if (typeof window === 'undefined') return;
+  const storage = getStorage();
+  if (!storage || typeof storage.removeItem !== 'function') return;
   const key = getUserScopedKey(baseKey, userId);
   if (!key) return;
-  localStorage.removeItem(key);
+  storage.removeItem(key);
 };
 
 export const isUserScopedStorageKey = (key: string | null, baseKey: string, userId?: string | null) => {
@@ -48,26 +56,29 @@ export const readUserScopedString = (
   fallback: string | null = null,
   userId?: string | null
 ) => {
-  if (typeof window === 'undefined') return fallback;
+  const storage = getStorage();
+  if (!storage || typeof storage.getItem !== 'function') return fallback;
   const key = getUserScopedKey(baseKey, userId);
   if (!key) return fallback;
-  const value = localStorage.getItem(key);
+  const value = storage.getItem(key);
   return value === null ? fallback : value;
 };
 
 export const writeUserScopedString = (baseKey: string, value: string, userId?: string | null) => {
-  if (typeof window === 'undefined') return false;
+  const storage = getStorage();
+  if (!storage || typeof storage.setItem !== 'function') return false;
   const key = getUserScopedKey(baseKey, userId);
   if (!key) return false;
-  localStorage.setItem(key, value);
+  storage.setItem(key, value);
   return true;
 };
 
 export const removeUserScopedString = (baseKey: string, userId?: string | null) => {
-  if (typeof window === 'undefined') return false;
+  const storage = getStorage();
+  if (!storage || typeof storage.removeItem !== 'function') return false;
   const key = getUserScopedKey(baseKey, userId);
   if (!key) return false;
-  localStorage.removeItem(key);
+  storage.removeItem(key);
   return true;
 };
 

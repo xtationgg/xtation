@@ -271,7 +271,7 @@ describe('Quests drawer filter + running section behavior', () => {
     });
     expect(xp.selectors.getActiveSession()).toBeNull();
     expect(onClose).not.toHaveBeenCalled();
-    expect(screen.getByText('Quests')).toBeInTheDocument();
+    expect(screen.getByText('Dusk')).toBeInTheDocument();
   });
 
   it('play button starts quest without opening workspace panel', async () => {

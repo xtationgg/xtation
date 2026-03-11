@@ -1,18 +1,40 @@
 import React from 'react';
-import { PlaySection } from '../Play';
+import { Play } from './Play';
 import { ClientView } from '../../types';
+import type { XtationOnboardingHandoff } from '../../src/onboarding/storage';
+import type { StationIdentitySummary } from '../../src/station/stationIdentity';
+import type { XtationStarterSessionLiveTransition } from '../../src/onboarding/workspaceCue';
 
 interface LobbyProps {
   onBack: () => void;
   setBackground: (url: string | null) => void;
   onNavigateStage?: (view: ClientView.LOBBY | ClientView.MATCH_FOUND | ClientView.CHAMP_SELECT) => void;
+  onOpenWorkspace?: (view: ClientView) => void;
+  onOpenGuidedSetup?: () => void;
+  onboardingHandoff?: XtationOnboardingHandoff | null;
+  onDismissOnboardingHandoff?: () => void;
+  stationIdentity?: StationIdentitySummary | null;
+  onStarterSessionLive?: (transition: XtationStarterSessionLiveTransition) => void;
 }
 
-export const Lobby: React.FC<LobbyProps> = () => {
+export const Lobby: React.FC<LobbyProps> = ({
+  onOpenWorkspace,
+  onOpenGuidedSetup,
+  onboardingHandoff,
+  onDismissOnboardingHandoff,
+  stationIdentity,
+  onStarterSessionLive,
+}) => {
   return (
-    <div className="h-full w-full flex items-start justify-center font-mono overflow-y-auto">
-      {/* TODO: PLAY section integrated here. Hook backend data for Challenge + quests in components/Play. */}
-      <PlaySection />
+    <div className="h-full w-full font-mono overflow-y-auto">
+      <Play
+        onOpenWorkspace={onOpenWorkspace}
+        onOpenGuidedSetup={onOpenGuidedSetup}
+        onboardingHandoff={onboardingHandoff}
+        onDismissOnboardingHandoff={onDismissOnboardingHandoff}
+        stationIdentity={stationIdentity}
+        onStarterSessionLive={onStarterSessionLive}
+      />
     </div>
   );
 };

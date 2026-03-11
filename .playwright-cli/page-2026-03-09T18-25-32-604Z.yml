@@ -1,0 +1,165 @@
+- generic [ref=e3]:
+  - generic [ref=e4]:
+    - generic [ref=e5]:
+      - button "Play" [ref=e6] [cursor=pointer]:
+        - generic [ref=e7]: Play
+      - button "Lab" [ref=e8] [cursor=pointer]:
+        - generic [ref=e9]: Lab
+      - button "Multiplayer" [ref=e10] [cursor=pointer]:
+        - generic [ref=e11]: Multiplayer
+      - button "Profile" [active] [ref=e12] [cursor=pointer]:
+        - generic [ref=e13]: Profile
+      - button "Inventory" [ref=e14] [cursor=pointer]:
+        - generic [ref=e15]: Inventory
+      - button "Store" [ref=e16] [cursor=pointer]:
+        - generic [ref=e17]: Store
+      - button "Settings" [ref=e18] [cursor=pointer]:
+        - generic [ref=e19]: Settings
+    - generic [ref=e20]:
+      - button "QUESTS" [ref=e21] [cursor=pointer]:
+        - img [ref=e22]
+        - generic [ref=e25]: QUESTS
+      - generic [ref=e26]:
+        - generic [ref=e27]: Today
+        - generic [ref=e28]:
+          - text: "0"
+          - generic [ref=e29]: / 960
+        - generic [ref=e30]: 0 MIN
+      - button "LOGIN" [ref=e163] [cursor=pointer]
+      - button "⌘K" [ref=e33] [cursor=pointer]
+      - generic [ref=e35]:
+        - generic "Player Level (0 total XP)" [ref=e36]:
+          - img [ref=e37]
+          - generic [ref=e43]: LV 0
+        - button [ref=e44] [cursor=pointer]:
+          - img [ref=e45]
+        - button [ref=e48] [cursor=pointer]:
+          - img [ref=e49]
+  - generic [ref=e388]:
+    - generic [ref=e390]:
+      - button "PROFILE" [ref=e391] [cursor=pointer]:
+        - img [ref=e393]
+        - text: PROFILE
+      - button "HEALTH" [ref=e396] [cursor=pointer]:
+        - img [ref=e398]
+        - text: HEALTH
+      - button "ACHIEVEMENTS" [ref=e400] [cursor=pointer]:
+        - img [ref=e402]
+        - text: ACHIEVEMENTS
+      - button "ACTIVITY" [ref=e405] [cursor=pointer]:
+        - img [ref=e407]
+        - text: ACTIVITY
+      - button "LOG" [ref=e409] [cursor=pointer]:
+        - img [ref=e411]
+        - text: LOG
+    - generic [ref=e415]:
+      - generic [ref=e416]:
+        - img "Character" [ref=e420]
+        - button "Play" [ref=e422] [cursor=pointer]
+        - generic [ref=e444]:
+          - button "Upload character image (PNG/JPG)" [ref=e445] [cursor=pointer]:
+            - img [ref=e446]
+          - button "Upload 3D model (.glb)" [ref=e449] [cursor=pointer]:
+            - img [ref=e450]
+      - generic [ref=e455]:
+        - generic [ref=e456]:
+          - button "Home" [ref=e457] [cursor=pointer]:
+            - img [ref=e458]
+          - button "identity" [ref=e461] [cursor=pointer]:
+            - img [ref=e463]
+            - generic [ref=e466]: identity
+          - button "stats" [ref=e467] [cursor=pointer]:
+            - img [ref=e469]
+            - generic [ref=e470]: stats
+          - button "loadout" [ref=e471] [cursor=pointer]:
+            - img [ref=e473]
+            - generic [ref=e478]: loadout
+          - button "skills" [ref=e479] [cursor=pointer]:
+            - img [ref=e481]
+            - generic [ref=e483]: skills
+          - button "titles" [ref=e484] [cursor=pointer]:
+            - img [ref=e486]
+            - generic [ref=e489]: titles
+          - button "links" [ref=e490] [cursor=pointer]:
+            - img [ref=e492]
+            - generic [ref=e495]: links
+          - button "notes" [ref=e496] [cursor=pointer]:
+            - img [ref=e498]
+            - generic [ref=e501]: notes
+          - button "privacy" [ref=e502] [cursor=pointer]:
+            - img [ref=e504]
+            - generic [ref=e506]: privacy
+          - img [ref=e508] [cursor=pointer]
+        - generic [ref=e512]:
+          - generic "Change profile picture" [ref=e513] [cursor=pointer]:
+            - img [ref=e519]
+          - generic [ref=e522]:
+            - generic [ref=e523]:
+              - generic [ref=e524]: name
+              - generic [ref=e525]: Summoner Name
+            - generic [ref=e526]:
+              - generic [ref=e527]: role
+              - generic [ref=e528]: Mid_Lane
+            - generic [ref=e529]:
+              - generic [ref=e530]: id
+              - generic [ref=e531]: "#NA1"
+            - generic [ref=e532]:
+              - generic [ref=e533]: email
+              - generic [ref=e534]: —
+          - generic [ref=e535]:
+            - generic [ref=e536]:
+              - img [ref=e538]
+              - img [ref=e564]
+            - generic [ref=e569]: 21:35 left for the day
+          - generic [ref=e570]:
+            - generic [ref=e571]:
+              - generic [ref=e572]: XP
+              - generic [ref=e573]: "0"
+            - generic [ref=e574]:
+              - generic [ref=e575]: Done Today
+              - generic [ref=e576]: "0"
+          - generic [ref=e577]:
+            - generic [ref=e578]:
+              - generic [ref=e579]: No active session
+              - button [ref=e580] [cursor=pointer]:
+                - img [ref=e581]
+            - generic [ref=e584]: 0%
+  - button [ref=e119] [cursor=pointer]:
+    - img [ref=e120]
+  - generic [ref=e123]:
+    - generic [ref=e124]:
+      - generic [ref=e126]: Developer HUD
+      - button "Min" [ref=e127] [cursor=pointer]
+    - generic [ref=e128]:
+      - generic [ref=e129]:
+        - generic [ref=e130]: Auth
+        - generic [ref=e131]: Not signed in
+        - generic [ref=e132]: User ID
+        - generic [ref=e133]: anon
+        - generic [ref=e134]: Ledger Key
+        - generic [ref=e135]: xpLedger_v2:anon
+        - generic [ref=e136]: Ledger Source
+        - generic [ref=e137]: anon-local
+        - generic [ref=e138]: Cloud Status
+        - generic [ref=e139]: idle
+        - generic [ref=e140]: Last Sync
+        - generic [ref=e141]: "-"
+        - generic [ref=e142]: Counts
+        - generic [ref=e143]: 0 tasks / 0 sessions / 0 challenges
+        - generic [ref=e144]: Running
+        - generic [ref=e145]: none
+        - generic [ref=e146]: Today
+        - generic [ref=e147]: 0/960 (Bronze)
+      - generic [ref=e148]:
+        - button "Run Checks" [ref=e149] [cursor=pointer]
+        - button "Repair Links" [ref=e150] [cursor=pointer]
+        - button "Export Ledger JSON" [ref=e151] [cursor=pointer]
+        - button "Reset Local Data" [ref=e152] [cursor=pointer]
+        - button "Reset Cloud Data (This Account)" [disabled] [ref=e153]
+      - generic [ref=e154]:
+        - generic [ref=e155]: Cloud reset
+        - generic [ref=e156]: Idle
+      - 'button "Health: OK Show" [ref=e158] [cursor=pointer]':
+        - generic [ref=e159]: "Health: OK"
+        - generic [ref=e160]: Show
+      - generic [ref=e161]: Health checks OK

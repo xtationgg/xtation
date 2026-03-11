@@ -1,0 +1,895 @@
+- generic [ref=e94]:
+  - generic [ref=e95]:
+    - generic [ref=e96]:
+      - button "Play" [ref=e97]:
+        - generic [ref=e98]: Play
+      - button "Lab" [ref=e99]:
+        - generic [ref=e100]: Lab
+      - button "Multiplayer" [ref=e101]:
+        - generic [ref=e102]: Multiplayer
+      - button "Profile" [ref=e103]:
+        - generic [ref=e104]: Profile
+      - button "Inventory" [ref=e105]:
+        - generic [ref=e106]: Inventory
+      - button "Store" [ref=e107]:
+        - generic [ref=e108]: Store
+      - button "Settings" [ref=e109]:
+        - generic [ref=e110]: Settings
+      - button "Admin" [ref=e111]:
+        - generic [ref=e112]: Admin
+    - generic [ref=e113]:
+      - button "DUSK" [ref=e114]:
+        - img [ref=e115]
+        - generic [ref=e118]: DUSK
+      - generic [ref=e125]:
+        - generic [ref=e126]: Today
+        - generic [ref=e127]:
+          - text: "0"
+          - generic [ref=e128]: / 960
+        - generic [ref=e129]: 0 MIN
+      - generic [ref=e130]:
+        - generic [ref=e131]: Local Mode
+        - generic [ref=e132]:
+          - generic [ref=e133]: trial
+          - generic [ref=e134]: •
+          - generic [ref=e135]: internal
+          - generic [ref=e136]: •
+          - generic [ref=e137]: 14d
+        - button "CONNECT" [ref=e138]
+      - button "⌘K" [ref=e139]
+      - button "Exit" [ref=e141]
+      - generic [ref=e142]:
+        - generic "Player Level (0 total XP)" [ref=e143]:
+          - img [ref=e144]
+          - generic [ref=e150]: LV 0
+        - button [ref=e151]:
+          - img [ref=e152]
+        - button [ref=e155]:
+          - img [ref=e156]
+  - generic [ref=e345]:
+    - generic [ref=e348]:
+      - generic [ref=e349]:
+        - generic [ref=e350]: Operator Console
+        - heading "Run XTATION like a real platform." [level=1] [ref=e351]
+        - paragraph [ref=e352]: "This surface owns rollout state, support diagnostics, test cohorts, and audit. It stays deliberately narrow: no fake backend power, only controls the current client can actually honor safely."
+      - generic [ref=e353]:
+        - generic [ref=e354]: Local preview operator
+        - generic [ref=e355]: super admin
+    - generic [ref=e356]:
+      - button "Overview" [ref=e357]:
+        - img [ref=e358]
+        - text: Overview
+      - button "Rollout" [ref=e363]:
+        - img [ref=e364]
+        - text: Rollout
+      - button "Support" [ref=e366]:
+        - img [ref=e367]
+        - text: Support
+      - button "Catalog" [ref=e374]:
+        - img [ref=e375]
+        - text: Catalog
+      - button "Creative Ops" [active] [ref=e385]:
+        - img [ref=e386]
+        - text: Creative Ops
+      - button "Audit" [ref=e389]:
+        - img [ref=e390]
+        - text: Audit
+      - button "Test Lab" [ref=e392]:
+        - img [ref=e393]
+        - text: Test Lab
+    - generic [ref=e484]:
+      - generic [ref=e485]:
+        - generic [ref=e486]:
+          - generic [ref=e487]:
+            - generic [ref=e488]:
+              - generic [ref=e489]: Presentation Runtime
+              - generic [ref=e490]: Semantic XTATION events are now the single source of truth for scene, audio, motion, and future skin behavior.
+            - generic [ref=e491]: scope • guest
+          - generic [ref=e492]:
+            - generic [ref=e493]:
+              - generic [ref=e494]:
+                - img [ref=e496]
+                - generic [ref=e499]:
+                  - generic [ref=e500]: Skin Studio
+                  - generic [ref=e501]: Bureau / Amber
+              - generic [ref=e502]: BUREAU / AMBER
+            - generic [ref=e503]:
+              - generic [ref=e504]:
+                - img [ref=e506]
+                - generic [ref=e511]:
+                  - generic [ref=e512]: Scene Director
+                  - generic [ref=e513]: BUREAU
+              - generic [ref=e514]: BUREAU • CALM • builtin:bureau
+            - generic [ref=e515]:
+              - generic [ref=e516]:
+                - img [ref=e518]
+                - generic [ref=e522]:
+                  - generic [ref=e523]: Audio Studio
+                  - generic [ref=e524]: 5 assets
+              - generic [ref=e525]: 6 mapped events ready for sound binding.
+            - generic [ref=e526]:
+              - generic [ref=e527]:
+                - img [ref=e529]
+                - generic [ref=e533]:
+                  - generic [ref=e534]: Live Coverage
+                  - generic [ref=e535]: 3 events
+              - generic [ref=e536]: "Top family: nav"
+        - generic [ref=e537]:
+          - generic [ref=e538]:
+            - generic [ref=e539]:
+              - generic [ref=e540]: Skin Studio
+              - generic [ref=e541]: Publish the feel of XTATION without touching logic. Users consume skins; admin defines them.
+            - generic [ref=e542]: current station • bureau / amber
+          - generic [ref=e543]:
+            - generic [ref=e544]:
+              - generic [ref=e545]:
+                - generic [ref=e546]:
+                  - generic [ref=e547]: Bureau / Amber
+                  - generic [ref=e548]: BUREAU / AMBER • published
+                  - generic [ref=e549]: Institutional amber command skin with calm motion and restrained scene response.
+                  - generic [ref=e550]: BUREAU • CALM • builtin:bureau
+                - generic [ref=e551]:
+                  - button "Inspect" [ref=e552]
+                  - button "Apply" [ref=e553]
+                  - button "Set Draft" [ref=e554]
+              - generic [ref=e555]:
+                - generic [ref=e556]: active skin
+                - generic [ref=e557]: selected
+            - generic [ref=e559]:
+              - generic [ref=e560]:
+                - generic [ref=e561]: Void Command
+                - generic [ref=e562]: VOID / TEAL • published
+                - generic [ref=e563]: Sharper dark tactical presentation with higher contrast panels and stricter motion.
+                - generic [ref=e564]: VOID • SHARP • builtin:void
+              - generic [ref=e565]:
+                - button "Inspect" [ref=e566]
+                - button "Apply" [ref=e567]
+                - button "Set Draft" [ref=e568]
+            - generic [ref=e570]:
+              - generic [ref=e571]:
+                - generic [ref=e572]: Ops / Amber
+                - generic [ref=e573]: BUREAU / AMBER • draft
+                - generic [ref=e574]: Operator-focused pack with command-room rhythm, amber signals, and stronger scene reactions.
+                - generic [ref=e575]: OPS • CINEMATIC • builtin:bureau
+              - generic [ref=e576]:
+                - button "Inspect" [ref=e577]
+                - button "Apply" [ref=e578]
+                - button "Publish" [ref=e579]
+          - generic [ref=e580]: Current station diverges from the active skin. Apply the active skin to align theme, accent, and sound-pack routing.
+      - generic [ref=e581]:
+        - generic [ref=e582]:
+          - generic [ref=e583]:
+            - generic [ref=e584]:
+              - generic [ref=e585]: Event Family Coverage
+              - generic [ref=e586]: Highest-volume semantic families in the current XTATION runtime.
+            - generic [ref=e587]: last • nav.section.admin.open
+          - generic [ref=e589]:
+            - generic [ref=e590]: nav
+            - generic [ref=e591]: "3"
+            - generic [ref=e592]: "Last event: 3/10/2026, 12:28:01 PM"
+        - generic [ref=e593]:
+          - generic [ref=e594]:
+            - generic [ref=e595]:
+              - generic [ref=e596]: Audio Studio Event Map
+              - generic [ref=e597]: Assign sound cues to semantic XTATION events. Upload per event, preview instantly, and keep sound behavior tied to meaning.
+            - generic [ref=e598]: 6 mapped
+          - generic [ref=e599]:
+            - generic [ref=e600]:
+              - generic [ref=e601]:
+                - generic [ref=e602]:
+                  - generic [ref=e603]:
+                    - img [ref=e604]
+                    - generic [ref=e608]: ambient.night.enter
+                  - generic [ref=e609]: ambient • volume 72% • cooldown 180ms
+                  - generic [ref=e610]: No sound cue assigned yet.
+                - generic [ref=e611]:
+                  - button "Preview" [ref=e612]:
+                    - img [ref=e613]
+                    - text: Preview
+                  - button "Upload" [ref=e615]:
+                    - img [ref=e616]
+                    - text: Upload
+                  - button "Clear" [ref=e619]
+              - generic [ref=e620]:
+                - generic [ref=e621]:
+                  - text: Sound
+                  - combobox "Sound" [ref=e622]:
+                    - option "Unassigned" [selected]
+                    - option "UI Select Tone"
+                    - option "Panel Open Sweep"
+                - generic [ref=e623]:
+                  - text: Mix Group
+                  - combobox "Mix Group" [ref=e624]:
+                    - option "ui"
+                    - option "notifications"
+                    - option "quest"
+                    - option "dusk"
+                    - option "ambient" [selected]
+                    - option "music"
+                    - option "scene_fx"
+                - generic [ref=e625]:
+                  - text: Volume
+                  - spinbutton "Volume" [ref=e626]: "72"
+                - generic [ref=e627]:
+                  - text: Cooldown
+                  - spinbutton "Cooldown" [ref=e628]: "180"
+            - generic [ref=e629]:
+              - generic [ref=e630]:
+                - generic [ref=e631]:
+                  - generic [ref=e632]:
+                    - img [ref=e633]
+                    - generic [ref=e637]: dusk.brief.loaded
+                  - generic [ref=e638]: dusk • volume 74% • cooldown 220ms
+                  - generic [ref=e639]: Dusk Relay Tone • builtin
+                - generic [ref=e640]:
+                  - button "Preview" [ref=e641]:
+                    - img [ref=e642]
+                    - text: Preview
+                  - button "Upload" [ref=e644]:
+                    - img [ref=e645]
+                    - text: Upload
+                  - button "Clear" [ref=e648]
+              - generic [ref=e649]:
+                - generic [ref=e650]:
+                  - text: Sound
+                  - combobox "Sound" [ref=e651]:
+                    - option "Unassigned"
+                    - option "UI Select Tone"
+                    - option "Panel Open Sweep"
+                    - option "Dusk Relay Tone" [selected]
+                - generic [ref=e652]:
+                  - text: Mix Group
+                  - combobox "Mix Group" [ref=e653]:
+                    - option "ui"
+                    - option "notifications"
+                    - option "quest"
+                    - option "dusk" [selected]
+                    - option "ambient"
+                    - option "music"
+                    - option "scene_fx"
+                - generic [ref=e654]:
+                  - text: Volume
+                  - spinbutton "Volume" [ref=e655]: "74"
+                - generic [ref=e656]:
+                  - text: Cooldown
+                  - spinbutton "Cooldown" [ref=e657]: "220"
+            - generic [ref=e658]:
+              - generic [ref=e659]:
+                - generic [ref=e660]:
+                  - generic [ref=e661]:
+                    - img [ref=e662]
+                    - generic [ref=e666]: nav.section.admin.open
+                  - generic [ref=e667]: ui • volume 72% • cooldown 180ms
+                  - generic [ref=e668]: No sound cue assigned yet.
+                - generic [ref=e669]:
+                  - button "Preview" [ref=e670]:
+                    - img [ref=e671]
+                    - text: Preview
+                  - button "Upload" [ref=e673]:
+                    - img [ref=e674]
+                    - text: Upload
+                  - button "Clear" [ref=e677]
+              - generic [ref=e678]:
+                - generic [ref=e679]:
+                  - text: Sound
+                  - combobox "Sound" [ref=e680]:
+                    - option "Unassigned" [selected]
+                    - option "UI Select Tone"
+                    - option "Panel Open Sweep"
+                - generic [ref=e681]:
+                  - text: Mix Group
+                  - combobox "Mix Group" [ref=e682]:
+                    - option "ui" [selected]
+                    - option "notifications"
+                    - option "quest"
+                    - option "dusk"
+                    - option "ambient"
+                    - option "music"
+                    - option "scene_fx"
+                - generic [ref=e683]:
+                  - text: Volume
+                  - spinbutton "Volume" [ref=e684]: "72"
+                - generic [ref=e685]:
+                  - text: Cooldown
+                  - spinbutton "Cooldown" [ref=e686]: "180"
+            - generic [ref=e687]:
+              - generic [ref=e688]:
+                - generic [ref=e689]:
+                  - generic [ref=e690]:
+                    - img [ref=e691]
+                    - generic [ref=e695]: nav.section.lab.open
+                  - generic [ref=e696]: ui • volume 74% • cooldown 120ms
+                  - generic [ref=e697]: UI Select Tone • builtin
+                - generic [ref=e698]:
+                  - button "Preview" [ref=e699]:
+                    - img [ref=e700]
+                    - text: Preview
+                  - button "Upload" [ref=e702]:
+                    - img [ref=e703]
+                    - text: Upload
+                  - button "Clear" [ref=e706]
+              - generic [ref=e707]:
+                - generic [ref=e708]:
+                  - text: Sound
+                  - combobox "Sound" [ref=e709]:
+                    - option "Unassigned"
+                    - option "UI Select Tone" [selected]
+                    - option "Panel Open Sweep"
+                - generic [ref=e710]:
+                  - text: Mix Group
+                  - combobox "Mix Group" [ref=e711]:
+                    - option "ui" [selected]
+                    - option "notifications"
+                    - option "quest"
+                    - option "dusk"
+                    - option "ambient"
+                    - option "music"
+                    - option "scene_fx"
+                - generic [ref=e712]:
+                  - text: Volume
+                  - spinbutton "Volume" [ref=e713]: "74"
+                - generic [ref=e714]:
+                  - text: Cooldown
+                  - spinbutton "Cooldown" [ref=e715]: "120"
+            - generic [ref=e716]:
+              - generic [ref=e717]:
+                - generic [ref=e718]:
+                  - generic [ref=e719]:
+                    - img [ref=e720]
+                    - generic [ref=e724]: nav.section.lobby.open
+                  - generic [ref=e725]: ui • volume 72% • cooldown 180ms
+                  - generic [ref=e726]: No sound cue assigned yet.
+                - generic [ref=e727]:
+                  - button "Preview" [ref=e728]:
+                    - img [ref=e729]
+                    - text: Preview
+                  - button "Upload" [ref=e731]:
+                    - img [ref=e732]
+                    - text: Upload
+                  - button "Clear" [ref=e735]
+              - generic [ref=e736]:
+                - generic [ref=e737]:
+                  - text: Sound
+                  - combobox "Sound" [ref=e738]:
+                    - option "Unassigned" [selected]
+                    - option "UI Select Tone"
+                    - option "Panel Open Sweep"
+                - generic [ref=e739]:
+                  - text: Mix Group
+                  - combobox "Mix Group" [ref=e740]:
+                    - option "ui" [selected]
+                    - option "notifications"
+                    - option "quest"
+                    - option "dusk"
+                    - option "ambient"
+                    - option "music"
+                    - option "scene_fx"
+                - generic [ref=e741]:
+                  - text: Volume
+                  - spinbutton "Volume" [ref=e742]: "72"
+                - generic [ref=e743]:
+                  - text: Cooldown
+                  - spinbutton "Cooldown" [ref=e744]: "180"
+            - generic [ref=e745]:
+              - generic [ref=e746]:
+                - generic [ref=e747]:
+                  - generic [ref=e748]:
+                    - img [ref=e749]
+                    - generic [ref=e753]: nav.section.play.open
+                  - generic [ref=e754]: ui • volume 72% • cooldown 180ms
+                  - generic [ref=e755]: No sound cue assigned yet.
+                - generic [ref=e756]:
+                  - button "Preview" [ref=e757]:
+                    - img [ref=e758]
+                    - text: Preview
+                  - button "Upload" [ref=e760]:
+                    - img [ref=e761]
+                    - text: Upload
+                  - button "Clear" [ref=e764]
+              - generic [ref=e765]:
+                - generic [ref=e766]:
+                  - text: Sound
+                  - combobox "Sound" [ref=e767]:
+                    - option "Unassigned" [selected]
+                    - option "UI Select Tone"
+                    - option "Panel Open Sweep"
+                - generic [ref=e768]:
+                  - text: Mix Group
+                  - combobox "Mix Group" [ref=e769]:
+                    - option "ui" [selected]
+                    - option "notifications"
+                    - option "quest"
+                    - option "dusk"
+                    - option "ambient"
+                    - option "music"
+                    - option "scene_fx"
+                - generic [ref=e770]:
+                  - text: Volume
+                  - spinbutton "Volume" [ref=e771]: "72"
+                - generic [ref=e772]:
+                  - text: Cooldown
+                  - spinbutton "Cooldown" [ref=e773]: "180"
+            - generic [ref=e774]:
+              - generic [ref=e775]:
+                - generic [ref=e776]:
+                  - generic [ref=e777]:
+                    - img [ref=e778]
+                    - generic [ref=e782]: nav.section.profile.open
+                  - generic [ref=e783]: ui • volume 74% • cooldown 120ms
+                  - generic [ref=e784]: UI Select Tone • builtin
+                - generic [ref=e785]:
+                  - button "Preview" [ref=e786]:
+                    - img [ref=e787]
+                    - text: Preview
+                  - button "Upload" [ref=e789]:
+                    - img [ref=e790]
+                    - text: Upload
+                  - button "Clear" [ref=e793]
+              - generic [ref=e794]:
+                - generic [ref=e795]:
+                  - text: Sound
+                  - combobox "Sound" [ref=e796]:
+                    - option "Unassigned"
+                    - option "UI Select Tone" [selected]
+                    - option "Panel Open Sweep"
+                - generic [ref=e797]:
+                  - text: Mix Group
+                  - combobox "Mix Group" [ref=e798]:
+                    - option "ui" [selected]
+                    - option "notifications"
+                    - option "quest"
+                    - option "dusk"
+                    - option "ambient"
+                    - option "music"
+                    - option "scene_fx"
+                - generic [ref=e799]:
+                  - text: Volume
+                  - spinbutton "Volume" [ref=e800]: "74"
+                - generic [ref=e801]:
+                  - text: Cooldown
+                  - spinbutton "Cooldown" [ref=e802]: "120"
+            - generic [ref=e803]:
+              - generic [ref=e804]:
+                - generic [ref=e805]:
+                  - generic [ref=e806]:
+                    - img [ref=e807]
+                    - generic [ref=e811]: notification.urgent
+                  - generic [ref=e812]: notifications • volume 72% • cooldown 180ms
+                  - generic [ref=e813]: No sound cue assigned yet.
+                - generic [ref=e814]:
+                  - button "Preview" [ref=e815]:
+                    - img [ref=e816]
+                    - text: Preview
+                  - button "Upload" [ref=e818]:
+                    - img [ref=e819]
+                    - text: Upload
+                  - button "Clear" [ref=e822]
+              - generic [ref=e823]:
+                - generic [ref=e824]:
+                  - text: Sound
+                  - combobox "Sound" [ref=e825]:
+                    - option "Unassigned" [selected]
+                    - option "UI Select Tone"
+                    - option "Panel Open Sweep"
+                    - option "Soft Notification Ping"
+                - generic [ref=e826]:
+                  - text: Mix Group
+                  - combobox "Mix Group" [ref=e827]:
+                    - option "ui"
+                    - option "notifications" [selected]
+                    - option "quest"
+                    - option "dusk"
+                    - option "ambient"
+                    - option "music"
+                    - option "scene_fx"
+                - generic [ref=e828]:
+                  - text: Volume
+                  - spinbutton "Volume" [ref=e829]: "72"
+                - generic [ref=e830]:
+                  - text: Cooldown
+                  - spinbutton "Cooldown" [ref=e831]: "180"
+            - generic [ref=e832]:
+              - generic [ref=e833]:
+                - generic [ref=e834]:
+                  - generic [ref=e835]:
+                    - img [ref=e836]
+                    - generic [ref=e840]: play.session.start
+                  - generic [ref=e841]: quest • volume 72% • cooldown 180ms
+                  - generic [ref=e842]: No sound cue assigned yet.
+                - generic [ref=e843]:
+                  - button "Preview" [ref=e844]:
+                    - img [ref=e845]
+                    - text: Preview
+                  - button "Upload" [ref=e847]:
+                    - img [ref=e848]
+                    - text: Upload
+                  - button "Clear" [ref=e851]
+              - generic [ref=e852]:
+                - generic [ref=e853]:
+                  - text: Sound
+                  - combobox "Sound" [ref=e854]:
+                    - option "Unassigned" [selected]
+                    - option "UI Select Tone"
+                    - option "Panel Open Sweep"
+                    - option "Quest Complete Signal"
+                - generic [ref=e855]:
+                  - text: Mix Group
+                  - combobox "Mix Group" [ref=e856]:
+                    - option "ui"
+                    - option "notifications"
+                    - option "quest" [selected]
+                    - option "dusk"
+                    - option "ambient"
+                    - option "music"
+                    - option "scene_fx"
+                - generic [ref=e857]:
+                  - text: Volume
+                  - spinbutton "Volume" [ref=e858]: "72"
+                - generic [ref=e859]:
+                  - text: Cooldown
+                  - spinbutton "Cooldown" [ref=e860]: "180"
+            - generic [ref=e861]:
+              - generic [ref=e862]:
+                - generic [ref=e863]:
+                  - generic [ref=e864]:
+                    - img [ref=e865]
+                    - generic [ref=e869]: profile.deck.close
+                  - generic [ref=e870]: ui • volume 72% • cooldown 180ms
+                  - generic [ref=e871]: No sound cue assigned yet.
+                - generic [ref=e872]:
+                  - button "Preview" [ref=e873]:
+                    - img [ref=e874]
+                    - text: Preview
+                  - button "Upload" [ref=e876]:
+                    - img [ref=e877]
+                    - text: Upload
+                  - button "Clear" [ref=e880]
+              - generic [ref=e881]:
+                - generic [ref=e882]:
+                  - text: Sound
+                  - combobox "Sound" [ref=e883]:
+                    - option "Unassigned" [selected]
+                    - option "UI Select Tone"
+                    - option "Panel Open Sweep"
+                - generic [ref=e884]:
+                  - text: Mix Group
+                  - combobox "Mix Group" [ref=e885]:
+                    - option "ui" [selected]
+                    - option "notifications"
+                    - option "quest"
+                    - option "dusk"
+                    - option "ambient"
+                    - option "music"
+                    - option "scene_fx"
+                - generic [ref=e886]:
+                  - text: Volume
+                  - spinbutton "Volume" [ref=e887]: "72"
+                - generic [ref=e888]:
+                  - text: Cooldown
+                  - spinbutton "Cooldown" [ref=e889]: "180"
+            - generic [ref=e890]:
+              - generic [ref=e891]:
+                - generic [ref=e892]:
+                  - generic [ref=e893]:
+                    - img [ref=e894]
+                    - generic [ref=e898]: profile.deck.open
+                  - generic [ref=e899]: scene_fx • volume 78% • cooldown 180ms
+                  - generic [ref=e900]: Panel Open Sweep • builtin
+                - generic [ref=e901]:
+                  - button "Preview" [ref=e902]:
+                    - img [ref=e903]
+                    - text: Preview
+                  - button "Upload" [ref=e905]:
+                    - img [ref=e906]
+                    - text: Upload
+                  - button "Clear" [ref=e909]
+              - generic [ref=e910]:
+                - generic [ref=e911]:
+                  - text: Sound
+                  - combobox "Sound" [ref=e912]:
+                    - option "Unassigned"
+                    - option "UI Select Tone"
+                    - option "Panel Open Sweep" [selected]
+                - generic [ref=e913]:
+                  - text: Mix Group
+                  - combobox "Mix Group" [ref=e914]:
+                    - option "ui"
+                    - option "notifications"
+                    - option "quest"
+                    - option "dusk"
+                    - option "ambient"
+                    - option "music"
+                    - option "scene_fx" [selected]
+                - generic [ref=e915]:
+                  - text: Volume
+                  - spinbutton "Volume" [ref=e916]: "78"
+                - generic [ref=e917]:
+                  - text: Cooldown
+                  - spinbutton "Cooldown" [ref=e918]: "180"
+            - generic [ref=e919]:
+              - generic [ref=e920]:
+                - generic [ref=e921]:
+                  - generic [ref=e922]:
+                    - img [ref=e923]
+                    - generic [ref=e927]: profile.panel.identity.open
+                  - generic [ref=e928]: ui • volume 72% • cooldown 180ms
+                  - generic [ref=e929]: No sound cue assigned yet.
+                - generic [ref=e930]:
+                  - button "Preview" [ref=e931]:
+                    - img [ref=e932]
+                    - text: Preview
+                  - button "Upload" [ref=e934]:
+                    - img [ref=e935]
+                    - text: Upload
+                  - button "Clear" [ref=e938]
+              - generic [ref=e939]:
+                - generic [ref=e940]:
+                  - text: Sound
+                  - combobox "Sound" [ref=e941]:
+                    - option "Unassigned" [selected]
+                    - option "UI Select Tone"
+                    - option "Panel Open Sweep"
+                - generic [ref=e942]:
+                  - text: Mix Group
+                  - combobox "Mix Group" [ref=e943]:
+                    - option "ui" [selected]
+                    - option "notifications"
+                    - option "quest"
+                    - option "dusk"
+                    - option "ambient"
+                    - option "music"
+                    - option "scene_fx"
+                - generic [ref=e944]:
+                  - text: Volume
+                  - spinbutton "Volume" [ref=e945]: "72"
+                - generic [ref=e946]:
+                  - text: Cooldown
+                  - spinbutton "Cooldown" [ref=e947]: "180"
+            - generic [ref=e948]:
+              - generic [ref=e949]:
+                - generic [ref=e950]:
+                  - generic [ref=e951]:
+                    - img [ref=e952]
+                    - generic [ref=e956]: profile.panel.stats.open
+                  - generic [ref=e957]: ui • volume 72% • cooldown 180ms
+                  - generic [ref=e958]: No sound cue assigned yet.
+                - generic [ref=e959]:
+                  - button "Preview" [ref=e960]:
+                    - img [ref=e961]
+                    - text: Preview
+                  - button "Upload" [ref=e963]:
+                    - img [ref=e964]
+                    - text: Upload
+                  - button "Clear" [ref=e967]
+              - generic [ref=e968]:
+                - generic [ref=e969]:
+                  - text: Sound
+                  - combobox "Sound" [ref=e970]:
+                    - option "Unassigned" [selected]
+                    - option "UI Select Tone"
+                    - option "Panel Open Sweep"
+                - generic [ref=e971]:
+                  - text: Mix Group
+                  - combobox "Mix Group" [ref=e972]:
+                    - option "ui" [selected]
+                    - option "notifications"
+                    - option "quest"
+                    - option "dusk"
+                    - option "ambient"
+                    - option "music"
+                    - option "scene_fx"
+                - generic [ref=e973]:
+                  - text: Volume
+                  - spinbutton "Volume" [ref=e974]: "72"
+                - generic [ref=e975]:
+                  - text: Cooldown
+                  - spinbutton "Cooldown" [ref=e976]: "180"
+            - generic [ref=e977]:
+              - generic [ref=e978]:
+                - generic [ref=e979]:
+                  - generic [ref=e980]:
+                    - img [ref=e981]
+                    - generic [ref=e985]: profile.scene.load
+                  - generic [ref=e986]: scene_fx • volume 72% • cooldown 180ms
+                  - generic [ref=e987]: No sound cue assigned yet.
+                - generic [ref=e988]:
+                  - button "Preview" [ref=e989]:
+                    - img [ref=e990]
+                    - text: Preview
+                  - button "Upload" [ref=e992]:
+                    - img [ref=e993]
+                    - text: Upload
+                  - button "Clear" [ref=e996]
+              - generic [ref=e997]:
+                - generic [ref=e998]:
+                  - text: Sound
+                  - combobox "Sound" [ref=e999]:
+                    - option "Unassigned" [selected]
+                    - option "UI Select Tone"
+                    - option "Panel Open Sweep"
+                - generic [ref=e1000]:
+                  - text: Mix Group
+                  - combobox "Mix Group" [ref=e1001]:
+                    - option "ui"
+                    - option "notifications"
+                    - option "quest"
+                    - option "dusk"
+                    - option "ambient"
+                    - option "music"
+                    - option "scene_fx" [selected]
+                - generic [ref=e1002]:
+                  - text: Volume
+                  - spinbutton "Volume" [ref=e1003]: "72"
+                - generic [ref=e1004]:
+                  - text: Cooldown
+                  - spinbutton "Cooldown" [ref=e1005]: "180"
+            - generic [ref=e1006]:
+              - generic [ref=e1007]:
+                - generic [ref=e1008]:
+                  - generic [ref=e1009]:
+                    - img [ref=e1010]
+                    - generic [ref=e1014]: profile.scene.reload
+                  - generic [ref=e1015]: scene_fx • volume 72% • cooldown 180ms
+                  - generic [ref=e1016]: No sound cue assigned yet.
+                - generic [ref=e1017]:
+                  - button "Preview" [ref=e1018]:
+                    - img [ref=e1019]
+                    - text: Preview
+                  - button "Upload" [ref=e1021]:
+                    - img [ref=e1022]
+                    - text: Upload
+                  - button "Clear" [ref=e1025]
+              - generic [ref=e1026]:
+                - generic [ref=e1027]:
+                  - text: Sound
+                  - combobox "Sound" [ref=e1028]:
+                    - option "Unassigned" [selected]
+                    - option "UI Select Tone"
+                    - option "Panel Open Sweep"
+                - generic [ref=e1029]:
+                  - text: Mix Group
+                  - combobox "Mix Group" [ref=e1030]:
+                    - option "ui"
+                    - option "notifications"
+                    - option "quest"
+                    - option "dusk"
+                    - option "ambient"
+                    - option "music"
+                    - option "scene_fx" [selected]
+                - generic [ref=e1031]:
+                  - text: Volume
+                  - spinbutton "Volume" [ref=e1032]: "72"
+                - generic [ref=e1033]:
+                  - text: Cooldown
+                  - spinbutton "Cooldown" [ref=e1034]: "180"
+            - generic [ref=e1035]:
+              - generic [ref=e1036]:
+                - generic [ref=e1037]:
+                  - generic [ref=e1038]:
+                    - img [ref=e1039]
+                    - generic [ref=e1043]: profile.scene.sync
+                  - generic [ref=e1044]: scene_fx • volume 72% • cooldown 220ms
+                  - generic [ref=e1045]: Panel Open Sweep • builtin
+                - generic [ref=e1046]:
+                  - button "Preview" [ref=e1047]:
+                    - img [ref=e1048]
+                    - text: Preview
+                  - button "Upload" [ref=e1050]:
+                    - img [ref=e1051]
+                    - text: Upload
+                  - button "Clear" [ref=e1054]
+              - generic [ref=e1055]:
+                - generic [ref=e1056]:
+                  - text: Sound
+                  - combobox "Sound" [ref=e1057]:
+                    - option "Unassigned"
+                    - option "UI Select Tone"
+                    - option "Panel Open Sweep" [selected]
+                - generic [ref=e1058]:
+                  - text: Mix Group
+                  - combobox "Mix Group" [ref=e1059]:
+                    - option "ui"
+                    - option "notifications"
+                    - option "quest"
+                    - option "dusk"
+                    - option "ambient"
+                    - option "music"
+                    - option "scene_fx" [selected]
+                - generic [ref=e1060]:
+                  - text: Volume
+                  - spinbutton "Volume" [ref=e1061]: "72"
+                - generic [ref=e1062]:
+                  - text: Cooldown
+                  - spinbutton "Cooldown" [ref=e1063]: "220"
+            - generic [ref=e1064]:
+              - generic [ref=e1065]:
+                - generic [ref=e1066]:
+                  - generic [ref=e1067]:
+                    - img [ref=e1068]
+                    - generic [ref=e1072]: quest.completed
+                  - generic [ref=e1073]: quest • volume 86% • cooldown 360ms
+                  - generic [ref=e1074]: Quest Complete Signal • builtin
+                - generic [ref=e1075]:
+                  - button "Preview" [ref=e1076]:
+                    - img [ref=e1077]
+                    - text: Preview
+                  - button "Upload" [ref=e1079]:
+                    - img [ref=e1080]
+                    - text: Upload
+                  - button "Clear" [ref=e1083]
+              - generic [ref=e1084]:
+                - generic [ref=e1085]:
+                  - text: Sound
+                  - combobox "Sound" [ref=e1086]:
+                    - option "Unassigned"
+                    - option "UI Select Tone"
+                    - option "Panel Open Sweep"
+                    - option "Quest Complete Signal" [selected]
+                - generic [ref=e1087]:
+                  - text: Mix Group
+                  - combobox "Mix Group" [ref=e1088]:
+                    - option "ui"
+                    - option "notifications"
+                    - option "quest" [selected]
+                    - option "dusk"
+                    - option "ambient"
+                    - option "music"
+                    - option "scene_fx"
+                - generic [ref=e1089]:
+                  - text: Volume
+                  - spinbutton "Volume" [ref=e1090]: "86"
+                - generic [ref=e1091]:
+                  - text: Cooldown
+                  - spinbutton "Cooldown" [ref=e1092]: "360"
+        - generic [ref=e1093]:
+          - generic [ref=e1094]:
+            - generic [ref=e1095]:
+              - generic [ref=e1096]: Sound Library
+              - generic [ref=e1097]: Current cue assets available to the Audio Studio. Uploaded files stay local-first for now.
+            - generic [ref=e1098]: 5 assets
+          - generic [ref=e1099]:
+            - generic [ref=e1101]:
+              - generic [ref=e1102]:
+                - generic [ref=e1103]: UI Select Tone
+                - generic [ref=e1104]: ui • builtin
+                - generic [ref=e1105]: Built-in XTATION preview asset
+              - button "Preview" [ref=e1106]:
+                - img [ref=e1107]
+                - text: Preview
+            - generic [ref=e1110]:
+              - generic [ref=e1111]:
+                - generic [ref=e1112]: Panel Open Sweep
+                - generic [ref=e1113]: scene_fx • builtin
+                - generic [ref=e1114]: Built-in XTATION preview asset
+              - button "Preview" [ref=e1115]:
+                - img [ref=e1116]
+                - text: Preview
+            - generic [ref=e1119]:
+              - generic [ref=e1120]:
+                - generic [ref=e1121]: Quest Complete Signal
+                - generic [ref=e1122]: quest • builtin
+                - generic [ref=e1123]: Built-in XTATION preview asset
+              - button "Preview" [ref=e1124]:
+                - img [ref=e1125]
+                - text: Preview
+            - generic [ref=e1128]:
+              - generic [ref=e1129]:
+                - generic [ref=e1130]: Soft Notification Ping
+                - generic [ref=e1131]: notifications • builtin
+                - generic [ref=e1132]: Built-in XTATION preview asset
+              - button "Preview" [ref=e1133]:
+                - img [ref=e1134]
+                - text: Preview
+            - generic [ref=e1137]:
+              - generic [ref=e1138]:
+                - generic [ref=e1139]: Dusk Relay Tone
+                - generic [ref=e1140]: dusk • builtin
+                - generic [ref=e1141]: Built-in XTATION preview asset
+              - button "Preview" [ref=e1142]:
+                - img [ref=e1143]
+                - text: Preview
+          - generic [ref=e1146]:
+            - img [ref=e1147]
+            - generic [ref=e1150]: Admin owns authoring here. Users should only consume published skins and simple volume controls in normal Settings.
+  - button [ref=e230]:
+    - img [ref=e231]

@@ -1,0 +1,163 @@
+- generic [ref=e3]:
+  - generic [ref=e4]:
+    - generic [ref=e5]:
+      - button "Play" [ref=e6] [cursor=pointer]:
+        - generic [ref=e7]: Play
+      - button "Lab" [ref=e8] [cursor=pointer]:
+        - generic [ref=e9]: Lab
+      - button "Multiplayer" [ref=e10] [cursor=pointer]:
+        - generic [ref=e11]: Multiplayer
+      - button "Profile" [ref=e12] [cursor=pointer]:
+        - generic [ref=e13]: Profile
+      - button "Inventory" [ref=e14] [cursor=pointer]:
+        - generic [ref=e15]: Inventory
+      - button "Store" [ref=e16] [cursor=pointer]:
+        - generic [ref=e17]: Store
+      - button "Settings" [ref=e18] [cursor=pointer]:
+        - generic [ref=e19]: Settings
+    - generic [ref=e20]:
+      - button "QUESTS" [ref=e21] [cursor=pointer]:
+        - img [ref=e22]
+        - generic [ref=e25]: QUESTS
+      - generic [ref=e32]:
+        - generic [ref=e33]: Today
+        - generic [ref=e34]:
+          - text: "0"
+          - generic [ref=e35]: / 960
+        - generic [ref=e36]: 0 MIN
+      - button "LOGIN" [ref=e38] [cursor=pointer]
+      - button "⌘K" [ref=e39] [cursor=pointer]
+      - generic [ref=e41]:
+        - generic "Player Level (0 total XP)" [ref=e42]:
+          - img [ref=e43]
+          - generic [ref=e49]: LV 0
+        - button [ref=e50] [cursor=pointer]:
+          - img [ref=e51]
+        - button [ref=e54] [cursor=pointer]:
+          - img [ref=e55]
+  - generic [ref=e170]:
+    - generic [ref=e172]:
+      - generic [ref=e173]:
+        - generic [ref=e174]:
+          - img [ref=e175]
+          - generic [ref=e178]: Store / Expansion Layer
+        - heading "Add clean expansions, not core dependencies." [level=1] [ref=e179]
+        - paragraph [ref=e180]: Store should activate skins, widgets, and modules that enrich XTATION without making the core engine feel rented or incomplete.
+      - generic [ref=e181]:
+        - generic [ref=e182]:
+          - generic [ref=e183]: Theme Slot
+          - generic [ref=e184]: System theme
+        - generic [ref=e185]:
+          - generic [ref=e186]: Widgets Enabled
+          - generic [ref=e187]: "0"
+        - generic [ref=e188]:
+          - generic [ref=e189]: Lab Modules
+          - generic [ref=e190]: "0"
+        - generic [ref=e191]:
+          - generic [ref=e192]: Current Theme
+          - generic [ref=e193]: bureau
+    - generic [ref=e194]:
+      - generic [ref=e195]:
+        - img [ref=e196]
+        - textbox "Search skins, widgets, modules..." [ref=e199]
+      - generic [ref=e200]:
+        - generic [ref=e201]:
+          - img [ref=e202]
+          - text: Category
+        - button "All" [ref=e204] [cursor=pointer]
+        - button "Themes" [active] [ref=e205] [cursor=pointer]
+        - button "Widgets" [ref=e206] [cursor=pointer]
+        - button "Modules" [ref=e207] [cursor=pointer]
+        - button "Packs" [ref=e208] [cursor=pointer]
+    - generic [ref=e209]:
+      - article [ref=e268]:
+        - generic [ref=e269]:
+          - generic [ref=e270]:
+            - generic [ref=e271]:
+              - generic [ref=e272]: Void Command
+              - generic [ref=e273]: Popular
+            - generic [ref=e274]: Themes
+          - generic [ref=e275]:
+            - generic [ref=e276]: USD $12
+            - generic [ref=e277]: Catalog
+        - paragraph [ref=e278]: High-contrast command skin for night sessions, tactical layouts, and calmer dark surfaces.
+        - generic [ref=e279]:
+          - generic [ref=e280]:
+            - img [ref=e281]
+            - text: Uses Void theme
+          - generic [ref=e284]:
+            - img [ref=e285]
+            - text: Sharper accent glow
+          - generic [ref=e288]:
+            - img [ref=e289]
+            - text: Best for ops-heavy workflows
+        - generic [ref=e292]:
+          - button "Details" [ref=e293] [cursor=pointer]
+          - button "Use" [ref=e294] [cursor=pointer]:
+            - img [ref=e295]
+            - text: Use
+      - article [ref=e298]:
+        - generic [ref=e299]:
+          - generic [ref=e300]:
+            - generic [ref=e301]:
+              - generic [ref=e302]: Bureau Warm
+              - generic [ref=e303]: New
+            - generic [ref=e304]: Themes
+          - generic [ref=e305]:
+            - generic [ref=e306]: USD $9
+            - generic [ref=e307]: Installed
+        - paragraph [ref=e308]: A cleaner daylight skin with warmer neutrals and reduced visual pressure.
+        - generic [ref=e309]:
+          - generic [ref=e310]:
+            - img [ref=e311]
+            - text: Uses Bureau theme
+          - generic [ref=e314]:
+            - img [ref=e315]
+            - text: Warmer surfaces
+          - generic [ref=e318]:
+            - img [ref=e319]
+            - text: Good for long planning sessions
+        - generic [ref=e322]:
+          - button "Details" [ref=e323] [cursor=pointer]
+          - button "Active" [ref=e324] [cursor=pointer]:
+            - img [ref=e325]
+            - text: Active
+  - button [ref=e125] [cursor=pointer]:
+    - img [ref=e126]
+  - generic [ref=e129]:
+    - generic [ref=e130]:
+      - generic [ref=e132]: Developer HUD
+      - button "Min" [ref=e133] [cursor=pointer]
+    - generic [ref=e134]:
+      - generic [ref=e135]:
+        - generic [ref=e136]: Auth
+        - generic [ref=e137]: Not signed in
+        - generic [ref=e138]: User ID
+        - generic [ref=e139]: anon
+        - generic [ref=e140]: Ledger Key
+        - generic [ref=e141]: xpLedger_v2:anon
+        - generic [ref=e142]: Ledger Source
+        - generic [ref=e143]: anon-local
+        - generic [ref=e144]: Cloud Status
+        - generic [ref=e145]: idle
+        - generic [ref=e146]: Last Sync
+        - generic [ref=e147]: "-"
+        - generic [ref=e148]: Counts
+        - generic [ref=e149]: 0 tasks / 0 sessions / 0 challenges
+        - generic [ref=e150]: Running
+        - generic [ref=e151]: none
+        - generic [ref=e152]: Today
+        - generic [ref=e153]: 0/960 (Bronze)
+      - generic [ref=e154]:
+        - button "Run Checks" [ref=e155] [cursor=pointer]
+        - button "Repair Links" [ref=e156] [cursor=pointer]
+        - button "Export Ledger JSON" [ref=e157] [cursor=pointer]
+        - button "Reset Local Data" [ref=e158] [cursor=pointer]
+        - button "Reset Cloud Data (This Account)" [disabled] [ref=e159]
+      - generic [ref=e160]:
+        - generic [ref=e161]: Cloud reset
+        - generic [ref=e162]: Idle
+      - 'button "Health: OK Show" [ref=e164] [cursor=pointer]':
+        - generic [ref=e165]: "Health: OK"
+        - generic [ref=e166]: Show
+      - generic [ref=e167]: Health checks OK

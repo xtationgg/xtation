@@ -1,0 +1,33 @@
+{
+  "version": "xtation-station-export-v1",
+  "exportedAt": 1763000000000,
+  "scope": "guest",
+  "platform": {
+    "releaseChannel": "beta",
+    "plan": "pro",
+    "trialEndsAt": null,
+    "betaCohort": "restore-wave",
+    "featureFlags": {
+      "avatar_lobby": true,
+      "people_ops_discovery": true,
+      "dusk_connected_mode": true,
+      "admin_console": true
+    }
+  },
+  "theme": {
+    "theme": "bureau",
+    "accent": "teal",
+    "resolution": "hd_1080"
+  },
+  "ledger": {
+    "tasks": [],
+    "sessions": [],
+    "rewards": [],
+    "rewardQueue": [],
+    "projects": [],
+    "selfTree": [],
+    "inventory": [],
+    "preferences": {},
+    "claims": []
+  }
+}

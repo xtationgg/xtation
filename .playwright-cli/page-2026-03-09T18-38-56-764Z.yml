@@ -1,0 +1,79 @@
+- generic [ref=e3]:
+  - generic [ref=e4]:
+    - generic [ref=e5]:
+      - button "Play" [ref=e6] [cursor=pointer]:
+        - generic [ref=e7]: Play
+      - button "Lab" [ref=e8] [cursor=pointer]:
+        - generic [ref=e9]: Lab
+      - button "Multiplayer" [ref=e10] [cursor=pointer]:
+        - generic [ref=e11]: Multiplayer
+      - button "Profile" [ref=e12] [cursor=pointer]:
+        - generic [ref=e13]: Profile
+      - button "Inventory" [ref=e14] [cursor=pointer]:
+        - generic [ref=e15]: Inventory
+      - button "Store" [ref=e16] [cursor=pointer]:
+        - generic [ref=e17]: Store
+      - button "Settings" [ref=e18] [cursor=pointer]:
+        - generic [ref=e19]: Settings
+    - generic [ref=e20]:
+      - button "QUESTS" [ref=e21] [cursor=pointer]:
+        - img [ref=e22]
+        - generic [ref=e25]: QUESTS
+      - generic [ref=e32]:
+        - generic [ref=e33]: Today
+        - generic [ref=e34]:
+          - text: "0"
+          - generic [ref=e35]: / 960
+        - generic [ref=e36]: 0 MIN
+      - button "LOGIN" [ref=e169] [cursor=pointer]
+      - button "⌘K" [ref=e39] [cursor=pointer]
+      - generic [ref=e41]:
+        - generic "Player Level (0 total XP)" [ref=e42]:
+          - img [ref=e43]
+          - generic [ref=e49]: LV 0
+        - button [ref=e50] [cursor=pointer]:
+          - img [ref=e51]
+        - button [ref=e54] [cursor=pointer]:
+          - img [ref=e55]
+  - generic [ref=e396]:
+    - generic [ref=e399]: Under Construction
+    - generic [ref=e400]: This section of the hextech network is currently offline.
+  - button [ref=e125] [cursor=pointer]:
+    - img [ref=e126]
+  - generic [ref=e129]:
+    - generic [ref=e130]:
+      - generic [ref=e132]: Developer HUD
+      - button "Min" [ref=e133] [cursor=pointer]
+    - generic [ref=e134]:
+      - generic [ref=e135]:
+        - generic [ref=e136]: Auth
+        - generic [ref=e137]: Not signed in
+        - generic [ref=e138]: User ID
+        - generic [ref=e139]: anon
+        - generic [ref=e140]: Ledger Key
+        - generic [ref=e141]: xpLedger_v2:anon
+        - generic [ref=e142]: Ledger Source
+        - generic [ref=e143]: anon-local
+        - generic [ref=e144]: Cloud Status
+        - generic [ref=e145]: idle
+        - generic [ref=e146]: Last Sync
+        - generic [ref=e147]: "-"
+        - generic [ref=e148]: Counts
+        - generic [ref=e149]: 0 tasks / 0 sessions / 0 challenges
+        - generic [ref=e150]: Running
+        - generic [ref=e151]: none
+        - generic [ref=e152]: Today
+        - generic [ref=e153]: 0/960 (Bronze)
+      - generic [ref=e154]:
+        - button "Run Checks" [ref=e155] [cursor=pointer]
+        - button "Repair Links" [ref=e156] [cursor=pointer]
+        - button "Export Ledger JSON" [ref=e157] [cursor=pointer]
+        - button "Reset Local Data" [ref=e158] [cursor=pointer]
+        - button "Reset Cloud Data (This Account)" [disabled] [ref=e159]
+      - generic [ref=e160]:
+        - generic [ref=e161]: Cloud reset
+        - generic [ref=e162]: Idle
+      - 'button "Health: OK Show" [ref=e164] [cursor=pointer]':
+        - generic [ref=e165]: "Health: OK"
+        - generic [ref=e166]: Show
+      - generic [ref=e167]: Health checks OK

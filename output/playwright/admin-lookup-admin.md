@@ -1,0 +1,146 @@
+- generic [ref=e93]:
+  - generic [ref=e94]:
+    - generic [ref=e95]:
+      - button "Play" [ref=e96]
+      - button "Lab" [ref=e98]
+      - button "Multiplayer" [ref=e99]
+      - button "Profile" [ref=e100]
+      - button "Inventory" [ref=e101]
+      - button "Store" [ref=e102]
+      - button "Settings" [ref=e103]
+      - button "Admin" [active] [ref=e104]:
+        - generic [ref=e346]: Admin
+    - generic [ref=e105]:
+      - button "DUSK" [ref=e106]:
+        - img [ref=e107]
+        - text: DUSK
+      - generic [ref=e110]:
+        - generic [ref=e111]: Today
+        - generic [ref=e112]:
+          - text: "0"
+          - generic [ref=e113]: / 960
+        - generic [ref=e114]: 0 MIN
+      - generic [ref=e115]:
+        - generic [ref=e116]: Local Mode
+        - generic [ref=e117]:
+          - text: trial•internal•
+          - generic [ref=e118]: 14d
+        - button "CONNECT" [ref=e119]
+      - button "⌘K" [ref=e120]
+      - button "Exit" [ref=e121]
+      - generic [ref=e122]:
+        - generic "Player Level (0 total XP)" [ref=e123]:
+          - img [ref=e124]
+          - generic [ref=e130]: LV 0
+        - button [ref=e131]:
+          - img [ref=e132]
+        - button [ref=e135]:
+          - img [ref=e136]
+  - generic [ref=e348]:
+    - generic [ref=e351]:
+      - generic [ref=e352]:
+        - generic [ref=e353]: Operator Console
+        - heading "Run XTATION like a real platform." [level=1] [ref=e354]
+        - paragraph [ref=e355]: "This surface owns rollout state, support diagnostics, test cohorts, and audit. It stays deliberately narrow: no fake backend power, only controls the current client can actually honor safely."
+      - generic [ref=e356]:
+        - generic [ref=e357]: Local preview operator
+        - generic [ref=e358]: super admin
+    - generic [ref=e359]:
+      - button "Overview" [ref=e360]:
+        - img [ref=e361]
+        - text: Overview
+      - button "Rollout" [ref=e366]:
+        - img [ref=e367]
+        - text: Rollout
+      - button "Support" [ref=e369]:
+        - img [ref=e370]
+        - text: Support
+      - button "Catalog" [ref=e377]:
+        - img [ref=e378]
+        - text: Catalog
+      - button "Audit" [ref=e388]:
+        - img [ref=e389]
+        - text: Audit
+      - button "Test Lab" [ref=e391]:
+        - img [ref=e392]
+        - text: Test Lab
+    - generic [ref=e394]:
+      - generic [ref=e395]:
+        - generic [ref=e396]:
+          - img [ref=e398]
+          - generic [ref=e401]:
+            - generic [ref=e402]: Operator Access
+            - generic [ref=e403]: Developer preview
+        - generic [ref=e404]: "Station scope: Local Station. Source: dev preview."
+      - generic [ref=e405]:
+        - generic [ref=e406]:
+          - img [ref=e408]
+          - generic [ref=e411]:
+            - generic [ref=e412]: Current Station
+            - generic [ref=e413]: TRIAL • INTERNAL
+        - generic [ref=e414]: "Trial: 14d remaining • Cohort: offline-preview"
+      - generic [ref=e415]:
+        - generic [ref=e416]:
+          - img [ref=e418]
+          - generic [ref=e421]:
+            - generic [ref=e422]: Platform Profile
+            - generic [ref=e423]: local only
+        - generic [ref=e424]: Supabase platform profile table is not installed or not reachable.
+      - generic [ref=e425]:
+        - generic [ref=e426]:
+          - img [ref=e428]
+          - generic [ref=e431]:
+            - generic [ref=e432]: Dusk Relay
+            - generic [ref=e433]: No active brief
+        - generic [ref=e434]: No relay brief has been stored yet for this station.
+      - generic [ref=e435]:
+        - generic [ref=e436]:
+          - img [ref=e438]
+          - generic [ref=e440]:
+            - generic [ref=e441]: Client State
+            - generic [ref=e442]: 0 quests • 0 sessions
+        - generic [ref=e443]: "Ledger sync: idle • Auth: signedOut • Last sync: pending"
+    - generic [ref=e444]:
+      - generic [ref=e445]:
+        - generic [ref=e446]: Surface Snapshot
+        - generic [ref=e447]:
+          - generic [ref=e448]:
+            - generic [ref=e449]: Theme Stack
+            - generic [ref=e450]: dusk / purple / auto
+          - generic [ref=e451]:
+            - generic [ref=e452]: Active Unlocks
+            - generic [ref=e453]: 0 widgets • 0 modules
+          - generic [ref=e454]:
+            - generic [ref=e455]: Progress Engine
+            - generic [ref=e456]: Level 0 • 0 total XP
+          - generic [ref=e457]:
+            - generic [ref=e458]: Feature Gates
+            - generic [ref=e459]: Lab on • Multiplayer on • Store on
+      - generic [ref=e460]:
+        - generic [ref=e461]: Recent Audit
+        - generic [ref=e463]: No operator actions recorded yet.
+  - button [ref=e210]:
+    - img [ref=e211]
+  - generic [ref=e325]:
+    - generic [ref=e326]:
+      - generic [ref=e327]: Developer HUD
+      - button "Min" [ref=e328]
+    - generic [ref=e329]:
+      - generic [ref=e330]:
+        - text: AuthNot signed inUser IDanonLedger KeyxpLedger_v2:anonLedger Sourceanon-localCloud StatusidleLast Sync-Counts
+        - generic [ref=e331]: 0 tasks / 0 sessions / 0 challenges
+        - text: RunningnoneToday
+        - generic [ref=e332]: 0/960 (Bronze)
+      - generic [ref=e333]:
+        - button "Run Checks" [ref=e334]
+        - button "Repair Links" [ref=e335]
+        - button "Export Ledger JSON" [ref=e336]
+        - button "Reset Local Data" [ref=e337]
+        - button "Reset Cloud Data (This Account)" [disabled] [ref=e338]
+      - generic [ref=e339]:
+        - generic [ref=e340]: Cloud reset
+        - generic [ref=e341]: Idle
+      - 'button "Health: OKShow" [ref=e343]':
+        - generic [ref=e344]: "Health: OK"
+        - text: Show
+      - generic [ref=e345]: Health checks OK

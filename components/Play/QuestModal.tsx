@@ -4,6 +4,7 @@ import { DateTimePicker } from '../UI/DateTimePicker';
 import { ConfirmModal } from '../UI/ConfirmModal';
 import { Task, TaskPriority, QuestType, QuestLevel } from '../XP/xpTypes';
 import { useXP } from '../XP/xpStore';
+import { encodeQuestNotesWithSteps, parseQuestNotesAndSteps } from '../../src/lib/quests/steps';
 
 interface QuestDraft {
   title: string;
@@ -40,8 +41,6 @@ interface QuestModalProps {
 const FOCUSABLE_SELECTOR =
   'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
-const STEPS_BLOCK_REGEX = /\n?---\s*\n\[xstation_steps_v1\]\s*\n([\s\S]*?)\n---\s*$/;
-
 const defaultDraft: QuestDraft = {
   title: '',
   details: '',
@@ -76,56 +75,6 @@ const roundToFiveMinutes = (date = new Date()) => {
 
 const makeScheduleSeed = (timestamp?: number) => toLocalDateTimeInput(timestamp || roundToFiveMinutes().getTime());
 
-const parseNotesAndSteps = (raw: string) => {
-  if (!raw) {
-    return { notes: '', steps: [] as StepDraft[] };
-  }
-
-  const match = raw.match(STEPS_BLOCK_REGEX);
-  if (!match) {
-    return { notes: raw, steps: [] as StepDraft[] };
-  }
-
-  const jsonPayload = match[1]?.trim();
-  const noteText = raw.replace(STEPS_BLOCK_REGEX, '').trimEnd();
-
-  try {
-    const parsed = JSON.parse(jsonPayload);
-    const steps = Array.isArray(parsed?.steps)
-      ? parsed.steps
-          .map((step: unknown) => {
-            const next = step as { text?: string; done?: boolean };
-            const text = typeof next?.text === 'string' ? next.text.trim() : '';
-            if (!text) return null;
-            return {
-              id: createStepId(),
-              text,
-              done: !!next?.done,
-            } as StepDraft;
-          })
-          .filter(Boolean) as StepDraft[]
-      : [];
-
-    return { notes: noteText, steps };
-  } catch {
-    return { notes: noteText, steps: [] as StepDraft[] };
-  }
-};
-
-const encodeNotesWithSteps = (notes: string, steps: StepDraft[]) => {
-  const trimmedNotes = notes.trimEnd();
-  const normalizedSteps = steps
-    .map((step) => ({ text: step.text.trim(), done: step.done }))
-    .filter((step) => step.text.length > 0);
-
-  if (!normalizedSteps.length) {
-    return trimmedNotes;
-  }
-
-  const block = `---\n[xstation_steps_v1]\n${JSON.stringify({ steps: normalizedSteps }, null, 2)}\n---`;
-  return trimmedNotes ? `${trimmedNotes}\n\n${block}` : block;
-};
-
 const serializeSnapshot = (draft: QuestDraft, steps: StepDraft[], scheduleSeed: string) =>
   JSON.stringify({
     title: draft.title,
@@ -159,8 +108,8 @@ const formatScheduledPreview = (timestamp?: number) => {
 };
 
 export const QuestModal: React.FC<QuestModalProps> = ({ open, task, onClose, onSave, onDelete }) => {
-  const { projects } = useXP();
-  const activeProjects = projects.filter((p) => p.status !== 'Archived');
+  const xp = useXP();
+  const activeProjects = Array.isArray(xp?.projects) ? xp.projects.filter((p) => p.status !== 'Archived') : [];
   const [draft, setDraft] = useState<QuestDraft>(defaultDraft);
   const [steps, setSteps] = useState<StepDraft[]>([]);
   const [newStepText, setNewStepText] = useState('');
@@ -177,7 +126,7 @@ export const QuestModal: React.FC<QuestModalProps> = ({ open, task, onClose, onS
   useEffect(() => {
     if (!open) return;
 
-    const parsed = parseNotesAndSteps(task?.details || '');
+    const parsed = parseQuestNotesAndSteps(task?.details || '');
     const nextScheduleSeed = makeScheduleSeed(task?.scheduledAt);
     const nextDraft: QuestDraft = task
       ? {
@@ -195,7 +144,7 @@ export const QuestModal: React.FC<QuestModalProps> = ({ open, task, onClose, onS
         };
 
     setDraft(nextDraft);
-    setSteps(parsed.steps);
+    setSteps(parsed.steps.map((step) => ({ ...step, id: createStepId() })));
     setNewStepText('');
     setScheduleOpen(false);
     setScheduleSeed(nextScheduleSeed);
@@ -276,7 +225,7 @@ export const QuestModal: React.FC<QuestModalProps> = ({ open, task, onClose, onS
 
     onSave({
       title,
-      details: encodeNotesWithSteps(draft.details, steps),
+      details: encodeQuestNotesWithSteps(draft.details, steps),
       priority: draft.priority,
       scheduledAt: draft.scheduledAt,
       questType: draft.questType,

@@ -1,0 +1,108 @@
+- generic [ref=e93]:
+  - generic [ref=e94]:
+    - generic [ref=e95]:
+      - button "Play" [ref=e96]
+      - button "Lab" [ref=e98]
+      - button "Multiplayer" [ref=e99]
+      - button "Profile" [ref=e100]
+      - button "Inventory" [ref=e101]
+      - button "Store" [ref=e102]
+      - button "Settings" [ref=e103]
+      - button "Admin" [ref=e104]:
+        - generic [ref=e346]: Admin
+    - generic [ref=e105]:
+      - button "DUSK" [ref=e106]:
+        - img [ref=e107]
+        - text: DUSK
+      - generic [ref=e110]:
+        - generic [ref=e111]: Today
+        - generic [ref=e112]:
+          - text: "0"
+          - generic [ref=e113]: / 960
+        - generic [ref=e114]: 0 MIN
+      - generic [ref=e115]:
+        - generic [ref=e116]: Local Mode
+        - generic [ref=e117]:
+          - text: trial•internal•
+          - generic [ref=e118]: 14d
+        - button "CONNECT" [ref=e119]
+      - button "⌘K" [ref=e120]
+      - button "Exit" [ref=e121]
+      - generic [ref=e122]:
+        - generic "Player Level (0 total XP)" [ref=e123]:
+          - img [ref=e124]
+          - generic [ref=e130]: LV 0
+        - button [ref=e131]:
+          - img [ref=e132]
+        - button [ref=e135]:
+          - img [ref=e136]
+  - generic [ref=e348]:
+    - generic [ref=e351]:
+      - generic [ref=e352]:
+        - generic [ref=e353]: Operator Console
+        - heading "Run XTATION like a real platform." [level=1] [ref=e354]
+        - paragraph [ref=e355]: "This surface owns rollout state, support diagnostics, test cohorts, and audit. It stays deliberately narrow: no fake backend power, only controls the current client can actually honor safely."
+      - generic [ref=e356]:
+        - generic [ref=e357]: Local preview operator
+        - generic [ref=e358]: super admin
+    - generic [ref=e359]:
+      - button "Overview" [ref=e360]:
+        - img [ref=e361]
+        - text: Overview
+      - button "Rollout" [ref=e366]:
+        - img [ref=e367]
+        - text: Rollout
+      - button "Support" [ref=e369]:
+        - img [ref=e370]
+        - text: Support
+      - button "Catalog" [ref=e377]:
+        - img [ref=e378]
+        - text: Catalog
+      - button "Audit" [active] [ref=e388]:
+        - img [ref=e389]
+        - text: Audit
+      - button "Test Lab" [ref=e391]:
+        - img [ref=e392]
+        - text: Test Lab
+    - generic [ref=e464]:
+      - generic [ref=e465]:
+        - generic [ref=e466]:
+          - generic [ref=e467]:
+            - generic [ref=e468]: Client Audit Trail
+            - generic [ref=e469]: "Last review checkpoint: Not set"
+          - generic [ref=e470]:
+            - button "Mark Reviewed" [ref=e471]
+            - button "Export JSON" [ref=e472]
+        - generic [ref=e474]: No audit entries yet.
+      - generic [ref=e475]:
+        - generic [ref=e476]:
+          - generic [ref=e477]:
+            - generic [ref=e478]: Cloud Operator Audit
+            - generic [ref=e479]: Showing the most recent backend operator actions.
+          - button "Refresh Feed" [ref=e480]
+        - generic [ref=e481]: Sign in with an operator account before using cloud audit.
+  - button [ref=e210]:
+    - img [ref=e211]
+  - generic [ref=e325]:
+    - generic [ref=e326]:
+      - generic [ref=e327]: Developer HUD
+      - button "Min" [ref=e328]
+    - generic [ref=e329]:
+      - generic [ref=e330]:
+        - text: AuthNot signed inUser IDanonLedger KeyxpLedger_v2:anonLedger Sourceanon-localCloud StatusidleLast Sync-Counts
+        - generic [ref=e331]: 0 tasks / 0 sessions / 0 challenges
+        - text: RunningnoneToday
+        - generic [ref=e332]: 0/960 (Bronze)
+      - generic [ref=e333]:
+        - button "Run Checks" [ref=e334]
+        - button "Repair Links" [ref=e335]
+        - button "Export Ledger JSON" [ref=e336]
+        - button "Reset Local Data" [ref=e337]
+        - button "Reset Cloud Data (This Account)" [disabled] [ref=e338]
+      - generic [ref=e339]:
+        - generic [ref=e340]: Cloud reset
+        - generic [ref=e341]: Idle
+      - 'button "Health: OKShow" [ref=e343]':
+        - generic [ref=e344]: "Health: OK"
+        - text: Show
+      - generic [ref=e345]: Health checks OK

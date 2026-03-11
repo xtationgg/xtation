@@ -1,4 +1,5 @@
-import { Player, Pin, Collaboration, XpLog, LocationShareState } from '../types';
+import { Player, Pin, Collaboration, XpLog, LocationShareState, SavedLocation } from '../types';
+import { MultiplayerAuditEntry } from '../src/multiplayer/audit';
 import { getUserScopedKey, readUserScopedJSON, readUserScopedString, writeUserScopedJSON } from '../src/lib/userScopedStorage';
 
 export const mpStorage = {
@@ -22,6 +23,12 @@ export const mpStorage = {
   },
   loadMyLocation(defaultValue: { lat: number; lng: number } | null) {
     return readUserScopedJSON<{ lat: number; lng: number } | null>('mp_myLocation', defaultValue);
+  },
+  loadSavedLocations(defaultValue: SavedLocation[]) {
+    return readUserScopedJSON<SavedLocation[]>('mp_savedLocations', defaultValue);
+  },
+  loadAuditLog(defaultValue: MultiplayerAuditEntry[]) {
+    return readUserScopedJSON<MultiplayerAuditEntry[]>('mp_auditLog', defaultValue);
   },
   loadViewAs(defaultValue: string) {
     return readUserScopedString('mp_viewAs', defaultValue) || defaultValue;

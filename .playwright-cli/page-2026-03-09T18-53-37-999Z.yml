@@ -1,0 +1,265 @@
+- generic [ref=e3]:
+  - generic [ref=e4]:
+    - generic [ref=e5]:
+      - button "Play" [ref=e6]
+      - button "Lab" [ref=e8]
+      - button "Multiplayer" [ref=e9]
+      - button "Profile" [ref=e10]
+      - button "Inventory" [ref=e11]
+      - button "Store" [active] [ref=e12]:
+        - generic [ref=e13]: Store
+      - button "Settings" [ref=e14]
+    - generic [ref=e15]:
+      - button "QUESTS" [ref=e16]:
+        - img [ref=e17]
+        - text: QUESTS
+      - generic [ref=e20]:
+        - generic [ref=e21]: Today
+        - generic [ref=e22]:
+          - text: "0"
+          - generic [ref=e23]: / 960
+        - generic [ref=e24]: 0 MIN
+      - button "LOGIN" [ref=e26]
+      - button "⌘K" [ref=e27]
+      - generic [ref=e28]:
+        - generic "Player Level (0 total XP)" [ref=e29]:
+          - img [ref=e30]
+          - generic [ref=e36]: LV 0
+        - button [ref=e37]:
+          - img [ref=e38]
+        - button [ref=e41]:
+          - img [ref=e42]
+  - generic [ref=e503]:
+    - generic [ref=e505]:
+      - generic [ref=e506]:
+        - generic [ref=e507]:
+          - img [ref=e508]
+          - generic [ref=e511]: Store / Expansion Layer
+        - heading "Add clean expansions, not core dependencies." [level=1] [ref=e512]
+        - paragraph [ref=e513]: Store should activate skins, widgets, and modules that enrich XTATION without making the core engine feel rented or incomplete.
+      - generic [ref=e514]:
+        - generic [ref=e515]:
+          - generic [ref=e516]: Theme Slot
+          - generic [ref=e517]: Builtin • Bureau
+        - generic [ref=e518]:
+          - generic [ref=e519]: Widgets Enabled
+          - generic [ref=e520]: "0"
+        - generic [ref=e521]:
+          - generic [ref=e522]: Lab Modules
+          - generic [ref=e523]: "0"
+        - generic [ref=e524]:
+          - generic [ref=e525]: Current Theme
+          - generic [ref=e526]: Bureau
+    - generic [ref=e527]:
+      - generic [ref=e528]:
+        - img [ref=e529]
+        - textbox "Search skins, widgets, modules..." [ref=e532]
+      - generic [ref=e533]:
+        - generic [ref=e534]:
+          - img [ref=e535]
+          - text: Category
+        - button "All" [ref=e537]
+        - button "Themes" [ref=e538]
+        - button "Widgets" [ref=e539]
+        - button "Modules" [ref=e540]
+        - button "Packs" [ref=e541]
+    - generic [ref=e542]:
+      - article [ref=e543]:
+        - generic [ref=e544]:
+          - generic [ref=e545]:
+            - generic [ref=e546]:
+              - generic [ref=e547]: Void Command
+              - text: Popular
+            - generic [ref=e548]: Themes
+          - generic [ref=e549]:
+            - generic [ref=e550]: USD $12
+            - generic [ref=e551]: Catalog
+        - paragraph [ref=e552]: High-contrast command skin for night sessions, tactical layouts, and calmer dark surfaces.
+        - generic [ref=e553]:
+          - generic [ref=e554]:
+            - img [ref=e555]
+            - text: Uses Void theme
+          - generic [ref=e558]:
+            - img [ref=e559]
+            - text: Sharper accent glow
+          - generic [ref=e562]:
+            - img [ref=e563]
+            - text: Best for ops-heavy workflows
+        - generic [ref=e566]:
+          - button "Details" [ref=e567]
+          - button "Use" [ref=e568]:
+            - img [ref=e569]
+            - text: Use
+      - article [ref=e572]:
+        - generic [ref=e573]:
+          - generic [ref=e574]:
+            - generic [ref=e575]:
+              - generic [ref=e576]: Bureau Warm
+              - text: New
+            - generic [ref=e577]: Themes
+          - generic [ref=e578]:
+            - generic [ref=e579]: USD $9
+            - generic [ref=e580]: Theme matched
+        - paragraph [ref=e581]: A cleaner daylight skin with warmer neutrals and reduced visual pressure.
+        - generic [ref=e582]:
+          - generic [ref=e583]:
+            - img [ref=e584]
+            - text: Uses Bureau theme
+          - generic [ref=e587]:
+            - img [ref=e588]
+            - text: Warmer surfaces
+          - generic [ref=e591]:
+            - img [ref=e592]
+            - text: Good for long planning sessions
+        - generic [ref=e595]:
+          - button "Details" [ref=e596]
+          - button "Using Base Theme" [ref=e597]:
+            - img [ref=e598]
+            - text: Using Base Theme
+      - article [ref=e601]:
+        - generic [ref=e602]:
+          - generic [ref=e603]:
+            - generic [ref=e605]: Focus Pulse Widget
+            - generic [ref=e606]: Widgets
+          - generic [ref=e607]:
+            - generic [ref=e608]: FREE
+            - generic [ref=e609]: Catalog
+        - paragraph [ref=e610]: A compact pulse widget for quick session state, streak heat, and next action visibility.
+        - generic [ref=e611]:
+          - generic [ref=e612]:
+            - img [ref=e613]
+            - text: Compact Play widget
+          - generic [ref=e616]:
+            - img [ref=e617]
+            - text: Fast glance metrics
+          - generic [ref=e620]:
+            - img [ref=e621]
+            - text: Good default starter widget
+        - generic [ref=e624]:
+          - button "Details" [ref=e625]
+          - button "Enable" [ref=e626]:
+            - img [ref=e627]
+            - text: Enable
+      - article [ref=e630]:
+        - generic [ref=e631]:
+          - generic [ref=e632]:
+            - generic [ref=e634]: Brief Stack Widget
+            - generic [ref=e635]: Widgets
+          - generic [ref=e636]:
+            - generic [ref=e637]: USD $5
+            - generic [ref=e638]: Catalog
+        - paragraph [ref=e639]: A stacked widget for Dusk briefs, pinned notes, and fast return-to-context actions.
+        - generic [ref=e640]:
+          - generic [ref=e641]:
+            - img [ref=e642]
+            - text: Works with Dusk briefs
+          - generic [ref=e645]:
+            - img [ref=e646]
+            - text: Pins linked notes
+          - generic [ref=e649]:
+            - img [ref=e650]
+            - text: Good for Lab and Play
+        - generic [ref=e653]:
+          - button "Details" [ref=e654]
+          - button "Enable" [ref=e655]:
+            - img [ref=e656]
+            - text: Enable
+      - article [ref=e659]:
+        - generic [ref=e660]:
+          - generic [ref=e661]:
+            - generic [ref=e663]: Knowledge Graph Module
+            - generic [ref=e664]: Modules
+          - generic [ref=e665]:
+            - generic [ref=e666]: USD $7
+            - generic [ref=e667]: Catalog
+        - paragraph [ref=e668]: Unlocks graph and relationship views for Lab knowledge links and note structure.
+        - generic [ref=e669]:
+          - generic [ref=e670]:
+            - img [ref=e671]
+            - text: Graph-ready Lab mode
+          - generic [ref=e674]:
+            - img [ref=e675]
+            - text: Better link discovery
+          - generic [ref=e678]:
+            - img [ref=e679]
+            - text: Built for Knowledge expansion
+        - generic [ref=e682]:
+          - button "Details" [ref=e683]
+          - button "Enable" [ref=e684]:
+            - img [ref=e685]
+            - text: Enable
+      - article [ref=e688]:
+        - generic [ref=e689]:
+          - generic [ref=e690]:
+            - generic [ref=e691]:
+              - generic [ref=e692]: Media Ops Module
+              - text: Limited
+            - generic [ref=e693]: Modules
+          - generic [ref=e694]:
+            - generic [ref=e695]: USD $10
+            - generic [ref=e696]: Catalog
+        - paragraph [ref=e697]: Enables a stronger Media Ops lane for planning, publishing queues, and campaign control.
+        - generic [ref=e698]:
+          - generic [ref=e699]:
+            - img [ref=e700]
+            - text: Media Ops lane
+          - generic [ref=e703]:
+            - img [ref=e704]
+            - text: Campaign planning
+          - generic [ref=e707]:
+            - img [ref=e708]
+            - text: Future publishing hooks
+        - generic [ref=e711]:
+          - button "Details" [ref=e712]
+          - button "Enable" [ref=e713]:
+            - img [ref=e714]
+            - text: Enable
+      - article [ref=e717]:
+        - generic [ref=e718]:
+          - generic [ref=e719]:
+            - generic [ref=e721]: Operator Starter Pack
+            - generic [ref=e722]: Packs
+          - generic [ref=e723]:
+            - generic [ref=e724]: USD $18
+            - generic [ref=e725]: Catalog
+        - paragraph [ref=e726]: "A clean starter bundle: one command skin, one focus widget, and the knowledge graph module."
+        - generic [ref=e727]:
+          - generic [ref=e728]:
+            - img [ref=e729]
+            - text: Theme + widget + module
+          - generic [ref=e732]:
+            - img [ref=e733]
+            - text: Fast setup
+          - generic [ref=e736]:
+            - img [ref=e737]
+            - text: Best first expansion
+        - generic [ref=e740]:
+          - button "Details" [ref=e741]
+          - button "Apply Pack" [ref=e742]:
+            - img [ref=e743]
+            - text: Apply Pack
+  - button [ref=e112]:
+    - img [ref=e113]
+  - generic [ref=e117]:
+    - generic [ref=e118]:
+      - generic [ref=e119]: Developer HUD
+      - button "Min" [ref=e120]
+    - generic [ref=e121]:
+      - generic [ref=e122]:
+        - text: AuthNot signed inUser IDanonLedger KeyxpLedger_v2:anonLedger Sourceanon-localCloud StatusidleLast Sync-Counts
+        - generic [ref=e123]: 0 tasks / 0 sessions / 0 challenges
+        - text: RunningnoneToday
+        - generic [ref=e124]: 0/960 (Bronze)
+      - generic [ref=e125]:
+        - button "Run Checks" [ref=e126]
+        - button "Repair Links" [ref=e127]
+        - button "Export Ledger JSON" [ref=e128]
+        - button "Reset Local Data" [ref=e129]
+        - button "Reset Cloud Data (This Account)" [disabled] [ref=e130]
+      - generic [ref=e131]:
+        - generic [ref=e132]: Cloud reset
+        - generic [ref=e133]: Idle
+      - 'button "Health: OKShow" [ref=e135]':
+        - generic [ref=e136]: "Health: OK"
+        - text: Show
+      - generic [ref=e137]: Health checks OK

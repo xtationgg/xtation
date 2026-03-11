@@ -1,0 +1,83 @@
+{
+  "version": "xtation-station-export-v1",
+  "exportedAt": 1773086741282,
+  "scope": "guest",
+  "authStatus": "signedOut",
+  "user": null,
+  "theme": {
+    "theme": "dusk",
+    "accent": "purple",
+    "resolution": "auto"
+  },
+  "settings": {
+    "device": {
+      "density": "comfortable",
+      "motion": "normal",
+      "audioEnabled": true,
+      "audioVolume": 80,
+      "performanceMode": "balanced",
+      "devHudEnabled": false
+    },
+    "user": {
+      "focusMode": "normal",
+      "defaultQuestVisibility": "private",
+      "presenceMode": "active",
+      "timezoneMode": "system"
+    },
+    "notifications": {
+      "scheduledQuestReminders": true,
+      "focusSessionAlerts": true,
+      "rewardAlerts": true,
+      "multiplayerAlerts": true,
+      "labAlerts": true
+    },
+    "privacy": {
+      "profileDetailLevel": "basic",
+      "locationMode": "off",
+      "pinVisibility": "none",
+      "rankVisibility": true,
+      "appearsInRank": true,
+      "closeCircle": false
+    },
+    "features": {
+      "multiplayerEnabled": true,
+      "labEnabled": true,
+      "storeEnabled": true,
+      "experimentalFlags": {}
+    },
+    "unlocks": {
+      "activeWidgetIds": [],
+      "activeLabModuleIds": []
+    }
+  },
+  "onboarding": {
+    "state": {
+      "status": "skipped",
+      "updatedAt": 1773086714979
+    },
+    "handoff": null
+  },
+  "ledger": {
+    "tasks": [],
+    "sessions": [],
+    "completions": [],
+    "manualLogs": [],
+    "taskEvents": [],
+    "challenges": [],
+    "dayConfigs": {
+      "2026-03-10": {
+        "dateKey": "2026-03-10",
+        "mode": "Hard",
+        "targetXP": 960
+      }
+    },
+    "settings": {
+      "scheduledPromptQuiet": false
+    },
+    "legacyXP": 0,
+    "projects": [],
+    "milestones": [],
+    "selfTreeNodes": [],
+    "inventorySlots": []
+  }
+}

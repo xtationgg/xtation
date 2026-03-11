@@ -11,6 +11,18 @@ export default defineConfig(({ mode }) => {
         port: 5176,
         host: '0.0.0.0',
       },
+      build: {
+        rollupOptions: {
+          output: {
+            manualChunks(id) {
+              if (!id.includes('node_modules')) return undefined;
+              if (id.includes('/lucide-react/')) return 'vendor-icons';
+              if (id.includes('/@supabase/')) return 'vendor-supabase';
+              return 'vendor';
+            },
+          },
+        },
+      },
       plugins: [dyadComponentTagger(), react()],
       define: {
         'process.env.API_KEY': JSON.stringify(env.GEMINI_API_KEY),

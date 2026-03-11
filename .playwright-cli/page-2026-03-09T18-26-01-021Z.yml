@@ -1,0 +1,228 @@
+- generic [ref=e3]:
+  - generic [ref=e4]:
+    - generic [ref=e5]:
+      - button "Play" [ref=e6] [cursor=pointer]:
+        - generic [ref=e7]: Play
+      - button "Lab" [ref=e8] [cursor=pointer]:
+        - generic [ref=e9]: Lab
+      - button "Multiplayer" [ref=e10] [cursor=pointer]:
+        - generic [ref=e11]: Multiplayer
+      - button "Profile" [ref=e12] [cursor=pointer]:
+        - generic [ref=e13]: Profile
+      - button "Inventory" [ref=e14] [cursor=pointer]:
+        - generic [ref=e15]: Inventory
+      - button "Store" [ref=e16] [cursor=pointer]:
+        - generic [ref=e17]: Store
+      - button "Settings" [ref=e18] [cursor=pointer]:
+        - generic [ref=e19]: Settings
+    - generic [ref=e20]:
+      - button "QUESTS" [ref=e21] [cursor=pointer]:
+        - img [ref=e22]
+        - generic [ref=e25]: QUESTS
+      - generic [ref=e26]:
+        - generic [ref=e27]: Today
+        - generic [ref=e28]:
+          - text: "0"
+          - generic [ref=e29]: / 960
+        - generic [ref=e30]: 0 MIN
+      - button "LOGIN" [ref=e163] [cursor=pointer]
+      - button "⌘K" [ref=e33] [cursor=pointer]
+      - generic [ref=e35]:
+        - generic "Player Level (0 total XP)" [ref=e36]:
+          - img [ref=e37]
+          - generic [ref=e43]: LV 0
+        - button [ref=e44] [cursor=pointer]:
+          - img [ref=e45]
+        - button [ref=e48] [cursor=pointer]:
+          - img [ref=e49]
+  - generic [ref=e593]:
+    - complementary [ref=e594]:
+      - generic [ref=e595]:
+        - generic [ref=e596]: Multiplayer
+        - generic [ref=e597]: Rebuilt for clarity
+        - paragraph [ref=e598]: Fewer primary surfaces. One scroll lane. Advanced tools are hidden until you need them.
+      - generic [ref=e599]:
+        - button "HQ 7" [ref=e600] [cursor=pointer]:
+          - generic [ref=e601]:
+            - img [ref=e603]
+            - generic [ref=e606]: HQ
+          - generic [ref=e607]: "7"
+        - button "People 1" [ref=e608] [cursor=pointer]:
+          - generic [ref=e609]:
+            - img [ref=e611]
+            - generic [ref=e616]: People
+          - generic [ref=e617]: "1"
+        - button "Spaces 1" [ref=e618] [cursor=pointer]:
+          - generic [ref=e619]:
+            - img [ref=e621]
+            - generic [ref=e623]: Spaces
+          - generic [ref=e624]: "1"
+        - button "Map" [ref=e625] [cursor=pointer]:
+          - generic [ref=e626]:
+            - img [ref=e628]
+            - generic [ref=e630]: Map
+        - button "Signals 1" [ref=e631] [cursor=pointer]:
+          - generic [ref=e632]:
+            - img [ref=e634]
+            - generic [ref=e640]: Signals
+          - generic [ref=e641]: "1"
+        - button "Ops" [ref=e642] [cursor=pointer]:
+          - generic [ref=e643]:
+            - img [ref=e645]
+            - generic [ref=e648]: Ops
+      - generic [ref=e649]:
+        - generic [ref=e651]:
+          - generic [ref=e652]: Current Posture
+          - generic [ref=e653]: Policy and operator context
+        - generic [ref=e655]:
+          - generic [ref=e656]:
+            - generic [ref=e657]: Viewer
+            - generic [ref=e658]: Admin
+          - generic [ref=e659]:
+            - generic [ref=e660]: Presence active
+            - generic [ref=e661]: Profile basic
+            - generic [ref=e662]: Location off
+            - generic [ref=e663]: Readiness 56
+    - main [ref=e664]:
+      - generic [ref=e666]:
+        - generic [ref=e667]:
+          - generic [ref=e668]: Command Surface
+          - generic [ref=e669]: Signals
+          - paragraph [ref=e670]: Communications, rank, and trace belong together because they are all live signal streams.
+        - generic [ref=e671]:
+          - generic [ref=e672]:
+            - generic [ref=e673]:
+              - img [ref=e674]
+              - text: Player Search
+            - textbox "Player Search" [ref=e677]:
+              - /placeholder: Search name, role, tag, timezone
+          - generic [ref=e678]:
+            - generic [ref=e679]: 7 queue items
+            - generic [ref=e680]: 2 threads
+            - generic [ref=e681]: 0 trace events
+            - generic [ref=e682]: 1 spaces
+      - generic [ref=e683]:
+        - generic [ref=e684]:
+          - generic [ref=e685]:
+            - generic [ref=e686]:
+              - generic [ref=e687]: Readiness
+              - generic [ref=e688]: "56"
+            - img [ref=e690]
+          - generic [ref=e693]: Derived from coverage, activity, and collaboration health.
+        - generic [ref=e694]:
+          - generic [ref=e695]:
+            - generic [ref=e696]:
+              - generic [ref=e697]: Queue
+              - generic [ref=e698]: "7"
+            - img [ref=e700]
+          - generic [ref=e703]: 1 pending invites • 1 pending proposals
+        - generic [ref=e704]:
+          - generic [ref=e705]:
+            - generic [ref=e706]:
+              - generic [ref=e707]: Signals
+              - generic [ref=e708]: "1"
+            - img [ref=e710]
+          - generic [ref=e716]: 2 threads • 0 attention events
+        - generic [ref=e717]:
+          - generic [ref=e718]:
+            - generic [ref=e719]:
+              - generic [ref=e720]: Map
+              - generic [ref=e721]: "0"
+            - img [ref=e723]
+          - generic [ref=e725]: 0 saved places • 0 live shares
+      - generic [ref=e726]:
+        - generic [ref=e727]:
+          - button "Comms" [ref=e728] [cursor=pointer]
+          - button "Rank" [ref=e729] [cursor=pointer]
+          - button "Trace" [ref=e730] [cursor=pointer]
+        - generic [ref=e731]:
+          - generic [ref=e732]:
+            - generic [ref=e734]:
+              - generic [ref=e735]: Threads
+              - generic [ref=e736]: 2 active lines
+            - generic [ref=e738]:
+              - button "Nova Direct Nova • 13m ago 1" [ref=e739] [cursor=pointer]:
+                - generic [ref=e740]:
+                  - generic [ref=e741]: Nova Direct
+                  - generic [ref=e742]: Nova • 13m ago
+                - generic [ref=e743]: "1"
+              - button "Atlas Direct Atlas • 35m ago" [ref=e744] [cursor=pointer]:
+                - generic [ref=e745]:
+                  - generic [ref=e746]: Atlas Direct
+                  - generic [ref=e747]: Atlas • 35m ago
+                - img [ref=e748]
+          - generic [ref=e750]:
+            - generic [ref=e751]:
+              - generic [ref=e752]:
+                - generic [ref=e753]:
+                  - generic [ref=e754]: Nova Direct
+                  - generic [ref=e755]: Recon
+                - generic [ref=e756]:
+                  - button "Open Chat Dock" [ref=e757] [cursor=pointer]
+                  - button "Mark Read" [ref=e758] [cursor=pointer]
+              - generic [ref=e760]:
+                - generic [ref=e761]:
+                  - generic [ref=e762]:
+                    - generic [ref=e763]: You
+                    - generic [ref=e764]: 17m ago
+                  - generic [ref=e765]: Copy. Keep city-level share on for the next hour.
+                - generic [ref=e766]:
+                  - generic [ref=e767]:
+                    - generic [ref=e768]: Nova
+                    - generic [ref=e769]: 13m ago
+                  - generic [ref=e770]: Scouting lane is clear. Safe house pin confirmed.
+            - generic [ref=e773]:
+              - generic [ref=e774]: Outreach
+              - generic [ref=e775]: Accepted players still missing a direct line
+  - generic [ref=e117]:
+    - generic [ref=e118]:
+      - generic [ref=e777]:
+        - generic [ref=e778]:
+          - img [ref=e780]
+          - generic [ref=e782]:
+            - generic [ref=e783]: Friends
+            - generic [ref=e784]: 3 total
+        - button "Minimize" [ref=e785] [cursor=pointer]:
+          - img [ref=e786]
+      - generic [ref=e787]:
+        - button "N Nova No messages yet" [ref=e788] [cursor=pointer]:
+          - generic [ref=e789]:
+            - generic [ref=e791]: "N"
+            - generic [ref=e793]:
+              - generic [ref=e795]: Nova
+              - generic [ref=e796]: No messages yet
+        - button "E Echo No messages yet" [ref=e797] [cursor=pointer]:
+          - generic [ref=e798]:
+            - generic [ref=e800]: E
+            - generic [ref=e802]:
+              - generic [ref=e804]: Echo
+              - generic [ref=e805]: No messages yet
+        - button "A Atlas No messages yet" [ref=e806] [cursor=pointer]:
+          - generic [ref=e807]:
+            - generic [ref=e809]: A
+            - generic [ref=e811]:
+              - generic [ref=e813]: Atlas
+              - generic [ref=e814]: No messages yet
+    - generic [ref=e816]:
+      - generic [ref=e817]:
+        - generic [ref=e818]:
+          - button "N" [ref=e819] [cursor=pointer]:
+            - generic [ref=e820]: "N"
+          - generic [ref=e822]:
+            - generic [ref=e823]: Direct
+            - generic [ref=e824]: Nova Direct
+            - generic [ref=e825]: Recon · Available
+        - generic [ref=e826]:
+          - button "Minimize chat" [ref=e827] [cursor=pointer]:
+            - img [ref=e828]
+          - button "Close chat" [ref=e829] [cursor=pointer]:
+            - img [ref=e830]
+      - generic [ref=e833]:
+        - generic [ref=e835]: No messages yet.
+        - generic [ref=e837]:
+          - textbox "Type message..." [active] [ref=e838]
+          - button [ref=e839] [cursor=pointer]:
+            - img [ref=e840]
+  - generic [ref=e124]:
+    - generic [ref=e126]: Developer HUD
+    - button "Open" [ref=e843] [cursor=pointer]

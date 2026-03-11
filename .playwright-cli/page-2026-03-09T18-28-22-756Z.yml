@@ -1,0 +1,331 @@
+- generic [ref=e3]:
+  - generic [ref=e4]:
+    - generic [ref=e5]:
+      - button "Play" [ref=e6] [cursor=pointer]:
+        - generic [ref=e7]: Play
+      - button "Lab" [ref=e8] [cursor=pointer]:
+        - generic [ref=e9]: Lab
+      - button "Multiplayer" [ref=e10] [cursor=pointer]:
+        - generic [ref=e11]: Multiplayer
+      - button "Profile" [ref=e12] [cursor=pointer]:
+        - generic [ref=e13]: Profile
+      - button "Inventory" [ref=e14] [cursor=pointer]:
+        - generic [ref=e15]: Inventory
+      - button "Store" [ref=e16] [cursor=pointer]:
+        - generic [ref=e17]: Store
+      - button "Settings" [ref=e18] [cursor=pointer]:
+        - generic [ref=e19]: Settings
+    - generic [ref=e20]:
+      - button "QUESTS" [ref=e21] [cursor=pointer]:
+        - img [ref=e22]
+        - generic [ref=e25]: QUESTS
+      - generic [ref=e26]:
+        - generic [ref=e27]: Today
+        - generic [ref=e28]:
+          - text: "0"
+          - generic [ref=e29]: / 960
+        - generic [ref=e30]: 0 MIN
+      - button "LOGIN" [ref=e163] [cursor=pointer]
+      - button "⌘K" [ref=e33] [cursor=pointer]
+      - generic [ref=e35]:
+        - generic "Player Level (0 total XP)" [ref=e36]:
+          - img [ref=e37]
+          - generic [ref=e43]: LV 0
+        - button [ref=e44] [cursor=pointer]:
+          - img [ref=e45]
+        - button [ref=e48] [cursor=pointer]:
+          - img [ref=e49]
+  - generic [ref=e1464]:
+    - generic [ref=e1466]:
+      - button "PROFILE" [ref=e2081] [cursor=pointer]:
+        - img [ref=e2083]
+        - text: PROFILE
+      - button "HEALTH" [ref=e2086] [cursor=pointer]:
+        - img [ref=e2088]
+        - text: HEALTH
+      - button "ACHIEVEMENTS" [ref=e2090] [cursor=pointer]:
+        - img [ref=e2092]
+        - text: ACHIEVEMENTS
+      - button "ACTIVITY" [ref=e2095] [cursor=pointer]:
+        - img [ref=e2097]
+        - text: ACTIVITY
+      - button "LOG" [ref=e2099] [cursor=pointer]:
+        - img [ref=e2101]
+        - text: LOG
+    - generic [ref=e1491]:
+      - generic [ref=e1492]:
+        - button "Day" [ref=e1493] [cursor=pointer]
+        - button "W / M / Y" [ref=e1494] [cursor=pointer]
+      - generic [ref=e1496]:
+        - generic [ref=e1498]:
+          - generic [ref=e1499]: "selectedDate: 2026-03-10"
+          - generic [ref=e1500]: "activeRange: Month"
+          - generic [ref=e1501]: "tracked: 0m"
+          - generic [ref=e1502]: "completed: 0"
+          - generic [ref=e1503]: "scheduled: 0"
+          - generic [ref=e1504]: "total: 0"
+        - generic [ref=e1506]:
+          - generic [ref=e1508]:
+            - generic [ref=e1509]:
+              - generic [ref=e1510]: STREAK
+              - generic [ref=e1511]: —
+            - generic [ref=e1512]:
+              - generic [ref=e1513]: XP TODAY
+              - generic [ref=e1514]: —
+            - generic [ref=e1515]:
+              - generic [ref=e1516]: TRACKED
+              - generic [ref=e1517]: —
+            - generic [ref=e1518]:
+              - generic [ref=e1519]: DONE
+              - generic [ref=e1520]: "0"
+            - generic [ref=e1521]:
+              - generic [ref=e1522]: FOCUS
+              - generic [ref=e1523]: —
+          - generic [ref=e1525]:
+            - img "Today time orb" [ref=e1526]
+            - generic [ref=e1558]: 21:32 left for the day
+            - generic: 11 PM · upcoming
+          - generic [ref=e1559]:
+            - generic [ref=e1560]:
+              - button [ref=e1561] [cursor=pointer]:
+                - img [ref=e1562]
+              - generic [ref=e1564]: March 2026
+              - button [ref=e1565] [cursor=pointer]:
+                - img [ref=e1566]
+              - button "Today" [ref=e1568] [cursor=pointer]
+              - generic [ref=e1569]:
+                - button "M" [ref=e1570] [cursor=pointer]
+                - button "W" [ref=e1571] [cursor=pointer]
+                - button "Y" [ref=e1572] [cursor=pointer]
+              - button "Log" [ref=e1573] [cursor=pointer]:
+                - img [ref=e1574]
+                - text: Log
+            - generic [ref=e1575]:
+              - generic [ref=e1576]: Mon
+              - generic [ref=e1577]: Tue
+              - generic [ref=e1578]: Wed
+              - generic [ref=e1579]: Thu
+              - generic [ref=e1580]: Fri
+              - generic [ref=e1581]: Sat
+              - generic [ref=e1582]: Sun
+            - generic [ref=e1584]:
+              - button "+ 23" [ref=e1585] [cursor=pointer]:
+                - button "+" [ref=e1586]
+                - generic [ref=e1588]: "23"
+              - button "+ 24" [ref=e1589] [cursor=pointer]:
+                - button "+" [ref=e1590]
+                - generic [ref=e1592]: "24"
+              - button "+ 25" [ref=e1593] [cursor=pointer]:
+                - button "+" [ref=e1594]
+                - generic [ref=e1596]: "25"
+              - button "+ 26" [ref=e1597] [cursor=pointer]:
+                - button "+" [ref=e1598]
+                - generic [ref=e1600]: "26"
+              - button "+ 27" [ref=e1601] [cursor=pointer]:
+                - button "+" [ref=e1602]
+                - generic [ref=e1604]: "27"
+              - button "+ 28" [ref=e1605] [cursor=pointer]:
+                - button "+" [ref=e1606]
+                - generic [ref=e1608]: "28"
+              - button "+ 1" [ref=e1609] [cursor=pointer]:
+                - button "+" [ref=e1610]
+                - generic [ref=e1612]: "1"
+              - button "+ 2" [ref=e1613] [cursor=pointer]:
+                - button "+" [ref=e1614]
+                - generic [ref=e1616]: "2"
+              - button "+ 3" [ref=e1617] [cursor=pointer]:
+                - button "+" [ref=e1618]
+                - generic [ref=e1620]: "3"
+              - button "+ 4" [ref=e1621] [cursor=pointer]:
+                - button "+" [ref=e1622]
+                - generic [ref=e1624]: "4"
+              - button "+ 5" [ref=e1625] [cursor=pointer]:
+                - button "+" [ref=e1626]
+                - generic [ref=e1628]: "5"
+              - button "+ 6" [ref=e1629] [cursor=pointer]:
+                - button "+" [ref=e1630]
+                - generic [ref=e1632]: "6"
+              - button "+ 7" [ref=e1633] [cursor=pointer]:
+                - button "+" [ref=e1634]
+                - generic [ref=e1636]: "7"
+              - button "+ 8" [ref=e1637] [cursor=pointer]:
+                - button "+" [ref=e1638]
+                - generic [ref=e1640]: "8"
+              - button "+ 9" [ref=e1882] [cursor=pointer]:
+                - button "+" [ref=e1883]
+                - generic [ref=e1885]: "9"
+              - button "+ 10" [ref=e1886] [cursor=pointer]:
+                - button "+" [ref=e1887]
+                - generic [ref=e1889]: "10"
+              - button "+ 11" [ref=e1890] [cursor=pointer]:
+                - button "+" [ref=e1891]
+                - generic [ref=e1893]: "11"
+              - button "+ 12" [ref=e1894] [cursor=pointer]:
+                - button "+" [ref=e1895]
+                - generic [ref=e1897]: "12"
+              - button "+ 13" [ref=e1898] [cursor=pointer]:
+                - button "+" [ref=e1899]
+                - generic [ref=e1901]: "13"
+              - button "+ 14" [ref=e1902] [cursor=pointer]:
+                - button "+" [ref=e1903]
+                - generic [ref=e1905]: "14"
+              - button "+ 15" [ref=e1906] [cursor=pointer]:
+                - button "+" [ref=e1907]
+                - generic [ref=e1909]: "15"
+              - button "+ 16" [ref=e1910] [cursor=pointer]:
+                - button "+" [ref=e1911]
+                - generic [ref=e1913]: "16"
+              - button "+ 17" [ref=e1914] [cursor=pointer]:
+                - button "+" [ref=e1915]
+                - generic [ref=e1917]: "17"
+              - button "+ 18" [ref=e1918] [cursor=pointer]:
+                - button "+" [ref=e1919]
+                - generic [ref=e1921]: "18"
+              - button "+ 19" [ref=e1922] [cursor=pointer]:
+                - button "+" [ref=e1923]
+                - generic [ref=e1925]: "19"
+              - button "+ 20" [ref=e1926] [cursor=pointer]:
+                - button "+" [ref=e1927]
+                - generic [ref=e1929]: "20"
+              - button "+ 21" [ref=e1930] [cursor=pointer]:
+                - button "+" [ref=e1931]
+                - generic [ref=e1933]: "21"
+              - button "+ 22" [ref=e1934] [cursor=pointer]:
+                - button "+" [ref=e1935]
+                - generic [ref=e1937]: "22"
+              - button "+ 23" [ref=e1938] [cursor=pointer]:
+                - button "+" [ref=e1939]
+                - generic [ref=e1941]: "23"
+              - button "+ 24" [ref=e1942] [cursor=pointer]:
+                - button "+" [ref=e1943]
+                - generic [ref=e1945]: "24"
+              - button "+ 25" [ref=e1946] [cursor=pointer]:
+                - button "+" [ref=e1947]
+                - generic [ref=e1949]: "25"
+              - button "+ 26" [ref=e1950] [cursor=pointer]:
+                - button "+" [ref=e1951]
+                - generic [ref=e1953]: "26"
+              - button "+ 27" [ref=e1954] [cursor=pointer]:
+                - button "+" [ref=e1955]
+                - generic [ref=e1957]: "27"
+              - button "+ 28" [ref=e1958] [cursor=pointer]:
+                - button "+" [ref=e1959]
+                - generic [ref=e1961]: "28"
+              - button "+ 29" [ref=e1962] [cursor=pointer]:
+                - button "+" [ref=e1963]
+                - generic [ref=e1965]: "29"
+              - button "+ 30" [ref=e1966] [cursor=pointer]:
+                - button "+" [ref=e1967]
+                - generic [ref=e1969]: "30"
+              - button "+ 31" [ref=e1970] [cursor=pointer]:
+                - button "+" [ref=e1971]
+                - generic [ref=e1973]: "31"
+              - button "+ 1" [ref=e1974] [cursor=pointer]:
+                - button "+" [ref=e1975]
+                - generic [ref=e1977]: "1"
+              - button "+ 2" [ref=e1978] [cursor=pointer]:
+                - button "+" [ref=e1979]
+                - generic [ref=e1981]: "2"
+              - button "+ 3" [ref=e1982] [cursor=pointer]:
+                - button "+" [ref=e1983]
+                - generic [ref=e1985]: "3"
+              - button "+ 4" [ref=e1986] [cursor=pointer]:
+                - button "+" [ref=e1987]
+                - generic [ref=e1989]: "4"
+              - button "+ 5" [ref=e1990] [cursor=pointer]:
+                - button "+" [ref=e1991]
+                - generic [ref=e1993]: "5"
+          - generic [ref=e1994]:
+            - generic [ref=e1995]:
+              - generic [ref=e1996]:
+                - generic [ref=e1997]: Tue, Mar 10
+                - generic [ref=e1998]:
+                  - button "Log" [ref=e1999] [cursor=pointer]
+                  - button "Assign" [ref=e2000] [cursor=pointer]
+                  - button "New Quest" [ref=e2001] [cursor=pointer]
+              - button "×" [ref=e2002] [cursor=pointer]
+            - generic [ref=e2003]:
+              - textbox "What did you work on?" [ref=e2004]
+              - spinbutton [ref=e2005]: "30"
+              - generic [ref=e2006]: min
+              - button "Log it →" [disabled]
+          - generic [ref=e1753]:
+            - generic [ref=e1755]:
+              - generic [ref=e1756]:
+                - generic [ref=e1758]: Day Console
+                - generic [ref=e1759]: Tue, Mar 10, 2026
+                - generic [ref=e1761]: —
+              - button "Add" [ref=e1762] [cursor=pointer]
+            - generic [ref=e1763]:
+              - button "Timeline (0)" [ref=e1764] [cursor=pointer]
+              - button "Unfinished (0)" [ref=e1765] [cursor=pointer]
+              - button "Completed (0)" [ref=e1766] [cursor=pointer]
+              - button "Scheduled (0)" [ref=e1767] [cursor=pointer]
+            - generic [ref=e1769]:
+              - generic [ref=e1770]:
+                - generic [ref=e1771]:
+                  - generic [ref=e1772]: Timeline • 24h timeline
+                  - button "Expand" [ref=e1773] [cursor=pointer]
+                - generic [ref=e1774]:
+                  - generic [ref=e1776]:
+                    - button "pulse" [ref=e1777] [cursor=pointer]
+                    - button "duration" [ref=e1778] [cursor=pointer]
+                  - generic [ref=e1779]:
+                    - generic:
+                      - generic: Now
+                    - generic [ref=e2055]: No items for active filter.
+                    - generic [ref=e2056]:
+                      - generic [ref=e2057]: 00:00
+                      - generic [ref=e2058]: 01:00
+                      - generic [ref=e2059]: 02:00
+                      - generic [ref=e2060]: 03:00
+                      - generic [ref=e2061]: 04:00
+                      - generic [ref=e2062]: 05:00
+                      - generic [ref=e2063]: 06:00
+                      - generic [ref=e2064]: 07:00
+                      - generic [ref=e2065]: 08:00
+                      - generic [ref=e2066]: 09:00
+                      - generic [ref=e2067]: 10:00
+                      - generic [ref=e2068]: 11:00
+                      - generic [ref=e2069]: 12:00
+                      - generic [ref=e2070]: 13:00
+                      - generic [ref=e2071]: 14:00
+                      - generic [ref=e2072]: 15:00
+                      - generic [ref=e2073]: 16:00
+                      - generic [ref=e2074]: 17:00
+                      - generic [ref=e2075]: 18:00
+                      - generic [ref=e2076]: 19:00
+                      - generic [ref=e2077]: 20:00
+                      - generic [ref=e2078]: 21:00
+                      - generic [ref=e2079]: 22:00
+                      - generic [ref=e2080]: 23:00
+                - generic [ref=e1830]:
+                  - button "Active (0)" [ref=e1831] [cursor=pointer]:
+                    - text: Active
+                    - generic [ref=e1833]: (0)
+                  - button "Completed (0)" [ref=e1834] [cursor=pointer]:
+                    - text: Completed
+                    - generic [ref=e1836]: (0)
+                  - button "Unfinished (0)" [ref=e1837] [cursor=pointer]:
+                    - text: Unfinished
+                    - generic [ref=e1839]: (0)
+                  - button "Scheduled (0)" [ref=e1840] [cursor=pointer]:
+                    - text: Scheduled
+                    - generic [ref=e1842]: (0)
+                  - button "Failed (0)" [ref=e1843] [cursor=pointer]:
+                    - text: Failed
+                    - generic [ref=e1845]: (0)
+              - generic [ref=e1848]: No items for this tab.
+          - generic [ref=e1850]:
+            - generic [ref=e1851]:
+              - generic [ref=e1852]: Full Day History
+              - generic [ref=e1853]: Open full grouped history in a modal drawer.
+            - button "Show Full History" [ref=e1854] [cursor=pointer]
+          - button "Scheduled Tasks (0) Show" [ref=e1856] [cursor=pointer]:
+            - generic [ref=e1857]: Scheduled Tasks (0)
+            - generic [ref=e1858]: Show
+  - button [ref=e1030] [cursor=pointer]:
+    - img [ref=e1031]
+  - generic [ref=e124]:
+    - generic [ref=e126]: Developer HUD
+    - button "Open" [ref=e843] [cursor=pointer]

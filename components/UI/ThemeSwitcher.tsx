@@ -1,5 +1,6 @@
 import React from 'react';
-import { useTheme } from '../../src/theme/ThemeProvider';
+import { useXtationSettings } from '../../src/settings/SettingsProvider';
+import { getBuiltInThemePackId, useTheme } from '../../src/theme/ThemeProvider';
 
 interface ThemeSwitcherProps {
   compact?: boolean;
@@ -8,6 +9,7 @@ interface ThemeSwitcherProps {
 
 export const ThemeSwitcher: React.FC<ThemeSwitcherProps> = ({ compact = false, className = '' }) => {
   const { theme, setTheme, options } = useTheme();
+  const { setActiveThemeId } = useXtationSettings();
 
   return (
     <div className={`grid gap-2 ${className}`}>
@@ -21,7 +23,10 @@ export const ThemeSwitcher: React.FC<ThemeSwitcherProps> = ({ compact = false, c
             <button
               key={option.value}
               type="button"
-              onClick={() => setTheme(option.value)}
+              onClick={() => {
+                setTheme(option.value);
+                setActiveThemeId(getBuiltInThemePackId(option.value));
+              }}
               className={`ui-pressable ui-shape-all border px-3 py-1.5 text-[10px] font-semibold uppercase ${
                 active
                   ? 'border-[var(--ui-accent)] text-[var(--ui-text)] ui-glow'

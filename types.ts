@@ -1,6 +1,8 @@
 
 export enum ClientView {
   HOME = 'HOME',
+  LAB = 'LAB',
+  ADMIN = 'ADMIN',
   TFT = 'EARTH',
   MULTIPLAYER = 'MULTIPLAYER',
   PROFILE = 'PROFILE',

@@ -1,0 +1,195 @@
+- generic [ref=e3]:
+  - generic [ref=e4]:
+    - generic [ref=e5]:
+      - button "Play" [ref=e6] [cursor=pointer]:
+        - generic [ref=e7]: Play
+      - button "Lab" [active] [ref=e8] [cursor=pointer]:
+        - generic [ref=e9]: Lab
+      - button "Multiplayer" [ref=e10] [cursor=pointer]:
+        - generic [ref=e11]: Multiplayer
+      - button "Profile" [ref=e12] [cursor=pointer]:
+        - generic [ref=e13]: Profile
+      - button "Inventory" [ref=e14] [cursor=pointer]:
+        - generic [ref=e15]: Inventory
+      - button "Store" [ref=e16] [cursor=pointer]:
+        - generic [ref=e17]: Store
+      - button "Settings" [ref=e18] [cursor=pointer]:
+        - generic [ref=e19]: Settings
+    - generic [ref=e20]:
+      - button "QUESTS" [ref=e21] [cursor=pointer]:
+        - img [ref=e22]
+        - generic [ref=e25]: QUESTS
+      - generic [ref=e26]:
+        - generic [ref=e27]: Today
+        - generic [ref=e28]:
+          - text: "0"
+          - generic [ref=e29]: / 960
+        - generic [ref=e30]: 0 MIN
+      - button "LOGIN" [ref=e163] [cursor=pointer]
+      - button "⌘K" [ref=e33] [cursor=pointer]
+      - generic [ref=e35]:
+        - generic "Player Level (0 total XP)" [ref=e36]:
+          - img [ref=e37]
+          - generic [ref=e43]: LV 0
+        - button [ref=e44] [cursor=pointer]:
+          - img [ref=e45]
+        - button [ref=e48] [cursor=pointer]:
+          - img [ref=e49]
+  - generic [ref=e845]:
+    - generic [ref=e846]:
+      - generic [ref=e847]:
+        - generic [ref=e848]:
+          - generic [ref=e849]: Lab / System Workshop
+          - heading "Build the systems that sharpen execution." [level=1] [ref=e850]
+          - paragraph [ref=e851]: "Lab is the workshop layer of Xtation: assistant projects, knowledge notes, templates, and event-driven automations that should make Play cleaner and follow-through easier."
+          - generic [ref=e852]:
+            - generic [ref=e854]:
+              - generic [ref=e855]:
+                - generic [ref=e856]: Active Projects
+                - generic [ref=e857]: "2"
+              - img [ref=e859]
+            - generic [ref=e863]:
+              - generic [ref=e864]:
+                - generic [ref=e865]: Pinned Notes
+                - generic [ref=e866]: "1"
+              - img [ref=e868]
+            - generic [ref=e871]:
+              - generic [ref=e872]:
+                - generic [ref=e873]: Enabled Rules
+                - generic [ref=e874]: "1"
+              - img [ref=e876]
+            - generic [ref=e881]:
+              - generic [ref=e882]:
+                - generic [ref=e883]: Play Minutes Today
+                - generic [ref=e884]: "0"
+              - img [ref=e886]
+        - generic [ref=e889]:
+          - generic [ref=e890]: Workspace Brief
+          - generic [ref=e891]:
+            - paragraph [ref=e892]: Current quest context:No active quest
+            - paragraph [ref=e893]: Lead project:XTATION architecture
+            - paragraph [ref=e894]: Operating rule:if it does not improve Play, Profile, or real follow-through, it should not stay.
+          - button "Send Workspace To Dusk" [ref=e895] [cursor=pointer]:
+            - img [ref=e896]
+            - text: Send Workspace To Dusk
+      - generic [ref=e899]:
+        - button "Workspace Command deck and next actions" [ref=e900] [cursor=pointer]:
+          - generic [ref=e901]:
+            - img [ref=e902]
+            - generic [ref=e907]: Workspace
+          - generic [ref=e908]: Command deck and next actions
+        - button "Assistants Structured project contexts" [ref=e909] [cursor=pointer]:
+          - generic [ref=e910]:
+            - img [ref=e911]
+            - generic [ref=e914]: Assistants
+          - generic [ref=e915]: Structured project contexts
+        - button "Knowledge Notes, captures, and linked context" [ref=e916] [cursor=pointer]:
+          - generic [ref=e917]:
+            - img [ref=e918]
+            - generic [ref=e921]: Knowledge
+          - generic [ref=e922]: Notes, captures, and linked context
+        - button "Automations Rules, triggers, and action flows" [ref=e923] [cursor=pointer]:
+          - generic [ref=e924]:
+            - img [ref=e925]
+            - generic [ref=e929]: Automations
+          - generic [ref=e930]: Rules, triggers, and action flows
+        - button "Templates Reusable starting points" [ref=e931] [cursor=pointer]:
+          - generic [ref=e932]:
+            - img [ref=e933]
+            - generic [ref=e936]: Templates
+          - generic [ref=e937]: Reusable starting points
+    - generic [ref=e938]:
+      - generic [ref=e939]:
+        - article [ref=e940]:
+          - generic [ref=e942]:
+            - generic [ref=e943]: Command Deck
+            - generic [ref=e944]: The four things that should shape the next useful move.
+          - generic [ref=e945]:
+            - generic [ref=e946]:
+              - generic [ref=e947]:
+                - img [ref=e948]
+                - generic [ref=e951]: XTATION architecture
+              - paragraph [ref=e952]: Keep the product architecture, section boundaries, and next build phases aligned.
+              - generic [ref=e953]: "Next action: Turn the next architecture decision into one implemented screen or workflow."
+              - button "Open Assistants" [ref=e954] [cursor=pointer]
+            - generic [ref=e955]:
+              - generic [ref=e956]:
+                - img [ref=e957]
+                - generic [ref=e960]: Lab direction
+              - paragraph [ref=e961]: "Lab should be the workshop of Xtation: assistant projects, knowledge notes, templates, and event-driven automations that improve Play ins..."
+              - generic [ref=e962]: "Kind: brief"
+              - button "Open Knowledge" [ref=e963] [cursor=pointer]
+            - generic [ref=e964]:
+              - generic [ref=e965]:
+                - img [ref=e966]
+                - generic [ref=e970]: Quest completion recap
+              - paragraph [ref=e971]: When a quest completes, queue a short debrief note in Lab for reflection and reuse.
+              - generic [ref=e972]: "Mode: suggest·Scope: play"
+              - button "Open Automations" [ref=e973] [cursor=pointer]
+            - generic [ref=e974]:
+              - generic [ref=e975]:
+                - img [ref=e976]
+                - generic [ref=e979]: No active quest
+              - paragraph [ref=e980]: Play is currently idle. Build the next useful system, then return to execution.
+              - generic [ref=e981]: "Today’s top quests: 0"
+        - article [ref=e982]:
+          - generic [ref=e983]: Quick Build
+          - generic [ref=e984]:
+            - generic [ref=e985]:
+              - generic [ref=e986]: New Note
+              - textbox "Capture title" [ref=e987]
+              - textbox "What should be saved?" [ref=e988]
+              - button "Save Note" [disabled] [ref=e989]:
+                - img [ref=e990]
+                - text: Save Note
+            - generic [ref=e991]:
+              - generic [ref=e992]: New Assistant Project
+              - textbox "Project title" [ref=e993]
+              - combobox [ref=e994]:
+                - option "Research"
+                - option "Coding"
+                - option "Design"
+                - option "Marketing"
+                - option "Strategy" [selected]
+                - option "Writing"
+              - textbox "Why does this project exist?" [ref=e995]
+              - button "Add Project" [disabled] [ref=e996]:
+                - img [ref=e997]
+                - text: Add Project
+            - generic [ref=e998]:
+              - generic [ref=e999]: New Automation
+              - textbox "Automation name" [ref=e1000]
+              - textbox "Trigger summary" [ref=e1001]
+              - textbox "What should happen?" [ref=e1002]
+              - button "Add Rule" [disabled] [ref=e1003]:
+                - img [ref=e1004]
+                - text: Add Rule
+      - generic [ref=e1005]:
+        - article [ref=e1006]:
+          - generic [ref=e1007]: Operational Snapshot
+          - generic [ref=e1008]:
+            - generic [ref=e1009]:
+              - generic [ref=e1010]: "2"
+              - generic [ref=e1011]: Assistant Projects
+            - generic [ref=e1012]:
+              - generic [ref=e1013]: "2"
+              - generic [ref=e1014]: Knowledge Notes
+            - generic [ref=e1015]:
+              - generic [ref=e1016]: "1"
+              - generic [ref=e1017]: Automations Ready
+            - generic [ref=e1018]:
+              - generic [ref=e1019]: "0"
+              - generic [ref=e1020]: Current Quest Links
+        - article [ref=e1021]:
+          - generic [ref=e1022]: Top Quest Pressure
+          - generic [ref=e1024]: No recent quest pressure yet.
+        - article [ref=e1025]:
+          - generic [ref=e1026]: Why This Shape
+          - generic [ref=e1027]:
+            - paragraph [ref=e1028]: Lab is not a random extra page. It exists to make execution simpler, more repeatable, and easier to hand off to Dusk.
+            - paragraph [ref=e1029]: Knowledge stays local-first and linkable. Assistant projects hold structured context. Automations stay visible and reversible.
+  - button [ref=e1030] [cursor=pointer]:
+    - img [ref=e1031]
+  - generic [ref=e124]:
+    - generic [ref=e126]: Developer HUD
+    - button "Open" [ref=e843] [cursor=pointer]

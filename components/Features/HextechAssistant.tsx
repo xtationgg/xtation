@@ -1,10 +1,63 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { CalendarDays, Check, ChevronUp, Pause, Pencil, Pin, Play, Plus, Save, Timer, Video, Volume2, X } from 'lucide-react';
+import { CalendarDays, Check, ChevronUp, Copy, Pause, Pencil, Pin, Play, Plus, Save, Timer, Video, Volume2, X } from 'lucide-react';
 import { useXP } from '../XP/xpStore';
 import { Task } from '../XP/xpTypes';
 import { ConfirmModal } from '../UI/ConfirmModal';
 import { QuestCard } from '../Play/QuestCard';
 import { playClickSound, playErrorSound, playSuccessSound } from '../../utils/SoundEffects';
+import { useOptionalAuth } from '../../src/auth/AuthProvider';
+import { useOptionalAdminConsole } from '../../src/admin/AdminConsoleProvider';
+import { useOptionalLab } from '../../src/lab/LabProvider';
+import { clearUserScopedKey, getActiveUserId, readUserScopedJSON } from '../../src/lib/userScopedStorage';
+import { DUSK_BRIEF_EVENT, LATEST_DUSK_BRIEF_KEY, type StoredDuskBrief } from '../../src/dusk/bridge';
+import {
+  type DuskLabNoteSeed,
+  deriveDuskActionDeck,
+} from '../../src/dusk/actionDeck';
+import {
+  acceptManagedProviderSession,
+  appendManagedProviderSession,
+  clearManagedProviderSessions,
+  discardManagedProviderSession,
+  diffManagedProviderRequests,
+  markManagedProviderSessionPromoted,
+  markManagedProviderSessionExecuted,
+  reviseManagedProviderSession,
+  summarizeManagedProviderRequestDiff,
+} from '../../src/dusk/managedProviderSession';
+import { appendDuskToolAuditEntry } from '../../src/dusk/toolAudit';
+import { useDuskToolAudit } from '../../src/dusk/useDuskToolAudit';
+import { useManagedProviderSessions } from '../../src/dusk/useManagedProviderSessions';
+import { buildDuskProviderEnvelopeText, buildDuskProviderRequestEnvelope } from '../../src/dusk/providerEnvelope';
+import { requestManagedDuskProviderRun } from '../../src/dusk/managedProvider';
+import {
+  buildDuskProviderRunRequest,
+  buildDuskProviderRunRequestText,
+  executeDuskProviderRunRequest,
+  parseDuskProviderRunRequestText,
+  type DuskProviderRunReport,
+} from '../../src/dusk/providerRun';
+import { buildDuskStationSnapshot } from '../../src/dusk/stationSnapshot';
+import { getDuskProviderTools } from '../../src/dusk/providerAdapter';
+import { executeDuskTool, type DuskToolRuntimeContext } from '../../src/dusk/toolRuntime';
+import { encodeQuestNotesWithSteps, parseQuestNotesAndSteps, stripQuestStepsBlock } from '../../src/lib/quests/steps';
+import { useOptionalPresentationEvents } from '../../src/presentation/PresentationEventsProvider';
+import { openLabNavigation } from '../../src/lab/bridge';
+import {
+  buildBaselineCompareAlignment,
+  createBaselineCompareContext,
+  buildBaselineCompareRevisionNote,
+  isBaselineCompareBrief,
+  parseBaselineCompareBrief,
+  type DuskBaselineCompareProvenance,
+} from '../../src/dusk/baselineCompare';
+import {
+  buildBaselineProvenanceAlignment,
+  buildBaselineProvenanceRevisionNote,
+  createBaselineProvenanceContext,
+  formatBaselineProvenanceBriefProvider,
+  parseBaselineProvenanceBrief,
+} from '../../src/dusk/baselineProvenanceBrief';
 
 interface HextechAssistantProps {
   isOpen: boolean;
@@ -16,10 +69,16 @@ type FocusPriority = 'normal' | 'high' | 'urgent' | 'extreme';
 type FocusStep = { id: string; text: string; done: boolean };
 type FocusMode = 'default' | 'schedule' | 'media' | 'sound' | 'countdown';
 type WorkspaceMode = 'create' | 'focus' | 'edit';
+type CreateSeedPayload = {
+  title: string;
+  details: string;
+  tags?: string[];
+  linkedQuestIds?: string[];
+  source?: StoredDuskBrief['source'];
+};
 
 const isCompletedTask = (task: Task) => !!task.completedAt || task.status === 'done';
 const isHiddenTask = (task: Task) => !!task.archivedAt || task.status === 'dropped';
-const STEPS_BLOCK_REGEX = /\n?---\s*\n\[xstation_steps_v1\]\s*\n([\s\S]*?)\n---\s*$/;
 const createStepId = () => `step-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 
 const formatTimer = (ms: number) => {
@@ -31,45 +90,31 @@ const formatTimer = (ms: number) => {
   return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
 };
 
-const parseQuestSteps = (details?: string) => {
-  if (!details) return [] as Array<{ text: string; done: boolean }>;
-  const match = details.match(STEPS_BLOCK_REGEX);
-  if (!match?.[1]) return [] as Array<{ text: string; done: boolean }>;
-  try {
-    const parsed = JSON.parse(match[1]);
-    if (!Array.isArray(parsed?.steps)) return [] as Array<{ text: string; done: boolean }>;
-    return parsed.steps
-      .map((step: unknown) => {
-        const next = step as { text?: string; done?: boolean };
-        if (!next?.text || typeof next.text !== 'string') return null;
-        return { text: next.text, done: !!next.done };
-      })
-      .filter(Boolean) as Array<{ text: string; done: boolean }>;
-  } catch {
-    return [] as Array<{ text: string; done: boolean }>;
-  }
+const formatPlanStamp = (value?: number | null) => {
+  if (!value) return null;
+  return new Date(value).toLocaleString([], {
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
 };
+
+const formatCompareProvenanceProvider = (provenance: DuskBaselineCompareProvenance | null | undefined) =>
+  [provenance?.providerLabel, provenance?.model].filter(Boolean).join(' / ') || 'Unknown';
+
+const parseQuestSteps = (details?: string) => parseQuestNotesAndSteps(details).steps;
 
 const parseQuestStepsForEditor = (details?: string): FocusStep[] =>
   parseQuestSteps(details).map((step) => ({ ...step, id: createStepId() }));
 
-const stripStepsFromDetails = (details?: string) => {
-  if (!details) return '';
-  return details.replace(STEPS_BLOCK_REGEX, '').trim();
-};
+const stripStepsFromDetails = (details?: string) => stripQuestStepsBlock(details);
 
-const buildDetailsWithSteps = (plainDetails: string, steps: FocusStep[]) => {
-  const base = plainDetails.trim();
-  const normalizedSteps = steps
-    .map((step) => ({ text: step.text.trim(), done: !!step.done }))
-    .filter((step) => !!step.text);
-
-  if (!normalizedSteps.length) return base;
-
-  const stepsBlock = `---\n[xstation_steps_v1]\n${JSON.stringify({ steps: normalizedSteps }, null, 2)}\n---`;
-  if (!base) return stepsBlock;
-  return `${base}\n\n${stepsBlock}`;
-};
+const buildDetailsWithSteps = (plainDetails: string, steps: FocusStep[]) =>
+  encodeQuestNotesWithSteps(
+    plainDetails.trim(),
+    steps.map((step) => ({ text: step.text, done: step.done }))
+  );
 
 const pad = (value: number) => String(value).padStart(2, '0');
 
@@ -98,6 +143,22 @@ const roundToFiveMinutes = (timestamp: number) => {
 const formatShortTime = (timestamp?: number) => {
   if (!timestamp) return 'None';
   return new Date(timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+};
+
+const formatRelativeTime = (timestamp?: number | null) => {
+  if (!timestamp) return 'Never';
+  const diff = Date.now() - timestamp;
+  const minutes = Math.max(1, Math.round(Math.abs(diff) / 60000));
+  if (minutes < 60) return `${minutes}m ago`;
+  const hours = Math.round(minutes / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.round(hours / 24);
+  return `${days}d ago`;
+};
+
+const formatBriefSource = (source?: StoredDuskBrief['source']) => {
+  if (!source) return 'Unknown';
+  return source.charAt(0).toUpperCase() + source.slice(1);
 };
 
 type FocusMediaAsset = {
@@ -2248,6 +2309,38 @@ const FocusWorkspace: React.FC<{
 
 
 export const HextechAssistant: React.FC<HextechAssistantProps> = ({ isOpen, onClose }) => {
+  const auth = useOptionalAuth();
+  const adminConsole = useOptionalAdminConsole();
+  const lab = useOptionalLab();
+  const user = auth?.user || null;
+  const currentStation =
+    adminConsole?.currentStation || {
+      id: 'station:local',
+      kind: 'local-station',
+      label: 'Local Station',
+      email: null,
+      releaseChannel: 'internal',
+      plan: 'trial',
+      trialEndsAt: null,
+      betaCohort: null,
+      supportNotes: '',
+      featureFlags: {},
+      createdAt: Date.now(),
+      lastSeenAt: Date.now(),
+    };
+  const platformCloudEnabled = adminConsole?.platformCloudEnabled ?? false;
+  const platformSyncStatus = adminConsole?.platformSyncStatus ?? 'local_only';
+  const presentationEvents = useOptionalPresentationEvents();
+  const activeScope = user?.id || getActiveUserId() || 'local';
+  const assistantProjects = lab?.assistantProjects || [];
+  const notes = lab?.notes || [];
+  const automations = lab?.automations || [];
+  const mediaCampaigns = lab?.mediaCampaigns || [];
+  const duskToolAudit = useDuskToolAudit();
+  const managedProviderSessions = useManagedProviderSessions();
+  const addLabNote = lab?.addNote;
+  const updateLabNote = lab?.updateNote;
+  const updateAssistantProject = lab?.updateAssistantProject;
   const {
     tasks,
     selectors,
@@ -2264,12 +2357,22 @@ export const HextechAssistant: React.FC<HextechAssistantProps> = ({ isOpen, onCl
   const [workspaceMode, setWorkspaceMode] = useState<WorkspaceMode | null>(null);
   const [focusedTaskId, setFocusedTaskId] = useState<string | null>(null);
   const [createSeed, setCreateSeed] = useState(0);
+  const [createSeedPayload, setCreateSeedPayload] = useState<CreateSeedPayload | null>(null);
+  const [latestBrief, setLatestBrief] = useState<StoredDuskBrief | null>(null);
+  const [providerRunInput, setProviderRunInput] = useState('');
+  const [providerRunError, setProviderRunError] = useState<string | null>(null);
+  const [providerRunReport, setProviderRunReport] = useState<DuskProviderRunReport | null>(null);
+  const [managedProviderMessage, setManagedProviderMessage] = useState<string | null>(null);
+  const [isManagedProviderLoading, setIsManagedProviderLoading] = useState(false);
+  const [activeManagedSessionId, setActiveManagedSessionId] = useState<string | null>(null);
+  const [managedRevisionNote, setManagedRevisionNote] = useState('');
   const [taskMediaSelections, setTaskMediaSelections] = useState<Record<string, string>>({});
   const [taskSoundSelections, setTaskSoundSelections] = useState<Record<string, string>>({});
   const [taskPriorityVisuals, setTaskPriorityVisuals] = useState<Record<string, string>>({});
   const [taskMediaPinned, setTaskMediaPinned] = useState<Record<string, string>>({});
   const [, setUiRevision] = useState(0);
   const [runtimeTick, setRuntimeTick] = useState(() => Date.now());
+  const latestBriefEventKeyRef = useRef<string | null>(null);
 
   const [rendered, setRendered] = useState(isOpen);
   const [visible, setVisible] = useState(isOpen);
@@ -2314,6 +2417,261 @@ export const HextechAssistant: React.FC<HextechAssistantProps> = ({ isOpen, onCl
     () => availableTasks.find((task) => task.id === runningTaskId) || null,
     [availableTasks, runningTaskId]
   );
+  const nextQueuedTask = useMemo(
+    () => availableTasks.find((task) => !isCompletedTask(task)) || null,
+    [availableTasks]
+  );
+  const primaryStationTask = runningTask || nextQueuedTask;
+  const leadAssistantProject = useMemo(
+    () =>
+      [...assistantProjects]
+        .sort((a, b) => {
+          const aActive = a.status === 'active' ? 1 : 0;
+          const bActive = b.status === 'active' ? 1 : 0;
+          if (aActive !== bActive) return bActive - aActive;
+          return b.updatedAt - a.updatedAt;
+        })[0] || null,
+    [assistantProjects]
+  );
+  const pinnedLabNote = useMemo(
+    () =>
+      [...notes]
+        .sort((a, b) => {
+          const aPinned = a.pinned ? 1 : 0;
+          const bPinned = b.pinned ? 1 : 0;
+          if (aPinned !== bPinned) return bPinned - aPinned;
+          return b.updatedAt - a.updatedAt;
+        })[0] || null,
+    [notes]
+  );
+  const leadCampaign = useMemo(
+    () =>
+      [...mediaCampaigns]
+        .sort((a, b) => {
+          const aActive = a.status === 'active' ? 1 : 0;
+          const bActive = b.status === 'active' ? 1 : 0;
+          if (aActive !== bActive) return bActive - aActive;
+          return b.updatedAt - a.updatedAt;
+        })[0] || null,
+    [mediaCampaigns]
+  );
+  const enabledAutomationCount = useMemo(
+    () => automations.filter((automation) => automation.enabled).length,
+    [automations]
+  );
+  const stationSnapshot = useMemo(
+    () =>
+      buildDuskStationSnapshot({
+        signedIn: !!user?.id,
+        userLabel: user?.email || user?.name || 'Local operator',
+        stationLabel: currentStation.label,
+        plan: currentStation.plan,
+        releaseChannel: currentStation.releaseChannel,
+        platformCloudEnabled,
+        platformSyncStatus,
+        primaryTaskId: primaryStationTask?.id || null,
+        primaryTaskTitle: primaryStationTask?.title || null,
+        primaryTaskPriority: primaryStationTask?.priority || null,
+        primaryTaskRunning: !!runningTask && primaryStationTask?.id === runningTask.id,
+        openQuestCount: availableTasks.filter((task) => !isCompletedTask(task)).length,
+        enabledAutomationCount,
+        leadProjectTitle: leadAssistantProject?.title || null,
+        leadProjectNextAction: leadAssistantProject?.nextAction || null,
+        pinnedNoteTitle: pinnedLabNote?.title || null,
+        activeCampaignTitle: leadCampaign?.title || null,
+      }),
+    [
+      user?.id,
+      user?.email,
+      user?.name,
+      currentStation.label,
+      currentStation.plan,
+      currentStation.releaseChannel,
+      platformCloudEnabled,
+      platformSyncStatus,
+      primaryStationTask?.id,
+      primaryStationTask?.title,
+      primaryStationTask?.priority,
+      runningTask?.id,
+      availableTasks,
+      enabledAutomationCount,
+      leadAssistantProject?.title,
+      leadAssistantProject?.nextAction,
+      pinnedLabNote?.title,
+      leadCampaign?.title,
+    ]
+  );
+  const duskActionDeck = useMemo(
+    () =>
+      deriveDuskActionDeck({
+        snapshot: stationSnapshot,
+        hasLab: !!addLabNote,
+        primaryTaskRunning: !!runningTask && primaryStationTask?.id === runningTask.id,
+        leadProjectId: leadAssistantProject?.id || null,
+        leadProjectTitle: leadAssistantProject?.title || null,
+        leadProjectNextAction: leadAssistantProject?.nextAction || null,
+        latestBrief,
+      }),
+    [
+      stationSnapshot,
+      addLabNote,
+      runningTask,
+      primaryStationTask?.id,
+      leadAssistantProject?.id,
+      leadAssistantProject?.title,
+      leadAssistantProject?.nextAction,
+      latestBrief,
+    ]
+  );
+  const duskProviderTools = useMemo(() => getDuskProviderTools(duskActionDeck), [duskActionDeck]);
+  const providerEnvelope = useMemo(
+    () =>
+      buildDuskProviderRequestEnvelope({
+        snapshot: stationSnapshot,
+        latestBrief,
+        actionDeck: duskActionDeck,
+        tools: duskProviderTools,
+        auditTail: duskToolAudit,
+      }),
+    [stationSnapshot, latestBrief, duskActionDeck, duskProviderTools, duskToolAudit]
+  );
+  const providerEnvelopeText = useMemo(
+    () => buildDuskProviderEnvelopeText(providerEnvelope),
+    [providerEnvelope]
+  );
+  const providerRunSampleText = useMemo(() => {
+    if (!duskProviderTools.length) return '';
+    return buildDuskProviderRunRequestText(
+      buildDuskProviderRunRequest(
+        duskProviderTools.slice(0, 2).map((tool) => tool.name),
+        {
+          requestedBy: 'provider-simulator',
+          stopOnBlocked: true,
+        }
+      )
+    );
+  }, [duskProviderTools]);
+  const activeManagedSession = useMemo(
+    () => managedProviderSessions.find((session) => session.id === activeManagedSessionId) || null,
+    [activeManagedSessionId, managedProviderSessions]
+  );
+  const activeManagedSessionText = useMemo(
+    () => (activeManagedSession ? buildDuskProviderRunRequestText(activeManagedSession.request) : ''),
+    [activeManagedSession]
+  );
+  const parsedCurrentManagedDraft = useMemo(
+    () => (activeManagedSession ? parseDuskProviderRunRequestText(providerRunInput) : null),
+    [activeManagedSession, providerRunInput]
+  );
+  const currentManagedDraftRequest = parsedCurrentManagedDraft?.ok ? parsedCurrentManagedDraft.request : undefined;
+  const currentManagedDraftDiffFromLoaded = useMemo(
+    () =>
+      activeManagedSession && currentManagedDraftRequest
+        ? diffManagedProviderRequests(currentManagedDraftRequest, activeManagedSession.request)
+        : null,
+    [activeManagedSession, currentManagedDraftRequest]
+  );
+  const activeManagedSessionAcceptedDiff = useMemo(
+    () =>
+      activeManagedSession
+        ? diffManagedProviderRequests(activeManagedSession.request, activeManagedSession.acceptedRequest)
+        : null,
+    [activeManagedSession]
+  );
+  const currentManagedDraftDiffFromAccepted = useMemo(
+    () =>
+      activeManagedSession && currentManagedDraftRequest
+        ? diffManagedProviderRequests(currentManagedDraftRequest, activeManagedSession.acceptedRequest)
+        : null,
+    [activeManagedSession, currentManagedDraftRequest]
+  );
+  const providerInputDirtyForSession =
+    !!activeManagedSession && providerRunInput.trim() !== activeManagedSessionText.trim();
+  const managedRevisionNoteDirty =
+    !!activeManagedSession && managedRevisionNote.trim() !== (activeManagedSession.latestRevisionNote || '');
+  const activeManagedSessionNeedsAcceptance =
+    !!activeManagedSession && (activeManagedSession.status === 'planned' || activeManagedSession.status === 'revised');
+  const latestBaselineCompare = useMemo(() => parseBaselineCompareBrief(latestBrief), [latestBrief]);
+  const latestBaselineProvenance = useMemo(() => parseBaselineProvenanceBrief(latestBrief), [latestBrief]);
+  const getManagedSessionAcceptedBaselineTitle = (session: (typeof managedProviderSessions)[number] | null | undefined) =>
+    session?.promotedNoteTitle || (session?.acceptedRequest ? `Dusk baseline · ${session.envelopeHeadline}` : null);
+  const latestBaselineCompareAlignment = useMemo(
+    () =>
+      buildBaselineCompareAlignment(latestBaselineCompare, {
+        acceptedBaselineTitle: getManagedSessionAcceptedBaselineTitle(activeManagedSession),
+        acceptedNextAction: activeManagedSession?.acceptedNextAction || null,
+      }),
+    [activeManagedSession, latestBaselineCompare]
+  );
+  const latestBaselineProvenanceAlignment = useMemo(
+    () =>
+      buildBaselineProvenanceAlignment(latestBaselineProvenance, {
+        acceptedBaselineTitle: getManagedSessionAcceptedBaselineTitle(activeManagedSession),
+        acceptedNextAction: activeManagedSession?.acceptedNextAction || null,
+      }),
+    [activeManagedSession, latestBaselineProvenance]
+  );
+  const activeManagedPlanningRecommendation = useMemo(() => {
+    if (!activeManagedSession) return null;
+    if (!activeManagedSession.acceptedRequest) {
+      return latestBaselineCompare
+        ? 'Accept the current plan before treating the baseline compare as an authoritative revision anchor.'
+        : latestBaselineProvenance
+          ? 'Accept the current plan before using the accepted baseline provenance as a revision anchor.'
+        : 'Review the draft, then accept it when it becomes the next station baseline.';
+    }
+    if (latestBaselineCompareAlignment?.status === 'aligned') {
+      return currentManagedDraftDiffFromAccepted?.changed
+        ? 'The compare brief matches the accepted baseline. Revise the draft against it, then save or re-accept.'
+        : 'The draft still matches the accepted baseline. Use the compare brief only if you intend to change direction.';
+    }
+    if (latestBaselineCompareAlignment?.status === 'previous') {
+      return 'The compare brief is one baseline behind the accepted plan. Review drift before replacing the current revision note.';
+    }
+    if (latestBaselineCompareAlignment?.status === 'mismatch') {
+      return 'The compare brief points to a different baseline. Load the accepted plan or review Lab history before saving changes.';
+    }
+    if (latestBaselineProvenance) {
+      if (latestBaselineProvenanceAlignment?.status === 'aligned') {
+        return currentManagedDraftDiffFromAccepted?.changed
+          ? 'The accepted baseline provenance is aligned with the accepted plan. Review the current draft drift before re-accepting it.'
+          : 'The accepted baseline provenance matches the current plan context. Use it to confirm provider, next action, and compare anchor before executing.';
+      }
+      if (latestBaselineProvenanceAlignment?.status === 'action-drift') {
+        return 'The accepted baseline matches, but the stored next action has drifted. Review the next action before replacing the revision note or executing.';
+      }
+      if (latestBaselineProvenanceAlignment?.status === 'mismatch') {
+        return 'The accepted baseline provenance points to a different baseline. Load the accepted plan or review Lab history before using it as a decision anchor.';
+      }
+      return currentManagedDraftDiffFromAccepted?.changed
+        ? 'The current draft differs from the accepted plan. Use the accepted baseline provenance to confirm the next action before re-accepting it.'
+        : 'The accepted baseline provenance is available as a decision anchor for this plan.';
+    }
+    return currentManagedDraftDiffFromAccepted?.changed
+      ? 'The current draft differs from the accepted baseline. Review the drift before executing it.'
+      : 'The current draft matches the accepted baseline.';
+  }, [
+    activeManagedSession,
+    currentManagedDraftDiffFromAccepted,
+    latestBaselineCompare,
+    latestBaselineCompareAlignment,
+    latestBaselineProvenance,
+    latestBaselineProvenanceAlignment,
+  ]);
+
+  useEffect(() => {
+    if (!activeManagedSessionId) return;
+    if (managedProviderSessions.some((session) => session.id === activeManagedSessionId)) return;
+    setActiveManagedSessionId(null);
+  }, [activeManagedSessionId, managedProviderSessions]);
+
+  useEffect(() => {
+    if (!activeManagedSession) {
+      setManagedRevisionNote('');
+      return;
+    }
+    setManagedRevisionNote(activeManagedSession.latestRevisionNote || '');
+  }, [activeManagedSession]);
 
   useEffect(() => {
     if (!runningTaskId) return;
@@ -2422,8 +2780,35 @@ export const HextechAssistant: React.FC<HextechAssistantProps> = ({ isOpen, onCl
   }, [taskMediaPinned]);
 
   useEffect(() => {
+    loadLatestBrief();
+    const handleBrief = () => loadLatestBrief();
+    window.addEventListener(DUSK_BRIEF_EVENT, handleBrief as EventListener);
+    return () => window.removeEventListener(DUSK_BRIEF_EVENT, handleBrief as EventListener);
+  }, []);
+
+  useEffect(() => {
+    const eventKey = latestBrief ? `${latestBrief.id}:${latestBrief.receivedAt}` : null;
+    if (!eventKey) {
+      latestBriefEventKeyRef.current = null;
+      return;
+    }
+    if (latestBriefEventKeyRef.current === eventKey) return;
+    latestBriefEventKeyRef.current = eventKey;
+    presentationEvents?.emitEvent('dusk.brief.loaded', {
+      source: 'dusk',
+      metadata: {
+        briefId: latestBrief.id,
+        source: latestBrief.source,
+        linkedQuestIds: latestBrief.linkedQuestIds || [],
+        tagCount: latestBrief.tags?.length || 0,
+      },
+    });
+  }, [latestBrief, presentationEvents]);
+
+  useEffect(() => {
     if (isOpen) {
       setFilter('active');
+      loadLatestBrief();
       setRendered(true);
       window.requestAnimationFrame(() => setVisible(true));
       return;
@@ -2496,8 +2881,533 @@ export const HextechAssistant: React.FC<HextechAssistantProps> = ({ isOpen, onCl
   const openCreateWorkspace = () => {
     playClickSound();
     setFocusedTaskId(null);
+    setCreateSeedPayload(null);
     setCreateSeed((prev) => prev + 1);
     setWorkspaceMode('create');
+  };
+
+  const loadLatestBrief = () => {
+    if (typeof window === 'undefined' || typeof window.localStorage?.getItem !== 'function') {
+      setLatestBrief(null);
+      return;
+    }
+    const scope = getActiveUserId() || 'local';
+    setLatestBrief(readUserScopedJSON<StoredDuskBrief | null>(LATEST_DUSK_BRIEF_KEY, null, scope));
+  };
+
+  const clearLatestBrief = () => {
+    if (typeof window === 'undefined' || typeof window.localStorage?.removeItem !== 'function') {
+      setLatestBrief(null);
+      return;
+    }
+    clearUserScopedKey(LATEST_DUSK_BRIEF_KEY, getActiveUserId() || 'local');
+    setLatestBrief(null);
+    pushToast('Dusk brief cleared');
+  };
+
+  const useLatestBrief = () => {
+    if (!latestBrief) return;
+    playClickSound();
+    setFocusedTaskId(null);
+    setCreateSeedPayload({
+      title: latestBrief.title,
+      details: latestBrief.body,
+      tags: Array.from(new Set(['dusk', latestBrief.source, ...(latestBrief.tags || [])])),
+      linkedQuestIds: latestBrief.linkedQuestIds,
+      source: latestBrief.source,
+    });
+    setCreateSeed((prev) => prev + 1);
+    setWorkspaceMode('create');
+    pushToast('Brief loaded into quest draft');
+  };
+
+  const useLatestBaselineCompareInPlan = () => {
+    if (!latestBaselineCompare) return;
+    if (!activeManagedSession) {
+      setManagedProviderMessage('Open a planning session first, then load the baseline compare into the revision note.');
+      pushToast('No active planning session');
+      return;
+    }
+
+    const revisionNote = buildBaselineCompareRevisionNote(latestBaselineCompare);
+    setManagedRevisionNote((current) => {
+      const trimmedCurrent = current.trim();
+      if (!trimmedCurrent) return revisionNote;
+      if (trimmedCurrent.includes(revisionNote)) return current;
+      return `${trimmedCurrent}\n\n${revisionNote}`;
+    });
+    setManagedProviderMessage('Baseline compare loaded into the active revision note.');
+    pushToast('Baseline compare loaded');
+    playClickSound();
+  };
+
+  const useLatestBaselineProvenanceInPlan = () => {
+    if (!latestBaselineProvenance) return;
+    if (!activeManagedSession) {
+      setManagedProviderMessage('Open a planning session first, then load the baseline provenance into the revision note.');
+      pushToast('No active planning session');
+      return;
+    }
+
+    const revisionNote = buildBaselineProvenanceRevisionNote(latestBaselineProvenance);
+    setManagedRevisionNote((current) => {
+      const trimmedCurrent = current.trim();
+      if (!trimmedCurrent) return revisionNote;
+      if (trimmedCurrent.includes(revisionNote)) return current;
+      return `${trimmedCurrent}\n\n${revisionNote}`;
+    });
+    setManagedProviderMessage('Accepted baseline provenance loaded into the active revision note.');
+    pushToast('Baseline provenance loaded');
+    playClickSound();
+  };
+
+  const replaceLatestBaselineProvenanceInPlan = () => {
+    if (!latestBaselineProvenance) return;
+    if (!activeManagedSession) {
+      setManagedProviderMessage('Open a planning session first, then replace the revision note with the accepted baseline provenance.');
+      pushToast('No active planning session');
+      return;
+    }
+
+    setManagedRevisionNote(buildBaselineProvenanceRevisionNote(latestBaselineProvenance));
+    setManagedProviderMessage('Revision note replaced with the accepted baseline provenance summary.');
+    pushToast('Revision note replaced');
+    playClickSound();
+  };
+
+  const replaceLatestBaselineCompareInPlan = () => {
+    if (!latestBaselineCompare) return;
+    if (!activeManagedSession) {
+      setManagedProviderMessage('Open a planning session first, then replace the revision note with the baseline compare.');
+      pushToast('No active planning session');
+      return;
+    }
+
+    setManagedRevisionNote(buildBaselineCompareRevisionNote(latestBaselineCompare));
+    setManagedProviderMessage('Revision note replaced with the latest baseline compare summary.');
+    pushToast('Revision note replaced');
+    playClickSound();
+  };
+
+  const useStationSnapshot = () => {
+    playClickSound();
+    setFocusedTaskId(null);
+    setCreateSeedPayload({
+      title: stationSnapshot.suggestedTitle,
+      details: stationSnapshot.suggestedBody,
+      tags: stationSnapshot.tags,
+      linkedQuestIds: stationSnapshot.primaryTaskId ? [stationSnapshot.primaryTaskId] : [],
+    });
+    setCreateSeed((prev) => prev + 1);
+    setWorkspaceMode('create');
+    pushToast('Station snapshot loaded into quest draft');
+  };
+
+  const createQuestDirect = (seed: CreateSeedPayload, options?: { priority?: Task['priority']; onCreated?: (taskId: string) => void }) => {
+    const title = seed.title.trim();
+    if (!title) {
+      return null;
+    }
+
+    let createdId: string | null = null;
+    runGuarded(() => {
+      createdId = addTask({
+        title,
+        details: seed.details.trim(),
+        priority: options?.priority || 'high',
+        status: 'todo',
+        icon: 'zap',
+        tags: seed.tags,
+      });
+      if (!createdId) return;
+      setFocusedTaskId(createdId);
+      setWorkspaceMode('focus');
+      setTaskPriorityVisuals((prev) => ({ ...prev, [createdId!]: options?.priority === 'urgent' ? 'urgent' : 'high' }));
+      options?.onCreated?.(createdId);
+    });
+    return createdId;
+  };
+
+  const captureNote = (payload: DuskLabNoteSeed) => {
+    if (!addLabNote) return null;
+    return addLabNote({
+      title: payload.title,
+      content: payload.content,
+      tags: payload.tags,
+      linkedQuestIds: payload.linkedQuestIds,
+      linkedProjectIds: payload.linkedProjectIds,
+      kind: 'brief',
+      status: 'active',
+      pinned: payload.pinned,
+    });
+  };
+
+  const buildManagedPlanNoteContent = (session: NonNullable<typeof activeManagedSession>) => {
+    const lines = [
+      `Accepted Dusk plan baseline`,
+      ``,
+      `Provider · ${session.providerLabel} / ${session.model}`,
+      `Accepted · ${formatPlanStamp(session.acceptedAt) || 'Not accepted yet'}`,
+      `Next action · ${session.acceptedNextAction || session.nextAction}`,
+      session.latestRevisionNote ? `Revision note · ${session.latestRevisionNote}` : null,
+      session.acceptedBaselineCompareContext?.currentTitle
+        ? `Accepted compare current: ${session.acceptedBaselineCompareContext.currentTitle}`
+        : null,
+      session.acceptedBaselineCompareContext?.previousTitle
+        ? `Accepted compare previous: ${session.acceptedBaselineCompareContext.previousTitle}`
+        : null,
+      session.acceptedBaselineCompareContext?.driftSummary
+        ? `Accepted compare drift: ${session.acceptedBaselineCompareContext.driftSummary}`
+        : null,
+      session.acceptedBaselineCompareContext?.loadedAt
+        ? `Accepted compare loadedAt: ${session.acceptedBaselineCompareContext.loadedAt}`
+        : null,
+      session.outputText ? `Provider note · ${session.outputText}` : null,
+      session.linkedProjectId ? `Linked project · ${session.linkedProjectId}` : null,
+      session.linkedQuestIds?.length ? `Linked quests · ${session.linkedQuestIds.join(', ')}` : null,
+      ``,
+      `Requested tools`,
+      ...((session.acceptedRequest || session.request).tools.map((tool, index) =>
+        `${index + 1}. ${tool.name}${tool.reason ? ` — ${tool.reason}` : ''}`
+      )),
+      ``,
+      `Accepted request JSON`,
+      '```json',
+      JSON.stringify(session.acceptedRequest || session.request, null, 2),
+      '```',
+    ].filter(Boolean);
+
+    return lines.join('\n');
+  };
+
+  const openKnownQuest = (taskId: string) => {
+    const taskExists = availableTasks.some((task) => task.id === taskId);
+    if (!taskExists) {
+      return false;
+    }
+    openFocusPanel(taskId);
+    return true;
+  };
+
+  const linkProjectQuest = (projectId: string, taskId: string) => {
+    const project = assistantProjects.find((entry) => entry.id === projectId);
+    if (!project || !updateAssistantProject) return;
+    updateAssistantProject(project.id, {
+      linkedQuestIds: Array.from(new Set([...(project.linkedQuestIds || []), taskId])),
+    });
+  };
+
+  const linkProjectNote = (projectId: string, noteId: string) => {
+    const project = assistantProjects.find((entry) => entry.id === projectId);
+    if (!project || !updateAssistantProject) return;
+    updateAssistantProject(project.id, {
+      linkedNoteIds: Array.from(new Set([...(project.linkedNoteIds || []), noteId])),
+    });
+  };
+
+  const promoteAcceptedManagedPlanToLab = (session: NonNullable<typeof activeManagedSession>) => {
+    if (!session.acceptedRequest) {
+      playErrorSound();
+      pushToast('Accept the plan before promoting it to Lab');
+      return;
+    }
+    if (!addLabNote) {
+      playErrorSound();
+      pushToast('Lab is not available for plan promotion');
+      return;
+    }
+
+    const noteTitle = `Dusk baseline · ${session.envelopeHeadline}`;
+    const notePayload = {
+      title: noteTitle,
+      content: buildManagedPlanNoteContent(session),
+      kind: 'plan' as const,
+      status: 'active' as const,
+      pinned: true,
+      tags: Array.from(
+        new Set([
+          'dusk',
+          'baseline',
+          'dusk-baseline',
+          'managed-provider',
+          session.model.toLowerCase(),
+          session.status,
+        ])
+      ),
+      linkedQuestIds: session.linkedQuestIds || [],
+      linkedProjectIds: session.linkedProjectId ? [session.linkedProjectId] : [],
+    };
+
+    const noteId = session.promotedNoteId && updateLabNote
+      ? (updateLabNote(session.promotedNoteId, notePayload), session.promotedNoteId)
+      : addLabNote(notePayload);
+
+    if (session.linkedProjectId) {
+      linkProjectNote(session.linkedProjectId, noteId);
+    }
+    markManagedProviderSessionPromoted(session.id, noteId, noteTitle, activeScope);
+    setManagedProviderMessage('Accepted plan promoted to Lab as a pinned baseline note.');
+    playSuccessSound();
+    pushToast(session.promotedNoteId ? 'Lab baseline note refreshed' : 'Accepted plan promoted to Lab');
+  };
+
+  const buildRuntimeContext = (): DuskToolRuntimeContext => ({
+    snapshot: stationSnapshot,
+    latestBrief,
+    leadProject: leadAssistantProject
+      ? {
+          id: leadAssistantProject.id,
+          title: leadAssistantProject.title,
+          nextAction: leadAssistantProject.nextAction,
+        }
+      : null,
+    availableTaskIds: availableTasks.map((task) => task.id),
+    createQuest: (seed, options) =>
+      createQuestDirect(
+        {
+          title: seed.title,
+          details: seed.details,
+          tags: seed.tags,
+        },
+        {
+          priority: options?.priority || 'high',
+        }
+      ),
+    openQuest: (taskId) => openKnownQuest(taskId),
+    saveNote: captureNote,
+    linkProjectQuest,
+  });
+
+  const handleDuskAction = (actionId: ReturnType<typeof deriveDuskActionDeck>[number]['id']) => {
+    const result = executeDuskTool(actionId, buildRuntimeContext());
+    appendDuskToolAuditEntry(actionId, 'relay', result, activeScope);
+
+    if (result.status === 'blocked') {
+      playErrorSound();
+      pushToast(result.message);
+      return;
+    }
+
+    playSuccessSound();
+    pushToast(result.message);
+  };
+
+  const loadProviderRunSample = () => {
+    if (!providerRunSampleText) {
+      playErrorSound();
+      pushToast('No provider tools are ready yet');
+      return;
+    }
+    playClickSound();
+    setProviderRunInput(providerRunSampleText);
+    setProviderRunError(null);
+    setManagedProviderMessage(null);
+    pushToast('Provider run sample loaded');
+  };
+
+  const clearProviderRun = () => {
+    playClickSound();
+    setProviderRunInput('');
+    setProviderRunError(null);
+    setProviderRunReport(null);
+    setManagedProviderMessage(null);
+    setActiveManagedSessionId(null);
+    setManagedRevisionNote('');
+  };
+
+  const reviseActiveManagedPlan = () => {
+    if (!activeManagedSession) {
+      playErrorSound();
+      pushToast('No managed plan is loaded');
+      return false;
+    }
+
+    const parsed = parseDuskProviderRunRequestText(providerRunInput);
+    if (!parsed.ok || !parsed.request) {
+      setProviderRunError(parsed.message || 'Provider request is invalid');
+      playErrorSound();
+      pushToast(parsed.message || 'Provider request is invalid');
+      return false;
+    }
+
+    reviseManagedProviderSession(
+      activeManagedSession.id,
+      {
+        request: parsed.request,
+        nextAction: activeManagedSession.nextAction,
+        revisionNote: managedRevisionNote,
+        baselineCompareContext: createBaselineCompareContext(latestBaselineCompare),
+        baselineProvenanceContext: createBaselineProvenanceContext(latestBaselineProvenance),
+      },
+      activeScope
+    );
+    setProviderRunError(null);
+    setProviderRunReport(null);
+    setManagedProviderMessage('Plan revision saved. Review and accept before running it.');
+    playClickSound();
+    pushToast('Managed plan revised');
+    return parsed.request;
+  };
+
+  const acceptActiveManagedPlan = () => {
+    if (!activeManagedSession) {
+      playErrorSound();
+      pushToast('No managed plan is loaded');
+      return;
+    }
+
+    if (providerInputDirtyForSession || managedRevisionNoteDirty) {
+      const revisedRequest = reviseActiveManagedPlan();
+      if (!revisedRequest) return;
+    }
+
+    acceptManagedProviderSession(
+      activeManagedSession.id,
+      activeScope,
+      createBaselineCompareContext(latestBaselineCompare),
+      createBaselineProvenanceContext(latestBaselineProvenance)
+    );
+    setProviderRunError(null);
+    setManagedProviderMessage('Plan accepted. Run the provider request when you want Dusk to execute it.');
+    playSuccessSound();
+    pushToast('Managed plan accepted');
+  };
+
+  const discardActiveManagedPlan = () => {
+    if (!activeManagedSession) {
+      playErrorSound();
+      pushToast('No managed plan is loaded');
+      return;
+    }
+    discardManagedProviderSession(activeManagedSession.id, activeScope);
+    setProviderRunError(null);
+    setProviderRunReport(null);
+    setManagedProviderMessage('Plan discarded. The trace is kept for review, but it will not be executed.');
+    setActiveManagedSessionId(null);
+    setManagedRevisionNote('');
+    playClickSound();
+    pushToast('Managed plan discarded');
+  };
+
+  const loadAcceptedManagedPlan = () => {
+    if (!activeManagedSession?.acceptedRequest) {
+      playErrorSound();
+      pushToast('No accepted baseline is available for this plan');
+      return;
+    }
+    setProviderRunInput(buildDuskProviderRunRequestText(activeManagedSession.acceptedRequest));
+    setProviderRunError(null);
+    setProviderRunReport(null);
+    setManagedProviderMessage('Accepted baseline loaded into the provider request editor.');
+    playClickSound();
+    pushToast('Accepted baseline loaded');
+  };
+
+  const runProviderRequest = () => {
+    const parsed = parseDuskProviderRunRequestText(providerRunInput);
+    if (!parsed.ok || !parsed.request) {
+      setProviderRunError(parsed.message || 'Provider request is invalid');
+      playErrorSound();
+      pushToast(parsed.message || 'Provider request is invalid');
+      return;
+    }
+
+    if (activeManagedSessionNeedsAcceptance) {
+      const message = 'Accept the active managed plan before running it.';
+      setProviderRunError(message);
+      playErrorSound();
+      pushToast(message);
+      return;
+    }
+
+    const report = executeDuskProviderRunRequest(parsed.request, buildRuntimeContext(), activeScope);
+    setProviderRunError(null);
+    setProviderRunReport(report);
+    if (activeManagedSessionId) {
+      markManagedProviderSessionExecuted(activeManagedSessionId, report, activeScope);
+    }
+
+    if (report.blockedCount > 0) {
+      playErrorSound();
+    } else {
+      playSuccessSound();
+    }
+    pushToast(`Provider run complete: ${report.succeededCount} success, ${report.blockedCount} blocked`);
+  };
+
+  const askManagedProvider = async () => {
+    if (!duskProviderTools.length) {
+      playErrorSound();
+      pushToast('No provider tools are available right now');
+      return;
+    }
+
+    setIsManagedProviderLoading(true);
+    setManagedProviderMessage(null);
+
+    const result = await requestManagedDuskProviderRun({
+      envelopeText: providerEnvelopeText,
+      tools: duskProviderTools,
+      operatorPrompt: stationSnapshot.nextAction,
+    });
+
+    setIsManagedProviderLoading(false);
+
+    if (!result.ok) {
+      setProviderRunError(result.message);
+      setManagedProviderMessage(result.message);
+      playErrorSound();
+      pushToast(result.message);
+      return;
+    }
+
+    setProviderRunInput(buildDuskProviderRunRequestText(result.request));
+    setProviderRunError(null);
+    setProviderRunReport(null);
+    const session = appendManagedProviderSession(
+      {
+        suggestion: result,
+        envelopeHeadline: stationSnapshot.headline,
+        nextAction: stationSnapshot.nextAction,
+        linkedProjectId: leadAssistantProject?.id || null,
+        linkedQuestIds: stationSnapshot.primaryTaskId ? [stationSnapshot.primaryTaskId] : [],
+      },
+      activeScope
+    );
+    setActiveManagedSessionId(session.id);
+    setManagedProviderMessage(
+      `${result.provider.label} (${result.provider.model}) prepared ${result.request.tools.length} tool action${
+        result.request.tools.length === 1 ? '' : 's'
+      }. Review, revise, accept, then run.`
+    );
+    playSuccessSound();
+    pushToast(`Managed provider prepared ${result.request.tools.length} tool action${result.request.tools.length === 1 ? '' : 's'}`);
+  };
+
+  const copyProviderEnvelope = async () => {
+    playClickSound();
+    try {
+      if (typeof navigator !== 'undefined' && navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(providerEnvelopeText);
+      } else if (typeof document !== 'undefined') {
+        const textarea = document.createElement('textarea');
+        textarea.value = providerEnvelopeText;
+        textarea.setAttribute('readonly', 'true');
+        textarea.style.position = 'absolute';
+        textarea.style.left = '-9999px';
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textarea);
+      } else {
+        throw new Error('Clipboard unavailable');
+      }
+      playSuccessSound();
+      pushToast('Provider contract copied');
+    } catch {
+      playErrorSound();
+      pushToast('Provider contract could not be copied');
+    }
   };
 
   const openFocusPanel = (taskId: string) => {
@@ -2538,10 +3448,12 @@ export const HextechAssistant: React.FC<HextechAssistantProps> = ({ isOpen, onCl
         scheduledAt: draft.scheduledAt,
         countdownMin: draft.countdownMin,
         icon: 'sword',
+        tags: createSeedPayload?.tags,
       });
       setTaskMediaSelections((prev) => ({ ...prev, [createdId]: draft.mediaAssetId || 'focus-animation' }));
       setTaskSoundSelections((prev) => ({ ...prev, [createdId]: draft.soundAssetId || null }));
       setTaskPriorityVisuals((prev) => ({ ...prev, [createdId]: draft.priorityLabel }));
+      setCreateSeedPayload(null);
       setFocusedTaskId(createdId);
       setWorkspaceMode('focus');
     } else if (focusedTaskId) {
@@ -2624,18 +3536,19 @@ export const HextechAssistant: React.FC<HextechAssistantProps> = ({ isOpen, onCl
       const now = Date.now();
       return {
         id: `draft-${createSeed}`,
-        title: '',
-        details: '',
+        title: createSeedPayload?.title || '',
+        details: createSeedPayload?.details || '',
         priority: 'normal',
         status: 'todo',
         linkedSessionIds: [],
         icon: 'sword',
+        tags: createSeedPayload?.tags,
         createdAt: now,
         updatedAt: now,
       };
     }
     return focusedTask;
-  }, [workspaceMode, createSeed, focusedTask]);
+  }, [workspaceMode, createSeed, focusedTask, createSeedPayload]);
   const workspaceKey = workspaceTask?.id || null;
 
   if (!rendered) return null;
@@ -2697,18 +3610,21 @@ export const HextechAssistant: React.FC<HextechAssistantProps> = ({ isOpen, onCl
         ) : null}
 
         <aside
-          className={`absolute right-0 top-0 h-[100dvh] border-l border-[var(--app-border)] bg-[var(--app-panel)] transition-transform duration-200 ease-out ${
+          className={`xt-dusk-shell absolute right-0 top-0 h-[100dvh] transition-transform duration-200 ease-out ${
             visible ? 'translate-x-0' : 'translate-x-full'
           }`}
           style={{ width: 'clamp(320px, 34vw, 380px)' }}
         >
           <div className="flex h-full flex-col">
-            <header className="flex items-center justify-between border-b border-[var(--app-border)] px-4 py-3.5">
-              <div className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[var(--app-text)]">Quests</div>
+            <header className="xt-dusk-header flex items-center justify-between px-4 py-3.5">
+              <div>
+                <div className="text-[10px] font-semibold uppercase tracking-[0.22em] text-[var(--app-accent)]">Dusk</div>
+                <div className="mt-1 text-[11px] uppercase tracking-[0.14em] text-[var(--app-muted)]">Quest Relay</div>
+              </div>
               <button
                 type="button"
                 onClick={requestClose}
-                className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-[var(--app-border)] bg-[var(--app-panel-2)] text-[var(--app-muted)] hover:text-[var(--app-text)]"
+                className="xt-dusk-icon-btn inline-flex h-8 w-8 items-center justify-center text-[var(--app-muted)] hover:text-[var(--app-text)]"
                 aria-label="Close quests drawer"
               >
                 <X size={16} />
@@ -2716,16 +3632,1251 @@ export const HextechAssistant: React.FC<HextechAssistantProps> = ({ isOpen, onCl
             </header>
 
             <div className="border-b border-[var(--app-border)] p-4">
+              <div className="xt-dusk-section xt-dusk-section--accent mb-3 p-3">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[var(--app-accent)]">Station Snapshot</div>
+                    <div className="mt-1 text-sm font-medium text-[var(--app-text)]">{stationSnapshot.headline}</div>
+                    <div className="mt-1 text-[11px] leading-5 text-[var(--app-muted)]">{stationSnapshot.summary}</div>
+                    <div className="mt-2 text-[11px] leading-5 text-[var(--app-muted)]">{stationSnapshot.nextAction}</div>
+                  </div>
+                  <div className="xt-dusk-chip">
+                    {user?.id ? 'account' : 'local'}
+                  </div>
+                </div>
+
+                <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                  {stationSnapshot.cues.map((cue) => (
+                    <div
+                      key={cue.label}
+                      className="xt-dusk-subcard px-3 py-2"
+                    >
+                      <div className="text-[10px] uppercase tracking-[0.12em] text-[var(--app-muted)]">{cue.label}</div>
+                      <div className="mt-1 text-[12px] font-medium text-[var(--app-text)]">{cue.value}</div>
+                      <div className="mt-1 text-[10px] leading-5 text-[var(--app-muted)]">{cue.detail}</div>
+                    </div>
+                  ))}
+                </div>
+
+                <div className="mt-3 flex gap-2">
+                  <button
+                    type="button"
+                    onClick={useStationSnapshot}
+                    className="xt-dusk-btn xt-dusk-btn--accent inline-flex h-9 flex-1 items-center justify-center gap-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--app-text)]"
+                  >
+                    <Save size={14} />
+                    Load Station Brief
+                  </button>
+                  {stationSnapshot.primaryTaskId ? (
+                    <button
+                      type="button"
+                      onClick={() => openFocusPanel(stationSnapshot.primaryTaskId!)}
+                      className="xt-dusk-btn inline-flex h-9 items-center justify-center px-3 text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--app-muted)] hover:text-[var(--app-text)]"
+                    >
+                      Open Quest
+                    </button>
+                  ) : null}
+                </div>
+              </div>
+
+              {latestBrief ? (
+                <div className="xt-dusk-section xt-dusk-section--accent mb-3 p-3">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[var(--app-accent)]">Dusk Inbox</div>
+                      <div className="mt-1 truncate text-sm font-medium text-[var(--app-text)]">{latestBrief.title}</div>
+                      <div className="mt-1 text-[11px] leading-5 text-[var(--app-muted)]">
+                        {formatBriefSource(latestBrief.source)} · received {formatRelativeTime(latestBrief.receivedAt)}
+                      </div>
+                      {latestBrief.tags?.length ? (
+                        <div className="mt-2 flex flex-wrap gap-1.5">
+                          {latestBrief.tags.slice(0, 4).map((tag) => (
+                            <span
+                              key={tag}
+                              className="xt-dusk-chip xt-dusk-chip--accent"
+                            >
+                              {tag}
+                            </span>
+                          ))}
+                        </div>
+                      ) : null}
+                      {latestBrief.linkedQuestIds?.length ? (
+                        <div className="mt-2 text-[11px] leading-5 text-[var(--app-muted)]">
+                          Linked quests: {latestBrief.linkedQuestIds.length}
+                        </div>
+                      ) : null}
+                      {latestBaselineCompare ? (
+                        <div className="mt-3 grid gap-2 text-[11px] leading-5 text-[var(--app-muted)]">
+                          <div>
+                            <span className="text-[var(--app-text)]">Current</span>
+                            {' · '}
+                            {latestBaselineCompare.currentTitle || 'Unknown'}
+                          </div>
+                          <div>
+                            <span className="text-[var(--app-text)]">Previous</span>
+                            {' · '}
+                            {latestBaselineCompare.previousTitle || 'Unknown'}
+                          </div>
+                          <div>
+                            <span className="text-[var(--app-text)]">Drift</span>
+                            {' · '}
+                            {latestBaselineCompare.driftSummary || 'No drift summary'}
+                          </div>
+                          {latestBaselineCompare.currentContent ? (
+                            <div className="xt-dusk-subcard px-3 py-2 text-[11px] leading-5 text-[var(--app-muted)]">
+                              <div className="text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--app-accent)]">
+                                Current baseline
+                              </div>
+                              <div className="mt-2 line-clamp-3">{latestBaselineCompare.currentContent}</div>
+                            </div>
+                          ) : null}
+                          {latestBaselineCompare.currentProvenance ? (
+                            <div className="xt-dusk-subcard px-3 py-2 text-[11px] leading-5 text-[var(--app-muted)]">
+                              <div className="text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--app-accent)]">
+                                Current accepted plan
+                              </div>
+                              <div className="mt-2">
+                                <span className="text-[var(--app-text)]">Provider</span>
+                                {' · '}
+                                {formatCompareProvenanceProvider(latestBaselineCompare.currentProvenance)}
+                              </div>
+                              <div>
+                                <span className="text-[var(--app-text)]">Accepted</span>
+                                {' · '}
+                                {latestBaselineCompare.currentProvenance.acceptedLabel || 'Unknown'}
+                              </div>
+                              <div>
+                                <span className="text-[var(--app-text)]">Next action</span>
+                                {' · '}
+                                {latestBaselineCompare.currentProvenance.nextAction || 'None'}
+                              </div>
+                              {latestBaselineCompare.currentProvenance.revisionNote ? (
+                                <div className="mt-2">{latestBaselineCompare.currentProvenance.revisionNote}</div>
+                              ) : null}
+                            </div>
+                          ) : null}
+                          {latestBaselineCompare.previousProvenance ? (
+                            <div className="xt-dusk-subcard px-3 py-2 text-[11px] leading-5 text-[var(--app-muted)]">
+                              <div className="text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--app-accent)]">
+                                Previous accepted plan
+                              </div>
+                              <div className="mt-2">
+                                <span className="text-[var(--app-text)]">Provider</span>
+                                {' · '}
+                                {formatCompareProvenanceProvider(latestBaselineCompare.previousProvenance)}
+                              </div>
+                              <div>
+                                <span className="text-[var(--app-text)]">Accepted</span>
+                                {' · '}
+                                {latestBaselineCompare.previousProvenance.acceptedLabel || 'Unknown'}
+                              </div>
+                              <div>
+                                <span className="text-[var(--app-text)]">Next action</span>
+                                {' · '}
+                                {latestBaselineCompare.previousProvenance.nextAction || 'None'}
+                              </div>
+                              {latestBaselineCompare.previousProvenance.revisionNote ? (
+                                <div className="mt-2">{latestBaselineCompare.previousProvenance.revisionNote}</div>
+                              ) : null}
+                            </div>
+                          ) : null}
+                          {latestBaselineCompareAlignment ? (
+                            <div className="xt-dusk-subcard px-3 py-2 text-[11px] leading-5 text-[var(--app-muted)]">
+                              <div className="text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--app-accent)]">
+                                Accepted Plan Alignment
+                              </div>
+                              <div className="mt-2 text-[10px] uppercase tracking-[0.1em] text-[var(--app-muted)]">
+                                Status · {latestBaselineCompareAlignment.status}
+                              </div>
+                              <div className="mt-2">{latestBaselineCompareAlignment.summary}</div>
+                              <div className="mt-2">{latestBaselineCompareAlignment.recommendation}</div>
+                              <div className="mt-2 text-[10px] uppercase tracking-[0.1em] text-[var(--app-muted)]">
+                                Accepted baseline · {latestBaselineCompareAlignment.acceptedBaselineTitle}
+                              </div>
+                              {activeManagedSession?.acceptedNextAction ? (
+                                <div className="mt-2 text-[10px] uppercase tracking-[0.1em] text-[var(--app-muted)]">
+                                  Accepted next action · {activeManagedSession.acceptedNextAction}
+                                </div>
+                              ) : null}
+                            </div>
+                          ) : null}
+                        </div>
+                      ) : latestBaselineProvenance ? (
+                        <div className="mt-3 grid gap-2 text-[11px] leading-5 text-[var(--app-muted)]">
+                          <div>
+                            <span className="text-[var(--app-text)]">Baseline</span>
+                            {' · '}
+                            {latestBaselineProvenance.baselineTitle || 'Unknown'}
+                          </div>
+                          <div>
+                            <span className="text-[var(--app-text)]">Accepted</span>
+                            {' · '}
+                            {latestBaselineProvenance.acceptedLabel || 'Unknown'}
+                          </div>
+                          <div>
+                            <span className="text-[var(--app-text)]">Next action</span>
+                            {' · '}
+                            {latestBaselineProvenance.nextAction || 'None'}
+                          </div>
+                          <div>
+                            <span className="text-[var(--app-text)]">Provider</span>
+                            {' · '}
+                            {formatBaselineProvenanceBriefProvider(latestBaselineProvenance)}
+                          </div>
+                          {latestBaselineProvenance.compareCurrentTitle ? (
+                            <div>
+                              <span className="text-[var(--app-text)]">Compare anchor</span>
+                              {' · '}
+                              {latestBaselineProvenance.compareCurrentTitle}
+                              {latestBaselineProvenance.comparePreviousTitle ? ` vs ${latestBaselineProvenance.comparePreviousTitle}` : ''}
+                            </div>
+                          ) : null}
+                          {latestBaselineProvenance.compareDriftSummary ? (
+                            <div>
+                              <span className="text-[var(--app-text)]">Compare drift</span>
+                              {' · '}
+                              {latestBaselineProvenance.compareDriftSummary}
+                            </div>
+                          ) : null}
+                          {latestBaselineProvenance.revisionNote ? (
+                            <div className="xt-dusk-subcard px-3 py-2 text-[11px] leading-5 text-[var(--app-muted)]">
+                              <div className="text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--app-accent)]">
+                                Accepted revision note
+                              </div>
+                              <div className="mt-2">{latestBaselineProvenance.revisionNote}</div>
+                            </div>
+                          ) : null}
+                          {latestBaselineProvenance.baselineContent ? (
+                            <div className="xt-dusk-subcard px-3 py-2 text-[11px] leading-5 text-[var(--app-muted)]">
+                              <div className="text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--app-accent)]">
+                                Baseline content
+                              </div>
+                              <div className="mt-2 line-clamp-3">{latestBaselineProvenance.baselineContent}</div>
+                            </div>
+                          ) : null}
+                          {latestBaselineProvenanceAlignment ? (
+                            <div className="xt-dusk-subcard px-3 py-2 text-[11px] leading-5 text-[var(--app-muted)]">
+                              <div className="text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--app-accent)]">
+                                Decision anchor
+                              </div>
+                              <div className="mt-2 text-[10px] uppercase tracking-[0.1em] text-[var(--app-muted)]">
+                                Status · {latestBaselineProvenanceAlignment.status}
+                              </div>
+                              <div className="mt-2">{latestBaselineProvenanceAlignment.summary}</div>
+                              <div className="mt-2">{latestBaselineProvenanceAlignment.recommendation}</div>
+                            </div>
+                          ) : null}
+                        </div>
+                      ) : (
+                        <div className="mt-2 line-clamp-3 text-[11px] leading-5 text-[var(--app-muted)]">{latestBrief.body}</div>
+                      )}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={clearLatestBrief}
+                      className="xt-dusk-icon-btn inline-flex h-8 w-8 shrink-0 items-center justify-center text-[var(--app-muted)] hover:text-[var(--app-text)]"
+                      aria-label="Clear latest Dusk brief"
+                    >
+                      <X size={14} />
+                    </button>
+                  </div>
+                  <div className="mt-3 flex gap-2">
+                    <button
+                      type="button"
+                      onClick={useLatestBrief}
+                      className="xt-dusk-btn xt-dusk-btn--accent inline-flex h-9 flex-1 items-center justify-center gap-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--app-text)]"
+                    >
+                      <Save size={14} />
+                      Promote To Quest
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        pushToast('Dusk brief kept for later');
+                      }}
+                      className="xt-dusk-btn inline-flex h-9 items-center justify-center px-3 text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--app-muted)] hover:text-[var(--app-text)]"
+                    >
+                      Later
+                    </button>
+                    {latestBaselineCompare ? (
+                      <button
+                        type="button"
+                        onClick={useLatestBaselineCompareInPlan}
+                        className="xt-dusk-btn inline-flex h-9 items-center justify-center px-3 text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--app-muted)] hover:text-[var(--app-text)]"
+                      >
+                        Use In Plan
+                      </button>
+                    ) : latestBaselineProvenance ? (
+                      <button
+                        type="button"
+                        onClick={useLatestBaselineProvenanceInPlan}
+                        className="xt-dusk-btn inline-flex h-9 items-center justify-center px-3 text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--app-muted)] hover:text-[var(--app-text)]"
+                      >
+                        Use In Plan
+                      </button>
+                    ) : null}
+                  </div>
+                </div>
+              ) : null}
+
+              {duskActionDeck.length ? (
+                <div className="xt-dusk-section mb-3 p-3">
+                  <div className="flex items-center justify-between gap-3">
+                    <div>
+                      <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[var(--app-accent)]">Action Deck</div>
+                      <div className="mt-1 text-[11px] leading-5 text-[var(--app-muted)]">
+                      Direct local actions Dusk can take safely right now.
+                      </div>
+                    </div>
+                    <div className="flex flex-wrap justify-end gap-2">
+                      <div className="xt-dusk-chip">
+                        {duskActionDeck.length} ready
+                      </div>
+                      <div className="xt-dusk-chip">
+                        {duskProviderTools.length} tools
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="mt-3 grid gap-2">
+                    {duskActionDeck.map((action) => (
+                      <button
+                        key={action.id}
+                        type="button"
+                        onClick={() => handleDuskAction(action.id)}
+                        className={`xt-dusk-subcard xt-dusk-subcard--action px-3 py-3 text-left transition-colors ${
+                          action.tone === 'accent'
+                            ? 'xt-dusk-subcard--accent'
+                            : ''
+                        }`}
+                      >
+                        <div className="flex items-start justify-between gap-3">
+                          <div>
+                            <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--app-text)]">{action.title}</div>
+                            <div className="mt-1 text-[11px] leading-5 text-[var(--app-muted)]">{action.description}</div>
+                          </div>
+                          <span className="xt-dusk-chip">
+                            {action.source}
+                          </span>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
+
+              {duskToolAudit.length ? (
+                <div className="xt-dusk-section mb-3 p-3">
+                  <div className="flex items-center justify-between gap-3">
+                    <div>
+                      <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[var(--app-accent)]">Tool Timeline</div>
+                      <div className="mt-1 text-[11px] leading-5 text-[var(--app-muted)]">
+                        Recent Dusk tool executions for this station scope.
+                      </div>
+                    </div>
+                    <div className="xt-dusk-chip">
+                      {duskToolAudit.length} logged
+                    </div>
+                  </div>
+                  <div className="mt-3 grid gap-2">
+                    {duskToolAudit.slice(0, 4).map((entry) => (
+                      <div
+                        key={entry.id}
+                        className="xt-dusk-subcard px-3 py-2"
+                      >
+                        <div className="flex items-start justify-between gap-3">
+                          <div>
+                            <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--app-text)]">
+                              {entry.actionId.replace(/-/g, ' ')}
+                            </div>
+                            <div className="mt-1 text-[11px] leading-5 text-[var(--app-muted)]">{entry.message}</div>
+                          </div>
+                          <div className="flex flex-col items-end gap-1">
+                            <span className="xt-dusk-chip">
+                              {entry.actor}
+                            </span>
+                            <span className="xt-dusk-chip">
+                              {entry.status}
+                            </span>
+                          </div>
+                        </div>
+                        <div className="mt-2 text-[10px] uppercase tracking-[0.12em] text-[var(--app-muted)]">
+                          {formatRelativeTime(entry.createdAt)}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
+
+              <div className="xt-dusk-section mb-3 p-3">
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[var(--app-accent)]">Provider Bridge</div>
+                    <div className="mt-1 text-[11px] leading-5 text-[var(--app-muted)]">
+                      Export the current Dusk tool contract and station context as one provider-safe envelope.
+                    </div>
+                  </div>
+                  <div className="xt-dusk-chip">
+                    v1
+                  </div>
+                </div>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {duskProviderTools.slice(0, 3).map((tool) => (
+                    <span
+                      key={tool.name}
+                      className="xt-dusk-chip"
+                    >
+                      {tool.name.replace(/^xtation_/, '')}
+                    </span>
+                  ))}
+                  {duskProviderTools.length > 3 ? (
+                    <span className="xt-dusk-chip">
+                      +{duskProviderTools.length - 3} more
+                    </span>
+                  ) : null}
+                </div>
+                <div className="mt-3 flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      void copyProviderEnvelope();
+                    }}
+                    className="xt-dusk-btn xt-dusk-btn--accent inline-flex h-9 flex-1 items-center justify-center gap-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--app-text)]"
+                  >
+                    <Copy size={14} />
+                    Copy Provider Contract
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      void askManagedProvider();
+                    }}
+                    disabled={isManagedProviderLoading || !duskProviderTools.length}
+                    className="xt-dusk-btn inline-flex h-9 items-center justify-center gap-2 px-3 text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--app-muted)] hover:text-[var(--app-text)] disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    {isManagedProviderLoading ? 'Bridging…' : 'Ask Managed Provider'}
+                  </button>
+                </div>
+                <div className="mt-3">
+                  <div className="mb-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--app-muted)]">
+                    Provider Run
+                  </div>
+                  <div className="text-[11px] leading-5 text-[var(--app-muted)]">
+                    Managed provider uses a server-side OpenAI bridge. The JSON run request stays explicit so XTATION still controls the final write step.
+                  </div>
+                  {managedProviderMessage ? (
+                    <div className="xt-dusk-subcard mt-3 px-3 py-2 text-[11px] leading-5 text-[var(--app-text)]">
+                      {managedProviderMessage}
+                    </div>
+                  ) : null}
+                  {managedProviderSessions.length ? (
+                    <div className="xt-dusk-subcard mt-3 p-3">
+                      <div className="flex items-center justify-between gap-3">
+                        <div>
+                          <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--app-accent)]">
+                            Managed Trace
+                          </div>
+                          <div className="mt-1 text-[11px] leading-5 text-[var(--app-muted)]">
+                            Recent provider plans for this station scope.
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            clearManagedProviderSessions(activeScope);
+                            setActiveManagedSessionId(null);
+                            setManagedProviderMessage(null);
+                            playClickSound();
+                          }}
+                          className="xt-dusk-btn inline-flex h-8 items-center justify-center px-3 text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--app-muted)] hover:text-[var(--app-text)]"
+                        >
+                          Clear Trace
+                        </button>
+                      </div>
+                      <div className="mt-3 grid gap-2">
+                        {managedProviderSessions.slice(0, 4).map((session) => {
+                          const sessionBaselineAlignment = buildBaselineCompareAlignment(latestBaselineCompare, {
+                            acceptedBaselineTitle: getManagedSessionAcceptedBaselineTitle(session),
+                            acceptedNextAction: session.acceptedNextAction || null,
+                          });
+                          const sessionProvenanceAlignment = buildBaselineProvenanceAlignment(latestBaselineProvenance, {
+                            acceptedBaselineTitle: getManagedSessionAcceptedBaselineTitle(session),
+                            acceptedNextAction: session.acceptedNextAction || null,
+                          });
+                          const sessionAcceptedCompareContext =
+                            session.acceptedBaselineCompareContext || session.baselineCompareContext;
+                          return (
+                            <div
+                              key={session.id}
+                              className="xt-dusk-subcard px-3 py-2"
+                            >
+                              <div className="flex items-start justify-between gap-3">
+                                <div>
+                                  <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--app-text)]">
+                                    {session.providerLabel} · {session.model}
+                                  </div>
+                                  <div className="mt-1 text-[11px] leading-5 text-[var(--app-muted)]">
+                                    {session.envelopeHeadline}
+                                  </div>
+                                  <div className="mt-1 text-[11px] leading-5 text-[var(--app-muted)]">
+                                    {session.nextAction}
+                                  </div>
+                                  <div className="mt-1 text-[10px] uppercase tracking-[0.1em] text-[var(--app-muted)]">
+                                    {session.request.tools.map((tool) => tool.name.replace(/^xtation_/, '')).join(' · ')}
+                                  </div>
+                                </div>
+                                <div className="flex flex-col items-end gap-1">
+                                  <span className="xt-dusk-chip">
+                                    {session.status}
+                                  </span>
+                                  {session.revisionCount ? (
+                                    <span className="xt-dusk-chip">
+                                      r{session.revisionCount}
+                                    </span>
+                                  ) : null}
+                                  {sessionBaselineAlignment ? (
+                                    <span className="xt-dusk-chip">
+                                      {sessionBaselineAlignment.status}
+                                    </span>
+                                  ) : null}
+                                </div>
+                              </div>
+                              {session.outputText ? (
+                                <div className="mt-2 text-[11px] leading-5 text-[var(--app-muted)]">
+                                  {session.outputText}
+                                </div>
+                              ) : null}
+                              {session.latestRevisionNote ? (
+                                <div className="mt-2 text-[11px] leading-5 text-[var(--app-text)]">
+                                  Revision note · {session.latestRevisionNote}
+                                </div>
+                              ) : null}
+                              {session.acceptedAt ? (
+                                <div className="mt-2 text-[10px] uppercase tracking-[0.1em] text-[var(--app-muted)]">
+                                  Accepted {formatPlanStamp(session.acceptedAt)}
+                                </div>
+                              ) : null}
+                              {session.promotedAt ? (
+                                <div className="mt-2 text-[10px] uppercase tracking-[0.1em] text-[var(--app-muted)]">
+                                  Lab baseline · {formatPlanStamp(session.promotedAt)}
+                                </div>
+                              ) : null}
+                              {session.acceptedRequest ? (
+                                (() => {
+                                  const diff = diffManagedProviderRequests(session.request, session.acceptedRequest);
+                                  return (
+                                    <div className="mt-2 text-[10px] uppercase tracking-[0.1em] text-[var(--app-muted)]">
+                                      {summarizeManagedProviderRequestDiff(diff)}
+                                    </div>
+                                  );
+                                })()
+                              ) : null}
+                              {sessionAcceptedCompareContext ? (
+                                <div className="mt-2 text-[10px] uppercase tracking-[0.1em] text-[var(--app-muted)]">
+                                  Compare anchor · {sessionAcceptedCompareContext.currentTitle || 'Unknown'}
+                                  {sessionAcceptedCompareContext.previousTitle
+                                    ? ` vs ${sessionAcceptedCompareContext.previousTitle}`
+                                    : ''}
+                                </div>
+                              ) : null}
+                              {sessionAcceptedCompareContext?.currentProvenance ? (
+                                <div className="mt-2 text-[10px] uppercase tracking-[0.1em] text-[var(--app-muted)]">
+                                  Current plan · {formatCompareProvenanceProvider(sessionAcceptedCompareContext.currentProvenance)}
+                                </div>
+                              ) : null}
+                              {sessionAcceptedCompareContext?.previousProvenance ? (
+                                <div className="mt-2 text-[10px] uppercase tracking-[0.1em] text-[var(--app-muted)]">
+                                  Previous plan · {formatCompareProvenanceProvider(sessionAcceptedCompareContext.previousProvenance)}
+                                </div>
+                              ) : null}
+                              {session.acceptedBaselineProvenanceContext ? (
+                                <div className="mt-2 text-[10px] uppercase tracking-[0.1em] text-[var(--app-muted)]">
+                                  Provenance · {formatBaselineProvenanceBriefProvider(session.acceptedBaselineProvenanceContext)}
+                                  {session.acceptedBaselineProvenanceContext.acceptedLabel
+                                    ? ` · ${session.acceptedBaselineProvenanceContext.acceptedLabel}`
+                                    : ''}
+                                </div>
+                              ) : null}
+                              {sessionProvenanceAlignment ? (
+                                <div className="mt-2 grid gap-1 text-[11px] leading-5 text-[var(--app-muted)]">
+                                  <div>{sessionProvenanceAlignment.summary}</div>
+                                  <div className="text-[10px] uppercase tracking-[0.1em] text-[var(--app-muted)]">
+                                    {sessionProvenanceAlignment.recommendation}
+                                  </div>
+                                </div>
+                              ) : null}
+                              {sessionBaselineAlignment ? (
+                                <div className="mt-2 grid gap-1 text-[11px] leading-5 text-[var(--app-muted)]">
+                                  <div>{sessionBaselineAlignment.summary}</div>
+                                  <div className="text-[10px] uppercase tracking-[0.1em] text-[var(--app-muted)]">
+                                    {sessionBaselineAlignment.recommendation}
+                                  </div>
+                                </div>
+                              ) : latestBaselineCompare ? (
+                                <div className="mt-2 text-[10px] uppercase tracking-[0.1em] text-[var(--app-muted)]">
+                                  No accepted baseline to compare yet
+                                </div>
+                              ) : null}
+                              {session.reportSummary ? (
+                                <div className="mt-2 text-[10px] uppercase tracking-[0.1em] text-[var(--app-muted)]">
+                                  {session.reportSummary.succeededCount} success · {session.reportSummary.blockedCount} blocked
+                                </div>
+                              ) : null}
+                              <div className="mt-2 flex gap-2">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setProviderRunInput(buildDuskProviderRunRequestText(session.request));
+                                  setProviderRunError(null);
+                                  setProviderRunReport(null);
+                                  setActiveManagedSessionId(session.id);
+                                  setManagedRevisionNote(session.latestRevisionNote || '');
+                                  if (sessionBaselineAlignment) {
+                                    setManagedProviderMessage(sessionBaselineAlignment.recommendation);
+                                  }
+                                  playClickSound();
+                                }}
+                                className="xt-dusk-btn inline-flex h-8 items-center justify-center px-3 text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--app-muted)] hover:text-[var(--app-text)]"
+                                >
+                                  Load Plan
+                                </button>
+                              {session.acceptedRequest ? (
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setProviderRunInput(buildDuskProviderRunRequestText(session.acceptedRequest!));
+                                    setProviderRunError(null);
+                                    setProviderRunReport(null);
+                                    setActiveManagedSessionId(session.id);
+                                    setManagedRevisionNote(session.latestRevisionNote || '');
+                                    setManagedProviderMessage(
+                                      sessionBaselineAlignment?.recommendation ||
+                                        'Accepted baseline loaded into the provider request editor.'
+                                    );
+                                    playClickSound();
+                                  }}
+                                  className="xt-dusk-btn inline-flex h-8 items-center justify-center px-3 text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--app-muted)] hover:text-[var(--app-text)]"
+                                >
+                                  Load Accepted
+                                </button>
+                              ) : null}
+                              {session.status !== 'discarded' && session.status !== 'executed' ? (
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setProviderRunInput(buildDuskProviderRunRequestText(session.request));
+                                    setProviderRunError(null);
+                                    setProviderRunReport(null);
+                                    setActiveManagedSessionId(session.id);
+                                    setManagedRevisionNote(session.latestRevisionNote || '');
+                                    acceptManagedProviderSession(
+                                      session.id,
+                                      activeScope,
+                                      createBaselineCompareContext(latestBaselineCompare),
+                                      createBaselineProvenanceContext(latestBaselineProvenance)
+                                    );
+                                    setManagedProviderMessage('Plan accepted. Run the provider request when you want Dusk to execute it.');
+                                    playSuccessSound();
+                                  }}
+                                  className="xt-dusk-btn inline-flex h-8 items-center justify-center px-3 text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--app-muted)] hover:text-[var(--app-text)]"
+                                >
+                                  Accept
+                                </button>
+                              ) : null}
+                              {session.acceptedRequest ? (
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setActiveManagedSessionId(session.id);
+                                    setManagedRevisionNote(session.latestRevisionNote || '');
+                                    promoteAcceptedManagedPlanToLab(session);
+                                  }}
+                                  className="xt-dusk-btn inline-flex h-8 items-center justify-center px-3 text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--app-muted)] hover:text-[var(--app-text)]"
+                                >
+                                  {session.promotedNoteId ? 'Refresh Lab' : 'Promote to Lab'}
+                                </button>
+                              ) : null}
+                              {session.promotedNoteId ? (
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    openLabNavigation({
+                                      section: 'knowledge',
+                                      collection: 'baselines',
+                                      noteId: session.promotedNoteId,
+                                      requestedBy: 'dusk',
+                                    });
+                                    setManagedProviderMessage('Opening promoted Lab baseline.');
+                                    playClickSound();
+                                  }}
+                                  className="xt-dusk-btn inline-flex h-8 items-center justify-center px-3 text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--app-muted)] hover:text-[var(--app-text)]"
+                                >
+                                  Open Lab
+                                </button>
+                              ) : null}
+                              {session.status !== 'discarded' && session.status !== 'executed' ? (
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    discardManagedProviderSession(session.id, activeScope);
+                                    if (activeManagedSessionId === session.id) {
+                                      setActiveManagedSessionId(null);
+                                    }
+                                    setManagedProviderMessage('Plan discarded. The trace is kept for review, but it will not be executed.');
+                                    playClickSound();
+                                  }}
+                                  className="xt-dusk-btn inline-flex h-8 items-center justify-center px-3 text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--app-muted)] hover:text-[var(--app-text)]"
+                                >
+                                  Discard
+                                </button>
+                              ) : null}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  ) : null}
+                  {activeManagedSession ? (
+                    <div className="xt-dusk-subcard mt-3 p-3">
+                      <div className="flex items-center justify-between gap-3">
+                        <div>
+                          <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--app-accent)]">
+                            Planning Session
+                          </div>
+                          <div className="mt-1 text-[11px] leading-5 text-[var(--app-text)]">
+                            {activeManagedSession.providerLabel} · {activeManagedSession.model}
+                          </div>
+                          <div className="mt-1 text-[11px] leading-5 text-[var(--app-muted)]">
+                            {activeManagedSession.nextAction}
+                          </div>
+                        </div>
+                        <div className="flex flex-col items-end gap-1">
+                          <span className="xt-dusk-chip">{activeManagedSession.status}</span>
+                          {providerInputDirtyForSession ? <span className="xt-dusk-chip">dirty</span> : null}
+                        </div>
+                      </div>
+                      <div className="mt-2 text-[10px] uppercase tracking-[0.1em] text-[var(--app-muted)]">
+                        {activeManagedSession.request.tools.map((tool) => tool.name.replace(/^xtation_/, '')).join(' · ')}
+                      </div>
+                      {activeManagedSession.acceptedAt ? (
+                        <div className="mt-2 text-[10px] uppercase tracking-[0.1em] text-[var(--app-muted)]">
+                          Accepted baseline · {formatPlanStamp(activeManagedSession.acceptedAt)}
+                        </div>
+                      ) : null}
+                      <div className="mt-3">
+                        <div className="mb-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--app-muted)]">
+                          Revision note
+                        </div>
+                        <textarea
+                          value={managedRevisionNote}
+                          onChange={(event) => setManagedRevisionNote(event.target.value)}
+                          placeholder="What changed in this revision?"
+                          className="xt-dusk-textarea min-h-[84px] w-full px-3 py-3 text-[11px] leading-5 text-[var(--app-text)] outline-none transition-colors placeholder:text-[var(--app-muted)]"
+                          spellCheck={false}
+                        />
+                      </div>
+                      <div className="mt-3 flex flex-wrap gap-2">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            reviseActiveManagedPlan();
+                          }}
+                          disabled={!providerInputDirtyForSession && !managedRevisionNoteDirty}
+                          className="xt-dusk-btn inline-flex h-8 items-center justify-center px-3 text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--app-muted)] hover:text-[var(--app-text)] disabled:cursor-not-allowed disabled:opacity-50"
+                        >
+                          Save Revision
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            acceptActiveManagedPlan();
+                          }}
+                          disabled={activeManagedSession.status === 'accepted' || activeManagedSession.status === 'executed'}
+                          className="xt-dusk-btn inline-flex h-8 items-center justify-center px-3 text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--app-muted)] hover:text-[var(--app-text)] disabled:cursor-not-allowed disabled:opacity-50"
+                        >
+                          {activeManagedSession.status === 'accepted' || activeManagedSession.status === 'executed' ? 'Accepted' : 'Accept Plan'}
+                        </button>
+                        {activeManagedSession.acceptedRequest ? (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              loadAcceptedManagedPlan();
+                            }}
+                            className="xt-dusk-btn inline-flex h-8 items-center justify-center px-3 text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--app-muted)] hover:text-[var(--app-text)]"
+                          >
+                            Load Accepted
+                          </button>
+                        ) : null}
+                        {activeManagedSession.acceptedRequest ? (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              promoteAcceptedManagedPlanToLab(activeManagedSession);
+                            }}
+                            className="xt-dusk-btn inline-flex h-8 items-center justify-center px-3 text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--app-muted)] hover:text-[var(--app-text)]"
+                          >
+                            {activeManagedSession.promotedNoteId ? 'Refresh Lab' : 'Promote to Lab'}
+                          </button>
+                        ) : null}
+                        {activeManagedSession.promotedNoteId ? (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              openLabNavigation({
+                                section: 'knowledge',
+                                collection: 'baselines',
+                                noteId: activeManagedSession.promotedNoteId,
+                                requestedBy: 'dusk',
+                              });
+                              setManagedProviderMessage('Opening promoted Lab baseline.');
+                              playClickSound();
+                            }}
+                            className="xt-dusk-btn inline-flex h-8 items-center justify-center px-3 text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--app-muted)] hover:text-[var(--app-text)]"
+                          >
+                            Open Lab
+                          </button>
+                        ) : null}
+                        <button
+                          type="button"
+                          onClick={() => {
+                            discardActiveManagedPlan();
+                          }}
+                          disabled={activeManagedSession.status === 'discarded' || activeManagedSession.status === 'executed'}
+                          className="xt-dusk-btn inline-flex h-8 items-center justify-center px-3 text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--app-muted)] hover:text-[var(--app-text)] disabled:cursor-not-allowed disabled:opacity-50"
+                        >
+                          Discard
+                        </button>
+                      </div>
+                      <div className="xt-dusk-subcard mt-3 px-3 py-3">
+                        <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--app-accent)]">
+                          Revision Decision
+                        </div>
+                        <div className="mt-2 text-[11px] leading-5 text-[var(--app-muted)]">
+                          {activeManagedPlanningRecommendation || 'Review the editor draft before saving or executing it.'}
+                        </div>
+                        <div className="mt-3 grid gap-3">
+                          {activeManagedSession.acceptedRequest && activeManagedSessionAcceptedDiff ? (
+                            <div className="grid gap-2 text-[11px] leading-5 text-[var(--app-muted)]">
+                              <div className="text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--app-accent)]">
+                                Accepted plan
+                              </div>
+                              <div>
+                                <span className="text-[var(--app-text)]">Status</span>
+                                {' · '}
+                                {activeManagedSessionAcceptedDiff.changed
+                                  ? 'Current draft differs from the last accepted plan.'
+                                  : 'Current draft matches the last accepted plan.'}
+                              </div>
+                              {activeManagedSession.promotedAt ? (
+                                <div>
+                                  <span className="text-[var(--app-text)]">Promoted</span>
+                                  {' · '}
+                                  {formatPlanStamp(activeManagedSession.promotedAt)}
+                                </div>
+                              ) : null}
+                              <div>
+                                <span className="text-[var(--app-text)]">Accepted next action</span>
+                                {' · '}
+                            {activeManagedSession.acceptedNextAction || 'None'}
+                          </div>
+                              {activeManagedSession.acceptedBaselineCompareContext ? (
+                                <div>
+                                  <span className="text-[var(--app-text)]">Compare anchor</span>
+                                  {' · '}
+                                  {activeManagedSession.acceptedBaselineCompareContext.currentTitle || 'Unknown'}
+                                  {activeManagedSession.acceptedBaselineCompareContext.previousTitle
+                                    ? ` vs ${activeManagedSession.acceptedBaselineCompareContext.previousTitle}`
+                                    : ''}
+                                </div>
+                              ) : null}
+                              <div>
+                                <span className="text-[var(--app-text)]">Current next action</span>
+                                {' · '}
+                                {activeManagedSession.nextAction}
+                              </div>
+                              <div>
+                                <span className="text-[var(--app-text)]">Added</span>
+                                {' · '}
+                                {activeManagedSessionAcceptedDiff.addedTools.length
+                                  ? activeManagedSessionAcceptedDiff.addedTools.join(' · ')
+                                  : 'None'}
+                              </div>
+                              <div>
+                                <span className="text-[var(--app-text)]">Removed</span>
+                                {' · '}
+                                {activeManagedSessionAcceptedDiff.removedTools.length
+                                  ? activeManagedSessionAcceptedDiff.removedTools.join(' · ')
+                                  : 'None'}
+                              </div>
+                              <div>
+                                <span className="text-[var(--app-text)]">Reason changes</span>
+                                {' · '}
+                                {activeManagedSessionAcceptedDiff.reasonChangedTools.length
+                                  ? activeManagedSessionAcceptedDiff.reasonChangedTools.join(' · ')
+                                  : 'None'}
+                              </div>
+                              <div>
+                                <span className="text-[var(--app-text)]">Stop mode</span>
+                                {' · '}
+                                {activeManagedSessionAcceptedDiff.stopOnBlockedChanged ? 'Changed' : 'Unchanged'}
+                              </div>
+                            </div>
+                          ) : null}
+                          {latestBaselineCompare ? (
+                            <div className="grid gap-2 text-[11px] leading-5 text-[var(--app-muted)]">
+                              <div className="text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--app-accent)]">
+                                Baseline compare
+                              </div>
+                              <div>
+                                <span className="text-[var(--app-text)]">Current</span>
+                                {' · '}
+                                {latestBaselineCompare.currentTitle || 'Unknown'}
+                              </div>
+                              <div>
+                                <span className="text-[var(--app-text)]">Previous</span>
+                                {' · '}
+                                {latestBaselineCompare.previousTitle || 'Unknown'}
+                              </div>
+                              <div>
+                                <span className="text-[var(--app-text)]">Drift</span>
+                                {' · '}
+                                {latestBaselineCompare.driftSummary || 'No drift summary'}
+                              </div>
+                              {latestBaselineCompare.currentProvenance ? (
+                                <div>
+                                  <span className="text-[var(--app-text)]">Current plan</span>
+                                  {' · '}
+                                  {formatCompareProvenanceProvider(latestBaselineCompare.currentProvenance)}
+                                </div>
+                              ) : null}
+                              {latestBaselineCompare.previousProvenance ? (
+                                <div>
+                                  <span className="text-[var(--app-text)]">Previous plan</span>
+                                  {' · '}
+                                  {formatCompareProvenanceProvider(latestBaselineCompare.previousProvenance)}
+                                </div>
+                              ) : null}
+                              {latestBaselineCompareAlignment ? (
+                                <>
+                                  <div>
+                                    <span className="text-[var(--app-text)]">Status</span>
+                                    {' · '}
+                                    {latestBaselineCompareAlignment.status}
+                                  </div>
+                                  <div>{latestBaselineCompareAlignment.recommendation}</div>
+                                </>
+                              ) : (
+                                <div>No accepted baseline is attached to this plan yet.</div>
+                              )}
+                            </div>
+                          ) : latestBaselineProvenance ? (
+                            <div className="grid gap-2 text-[11px] leading-5 text-[var(--app-muted)]">
+                              <div className="text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--app-accent)]">
+                                Accepted baseline provenance
+                              </div>
+                              <div>
+                                <span className="text-[var(--app-text)]">Baseline</span>
+                                {' · '}
+                                {latestBaselineProvenance.baselineTitle || 'Unknown'}
+                              </div>
+                              <div>
+                                <span className="text-[var(--app-text)]">Accepted</span>
+                                {' · '}
+                                {latestBaselineProvenance.acceptedLabel || 'Unknown'}
+                              </div>
+                              <div>
+                                <span className="text-[var(--app-text)]">Next action</span>
+                                {' · '}
+                                {latestBaselineProvenance.nextAction || 'None'}
+                              </div>
+                              <div>
+                                <span className="text-[var(--app-text)]">Provider</span>
+                                {' · '}
+                                {formatBaselineProvenanceBriefProvider(latestBaselineProvenance)}
+                              </div>
+                              {latestBaselineProvenance.compareCurrentTitle ? (
+                                <div>
+                                  <span className="text-[var(--app-text)]">Compare anchor</span>
+                                  {' · '}
+                                  {latestBaselineProvenance.compareCurrentTitle}
+                                  {latestBaselineProvenance.comparePreviousTitle
+                                    ? ` vs ${latestBaselineProvenance.comparePreviousTitle}`
+                                    : ''}
+                                </div>
+                              ) : null}
+                              {latestBaselineProvenance.compareDriftSummary ? (
+                                <div>
+                                  <span className="text-[var(--app-text)]">Compare drift</span>
+                                  {' · '}
+                                  {latestBaselineProvenance.compareDriftSummary}
+                                </div>
+                              ) : null}
+                              {latestBaselineProvenanceAlignment ? (
+                                <>
+                                  <div>
+                                    <span className="text-[var(--app-text)]">Status</span>
+                                    {' · '}
+                                    {latestBaselineProvenanceAlignment.status}
+                                  </div>
+                                  <div>{latestBaselineProvenanceAlignment.recommendation}</div>
+                                </>
+                              ) : null}
+                            </div>
+                          ) : null}
+                          {!providerRunInput.trim() ? (
+                            <div className="text-[11px] leading-5 text-[var(--app-muted)]">
+                              Provider request editor is empty.
+                            </div>
+                          ) : parsedCurrentManagedDraft?.ok && currentManagedDraftRequest ? (
+                            <div className="grid gap-2 text-[11px] leading-5 text-[var(--app-muted)]">
+                              <div className="text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--app-accent)]">
+                                Current draft
+                              </div>
+                            <div>
+                              <span className="text-[var(--app-text)]">Draft</span>
+                              {' · '}
+                              {currentManagedDraftRequest.tools.length} tools
+                            </div>
+                            <div>
+                              <span className="text-[var(--app-text)]">Against loaded session</span>
+                              {' · '}
+                              {currentManagedDraftDiffFromLoaded
+                                ? summarizeManagedProviderRequestDiff(currentManagedDraftDiffFromLoaded)
+                                : 'Unavailable'}
+                            </div>
+                            {activeManagedSession.acceptedRequest ? (
+                              <div>
+                                <span className="text-[var(--app-text)]">Against accepted baseline</span>
+                                {' · '}
+                                {currentManagedDraftDiffFromAccepted
+                                  ? summarizeManagedProviderRequestDiff(currentManagedDraftDiffFromAccepted)
+                                  : 'Unavailable'}
+                              </div>
+                            ) : null}
+                            <div>
+                              <span className="text-[var(--app-text)]">Current requester</span>
+                              {' · '}
+                              {currentManagedDraftRequest.requestedBy || 'None'}
+                            </div>
+                            <div>
+                              <span className="text-[var(--app-text)]">Current stop mode</span>
+                              {' · '}
+                              {currentManagedDraftRequest.stopOnBlocked === false ? 'Continue on blocked' : 'Stop on blocked'}
+                            </div>
+                          </div>
+                        ) : (
+                            <div className="text-[11px] leading-5 text-[var(--app-text)]">
+                              {parsedCurrentManagedDraft?.message || 'Current draft is invalid.'}
+                            </div>
+                          )}
+                          <div className="flex flex-wrap gap-2 pt-1">
+                            {latestBaselineCompare ? (
+                              <>
+                                <button
+                                  type="button"
+                                  onClick={useLatestBaselineCompareInPlan}
+                                  className="xt-dusk-btn inline-flex h-8 items-center justify-center px-3 text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--app-muted)] hover:text-[var(--app-text)]"
+                                >
+                                  Append Compare Note
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={replaceLatestBaselineCompareInPlan}
+                                  className="xt-dusk-btn inline-flex h-8 items-center justify-center px-3 text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--app-muted)] hover:text-[var(--app-text)]"
+                                >
+                                  Replace Revision Note
+                                </button>
+                              </>
+                            ) : latestBaselineProvenance ? (
+                              <>
+                                <button
+                                  type="button"
+                                  onClick={useLatestBaselineProvenanceInPlan}
+                                  className="xt-dusk-btn inline-flex h-8 items-center justify-center px-3 text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--app-muted)] hover:text-[var(--app-text)]"
+                                >
+                                  Append Provenance Note
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={replaceLatestBaselineProvenanceInPlan}
+                                  className="xt-dusk-btn inline-flex h-8 items-center justify-center px-3 text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--app-muted)] hover:text-[var(--app-text)]"
+                                >
+                                  Replace Revision Note
+                                </button>
+                              </>
+                            ) : null}
+                            {activeManagedSession.acceptedRequest ? (
+                              <button
+                                type="button"
+                                onClick={loadAcceptedManagedPlan}
+                                className="xt-dusk-btn inline-flex h-8 items-center justify-center px-3 text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--app-muted)] hover:text-[var(--app-text)]"
+                              >
+                                Load Accepted
+                              </button>
+                            ) : null}
+                          </div>
+                        </div>
+                      </div>
+                      {activeManagedSession.revisionHistory?.length ? (
+                        <div className="xt-dusk-subcard mt-3 px-3 py-3">
+                          <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--app-accent)]">
+                            Recent Revisions
+                          </div>
+                          <div className="mt-3 grid gap-2">
+                            {activeManagedSession.revisionHistory.slice(0, 3).map((revision, index) => (
+                              <div key={`${revision.savedAt}-${index}`} className="xt-dusk-subcard px-3 py-2">
+                                {(() => {
+                                  const revisionDiff = activeManagedSession.acceptedRequest
+                                    ? diffManagedProviderRequests(revision.request, activeManagedSession.acceptedRequest)
+                                    : null;
+                                  return (
+                                    <>
+                                <div className="flex items-center justify-between gap-3">
+                                  <div className="text-[10px] uppercase tracking-[0.1em] text-[var(--app-muted)]">
+                                    {formatPlanStamp(revision.savedAt)}
+                                  </div>
+                                  <div className="text-[10px] uppercase tracking-[0.1em] text-[var(--app-muted)]">
+                                    {revision.request.tools.length} tools
+                                  </div>
+                                </div>
+                                <div className="mt-1 text-[11px] leading-5 text-[var(--app-text)]">
+                                {revision.note || 'No revision note'}
+                                </div>
+                                {revision.baselineCompareContext ? (
+                                  <div className="mt-1 text-[10px] uppercase tracking-[0.1em] text-[var(--app-muted)]">
+                                    Compare · {revision.baselineCompareContext.currentTitle || 'Unknown'}
+                                    {revision.baselineCompareContext.previousTitle
+                                      ? ` vs ${revision.baselineCompareContext.previousTitle}`
+                                      : ''}
+                                  </div>
+                                ) : null}
+                                {revisionDiff ? (
+                                  <div className="mt-1 text-[10px] uppercase tracking-[0.1em] text-[var(--app-muted)]">
+                                    {summarizeManagedProviderRequestDiff(revisionDiff)}
+                                  </div>
+                                ) : null}
+                                {activeManagedSession.acceptedNextAction ? (
+                                  <div className="mt-1 text-[10px] uppercase tracking-[0.1em] text-[var(--app-muted)]">
+                                    {revision.nextAction === activeManagedSession.acceptedNextAction
+                                      ? 'Next action matches accepted'
+                                      : 'Next action drifted'}
+                                  </div>
+                                ) : null}
+                                <div className="mt-1 text-[10px] uppercase tracking-[0.1em] text-[var(--app-muted)]">
+                                  {revision.request.tools.map((tool) => tool.name.replace(/^xtation_/, '')).join(' · ')}
+                                </div>
+                                    </>
+                                  );
+                                })()}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      ) : null}
+                    </div>
+                  ) : null}
+                  <textarea
+                    value={providerRunInput}
+                    onChange={(event) => {
+                      setProviderRunInput(event.target.value);
+                      if (providerRunError) setProviderRunError(null);
+                    }}
+                    placeholder={providerRunSampleText || 'No provider tools are available right now.'}
+                    className="xt-dusk-textarea mt-3 min-h-[132px] w-full px-3 py-3 text-[11px] leading-5 text-[var(--app-text)] outline-none transition-colors placeholder:text-[var(--app-muted)]"
+                    spellCheck={false}
+                  />
+                  {providerRunError ? (
+                    <div className="xt-dusk-subcard xt-dusk-subcard--alert mt-2 px-3 py-2 text-[11px] leading-5 text-[var(--app-text)]">
+                      {providerRunError}
+                    </div>
+                  ) : null}
+                  <div className="mt-3 flex gap-2">
+                    <button
+                      type="button"
+                      onClick={loadProviderRunSample}
+                      className="xt-dusk-btn inline-flex h-9 items-center justify-center px-3 text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--app-muted)] hover:text-[var(--app-text)]"
+                    >
+                      Load Sample
+                    </button>
+                    <button
+                      type="button"
+                      onClick={runProviderRequest}
+                      className="xt-dusk-btn xt-dusk-btn--accent inline-flex h-9 flex-1 items-center justify-center gap-2 px-3 text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--app-text)]"
+                    >
+                      <Play size={14} />
+                      Run Provider Request
+                    </button>
+                    <button
+                      type="button"
+                      onClick={clearProviderRun}
+                      className="xt-dusk-btn inline-flex h-9 items-center justify-center px-3 text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--app-muted)] hover:text-[var(--app-text)]"
+                    >
+                      Clear
+                    </button>
+                  </div>
+                  {providerRunReport ? (
+                    <div className="xt-dusk-subcard mt-3 p-3">
+                      <div className="flex items-center justify-between gap-3">
+                        <div>
+                          <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--app-accent)]">
+                            Provider Run Report
+                          </div>
+                          <div className="mt-1 text-[11px] leading-5 text-[var(--app-muted)]">
+                            {providerRunReport.requestedBy || 'Unknown provider'} · {formatRelativeTime(providerRunReport.receivedAt)}
+                          </div>
+                        </div>
+                        <div className="flex flex-wrap justify-end gap-2">
+                          <span className="xt-dusk-chip">
+                            {providerRunReport.succeededCount} success
+                          </span>
+                          <span className="xt-dusk-chip">
+                            {providerRunReport.blockedCount} blocked
+                          </span>
+                        </div>
+                      </div>
+                      <div className="mt-3 grid gap-2">
+                        {providerRunReport.results.map((result, index) => (
+                          <div
+                            key={`${result.name}-${index}`}
+                            className="xt-dusk-subcard px-3 py-2"
+                          >
+                            <div className="flex items-start justify-between gap-3">
+                              <div>
+                                <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--app-text)]">
+                                  {result.name.replace(/^xtation_/, '')}
+                                </div>
+                                {result.reason ? (
+                                  <div className="mt-1 text-[10px] uppercase tracking-[0.1em] text-[var(--app-muted)]">
+                                    {result.reason}
+                                  </div>
+                                ) : null}
+                                <div className="mt-1 text-[11px] leading-5 text-[var(--app-muted)]">{result.message}</div>
+                              </div>
+                              <span className="xt-dusk-chip">
+                                {result.status}
+                              </span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ) : null}
+                </div>
+              </div>
+
               <button
                 type="button"
+                aria-label="Add Quest"
                 onClick={openCreateWorkspace}
-                className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl border border-[var(--app-accent)] bg-[color-mix(in_srgb,var(--app-accent)_12%,var(--app-panel-2))] text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--app-text)]"
+                className="xt-dusk-btn xt-dusk-btn--accent inline-flex h-11 w-full items-center justify-center gap-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--app-text)]"
               >
                 <Plus size={16} />
-                Add Quest
+                New Quest Draft
               </button>
 
-              <div className="mt-3 grid grid-cols-3 gap-1 rounded-xl border border-[var(--app-border)] bg-[var(--app-panel-2)] p-1">
+              <div className="xt-dusk-filterbar mt-3 grid grid-cols-3 gap-1 p-1">
                 {([
                   { key: 'all', label: 'All', count: counts.all },
                   { key: 'active', label: 'Active', count: counts.active },
@@ -2738,10 +4889,8 @@ export const HextechAssistant: React.FC<HextechAssistantProps> = ({ isOpen, onCl
                       playClickSound();
                       setFilter(option.key);
                     }}
-                    className={`h-8 rounded-lg border px-2 text-[10px] font-medium uppercase tracking-[0.1em] transition-colors ${
-                      filter === option.key
-                        ? 'border-transparent bg-[color-mix(in_srgb,var(--app-accent)_22%,var(--app-panel))] text-[var(--app-text)]'
-                        : 'border-[color-mix(in_srgb,var(--app-border)_70%,transparent)] bg-transparent text-[var(--app-muted)] hover:text-[var(--app-text)]'
+                    className={`xt-dusk-filter h-8 px-2 text-[10px] font-medium uppercase tracking-[0.1em] transition-colors ${
+                      filter === option.key ? 'is-active' : ''
                     }`}
                   >
                     {option.label} ({option.count})
@@ -2754,7 +4903,7 @@ export const HextechAssistant: React.FC<HextechAssistantProps> = ({ isOpen, onCl
             <div className="min-h-0 flex-1 overflow-y-auto p-4">
               {runningTask ? (
                 <section className="mb-4">
-                  <div className="mb-2 text-[10px] font-medium uppercase tracking-[0.16em] text-[var(--app-muted)]">Running</div>
+                  <div className="xt-dusk-section-label mb-2">Running</div>
                   {(() => {
                     const preview = getTaskPreview(runningTask.id);
                     return (
@@ -2777,10 +4926,10 @@ export const HextechAssistant: React.FC<HextechAssistantProps> = ({ isOpen, onCl
               ) : null}
 
               <section>
-                <div className="mb-2 text-[10px] font-medium uppercase tracking-[0.16em] text-[var(--app-muted)]">Quest list</div>
+                <div className="xt-dusk-section-label mb-2">Quest list</div>
                 <div className="space-y-2">
                   {filteredTasks.length === 0 ? (
-                    <div className="rounded-xl border border-dashed border-[var(--app-border)] bg-[var(--app-panel-2)] p-4 text-[10px] uppercase tracking-[0.12em] text-[var(--app-muted)]">
+                    <div className="xt-dusk-empty p-4 text-[10px] uppercase tracking-[0.12em] text-[var(--app-muted)]">
                       No quests in this filter.
                     </div>
                   ) : (
@@ -2816,7 +4965,7 @@ export const HextechAssistant: React.FC<HextechAssistantProps> = ({ isOpen, onCl
         </aside>
 
         {toastMessage ? (
-          <div className="pointer-events-none absolute right-[calc(clamp(320px,34vw,380px)+16px)] top-4 rounded-lg border border-[var(--app-border)] bg-[color-mix(in_srgb,var(--app-panel)_94%,black)] px-3 py-2 text-[10px] uppercase tracking-[0.14em] text-[var(--app-text)]">
+          <div className="xt-dusk-toast pointer-events-none absolute right-[calc(clamp(320px,34vw,380px)+16px)] top-4 px-3 py-2 text-[10px] uppercase tracking-[0.14em] text-[var(--app-text)]">
             {toastMessage}
           </div>
         ) : null}
@@ -2856,3 +5005,5 @@ export const HextechAssistant: React.FC<HextechAssistantProps> = ({ isOpen, onCl
     </>
   );
 };
+
+export const DuskRelay = HextechAssistant;

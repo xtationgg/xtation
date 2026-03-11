@@ -1,0 +1,72 @@
+- generic [ref=e4]:
+  - banner [ref=e5]:
+    - generic [ref=e6]:
+      - generic [ref=e7]: XTATION
+      - generic [ref=e8]: Personal operating system for execution, systems, and real-world follow-through.
+    - generic [ref=e9]:
+      - img [ref=e10]
+      - text: Local-first
+  - generic [ref=e13]:
+    - generic [ref=e14]:
+      - generic [ref=e15]:
+        - generic [ref=e16]:
+          - img [ref=e17]
+          - text: Dusk-ready station
+        - heading "Build your system once. Run your life through it every day." [level=1] [ref=e20]:
+          - text: Build your system once.
+          - text: Run your life through it every day.
+        - paragraph [ref=e21]: XTATION combines action rooms, growth tracking, systems design, people ops, resources, and Dusk into one station. Sign in for cloud sync, or enter local mode and keep moving offline.
+      - generic [ref=e22]:
+        - article [ref=e23]:
+          - generic [ref=e24]:
+            - generic [ref=e25]: Play
+            - img [ref=e26]
+          - generic [ref=e29]: Run your active quest, focus session, and execution flow.
+        - article [ref=e30]:
+          - generic [ref=e31]:
+            - generic [ref=e32]: Profile
+            - img [ref=e33]
+          - generic [ref=e36]: Track history, level, self tree growth, and identity.
+        - article [ref=e37]:
+          - generic [ref=e38]:
+            - generic [ref=e39]: Lab
+            - img [ref=e40]
+          - generic [ref=e44]: Build automations, assistants, knowledge systems, and templates.
+        - article [ref=e45]:
+          - generic [ref=e46]:
+            - generic [ref=e47]: Inventory
+            - img [ref=e48]
+          - generic [ref=e58]: Keep resources, assets, and unlocked XTATION capabilities aligned.
+      - generic [ref=e59]:
+        - generic [ref=e60]: Operating Principles
+        - generic [ref=e61]:
+          - generic [ref=e62]: Local-first and offline-capable by default
+          - generic [ref=e63]: Dusk-assisted workflows with explicit user control
+          - generic [ref=e64]: Web now, desktop-ready, mobile companion later
+          - generic [ref=e65]: One account, one station, one evolving system
+    - complementary [ref=e66]:
+      - generic [ref=e68]:
+        - generic [ref=e69]:
+          - generic [ref=e70]: Access
+          - generic [ref=e71]: Open your XTATION station
+          - generic [ref=e72]: Sign in for synced progress, upgrades, and shared layers. Your local station still works first.
+        - generic [ref=e73]:
+          - button "Login" [ref=e74]
+          - button "Sign Up" [ref=e75]
+        - generic [ref=e76]:
+          - textbox "Email" [active] [ref=e77]
+          - textbox "Password" [ref=e78]
+          - button "Forgot password?" [ref=e79]
+        - generic [ref=e81]:
+          - button "Sign In" [ref=e82]
+          - button "Continue with Google" [ref=e83]
+      - generic [ref=e84]:
+        - generic [ref=e85]: Need offline mode?
+        - generic [ref=e86]: Enter local station mode to use Play, Lab, Inventory, and Dusk without signing in. You can connect an account later when you want sync.
+        - generic [ref=e87]:
+          - generic [ref=e88]: internal
+          - generic [ref=e89]: trial
+          - generic [ref=e90]: 14d local preview
+        - button "Enter Local Station" [ref=e91]:
+          - text: Enter Local Station
+          - img [ref=e92]

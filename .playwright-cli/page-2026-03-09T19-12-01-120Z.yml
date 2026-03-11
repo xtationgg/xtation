@@ -1,0 +1,109 @@
+- generic [ref=e3]:
+  - generic [ref=e4]:
+    - generic [ref=e5]:
+      - button "Play" [ref=e6]:
+        - generic [ref=e7]: Play
+      - button "Lab" [ref=e8]
+      - button "Multiplayer" [ref=e9]
+      - button "Profile" [ref=e10]
+      - button "Inventory" [ref=e11]
+      - button "Store" [ref=e12]
+      - button "Settings" [ref=e13]
+    - generic [ref=e14]:
+      - button "DUSK" [ref=e15]:
+        - img [ref=e16]
+        - text: DUSK
+      - generic [ref=e19]:
+        - generic [ref=e20]: Today
+        - generic [ref=e21]:
+          - text: "0"
+          - generic [ref=e22]: / 960
+        - generic [ref=e23]: 0 MIN
+      - button "LOGIN" [ref=e108]
+      - button "⌘K" [ref=e25]
+      - generic [ref=e26]:
+        - generic "Player Level (0 total XP)" [ref=e27]:
+          - img [ref=e28]
+          - generic [ref=e34]: LV 0
+        - button [ref=e35]:
+          - img [ref=e36]
+        - button [ref=e39]:
+          - img [ref=e40]
+  - generic [ref=e49]:
+    - generic [ref=e50]:
+      - generic [ref=e51]:
+        - generic [ref=e52]:
+          - generic [ref=e53]: Play / Action Room
+          - heading "Ready for the next operation" [level=1] [ref=e54]
+          - paragraph [ref=e55]: Create one clear quest, start a session, and let Xtation turn execution into visible progress.
+        - button "New Quest" [ref=e57]:
+          - img [ref=e58]
+          - text: New Quest
+      - generic [ref=e59]:
+        - generic [ref=e61]:
+          - generic [ref=e62]: No quest selected
+          - heading "Build the first operation" [level=2] [ref=e63]
+          - paragraph [ref=e64]: Start with one clear quest. Once it exists, Play becomes the live execution room for timing, steps, debrief, and momentum.
+          - button "Create First Quest" [ref=e65]:
+            - img [ref=e66]
+            - text: Create First Quest
+        - generic [ref=e67]:
+          - generic [ref=e68]:
+            - generic [ref=e69]: Today Pulse
+            - generic [ref=e70]:
+              - generic [ref=e71]:
+                - generic [ref=e72]: 0 min
+                - generic [ref=e73]: Tracked
+              - generic [ref=e74]:
+                - generic [ref=e75]: "0"
+                - generic [ref=e76]: XP Today
+              - generic [ref=e77]:
+                - generic [ref=e78]: "0"
+                - generic [ref=e79]: Completed
+              - generic [ref=e80]:
+                - generic [ref=e81]: "0"
+                - generic [ref=e82]: Active Days
+            - generic [ref=e83]:
+              - generic [ref=e84]:
+                - img [ref=e85]
+                - text: Momentum
+              - generic [ref=e91]: 0 day streak · x1.00
+              - generic [ref=e92]: Player level 0 · 0 total XP
+          - generic [ref=e93]:
+            - generic [ref=e94]: Project Context
+            - generic [ref=e95]: This quest is running standalone. Link it to a project when you want campaign-level structure and milestone tracking.
+          - generic [ref=e96]:
+            - generic [ref=e97]: Recent Output
+            - generic [ref=e99]: No activity yet today. The next clean session will start building the trace.
+    - generic [ref=e100]:
+      - generic [ref=e101]:
+        - generic [ref=e102]:
+          - generic [ref=e103]: Quest Queue
+          - generic [ref=e104]: Select the next operation, or switch live if something else is more urgent.
+        - generic [ref=e105]: 0 active
+      - generic [ref=e107]: No active quests yet. Start with one concrete objective and the rest of Play will open up around it.
+  - button [ref=e111]:
+    - img [ref=e112]
+  - generic [ref=e116]:
+    - generic [ref=e117]:
+      - generic [ref=e118]: Developer HUD
+      - button "Min" [ref=e119]
+    - generic [ref=e120]:
+      - generic [ref=e121]:
+        - text: AuthNot signed inUser IDanonLedger KeyxpLedger_v2:anonLedger Sourceanon-localCloud StatusidleLast Sync-Counts
+        - generic [ref=e122]: 0 tasks / 0 sessions / 0 challenges
+        - text: RunningnoneToday
+        - generic [ref=e123]: 0/960 (Bronze)
+      - generic [ref=e124]:
+        - button "Run Checks" [ref=e125]
+        - button "Repair Links" [ref=e126]
+        - button "Export Ledger JSON" [ref=e127]
+        - button "Reset Local Data" [ref=e128]
+        - button "Reset Cloud Data (This Account)" [disabled] [ref=e129]
+      - generic [ref=e130]:
+        - generic [ref=e131]: Cloud reset
+        - generic [ref=e132]: Idle
+      - 'button "Health: OKShow" [ref=e134]':
+        - generic [ref=e135]: "Health: OK"
+        - text: Show
+      - generic [ref=e136]: Health checks OK

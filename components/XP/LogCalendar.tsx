@@ -1250,7 +1250,8 @@ export const LogCalendar: React.FC = () => {
   );
 
   const openQuestAddFlow = useCallback(() => {
-    const toggleBtn = document.getElementById('hextech-assistant-toggle') as HTMLButtonElement | null;
+    const toggleBtn = (document.getElementById('dusk-assistant-toggle') ||
+      document.getElementById('hextech-assistant-toggle')) as HTMLButtonElement | null;
     if (!toggleBtn) return;
     const overlayOpen = !!document.querySelector('[data-quests-overlay="true"]');
     if (!overlayOpen) toggleBtn.click();

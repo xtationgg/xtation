@@ -1,0 +1,211 @@
+- generic [ref=e3]:
+  - generic [ref=e4]:
+    - generic [ref=e5]:
+      - button "Play" [ref=e6] [cursor=pointer]:
+        - generic [ref=e7]: Play
+      - button "Lab" [ref=e8] [cursor=pointer]:
+        - generic [ref=e9]: Lab
+      - button "Multiplayer" [ref=e10] [cursor=pointer]:
+        - generic [ref=e11]: Multiplayer
+      - button "Profile" [ref=e12] [cursor=pointer]:
+        - generic [ref=e13]: Profile
+      - button "Inventory" [ref=e14] [cursor=pointer]:
+        - generic [ref=e15]: Inventory
+      - button "Store" [ref=e16] [cursor=pointer]:
+        - generic [ref=e17]: Store
+      - button "Settings" [ref=e18] [cursor=pointer]:
+        - generic [ref=e19]: Settings
+    - generic [ref=e20]:
+      - button "QUESTS" [ref=e21] [cursor=pointer]:
+        - img [ref=e22]
+        - generic [ref=e25]: QUESTS
+      - generic [ref=e32]:
+        - generic [ref=e33]: Today
+        - generic [ref=e34]:
+          - text: "0"
+          - generic [ref=e35]: / 960
+        - generic [ref=e36]: 0 MIN
+      - button "LOGIN" [ref=e169] [cursor=pointer]
+      - button "⌘K" [ref=e39] [cursor=pointer]
+      - generic [ref=e41]:
+        - generic "Player Level (0 total XP)" [ref=e42]:
+          - img [ref=e43]
+          - generic [ref=e49]: LV 0
+        - button [ref=e50] [cursor=pointer]:
+          - img [ref=e51]
+        - button [ref=e54] [cursor=pointer]:
+          - img [ref=e55]
+  - generic [ref=e401]:
+    - generic [ref=e402]:
+      - generic [ref=e403]:
+        - img [ref=e405]
+        - generic [ref=e408]:
+          - heading "System Configuration" [level=1] [ref=e409]
+          - paragraph [ref=e410]: CUSTOMIZE REWARD PROTOCOLS
+      - generic [ref=e411]:
+        - generic [ref=e412]: Current Profile XP
+        - generic [ref=e413]: 0 XP
+    - generic [ref=e414]:
+      - generic [ref=e420]:
+        - generic [ref=e421]:
+          - generic [ref=e422]:
+            - heading "Theme System" [level=2] [ref=e423]
+            - generic [ref=e424]: "Current: Bureau"
+          - paragraph [ref=e425]: Global theme applies instantly across all views.
+        - generic [ref=e426]:
+          - generic [ref=e427]:
+            - generic [ref=e428]: Theme Pack
+            - generic [ref=e429]:
+              - button "Dusk" [ref=e430] [cursor=pointer]
+              - button "Dusk • No Outline" [ref=e431] [cursor=pointer]
+              - button "Dark Minimal + Solid" [ref=e432] [cursor=pointer]
+              - button "DARK MINIMAL • ROUNDED • SOLID" [ref=e433] [cursor=pointer]
+              - button "DARK MINIMAL • ROUNDED • GLASS" [ref=e434] [cursor=pointer]
+              - button "HUD Clean" [ref=e435] [cursor=pointer]
+              - button "Glass Night" [ref=e436] [cursor=pointer]
+              - button "Notion Light" [ref=e437] [cursor=pointer]
+              - button "Notion Dark" [ref=e438] [cursor=pointer]
+              - button "Void" [ref=e439] [cursor=pointer]
+              - button "Bureau" [active] [ref=e440] [cursor=pointer]
+          - generic [ref=e441]:
+            - generic [ref=e442]:
+              - generic [ref=e443]: Accent
+              - generic [ref=e444]: Purple
+            - generic [ref=e445]:
+              - button "Neutral" [ref=e446] [cursor=pointer]
+              - button "Purple" [pressed] [ref=e447] [cursor=pointer]
+              - button "Outline" [ref=e448] [cursor=pointer]
+              - button "Amber" [ref=e449] [cursor=pointer]
+              - button "Teal" [ref=e450] [cursor=pointer]
+              - button "Crimson" [ref=e451] [cursor=pointer]
+              - button "Lime" [ref=e452] [cursor=pointer]
+      - generic [ref=e459] [cursor=pointer]:
+        - heading "XP Reward Protocol" [level=2] [ref=e460]:
+          - img [ref=e461]
+          - text: XP Reward Protocol
+        - generic [ref=e463]:
+          - generic [ref=e466]: LIVE SYNC ACTIVE
+          - img [ref=e468]
+      - generic [ref=e476] [cursor=pointer]:
+        - heading "Display" [level=2] [ref=e477]:
+          - img [ref=e478]
+          - text: Display
+        - img [ref=e481]
+      - generic [ref=e489] [cursor=pointer]:
+        - heading "Privacy" [level=2] [ref=e490]:
+          - img [ref=e491]
+          - text: Privacy
+        - img [ref=e494]
+      - generic [ref=e501]:
+        - generic [ref=e502] [cursor=pointer]:
+          - heading "Operations" [level=2] [ref=e503]:
+            - img [ref=e504]
+            - text: Operations
+          - img [ref=e508]
+        - generic [ref=e510]:
+          - generic [ref=e511]:
+            - generic [ref=e512]:
+              - generic [ref=e513]: Focus Mode
+              - generic [ref=e514]: normal
+            - generic [ref=e515]:
+              - button "normal" [disabled] [pressed] [ref=e516]
+              - button "reduced" [disabled] [ref=e517]
+              - button "deep" [disabled] [ref=e518]
+            - paragraph [ref=e519]: Focus mode is a native engine behavior, not an AI-only feature.
+          - generic [ref=e520]:
+            - generic [ref=e521]:
+              - generic [ref=e522]:
+                - generic [ref=e523]: Notifications
+                - generic [ref=e524]: Control which engine events surface as alerts.
+              - generic [ref=e525]:
+                - generic [ref=e526]: Scheduled Quests
+                - button "On" [disabled] [pressed] [ref=e527]
+              - generic [ref=e528]:
+                - generic [ref=e529]: Focus Sessions
+                - button "On" [disabled] [pressed] [ref=e530]
+              - generic [ref=e531]:
+                - generic [ref=e532]: Rewards
+                - button "On" [disabled] [pressed] [ref=e533]
+              - generic [ref=e534]:
+                - generic [ref=e535]: Multiplayer
+                - button "On" [disabled] [pressed] [ref=e536]
+              - generic [ref=e537]:
+                - generic [ref=e538]: Lab
+                - button "On" [disabled] [pressed] [ref=e539]
+            - generic [ref=e540]:
+              - generic [ref=e541]:
+                - generic [ref=e542]: Modules
+                - generic [ref=e543]: Feature gates for the next system layers we are building.
+              - generic [ref=e544]:
+                - generic [ref=e545]: Multiplayer
+                - button "Enabled" [disabled] [pressed] [ref=e546]
+              - generic [ref=e547]:
+                - generic [ref=e548]: Lab
+                - button "Enabled" [disabled] [pressed] [ref=e549]
+              - generic [ref=e550]:
+                - generic [ref=e551]: Store
+                - button "Enabled" [disabled] [pressed] [ref=e552]
+              - generic [ref=e553]:
+                - button "Labs V2 Off" [disabled] [ref=e554]
+                - button "Store Entitlements Off" [disabled] [ref=e555]
+          - generic [ref=e556]:
+            - generic [ref=e557]:
+              - generic [ref=e558]:
+                - generic [ref=e559]: Audio Protocol
+                - generic [ref=e560]: 80%
+              - generic [ref=e561]:
+                - generic [ref=e562]: System Audio
+                - button "On" [pressed] [ref=e563] [cursor=pointer]
+              - generic [ref=e564]:
+                - generic [ref=e565]: Volume
+                - slider "Volume" [ref=e566]: "80"
+            - generic [ref=e567]:
+              - generic [ref=e568]:
+                - generic [ref=e569]: Performance Mode
+                - generic [ref=e570]: balanced
+              - generic [ref=e571]:
+                - button "quality" [ref=e572] [cursor=pointer]
+                - button "balanced" [pressed] [ref=e573] [cursor=pointer]
+                - button "performance" [ref=e574] [cursor=pointer]
+              - generic [ref=e575]:
+                - generic [ref=e576]: Developer HUD
+                - button "Off" [ref=e577] [cursor=pointer]
+  - button [ref=e125] [cursor=pointer]:
+    - img [ref=e126]
+  - generic [ref=e129]:
+    - generic [ref=e130]:
+      - generic [ref=e132]: Developer HUD
+      - button "Min" [ref=e133] [cursor=pointer]
+    - generic [ref=e134]:
+      - generic [ref=e135]:
+        - generic [ref=e136]: Auth
+        - generic [ref=e137]: Not signed in
+        - generic [ref=e138]: User ID
+        - generic [ref=e139]: anon
+        - generic [ref=e140]: Ledger Key
+        - generic [ref=e141]: xpLedger_v2:anon
+        - generic [ref=e142]: Ledger Source
+        - generic [ref=e143]: anon-local
+        - generic [ref=e144]: Cloud Status
+        - generic [ref=e145]: idle
+        - generic [ref=e146]: Last Sync
+        - generic [ref=e147]: "-"
+        - generic [ref=e148]: Counts
+        - generic [ref=e149]: 0 tasks / 0 sessions / 0 challenges
+        - generic [ref=e150]: Running
+        - generic [ref=e151]: none
+        - generic [ref=e152]: Today
+        - generic [ref=e153]: 0/960 (Bronze)
+      - generic [ref=e154]:
+        - button "Run Checks" [ref=e155] [cursor=pointer]
+        - button "Repair Links" [ref=e156] [cursor=pointer]
+        - button "Export Ledger JSON" [ref=e157] [cursor=pointer]
+        - button "Reset Local Data" [ref=e158] [cursor=pointer]
+        - button "Reset Cloud Data (This Account)" [disabled] [ref=e159]
+      - generic [ref=e160]:
+        - generic [ref=e161]: Cloud reset
+        - generic [ref=e162]: Idle
+      - 'button "Health: OK Show" [ref=e164] [cursor=pointer]':
+        - generic [ref=e165]: "Health: OK"
+        - generic [ref=e166]: Show
+      - generic [ref=e167]: Health checks OK

@@ -1,0 +1,248 @@
+- generic [ref=e157]:
+  - generic [ref=e158]:
+    - generic [ref=e159]:
+      - button "Play" [ref=e160]:
+        - generic [ref=e161]: Play
+      - button "Lab" [ref=e164]:
+        - generic [ref=e165]: Lab
+      - button "Multiplayer" [ref=e168]:
+        - generic [ref=e169]: Multiplayer
+      - button "Profile" [ref=e172]:
+        - generic [ref=e173]: Profile
+      - button "Inventory" [ref=e176]:
+        - generic [ref=e177]: Inventory
+      - button "Store" [ref=e180]:
+        - generic [ref=e181]: Store
+      - button "Settings" [ref=e184]:
+        - generic [ref=e185]: Settings
+      - button "Admin" [ref=e188]:
+        - generic [ref=e189]: Admin
+    - generic [ref=e192]:
+      - button "DUSK" [ref=e193]:
+        - img [ref=e194]
+        - generic [ref=e197]: DUSK
+      - generic [ref=e198]:
+        - generic [ref=e199]: Today
+        - generic [ref=e200]:
+          - text: "0"
+          - generic [ref=e201]: / 960
+        - generic [ref=e202]: 0 MIN
+      - generic [ref=e203]:
+        - generic [ref=e204]: Local Mode
+        - generic [ref=e205]:
+          - generic [ref=e206]: trial
+          - generic [ref=e207]: •
+          - generic [ref=e208]: internal
+          - generic [ref=e209]: •
+          - generic [ref=e210]: 14d
+        - button "CONNECT" [ref=e211]
+      - button "⌘K" [ref=e212]
+      - button "Exit" [ref=e214]
+      - generic [ref=e215]:
+        - generic "Player Level (0 total XP)" [ref=e216]:
+          - img [ref=e217]
+          - generic [ref=e223]: LV 0
+        - button [ref=e224]:
+          - img [ref=e225]
+        - button [ref=e228]:
+          - img [ref=e229]
+  - dialog [ref=e350]:
+    - generic [ref=e351]:
+      - generic:
+        - generic:
+          - generic:
+            - img "Top illustration"
+        - generic:
+          - generic:
+            - img "Character illustration"
+        - generic:
+          - generic:
+            - generic: Wednesday
+        - generic:
+          - generic:
+            - generic: 2026/mar/11
+      - button "Close login modal" [ref=e352]:
+        - img [ref=e353]
+      - generic [ref=e358]:
+        - generic [ref=e359]:
+          - button "Decorative orb"
+        - generic [ref=e360]:
+          - generic [ref=e361]: HELLO PLAYER
+          - generic [ref=e362]: Connect your XTATION account to sync this local station into cloud mode.
+        - generic [ref=e363]:
+          - generic [ref=e364]: After Password sign-in
+          - generic [ref=e365]: Connect account and review local continuity
+          - generic [ref=e366]: "Target workspace: Play. If you connect now, XTATION will preserve this Play starter loop and let you decide whether to import it into the signed-in station."
+          - generic [ref=e367]:
+            - generic [ref=e368]: Password sign-in
+            - generic [ref=e369]: Play target
+            - generic [ref=e370]: Play
+          - generic [ref=e371]:
+            - generic [ref=e372]: No local station is overwritten without a handoff review.
+            - generic [ref=e373]: You can keep the account station, import local work, or return to local mode.
+            - generic [ref=e374]: XTATION confirms the active workspace after sign-in before you continue.
+        - generic [ref=e375]:
+          - button "Login" [ref=e376]
+          - button "Sign Up" [ref=e377]
+        - generic [ref=e378]:
+          - textbox "Email" [active] [ref=e379]
+          - textbox "Password" [ref=e380]
+          - button "Forgot password?" [ref=e381]
+        - generic [ref=e383]:
+          - button "Sign In" [ref=e384]
+          - button "Continue with Google" [ref=e385]
+      - generic [ref=e386]:
+        - generic [ref=e387]:
+          - img [ref=e388]
+          - text: Station continuity
+        - generic [ref=e391]: Continue local station
+        - generic [ref=e392]: The first live session has started and XTATION is now tracking the starter loop in real time. Resume in Play and continue from first session live.
+        - generic [ref=e393]:
+          - generic [ref=e394]:
+            - generic [ref=e395]: Resume workspace
+            - generic [ref=e396]: Play
+          - generic [ref=e397]:
+            - generic [ref=e398]: Starter relay
+            - generic [ref=e399]: First session live
+        - generic [ref=e400]:
+          - generic [ref=e401]:
+            - generic [ref=e402]: Session live
+            - generic [ref=e403]: Play
+          - img [ref=e405]
+        - generic [ref=e408]:
+          - generic [ref=e409]: Starter loop
+          - generic [ref=e410]: Mission
+          - generic [ref=e411]: Systems
+          - generic [ref=e412]: internal
+          - generic [ref=e413]: trial
+        - generic [ref=e414]:
+          - generic [ref=e415]:
+            - img [ref=e416]
+            - text: Recent continuity
+          - generic [ref=e419]:
+            - generic [ref=e420]:
+              - generic [ref=e421]:
+                - generic [ref=e422]: First session live
+                - generic [ref=e423]: Play • Ship first loop is now live in Play. Keep this first session alive until the checkpoint locks. About 3 min of tracked work remains. XTATION will hand the first confirmed mission pass into Profile.
+              - generic [ref=e424]: 05:55 PM
+            - generic [ref=e425]:
+              - generic [ref=e426]:
+                - generic [ref=e427]: Starter loop seeded
+                - generic [ref=e428]: Play • Ship first loop is now armed in Play. XTATION will route the first confirmed mission pass into Profile to open Profile.
+              - generic [ref=e429]: 05:54 PM
+        - generic [ref=e430]:
+          - generic [ref=e431]:
+            - img [ref=e432]
+            - text: Starter loop
+          - generic [ref=e435]: First session live
+          - generic [ref=e436]: Ship first loop is now live in Play. Keep this first session alive until the checkpoint locks. About 3 min of tracked work remains. XTATION will hand the first confirmed mission pass into Profile.
+          - generic [ref=e437]:
+            - generic [ref=e438]: Session live
+            - generic [ref=e439]: Play
+            - generic [ref=e440]: Mission
+            - generic [ref=e441]: Systems
+            - generic [ref=e442]: Session live
+          - generic [ref=e443]: The first live session has started and XTATION is now tracking the starter loop in real time.
+        - generic [ref=e444]:
+          - generic [ref=e445]:
+            - img [ref=e446]
+            - text: After sign-in
+          - generic [ref=e449]: If you connect now, XTATION will preserve this Play starter loop and let you decide whether to import it into the signed-in station.
+          - generic [ref=e450]: 14d local preview window
+  - generic [ref=e233]:
+    - generic:
+      - generic [ref=e234]: Station Transition
+      - generic [ref=e235]: Play
+    - generic [ref=e236]:
+      - generic [ref=e237]: Starter loop resumed
+      - generic [ref=e238]: XTATION reopened the local Play station and picked back up from First session live.
+    - generic:
+      - generic: Local
+      - generic: Local station active
+      - generic: This device is running the offline-first station. You can connect later and choose whether to keep it local or import it into an account.
+    - generic:
+      - generic [ref=e239]: Starter loop
+      - generic [ref=e240]: Mission
+      - generic [ref=e241]: Systems
+      - generic [ref=e242]: Play reopened
+    - generic [ref=e243]:
+      - generic [ref=e244]: Recent continuity
+      - generic [ref=e245]:
+        - generic [ref=e246]:
+          - generic [ref=e247]:
+            - generic [ref=e248]: First session live
+            - generic [ref=e249]: Play • Ship first loop is now live in Play. Keep this first session alive until the checkpoint locks. About 3 min of tracked work remains. XTATION will hand the first confirmed mission pass into Profile.
+          - generic [ref=e250]: 05:55 PM
+        - generic [ref=e251]:
+          - generic [ref=e252]:
+            - generic [ref=e253]: Starter loop seeded
+            - generic [ref=e254]: Play • Ship first loop is now armed in Play. XTATION will route the first confirmed mission pass into Profile to open Profile.
+          - generic [ref=e255]: 05:54 PM
+    - generic:
+      - button "Review Settings" [ref=e256]
+      - button "Dismiss" [ref=e257]
+  - generic [ref=e265]:
+    - generic [ref=e266]:
+      - generic [ref=e267]:
+        - generic [ref=e268]:
+          - generic [ref=e269]: Play / Action Room
+          - heading "Ready for the next operation" [level=1] [ref=e270]
+          - paragraph [ref=e271]: Create one clear quest, start a session, and let Xtation turn execution into visible progress.
+        - button "New Quest" [ref=e273]:
+          - img [ref=e275]
+          - generic [ref=e276]: New Quest
+      - generic [ref=e277]:
+        - generic [ref=e278]:
+          - generic [ref=e280]:
+            - generic [ref=e281]: Primary operation
+            - generic [ref=e282]: No quest armed
+          - generic [ref=e283]:
+            - generic [ref=e284]: No quest selected
+            - heading "Build the first operation" [level=2] [ref=e285]
+            - paragraph [ref=e286]: Start with one clear quest. Once it exists, Play becomes the live execution room for timing, steps, debrief, and momentum.
+            - button "Create First Quest" [ref=e288]:
+              - img [ref=e290]
+              - generic [ref=e291]: Create First Quest
+        - generic [ref=e292]:
+          - generic [ref=e293]:
+            - generic [ref=e295]:
+              - generic [ref=e296]: Today Pulse
+              - generic [ref=e297]: Current execution signal
+            - generic [ref=e298]:
+              - generic [ref=e299]:
+                - generic [ref=e300]: 0 min
+                - generic [ref=e301]: Tracked
+              - generic [ref=e302]:
+                - generic [ref=e303]: "0"
+                - generic [ref=e304]: XP Today
+              - generic [ref=e305]:
+                - generic [ref=e306]: "0"
+                - generic [ref=e307]: Completed
+              - generic [ref=e308]:
+                - generic [ref=e309]: "0"
+                - generic [ref=e310]: Active Days
+            - generic [ref=e311]:
+              - generic [ref=e312]:
+                - img [ref=e313]
+                - text: Momentum
+              - generic [ref=e319]: 0 day streak · x1.00
+              - generic [ref=e320]: Player level 0 · 0 total XP
+          - generic [ref=e321]:
+            - generic [ref=e323]:
+              - generic [ref=e324]: Project Context
+              - generic [ref=e325]: Campaign-level structure
+            - generic [ref=e326]: This quest is running standalone. Link it to a project when you want campaign-level structure and milestone tracking.
+          - generic [ref=e327]:
+            - generic [ref=e329]:
+              - generic [ref=e330]: Recent Output
+              - generic [ref=e331]: Latest recorded execution
+            - generic [ref=e333]: No activity yet today. The next clean session will start building the trace.
+    - generic [ref=e334]:
+      - generic [ref=e335]:
+        - generic [ref=e336]:
+          - generic [ref=e337]: Quest Queue
+          - generic [ref=e338]: Select the next operation, or switch live if something else is more urgent.
+        - generic [ref=e340]: 0 active
+      - generic [ref=e342]: No active quests yet. Start with one concrete objective and the rest of Play will open up around it.
+  - button [ref=e345]:
+    - img [ref=e346]

@@ -1,0 +1,270 @@
+- generic [ref=e93]:
+  - generic [ref=e94]:
+    - generic [ref=e95]:
+      - button "Play" [ref=e96]
+      - button "Lab" [ref=e98]
+      - button "Multiplayer" [ref=e99]
+      - button "Profile" [ref=e100]
+      - button "Inventory" [ref=e101]
+      - button "Store" [ref=e102]
+      - button "Settings" [ref=e103]:
+        - generic [ref=e346]: Settings
+      - button "Admin" [ref=e104]
+    - generic [ref=e105]:
+      - button "DUSK" [ref=e106]:
+        - img [ref=e107]
+        - text: DUSK
+      - generic [ref=e110]:
+        - generic [ref=e111]: Today
+        - generic [ref=e112]:
+          - text: "0"
+          - generic [ref=e113]: / 960
+        - generic [ref=e114]: 0 MIN
+      - generic [ref=e115]:
+        - generic [ref=e116]: Local Mode
+        - generic [ref=e117]:
+          - text: trial•internal•
+          - generic [ref=e118]: 14d
+        - button "CONNECT" [ref=e119]
+      - button "⌘K" [ref=e120]
+      - button "Exit" [ref=e121]
+      - generic [ref=e122]:
+        - generic "Player Level (0 total XP)" [ref=e123]:
+          - img [ref=e124]
+          - generic [ref=e130]: LV 0
+        - button [ref=e131]:
+          - img [ref=e132]
+        - button [ref=e135]:
+          - img [ref=e136]
+  - generic [ref=e347]:
+    - generic [ref=e348]:
+      - generic [ref=e349]:
+        - img [ref=e351]
+        - generic [ref=e354]:
+          - heading "System Configuration" [level=1] [ref=e355]
+          - paragraph [ref=e356]: CUSTOMIZE REWARD PROTOCOLS
+      - generic [ref=e357]:
+        - generic [ref=e358]: Current Profile XP
+        - generic [ref=e359]: 0 XP
+    - generic [ref=e360]:
+      - generic [ref=e362]:
+        - generic [ref=e364]:
+          - generic [ref=e365]:
+            - heading "Platform Status" [level=2] [ref=e366]:
+              - img [ref=e367]
+              - text: Platform Status
+            - paragraph [ref=e373]: Current station identity, rollout lane, and account operating state.
+          - generic [ref=e374]:
+            - text: local stationinternal
+            - generic [ref=e375]: trial • 14d
+        - generic [ref=e376]:
+          - generic [ref=e377]:
+            - generic [ref=e378]: Station
+            - generic [ref=e379]: Local Station
+            - generic [ref=e380]: No cloud account linked
+          - generic [ref=e381]:
+            - generic [ref=e382]: Rollout
+            - generic [ref=e383]: offline-preview
+            - generic [ref=e384]: Last seen 3/10/2026, 4:57:45 AM
+          - generic [ref=e385]:
+            - generic [ref=e386]: Operator Access
+            - generic [ref=e387]: Local preview operator
+            - generic [ref=e388]: super_admin
+          - generic [ref=e389]:
+            - generic [ref=e390]:
+              - generic [ref=e391]:
+                - generic [ref=e392]: Platform Profile Sync
+                - generic [ref=e393]: local fallback
+              - generic [ref=e394]: No cloud profile table
+            - generic [ref=e395]: Install the Supabase platform profile table to make signed-in platform state persist beyond this device.
+      - generic [ref=e397]:
+        - generic [ref=e398]:
+          - generic [ref=e399]:
+            - heading "Theme System" [level=2] [ref=e400]
+            - generic [ref=e401]: "Current: Dusk"
+          - paragraph [ref=e402]: Global theme applies instantly across all views.
+        - generic [ref=e403]:
+          - generic [ref=e404]:
+            - generic [ref=e405]: Theme Pack
+            - generic [ref=e406]:
+              - button "Dusk" [ref=e407]
+              - button "Dusk • No Outline" [ref=e408]
+              - button "Dark Minimal + Solid" [ref=e409]
+              - button "DARK MINIMAL • ROUNDED • SOLID" [ref=e410]
+              - button "DARK MINIMAL • ROUNDED • GLASS" [ref=e411]
+              - button "HUD Clean" [ref=e412]
+              - button "Glass Night" [ref=e413]
+              - button "Notion Light" [ref=e414]
+              - button "Notion Dark" [ref=e415]
+              - button "Void" [ref=e416]
+              - button "Bureau" [ref=e417]
+          - generic [ref=e418]:
+            - generic [ref=e419]: AccentPurple
+            - generic [ref=e420]:
+              - button "Neutral" [ref=e421]
+              - button "Purple" [pressed] [ref=e422]
+              - button "Outline" [ref=e423]
+              - button "Amber" [ref=e424]
+              - button "Teal" [ref=e425]
+              - button "Crimson" [ref=e426]
+              - button "Lime" [ref=e427]
+      - generic [ref=e430]:
+        - heading "XP Reward Protocol" [level=2] [ref=e431]:
+          - img [ref=e432]
+          - text: XP Reward Protocol
+        - generic [ref=e434]:
+          - generic [ref=e436]: LIVE SYNC ACTIVE
+          - img [ref=e438]
+      - generic [ref=e442]:
+        - heading "Display" [level=2] [ref=e443]:
+          - img [ref=e444]
+          - text: Display
+        - img [ref=e447]
+      - generic [ref=e451]:
+        - heading "Privacy" [level=2] [ref=e452]:
+          - img [ref=e453]
+          - text: Privacy
+        - img [ref=e456]
+      - generic [ref=e459]:
+        - generic [ref=e460]:
+          - heading "Operations" [level=2] [ref=e461]:
+            - img [ref=e462]
+            - text: Operations
+          - img [ref=e466]
+        - generic [ref=e468]:
+          - generic [ref=e469]:
+            - generic [ref=e470]: Focus Modenormal
+            - generic [ref=e471]:
+              - button "normal" [disabled] [pressed] [ref=e472]
+              - button "reduced" [disabled] [ref=e473]
+              - button "deep" [disabled] [ref=e474]
+            - paragraph [ref=e475]: Focus mode is a native engine behavior, not an AI-only feature.
+          - generic [ref=e476]:
+            - generic [ref=e477]:
+              - generic [ref=e478]:
+                - generic [ref=e479]: Notifications
+                - generic [ref=e480]: Control which engine events surface as alerts.
+              - generic [ref=e481]:
+                - text: Scheduled Quests
+                - button "On" [disabled] [pressed] [ref=e482]
+              - generic [ref=e483]:
+                - text: Focus Sessions
+                - button "On" [disabled] [pressed] [ref=e484]
+              - generic [ref=e485]:
+                - text: Rewards
+                - button "On" [disabled] [pressed] [ref=e486]
+              - generic [ref=e487]:
+                - text: Multiplayer
+                - button "On" [disabled] [pressed] [ref=e488]
+              - generic [ref=e489]:
+                - text: Lab
+                - button "On" [disabled] [pressed] [ref=e490]
+            - generic [ref=e491]:
+              - generic [ref=e492]:
+                - generic [ref=e493]: Modules
+                - generic [ref=e494]: Feature gates for the next system layers we are building.
+              - generic [ref=e495]:
+                - text: Multiplayer
+                - button "Enabled" [disabled] [pressed] [ref=e496]
+              - generic [ref=e497]:
+                - text: Lab
+                - button "Enabled" [disabled] [pressed] [ref=e498]
+              - generic [ref=e499]:
+                - text: Store
+                - button "Enabled" [disabled] [pressed] [ref=e500]
+              - generic [ref=e501]:
+                - button "Labs V2 Off" [disabled] [ref=e502]
+                - button "Store Entitlements Off" [disabled] [ref=e503]
+          - generic [ref=e504]:
+            - generic [ref=e505]:
+              - generic [ref=e506]:
+                - text: Audio Protocol
+                - generic [ref=e507]: 80%
+              - generic [ref=e508]:
+                - text: System Audio
+                - button "On" [pressed] [ref=e509]
+              - generic [ref=e510]:
+                - text: Volume
+                - slider "Volume" [ref=e511]: "80"
+            - generic [ref=e512]:
+              - generic [ref=e513]: Performance Modebalanced
+              - generic [ref=e514]:
+                - button "quality" [ref=e515]
+                - button "balanced" [pressed] [ref=e516]
+                - button "performance" [ref=e517]
+              - generic [ref=e518]:
+                - text: Developer HUD
+                - button "Off" [ref=e519]
+          - generic [ref=e520]:
+            - generic [ref=e521]:
+              - generic [ref=e522]:
+                - generic [ref=e523]: Station Continuity
+                - generic [ref=e524]: Export, restore, and review local safeguard snapshots for this station.
+              - img [ref=e525]
+            - generic [ref=e531]: Local station mode can export and restore full station files. Sign in if you also want account handoff recovery tracking.
+            - generic [ref=e532]:
+              - button "Choose File" [ref=e533]
+              - button "Export Current Station" [ref=e534]
+              - button "Import Station File" [ref=e535]
+    - dialog [ref=e537]:
+      - generic [ref=e538]:
+        - generic [ref=e540]:
+          - generic [ref=e541]:
+            - generic [ref=e542]:
+              - generic [ref=e543]: Restore Review
+              - heading "Import station file into this local station" [level=2] [ref=e544]
+              - paragraph [ref=e545]: XTATION will save a local restore safeguard of the current station before replacing the live ledger and synced preferences from this file.
+            - generic [ref=e546]:
+              - generic [ref=e547]:
+                - generic [ref=e548]: Current Station
+                - generic [ref=e549]: 0 quests, 0 sessions, 0 active days
+              - generic [ref=e550]:
+                - generic [ref=e551]: Imported Station
+                - generic [ref=e552]: 0 quests, 0 sessions, 0 active days
+            - generic [ref=e553]:
+              - generic [ref=e554]: What gets restored
+              - generic [ref=e555]: LedgerThemeDisplayDevice settingsStation profileOnboarding state
+          - complementary [ref=e556]:
+            - generic [ref=e557]:
+              - generic [ref=e558]: Import metadata
+              - generic [ref=e559]:
+                - generic [ref=e560]: Exported 11/13/2025, 10:13:20 AM
+                - generic [ref=e561]: "Source scope: guest"
+                - generic [ref=e562]: "Theme: bureau"
+                - generic [ref=e563]: "Accent: teal"
+                - generic [ref=e564]: "Resolution: hd_1080"
+                - generic [ref=e565]: "Release channel: beta"
+                - generic [ref=e566]: "Plan: pro"
+                - generic [ref=e567]: "Beta cohort: restore-wave"
+                - generic [ref=e568]: "Feature flags: 4"
+            - generic [ref=e569]: Restore is destructive for the live station, but XTATION stores a local safeguard first so you can export the pre-restore state later if needed.
+        - generic [ref=e571]:
+          - generic [ref=e572]: Review complete. Apply only if this file should become the current station.
+          - generic [ref=e573]:
+            - button "Cancel" [active] [ref=e574]
+            - button "Restore This Station" [ref=e575]
+  - button [ref=e210]:
+    - img [ref=e211]
+  - generic [ref=e325]:
+    - generic [ref=e326]:
+      - generic [ref=e327]: Developer HUD
+      - button "Min" [ref=e328]
+    - generic [ref=e329]:
+      - generic [ref=e330]:
+        - text: AuthNot signed inUser IDanonLedger KeyxpLedger_v2:anonLedger Sourceanon-localCloud StatusidleLast Sync-Counts
+        - generic [ref=e331]: 0 tasks / 0 sessions / 0 challenges
+        - text: RunningnoneToday
+        - generic [ref=e332]: 0/960 (Bronze)
+      - generic [ref=e333]:
+        - button "Run Checks" [ref=e334]
+        - button "Repair Links" [ref=e335]
+        - button "Export Ledger JSON" [ref=e336]
+        - button "Reset Local Data" [ref=e337]
+        - button "Reset Cloud Data (This Account)" [disabled] [ref=e338]
+      - generic [ref=e339]:
+        - generic [ref=e340]: Cloud reset
+        - generic [ref=e341]: Idle
+      - 'button "Health: OKShow" [ref=e343]':
+        - generic [ref=e344]: "Health: OK"
+        - text: Show
+      - generic [ref=e345]: Health checks OK

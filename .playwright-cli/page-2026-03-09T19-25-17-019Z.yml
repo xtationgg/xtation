@@ -1,0 +1,135 @@
+- generic [ref=e3]:
+  - generic [ref=e4]:
+    - generic [ref=e5]:
+      - button "Play" [ref=e6]
+      - button "Lab" [ref=e8]
+      - button "Multiplayer" [ref=e9]
+      - button "Profile" [ref=e10]
+      - button "Inventory" [active] [ref=e11]:
+        - generic [ref=e394]: Inventory
+      - button "Store" [ref=e12]
+      - button "Settings" [ref=e13]
+    - generic [ref=e14]:
+      - button "DUSK" [ref=e15]:
+        - img [ref=e16]
+        - text: DUSK
+      - generic [ref=e19]:
+        - generic [ref=e20]: Today
+        - generic [ref=e21]:
+          - text: "0"
+          - generic [ref=e22]: / 960
+        - generic [ref=e23]: 0 MIN
+      - button "LOGIN" [ref=e108]
+      - button "⌘K" [ref=e25]
+      - generic [ref=e26]:
+        - generic "Player Level (0 total XP)" [ref=e27]:
+          - img [ref=e28]
+          - generic [ref=e34]: LV 0
+        - button [ref=e35]:
+          - img [ref=e36]
+        - button [ref=e39]:
+          - img [ref=e40]
+  - generic [ref=e395]:
+    - generic [ref=e396]:
+      - generic [ref=e397]:
+        - heading "Armory Database" [level=1] [ref=e398]
+        - generic [ref=e399]: INVENTORY_SYSTEM_V2.0
+      - generic [ref=e400]: "CAPACITY: 0 / UNLIMITED"
+    - generic [ref=e401]:
+      - button "OUTFIT" [ref=e402]:
+        - img [ref=e403]
+        - text: OUTFIT
+      - button "GEAR" [ref=e405]:
+        - img [ref=e406]
+        - text: GEAR
+      - button "VEHICLE" [ref=e409]:
+        - img [ref=e410]
+        - text: VEHICLE
+      - button "TOOLS" [ref=e414]:
+        - img [ref=e415]
+        - text: TOOLS
+    - generic [ref=e417]:
+      - button "Add Slot" [ref=e419]:
+        - img [ref=e421]
+        - text: Add Slot
+      - generic [ref=e423]: No slots in this category. Add one to begin.
+    - generic [ref=e424]:
+      - generic [ref=e425]:
+        - generic [ref=e426]:
+          - generic [ref=e427]: Ledger Items — OUTFIT
+          - generic [ref=e428]: Offline-first items stored in your XP ledger
+        - text: "0"
+      - generic [ref=e429]:
+        - textbox "New outfit item name" [ref=e430]
+        - button "Add ledger item" [ref=e431]:
+          - img [ref=e432]
+      - generic [ref=e433]: No ledger items for this category. Add one above.
+    - button "Choose File" [ref=e434]
+    - button "Choose File" [ref=e435]
+    - generic [ref=e436]:
+      - generic [ref=e437]:
+        - generic [ref=e438]:
+          - generic [ref=e439]: System Assets
+          - generic [ref=e440]: Active themes, widgets, and modules working inside XTATION right now
+        - text: "4"
+      - generic [ref=e441]:
+        - generic [ref=e442]:
+          - generic [ref=e443]:
+            - generic [ref=e444]:
+              - generic [ref=e445]: Dusk Theme
+              - generic [ref=e446]: theme · Builtin theme
+            - generic [ref=e447]: active
+          - generic [ref=e448]: The active client skin that controls the visual shell without changing the XTATION engine underneath.
+          - generic [ref=e449]: Theme shellVisual identitySystem-safe presentation
+        - generic [ref=e450]:
+          - generic [ref=e451]:
+            - generic [ref=e452]:
+              - generic [ref=e453]: Focus Pulse Widget
+              - generic [ref=e454]: widget · Store widget
+            - generic [ref=e455]: active
+          - generic [ref=e456]: A compact pulse widget for quick session state, streak heat, and next action visibility.
+          - generic [ref=e457]: Compact Play widgetFast glance metricsGood default starter widget
+        - generic [ref=e458]:
+          - generic [ref=e459]:
+            - generic [ref=e460]:
+              - generic [ref=e461]: Knowledge Graph Module
+              - generic [ref=e462]: module · Store module
+            - generic [ref=e463]: active
+          - generic [ref=e464]: Unlocks graph and relationship views for Lab knowledge links and note structure.
+          - generic [ref=e465]: Graph-ready Lab modeBetter link discoveryBuilt for Knowledge expansion
+        - generic [ref=e466]:
+          - generic [ref=e467]:
+            - generic [ref=e468]:
+              - generic [ref=e469]: Media Ops Module
+              - generic [ref=e470]: module · Store module
+            - generic [ref=e471]: active
+          - generic [ref=e472]: Enables a stronger Media Ops lane for planning, publishing queues, and campaign control.
+          - generic [ref=e473]: Media Ops laneCampaign planningFuture publishing hooks
+    - generic [ref=e474]:
+      - generic [ref=e475]: "SECTION: OUTFIT"
+      - generic [ref=e476]: "SYNC STATUS: LOCAL ONLY"
+  - button [ref=e111]:
+    - img [ref=e112]
+  - generic [ref=e116]:
+    - generic [ref=e117]:
+      - generic [ref=e118]: Developer HUD
+      - button "Min" [ref=e119]
+    - generic [ref=e120]:
+      - generic [ref=e121]:
+        - text: AuthNot signed inUser IDanonLedger KeyxpLedger_v2:anonLedger Sourceanon-localCloud StatusidleLast Sync-Counts
+        - generic [ref=e122]: 0 tasks / 0 sessions / 0 challenges
+        - text: RunningnoneToday
+        - generic [ref=e123]: 0/960 (Bronze)
+      - generic [ref=e124]:
+        - button "Run Checks" [ref=e125]
+        - button "Repair Links" [ref=e126]
+        - button "Export Ledger JSON" [ref=e127]
+        - button "Reset Local Data" [ref=e128]
+        - button "Reset Cloud Data (This Account)" [disabled] [ref=e129]
+      - generic [ref=e130]:
+        - generic [ref=e131]: Cloud reset
+        - generic [ref=e132]: Idle
+      - 'button "Health: OKShow" [ref=e134]':
+        - generic [ref=e135]: "Health: OK"
+        - text: Show
+      - generic [ref=e136]: Health checks OK
