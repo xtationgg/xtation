@@ -91,6 +91,14 @@ Current stop point:
     - smaller calmer mission panel on the left
     - round support screen suppressed in calm states
     - brief / urgent / success states can still reintroduce support screens deliberately
+  - the embedded scene runtime was rebuilt from the live source workspace and resynced into `public/avatar-lobby`
+  - the latest portrait-stage pass is now source-side too:
+    - stronger bureau key light
+    - quieter fill light
+    - brighter portrait core in the bureau backdrop
+    - tighter / closer hero shot
+    - narrower portrait lens
+    - larger profile-presentation fit height so the character occupies the shot more clearly
 - the Dusk brief path is now centralized and safer:
   - `src/dusk/bridge.ts` owns latest-brief persistence
   - `useLatestDuskBrief` and `HextechAssistant` now read/write through the same bridge helpers
@@ -260,6 +268,7 @@ Stay on broader closed-beta readiness instead of opening a new subsystem:
   - stronger scene-side lighting
   - less overlay competition
   - more obvious “main character space” feeling
+  - prefer source-side scene/runtime changes before stacking more host-only framing
 5. only return to continuity micro-fixes if a real browser journey exposes a mismatch
 
 HOW TO VERIFY THE CURRENT STATE
@@ -272,15 +281,7 @@ npm test
 
 Latest verified state:
 - `npm run build` passed
-- `npm test` passed `183/183`
-
-Latest verified state:
-- `npm run build` passed
-- `npm test` passed `168/168`
-
-At the time this file was last updated, the current verified state was:
-- npm run build -> passed
-- npm test -> 166/166 passed
+- `npm test` passed `195/195`
 
 LOCAL REVIEW
 ------------
@@ -322,7 +323,7 @@ Backup policy:
 - also create one before risky refactors or important handoff milestones
 
 Latest known source backup when this file was created:
-- /Users/sarynass/Desktop/html/backups/xtation-source-backup-20260311-174419.zip
+- /Users/sarynass/Desktop/html/backups/xtation-source-backup-20260311-214254.zip
 
 LOW-COST CONTINUITY RULE
 ------------------------
@@ -350,4 +351,4 @@ If you are a new AI taking over XTATION:
 
 Current verified state:
 - npm run build passed
-- npm test passed 177/177
+- npm test passed 195/195

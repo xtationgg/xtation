@@ -173,27 +173,27 @@ const resolveBasePortraitLightRig = ({
 
   if (sceneProfile === 'void') {
     return {
-      keyIntensity: isNight ? 1.42 : 1.3,
-      fillIntensity: isNight ? 0.18 : 0.22,
-      keyColor: '#f6f8ff',
-      fillColor: '#8d9fd4',
+      keyIntensity: isNight ? 1.62 : 1.48,
+      fillIntensity: isNight ? 0.12 : 0.16,
+      keyColor: '#f5f8ff',
+      fillColor: '#7b8dbf',
     };
   }
 
   if (sceneProfile === 'ops') {
     return {
-      keyIntensity: stageState === 'active' ? 1.78 : 1.6,
-      fillIntensity: 0.22,
+      keyIntensity: stageState === 'active' ? 2.04 : 1.86,
+      fillIntensity: 0.14,
       keyColor: '#f7f2e8',
-      fillColor: '#c08e5f',
+      fillColor: '#ba7f49',
     };
   }
 
   return {
-    keyIntensity: isNight ? 1.72 : stageState === 'active' ? 1.84 : 1.68,
-    fillIntensity: isNight ? 0.14 : 0.2,
-    keyColor: '#fff3df',
-    fillColor: '#b89569',
+    keyIntensity: isNight ? 2.18 : stageState === 'active' ? 2.34 : 2.14,
+    fillIntensity: isNight ? 0.1 : 0.14,
+    keyColor: '#fff7ed',
+    fillColor: '#8f7358',
   };
 };
 
@@ -208,15 +208,15 @@ const resolvePortraitModelState = ({
 }) => {
   const scale =
     sceneProfile === 'void'
-      ? 0.92
+      ? 0.96
       : sceneProfile === 'ops'
-      ? 0.94
-      : 0.9;
+      ? 0.98
+      : 0.97;
 
   return {
     modelScale: scale,
-    modelYaw: sceneProfile === 'void' ? 6 : sceneProfile === 'ops' ? 14 : 12,
-    modelPosY: isNight ? -0.08 : stageState === 'active' ? -0.06 : -0.04,
+    modelYaw: sceneProfile === 'void' ? -34 : sceneProfile === 'ops' ? -46 : -42,
+    modelPosY: isNight ? -0.09 : stageState === 'active' ? -0.08 : -0.06,
   };
 };
 
@@ -373,13 +373,13 @@ const resolveProfileScreenLayout = ({
       shape: 'panel',
     },
     'screen-b': {
-      x: 1.46,
-      y: 1.0,
-      z: -0.22,
+      x: 2.8,
+      y: 0.72,
+      z: -0.82,
       yaw: -12,
-      scale: 0.38,
-      width: 0.66,
-      height: 0.66,
+      scale: 0.01,
+      width: 0.52,
+      height: 0.52,
       bend: 0.04,
       showFrame: false,
       visible: false,
@@ -410,10 +410,10 @@ const resolveProfileScreenLayout = ({
     };
     baseLayouts['screen-b'] = {
       ...baseLayouts['screen-b'],
-      x: 1.52,
-      y: 0.98,
-      z: -0.28,
-      scale: 0.36,
+      x: 2.7,
+      y: 0.74,
+      z: -0.94,
+      scale: 0.01,
       showFrame: true,
     };
     baseLayouts['screen-c'] = {
@@ -434,10 +434,10 @@ const resolveProfileScreenLayout = ({
     };
     baseLayouts['screen-b'] = {
       ...baseLayouts['screen-b'],
-      x: 1.34,
-      y: 0.98,
-      z: -0.12,
-      scale: 0.4,
+      x: 2.56,
+      y: 0.78,
+      z: -0.86,
+      scale: 0.01,
       showFrame: true,
     };
     baseLayouts['screen-c'] = {
@@ -458,9 +458,12 @@ const resolveProfileScreenLayout = ({
     };
     baseLayouts['screen-b'] = {
       ...baseLayouts['screen-b'],
-      visible: true,
-      showFrame: mode === 'urgent',
-      scale: mode === 'urgent' ? 0.42 : 0.38,
+      visible: false,
+      showFrame: false,
+      x: 2.8,
+      y: 0.72,
+      z: -0.82,
+      scale: 0.01,
     };
   }
 
@@ -474,8 +477,10 @@ const resolveProfileScreenLayout = ({
     };
     baseLayouts['screen-b'] = {
       ...baseLayouts['screen-b'],
-      y: 0.96,
-      scale: 0.34,
+      x: 2.8,
+      y: 0.72,
+      z: -0.82,
+      scale: 0.01,
     };
   }
 
@@ -866,6 +871,7 @@ export const ProfileLobbyScene: React.FC<ProfileLobbySceneProps> = ({
       screenId: 'screen-a',
       props: {
         ...screenLayouts['screen-a'],
+        clearMedia: true,
         label: screens.missionLabel,
         text: screens.missionText,
       },
@@ -875,6 +881,7 @@ export const ProfileLobbyScene: React.FC<ProfileLobbySceneProps> = ({
       screenId: 'screen-b',
       props: {
         ...screenLayouts['screen-b'],
+        clearMedia: true,
         label: screens.roleLabel,
         text: screens.roleText,
       },
@@ -884,6 +891,7 @@ export const ProfileLobbyScene: React.FC<ProfileLobbySceneProps> = ({
       screenId: 'screen-c',
       props: {
         ...screenLayouts['screen-c'],
+        clearMedia: true,
         label: screens.traceLabel,
         text: screens.traceText,
       },

@@ -126,6 +126,7 @@ Current active visual frontier:
 - make `Profile` feel unmistakably scene-first
 - reduce runtime/debug phrasing inside the profile scene overlay
 - strengthen avatar-stage framing and silhouette before opening another major subsystem
+- prefer source-side scene/runtime adjustments over stacking more host-side overlay chrome
 
 Recent design consolidation has already been pushed through:
 
@@ -237,6 +238,9 @@ Important note:
   - [scene-source/avatar-lobby/README.md](/Users/sarynass/dyad-apps/CLient-D82pm/scene-source/avatar-lobby/README.md)
   - [scene-source/avatar-lobby/demo.tsx](/Users/sarynass/dyad-apps/CLient-D82pm/scene-source/avatar-lobby/demo.tsx)
   - [scene-source/avatar-lobby/halide-topo-hero.tsx](/Users/sarynass/dyad-apps/CLient-D82pm/scene-source/avatar-lobby/halide-topo-hero.tsx)
+- the live rebuild path still comes from the original scene workspace at:
+  - `/Users/sarynass/Desktop/html`
+  - after source changes there, rebuild and resync `dist/` into `public/avatar-lobby/`
 
 Main files:
 
@@ -624,7 +628,7 @@ npm test
 Latest verified state at time of writing:
 
 - `npm run build` passed
-- `npm test` passed `155/155`
+- `npm test` passed `195/195`
 
 Known low-value warning still present during tests:
 
@@ -644,7 +648,7 @@ Current naming pattern:
 
 Latest backup at time of writing:
 
-- [xtation-source-backup-20260311-113656.zip](/Users/sarynass/Desktop/html/backups/xtation-source-backup-20260311-113656.zip)
+- [xtation-source-backup-20260311-214254.zip](/Users/sarynass/Desktop/html/backups/xtation-source-backup-20260311-214254.zip)
 
 ## Fresh AI Bootstrap Notes
 

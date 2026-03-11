@@ -1,7 +1,6 @@
 import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 import { Camera, Edit2, Check, X, Upload, Box, User, Activity, Award, BarChart2, Sword, Zap, Link2, FileText, Shield } from 'lucide-react';
 import { ProfilePanel } from '../UI/ProfilePanel';
-import { EyeOrb } from '../UI/EyeOrb';
 import { RewardVisual } from '../UI/RewardVisual';
 import { RewardConfig, InventoryItem } from '../../types';
 import { ASSETS } from '../../constants';
@@ -88,6 +87,12 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
     } catch {}
     return 'PROFILE';
   });
+  useEffect(() => {
+    setActiveTab('PROFILE');
+    try {
+      window.sessionStorage.setItem('profileActiveTab', 'PROFILE');
+    } catch {}
+  }, []);
   const [summonerName, setSummonerName] = useState(() => localStorage.getItem('profileName') || 'Station Pilot');
   const [profileImage, setProfileImage] = useState(() => localStorage.getItem('profileImage') || ASSETS.PROFILE_ICON);
   const [coverImage, setCoverImage] = useState(() => localStorage.getItem('profileCover') || ASSETS.BACKGROUND_HOME);
@@ -1772,18 +1777,6 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
                 totalLoadoutSlots={activeAvatarLoadoutSummary.totalSlots}
                 missingLoadoutBindings={activeAvatarLoadoutSummary.missingBindings}
               />
-
-              {/* === EyeOrb — bottom right corner === */}
-              <div className="absolute bottom-4 right-4 z-20">
-                <EyeOrb
-                  ariaLabel="Play"
-                  onMouseEnter={playHoverSound}
-                  onClick={() => {
-                    playClickSound();
-                    if (activeSession) { stopSession(); } else { startSession({ title: 'Quick session', tag: 'stage', source: 'timer', linkedTaskIds: [] }); }
-                  }}
-                />
-              </div>
 
               {/* Hidden profile/cover inputs (kept in DOM) */}
               <input ref={fileInputRef} type="file" className="hidden" accept="image/png,image/jpeg,image/gif,image/jpg" onChange={handleFileChange} />

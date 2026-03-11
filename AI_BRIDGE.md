@@ -46,7 +46,7 @@ All work should pass `npm run build` and `npx vitest run` (191 tests) before com
 ### P1: Scene Visual Presence (Codex-locked zone)
 - [x] Review Claude's overlay changes in ProfileLobbyScene.tsx (HUD gating, relay cleanup)
 - [x] Continue scene-side avatar work: stronger silhouette, cleaner subject separation, better lighting
-- [ ] Consider model swap from male_anatomy.glb to walking-man.glb (requires avatar-lobby bundle rebuild)
+- [x] Consider model swap from male_anatomy.glb to walking-man.glb (tested live; rejected as the default because it weakens the hero shot and subject framing)
 
 ### P2: Quest Completion Loop Polish
 - [ ] Review new QuestDebriefPanel.tsx (components/Play/QuestDebriefPanel.tsx) — check it matches XTATION design language
@@ -84,26 +84,25 @@ All work should pass `npm run build` and `npx vitest run` (191 tests) before com
 
 ## Latest Codex Note
 
-- Profile scene host now applies a profile-specific screen layout instead of inheriting the prototype defaults:
-  - calmer mission panel placement on the left
-  - the round support screen is suppressed in calm states
-  - brief/urgent/success states can still reintroduce support screens deliberately
-- The portrait model is now rotated further toward the viewer so the subject reads more frontally in the `hero` shot
-- The Dusk brief path is now centralized in `src/dusk/bridge.ts`:
-  - bridge owns latest-brief persistence
-  - `useLatestDuskBrief` and `HextechAssistant` read/write through the same helpers
-  - `userScopedStorage` now has an in-memory fallback when browser storage is missing or degraded
-- The profile scene now has:
-  - stronger portrait light balance
-  - calmer fill light for better subject separation
-  - slightly smaller portrait scale
-  - front-biased model yaw
-  - tighter portrait focus envelope
+- Completed the active scene-side portrait pass in the locked Profile zone
+- The profile stage now has a stronger subject-first baseline:
+  - closer hero camera framing
+  - calmer orbit
+  - brighter portrait-core bureau lighting
+  - clearer front-biased character orientation
+  - larger profile-presentation fit so the subject occupies the stage more assertively
+- The embedded avatar-lobby runtime was rebuilt from source and resynced into `public/avatar-lobby`
+- The editable scene source snapshot now lives inside the repo at:
+  - `/Users/sarynass/dyad-apps/CLient-D82pm/scene-source/avatar-lobby/demo.tsx`
+- The bottom-right EyeOrb overlay remains removed, so the stage reads cleaner
+- The `walking-man.glb` swap was tested live and rejected as the default:
+  - worse hero framing
+  - weaker subject presence
 - Verified:
   - `npm run build` passed
-  - `npm test` passed `195/195`
+  - `npx vitest run` passed `195/195`
 - Latest backup:
-  - `/Users/sarynass/Desktop/html/backups/xtation-source-backup-20260311-232805.zip`
+  - `/Users/sarynass/Desktop/html/backups/xtation-source-backup-20260311-214254.zip`
 
 ## Latest Claude Note
 

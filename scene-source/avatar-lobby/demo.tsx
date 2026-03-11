@@ -845,7 +845,7 @@ const ENVIRONMENT_MODE_CONFIG: Record<
       "--accent": "#d6a45d",
       "--grain-opacity": "0.08",
       "--env-backdrop":
-        "linear-gradient(180deg, rgba(255,255,255,0.02), rgba(11,13,16,0.02) 18%, rgba(11,13,16,0.94) 74%), radial-gradient(circle at 48% 18%, rgba(214,164,93,0.18), rgba(11,13,16,0.94) 56%), radial-gradient(circle at 48% 62%, rgba(214,164,93,0.08), rgba(11,13,16,0) 28%)",
+        "linear-gradient(180deg, rgba(255,255,255,0.03), rgba(11,13,16,0.02) 18%, rgba(11,13,16,0.94) 74%), radial-gradient(circle at 50% 22%, rgba(214,164,93,0.32), rgba(11,13,16,0.9) 50%), radial-gradient(circle at 50% 54%, rgba(246,239,226,0.08), rgba(11,13,16,0) 34%), radial-gradient(circle at 46% 72%, rgba(214,164,93,0.1), rgba(11,13,16,0) 28%)",
       "--panel-bg": "rgba(9, 11, 13, 0.74)",
       "--panel-bg-soft": "rgba(16, 18, 21, 0.62)",
       "--panel-border": "rgba(244, 239, 230, 0.16)",
@@ -861,12 +861,12 @@ const ENVIRONMENT_MODE_CONFIG: Record<
       background: false,
     },
     lighting: {
-      keyMul: 1.2,
-      fillMul: 0.9,
+      keyMul: 1.46,
+      fillMul: 0.66,
       atmoMul: 0.48,
       reflectionMul: 1.08,
-      keyTint: "#fff5e5",
-      fillTint: "#efba72",
+      keyTint: "#fff7eb",
+      fillTint: "#ca9358",
     },
   },
 };
@@ -898,9 +898,9 @@ const DEFAULT_RIG: LightRigState = {
   fillOffsetY: DEFAULT_FILL_OFFSET.y,
   fillOffsetZ: DEFAULT_FILL_OFFSET.z,
   keyColor: "#ffffff",
-  keyIntensity: 1.25,
-  fillColor: "#ff3c00",
-  fillIntensity: 0.36,
+  keyIntensity: 1.54,
+  fillColor: "#bc8350",
+  fillIntensity: 0.2,
   hideLightSource: true,
 };
 
@@ -962,9 +962,9 @@ const PRESETS: Record<PresetKey, ScenePreset> = {
 
 const SHOTS: Record<CameraShotKey, ShotConfig> = {
   hero: {
-    position: [0.92, 1.62, 2.02],
-    target: [0.0, 1.12, 0.02],
-    fov: 29,
+    position: [0.38, 1.64, 1.48],
+    target: [0.0, 1.18, 0.02],
+    fov: 23,
   },
   mid: {
     position: [0, 6.4, 0.01],
@@ -1135,6 +1135,82 @@ const cloneScreenCards = (cards: ScreenCard[]) =>
   }));
 
 const createDefaultScreenCards = (): ScreenCard[] => cloneScreenCards(DEFAULT_SCREEN_CARDS);
+
+const createProfilePresentationScreenCards = (): ScreenCard[] =>
+  cloneScreenCards(
+    DEFAULT_SCREEN_CARDS.map((card) => {
+      if (card.id === "screen-a") {
+        return {
+          ...card,
+          x: -1.3,
+          y: 1.44,
+          z: 0.22,
+          yaw: 12,
+          scale: 0.54,
+          width: 0.82,
+          height: 0.68,
+          bend: -0.03,
+          showFrame: true,
+          visible: true,
+          shape: "panel",
+          mediaUrl: null,
+          mediaOriginalUrl: null,
+          mediaKind: "none" as const,
+          mediaSourceType: "directUrl" as const,
+          mediaProvider: null,
+          mediaEmbedBase: null,
+          mediaPlaying: true,
+          mediaMuted: true,
+          audioUrl: null,
+          audioPlaying: false,
+          audioOnly: false,
+          text: "MISSION LINK",
+        };
+      }
+      if (card.id === "screen-b") {
+        return {
+          ...card,
+          x: 2.8,
+          y: 0.72,
+          z: -0.82,
+          yaw: -12,
+          scale: 0.01,
+          showFrame: false,
+          visible: false,
+          mediaUrl: null,
+          mediaOriginalUrl: null,
+          mediaKind: "none" as const,
+          mediaSourceType: "directUrl" as const,
+          mediaProvider: null,
+          mediaEmbedBase: null,
+          mediaPlaying: true,
+          mediaMuted: true,
+          audioUrl: null,
+          audioPlaying: false,
+          audioOnly: false,
+        };
+      }
+      return {
+        ...card,
+        y: 1.94,
+        z: -1.18,
+        scale: 0.54,
+        showFrame: false,
+        visible: false,
+        mediaUrl: null,
+        mediaOriginalUrl: null,
+        mediaKind: "none" as const,
+        mediaSourceType: "directUrl" as const,
+        mediaProvider: null,
+        mediaEmbedBase: null,
+        mediaPlaying: true,
+        mediaMuted: true,
+        audioUrl: null,
+        audioPlaying: false,
+        audioOnly: false,
+      };
+    })
+  );
 
 const LEGACY_TAB_MAP: Record<string, PanelTab> = {
   create: "lighting",
@@ -1492,7 +1568,11 @@ const HalideLanding: React.FC = () => {
   const [hdriExposure, setHdriExposure] = useState<number>(0);
   const [hdriName, setHdriName] = useState<string>("None");
   const [screensEnabled, setScreensEnabled] = useState<boolean>(true);
-  const [screens, setScreens] = useState<ScreenCard[]>(createDefaultScreenCards);
+  const [screens, setScreens] = useState<ScreenCard[]>(() =>
+    resolveInitialPresentationMode() === "profile"
+      ? createProfilePresentationScreenCards()
+      : createDefaultScreenCards()
+  );
   const [activeScreenId, setActiveScreenId] = useState<string>(DEFAULT_SCREEN_CARDS[0].id);
   const [sceneSelection, setSceneSelection] = useState<SceneSelectionKind>("none");
   const [selectionLocked, setSelectionLocked] = useState<boolean>(false);
@@ -1747,7 +1827,7 @@ const HalideLanding: React.FC = () => {
   const environmentObjectImpactRef = useRef<number>(0.62);
   const lightAnchorModeRef = useRef<"follow" | "world">("follow");
   const worldAnchorRef = useRef(new THREE.Vector3(0, 1.1, 0));
-  const showLightMarkersRef = useRef<boolean>(true);
+  const showLightMarkersRef = useRef<boolean>(false);
   const lockLightsAboveGroundRef = useRef<boolean>(false);
   const minLightHeightRef = useRef<number>(0.03);
   const maxLightDistanceRef = useRef<number>(4.7);
@@ -4838,7 +4918,7 @@ const HalideLanding: React.FC = () => {
     setWorldAnchorX(settings.worldAnchorX ?? 0);
     setWorldAnchorY(settings.worldAnchorY ?? 1.1);
     setWorldAnchorZ(settings.worldAnchorZ ?? 0);
-    setShowLightMarkers(settings.showLightMarkers ?? true);
+    setShowLightMarkers(settings.showLightMarkers ?? false);
     setLockLightsAboveGround(settings.lockLightsAboveGround ?? false);
     setActiveOrbitalLight(settings.activeOrbitalLight ?? "key");
     setKeyAzimuth(settings.keyAzimuth ?? 36);
@@ -5750,10 +5830,24 @@ const HalideLanding: React.FC = () => {
           const showFrame = asBoolean(props.showFrame);
           const mediaMuted = asBoolean(props.mediaMuted);
           const audioOnly = asBoolean(props.audioOnly);
+          const clearMedia = props.clearMedia === true;
           if (visible !== null) patch.visible = visible;
           if (showFrame !== null) patch.showFrame = showFrame;
           if (mediaMuted !== null) patch.mediaMuted = mediaMuted;
           if (audioOnly !== null) patch.audioOnly = audioOnly;
+          if (clearMedia) {
+            patch.mediaUrl = null;
+            patch.mediaOriginalUrl = null;
+            patch.mediaKind = "none";
+            patch.mediaSourceType = "directUrl";
+            patch.mediaProvider = null;
+            patch.mediaEmbedBase = null;
+            patch.mediaPlaying = true;
+            patch.mediaMuted = true;
+            patch.audioUrl = null;
+            patch.audioPlaying = false;
+            patch.audioOnly = false;
+          }
 
           updateScreenCard(screenId, patch);
           if ((asBoolean(payload.select) ?? true) === true) {
@@ -9855,11 +9949,13 @@ const HalideLanding: React.FC = () => {
       cards.forEach((card) => {
         const runtime = runtimeScreens.get(card.id) ?? makeScreenRuntime(card.id);
         if (!runtime) return;
+        const profilePresentationHiddenScreen =
+          isProfilePresentation && (card.id === "screen-b" || card.id === "screen-c");
         const active = hasActiveScreenSelection && activeScreenIdRef.current === card.id;
         const hovered = hoveredScreenId === card.id;
         drawRuntimeScreen(runtime, card, active, hovered, audioPolicyContext);
         updateRuntimeScreenGeometry(runtime, card);
-        runtime.mesh.visible = screensEnabledRef.current && card.visible;
+        runtime.mesh.visible = screensEnabledRef.current && card.visible && !profilePresentationHiddenScreen;
         const mediaMaterial = runtime.mesh.material as THREE.MeshBasicMaterial;
         const shouldToneMap = mediaFidelityRef.current < 0.5;
         if (mediaMaterial.toneMapped !== shouldToneMap) {
@@ -9883,7 +9979,8 @@ const HalideLanding: React.FC = () => {
           runtime.mesh.rotation.y = THREE.MathUtils.lerp(runtime.mesh.rotation.y, targetYaw, smooth);
           runtime.mesh.scale.lerp(screenTargetScale, smooth);
         }
-        runtime.handleGroup.visible = screensEnabledRef.current && card.visible && active;
+        runtime.handleGroup.visible =
+          screensEnabledRef.current && card.visible && active && !profilePresentationHiddenScreen;
         runtime.handleGroup.position.copy(runtime.mesh.position);
         runtime.handleGroup.quaternion.copy(runtime.mesh.quaternion);
         const halfW = SCREEN_HALF_WIDTH * runtime.mesh.scale.x;
@@ -10665,14 +10762,14 @@ const HalideLanding: React.FC = () => {
         const box = new THREE.Box3().setFromObject(root);
         const center = box.getCenter(new THREE.Vector3());
         const size = box.getSize(new THREE.Vector3());
-        const fitHeight = 2.7;
+        const fitHeight = isProfilePresentation ? 3.06 : 2.7;
         const scale = fitHeight / Math.max(size.y, 0.001);
 
         root.scale.setScalar(scale);
         root.position.set(-center.x * scale, -center.y * scale, -center.z * scale);
-        // Profile presentation gets a slight three-quarter turn so the
-        // character reads as the subject instead of a flat side profile.
-        root.rotation.y = isProfilePresentation ? -0.52 : 0;
+        // Let the host drive the portrait framing in profile presentation
+        // so the subject can stay closer to a direct-facing hero shot.
+        root.rotation.y = 0;
 
         const fittedBox = new THREE.Box3().setFromObject(root);
         root.position.y += groundY - fittedBox.min.y;
@@ -13210,6 +13307,19 @@ const HalideLanding: React.FC = () => {
           50% {
             box-shadow: 0 24px 58px rgba(0, 0, 0, 0.52), 0 8px 20px rgba(42, 95, 190, 0.18);
           }
+        }
+
+        .presentation-profile .scene-panel-toggle,
+        .presentation-profile .quick-corner,
+        .presentation-profile .scene-controls,
+        .presentation-profile .screen-hud,
+        .presentation-profile .media-dock,
+        .presentation-profile .orbital-card,
+        .presentation-profile .orb-sphere {
+          display: none !important;
+          visibility: hidden !important;
+          opacity: 0 !important;
+          pointer-events: none !important;
         }
 
         @media (prefers-reduced-motion: reduce) {

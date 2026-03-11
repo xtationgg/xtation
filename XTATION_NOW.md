@@ -84,17 +84,10 @@ Backup cadence:
 
 ## Current Stop Point
 
-- `Settings > Platform Status` now exposes the same guided-setup return affordance as:
-  - Welcome
-  - the guest `CONNECT` drawer
-  - the shell transition banner
-- live browser flow verified:
-  - `Start Guided Setup`
-  - `Skip for now`
-  - `Settings`
-  - `Return to Guided Setup` is visible inside `Platform Status`
-- the continuity-action surfaces are now effectively aligned for the guided-setup return case
-- the next best visible-product move is back on `Profile` scene presence rather than more continuity micro-fixes
+- the continuity lane is stable enough that the best current move is back on visible `Profile` scene presence
+- current bridge-queue status:
+  - `P1` scene visual presence is complete and ready to commit
+  - next queued move is `P2` quest debrief loop polish
 
 - the profile scene overlay has been compressed into product-style stage language:
   - removed visible command count
@@ -127,11 +120,19 @@ Backup cadence:
   - calmer placement and scale
   - round support screen suppressed in calm states
   - support screens reappear deliberately for brief / urgent / success modes
-- the portrait model is rotated further toward the viewer so the subject reads more frontally inside the `hero` shot
-- live browser verification now shows the profile subject reading more front-facing and less like a dark side-on background
+  - the portrait model is rotated further toward the viewer so the subject reads more frontally inside the `hero` shot
+  - live browser verification now shows the profile subject reading more front-facing and less like a dark side-on background
+- the embedded profile scene runtime was rebuilt from the live source workspace and resynced into `public/avatar-lobby`
+- the latest portrait-stage pass is now source-side, not only host-side:
+  - bureau environment backdrop is brighter at the portrait core
+  - bureau key light is stronger and fill light is quieter/cleaner
+  - hero shot is tighter and closer
+  - portrait lens is narrower for a more deliberate bust framing
+  - profile presentation fit-height is larger, so the character occupies the hero shot more assertively
 - the next best visible-product move is still scene-side:
   - improve silhouette / light separation around the character
   - avoid solving character presence with more shell overlay
+  - if one more scene pass is needed, prefer source-side light/shot changes before adding more host framing
 - the Dusk brief path is now centralized and safer:
   - `src/dusk/bridge.ts` owns latest-brief persistence
   - `useLatestDuskBrief` and `HextechAssistant` now read/write through the same bridge helpers
@@ -343,15 +344,14 @@ Backup cadence:
 
 ## Immediate Next Move
 
-Stay on closed-beta readiness and runtime coherence instead of opening a new subsystem:
+Follow the AI bridge queue in order:
 
-1. keep using the now-coherent skin/audio runtime as the baseline for broader beta-readiness work
-2. avoid deepening the Dusk/Lab loop again unless it unlocks direct user-facing value
-3. the strongest next concrete move is to continue broader beta-readiness around this improved handoff:
-   - tighten remaining ambiguity between local station, account station, and imported station states
-   - keep using the shared guest-entry resolver and auth-transition descriptor instead of adding new one-off continuity copy
-   - avoid reopening deep subsystem work until the station/account journey feels obviously safe
-- next strongest move: keep broad beta-readiness polish going across return/resume surfaces instead of reopening subsystem architecture
+1. commit the locked-zone `P1` scene batch
+2. move to `P2` quest debrief polish:
+   - entrance animation
+   - design-language cleanup
+   - tasteful completion burst through presentation events
+3. then continue into broader closed-beta readiness work
 
 ## Easy-To-Miss Notes
 
@@ -371,8 +371,8 @@ Stay on closed-beta readiness and runtime coherence instead of opening a new sub
 - build:
   - `npm run build` passed
 - tests:
-  - `npm test` passed `177/177`
+  - `npx vitest run` passed `195/195`
 
 ## Latest Backup
 
-- [xtation-source-backup-20260311-174419.zip](/Users/sarynass/Desktop/html/backups/xtation-source-backup-20260311-174419.zip)
+- [xtation-source-backup-20260311-214254.zip](/Users/sarynass/Desktop/html/backups/xtation-source-backup-20260311-214254.zip)
