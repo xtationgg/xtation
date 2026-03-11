@@ -63,6 +63,8 @@ describe('buildLocalEntryTransitionDescriptor', () => {
       targetView: ClientView.LOBBY,
     });
     expect(descriptor.detail).toContain('guided setup flow');
+    expect(descriptor.chips).toContain('Setup resumed');
+    expect(descriptor.chips).not.toContain('Play reopened');
   });
 
   it('builds a first-entry guided setup notice', () => {
@@ -82,6 +84,8 @@ describe('buildLocalEntryTransitionDescriptor', () => {
       targetView: ClientView.LOBBY,
     });
     expect(descriptor.detail).toContain('started the guided setup flow');
+    expect(descriptor.chips).toContain('Setup active');
+    expect(descriptor.chips).not.toContain('Play reopened');
   });
 
   it('routes starter-loop resume into the starter workspace instead of fallback view', () => {

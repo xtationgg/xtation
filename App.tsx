@@ -548,20 +548,27 @@ const App: React.FC = () => {
         featureVisibility,
       }
     );
+    const guidedEntryState =
+      guestEntry.localStatus.entryState ??
+      (guestEntry.localStatus.mode === 'fresh' ? 'fresh' : 'resume');
+    const isFreshGuidedEntry = guidedEntryState === 'fresh';
     const guidedSetupStatus: LocalStationStatus = {
       ...guestEntry.localStatus,
       mode: 'guided',
-      entryState: 'resume',
+      entryState: guidedEntryState,
       eyebrow: 'Guided setup',
-      title: 'Continue local station',
-      detail:
-        'XTATION is restoring the guided setup flow so you can seed the first branch and operating track before moving further.',
+      title: isFreshGuidedEntry ? 'Start local station' : 'Continue local station',
+      detail: isFreshGuidedEntry
+        ? 'XTATION is opening the guided setup flow so you can seed the first branch and operating track before moving further.'
+        : 'XTATION is restoring the guided setup flow so you can seed the first branch and operating track before moving further.',
       workspaceLabel: formatWorkspaceLabel(ClientView.LOBBY),
       targetView: ClientView.LOBBY,
-      actionLabel: 'Continue Guided Setup',
+      actionLabel: isFreshGuidedEntry ? 'Start Guided Setup' : 'Continue Guided Setup',
       statusLabel: 'Setup',
-      statusValue: 'In progress',
-      chips: ['Offline-first', 'Starter flow', 'Resume'],
+      statusValue: isFreshGuidedEntry ? 'Pending' : 'In progress',
+      chips: isFreshGuidedEntry
+        ? ['Offline-first', 'Starter flow']
+        : ['Offline-first', 'Starter flow', 'Resume'],
     };
     const guidedSetupTransition = buildLocalEntryTransitionDescriptor(
       guidedSetupStatus,
@@ -1476,7 +1483,9 @@ const App: React.FC = () => {
                   Open {formatWorkspaceLabel(stationTransitionNotice.targetView)}
                 </button>
               ) : null}
-              {currentView !== ClientView.SETTINGS && !isProfileTransitionCompact ? (
+              {currentView !== ClientView.SETTINGS &&
+              !isProfileTransitionCompact &&
+              !isOnboardingOpen ? (
                 <button
                   type="button"
                   className="xt-shell-transition-note__action"

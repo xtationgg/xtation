@@ -84,6 +84,18 @@ All work should pass `npm run build` and `npx vitest run` (191 tests) before com
 
 ## Latest Codex Note
 
+- Guided setup continuity has been corrected end to end:
+  - fresh guided setup now uses `Start local station`
+  - guided setup chips are `Setup active` / `Setup resumed`
+  - the shell no longer offers `Review Settings` while the setup modal is already open
+- Latest continuity-side files in this batch:
+  - `/Users/sarynass/dyad-apps/CLient-D82pm/App.tsx`
+  - `/Users/sarynass/dyad-apps/CLient-D82pm/src/welcome/localEntryTransition.ts`
+  - `/Users/sarynass/dyad-apps/CLient-D82pm/tests/local-entry-transition.test.ts`
+  - `/Users/sarynass/dyad-apps/CLient-D82pm/.gitignore`
+- Verified:
+  - `npm run build` passed
+  - `npx vitest run` passed `198/198`
 - P1 remains the active Codex zone and has been pushed further:
   - closer portrait-first hero shot
   - stronger bureau portrait core and key light

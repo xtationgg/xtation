@@ -224,6 +224,10 @@ Current stop point:
 - `Enter Local Station` now really resumes the stored local workspace instead of always resetting to Play
 - if XTATION says `Continue Starter Loop`, local entry now actually resumes into that starter workspace instead of only using the stored last-view fallback
 - skipping guided setup now writes a real `Starter setup skipped` transition instead of leaving the shell on stale `Guided setup opened` state
+- guided setup continuity is now aligned:
+  - fresh guided setup uses start wording instead of resume wording
+  - guided setup chips use `Setup active` / `Setup resumed`
+  - the shell does not offer `Review Settings` while the setup modal is already open
 - the shell transition banner now suppresses duplicate `Recent continuity` rows when the newest activity entry is already the active banner event
 - the topbar guest `CONNECT` drawer now reads full station activity for starter-loop continuity, so it no longer drops the starter-loop state just because the newest two activity rows are unrelated
 - the topbar guest continuity drawer now also renders the same dedicated starter-loop summary block that Welcome and Settings show
@@ -258,6 +262,7 @@ Current stop point:
   - Welcome
   - the guest `CONNECT` drawer
   - the shell transition banner
+- the next best broad beta-readiness move is still end-to-end guest/local/account/imported journey polish, not another deep subsystem
 - that guided-setup return action was verified live in the browser through:
   - `Start Guided Setup`
   - `Skip for now`

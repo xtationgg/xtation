@@ -46,6 +46,10 @@ Backup cadence:
 - local-station CTA and status language now understand starter-loop milestones
 - entering local mode now uses the same starter-aware continuity logic for both notice copy and actual destination workspace
 - skipping guided setup now writes its own real station transition/activity record instead of leaving the shell on the older `Guided setup opened` state
+- fresh guided setup continuity is now truthful instead of looking like a resumed station:
+  - fresh setup uses `Start local station`
+  - guided setup chips are `Setup active` / `Setup resumed`
+  - the shell banner does not offer `Review Settings` while the setup modal is already open
 - the topbar guest `CONNECT` path now reads full station activity for starter-loop continuity instead of only the newest two activity entries
 - the topbar guest continuity drawer now also renders the same dedicated starter-loop summary block as Welcome and Settings
 - the guest continuity path is now being hardened around shared readers instead of duplicated surface logic:
@@ -89,6 +93,10 @@ Backup cadence:
 - the current highest-value frontier is:
   - one more visible `Profile` scene presence pass if needed
   - otherwise broad closed-beta end-to-end journey polish across guest / local / account / imported flows
+- the guided-setup continuity mismatch is now fixed end to end:
+  - fresh guided setup no longer masquerades as a resumed station
+  - setup banner wording and chips now match the real setup mode
+  - the active setup modal no longer shows an unrelated settings action
 
 - the profile scene overlay has been compressed into product-style stage language:
   - removed visible command count

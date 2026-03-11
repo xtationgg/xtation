@@ -25,3 +25,7 @@ dist-ssr
 *.sw?
 
 /dist-desktop/
+
+# Local browser-debug artifacts
+/.playwright-cli/
+/output/playwright/profile-scene-screen-layout-pass.png

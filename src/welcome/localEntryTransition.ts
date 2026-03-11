@@ -87,10 +87,11 @@ export const buildLocalEntryTransitionDescriptor = (
   if (status.mode === 'guided') {
     const entryVerb = status.entryState === 'fresh' ? 'opened' : 'resumed';
     const actionVerb = status.entryState === 'fresh' ? 'opened' : 'reopened';
+    const setupChip = status.entryState === 'fresh' ? 'Setup active' : 'Setup resumed';
     return {
       title: `Guided setup ${entryVerb}`,
       detail: `XTATION ${actionVerb} the local ${workspaceLabel} station and ${status.entryState === 'fresh' ? 'started' : 'restored'} the guided setup flow before any account sync is involved.`,
-      chips: [...baseChips, resumedChip].slice(0, 4),
+      chips: [...baseChips, setupChip].slice(0, 4),
       tone: 'default',
       targetView,
       workspaceLabel,
