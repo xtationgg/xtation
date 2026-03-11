@@ -1125,67 +1125,70 @@ export const ProfileLobbyScene: React.FC<ProfileLobbySceneProps> = ({
         <div className="xt-profile-scene-floor-glow" />
       </div>
 
-      <div className="absolute left-4 top-4 right-4 z-10 flex items-start justify-between gap-3">
-        <div className="xt-runtime-hud xt-runtime-hud--compact">
-          <div className="xt-runtime-hud-card xt-runtime-hud-card--compact pointer-events-auto" data-tone={statusTone}>
-            <div className="xt-runtime-hud-row">
-              <div className="xt-runtime-hud-label">
-                {sceneStatus === 'error' ? <AlertCircle size={13} /> : sceneStatus === 'ready' ? <Box size={13} /> : <Loader2 size={13} className="animate-spin" />}
-                <span>{statusLabel}</span>
-              </div>
-              <div className="xt-runtime-hud-chip">{effectiveStateLabel}</div>
-            </div>
-            <div className="xt-runtime-hud-meta xt-runtime-hud-meta--compact">
-              <span>{hudStatusCopy}</span>
-              <span>{environmentMode}</span>
-              <span>{cameraShot}</span>
-              <span>{currentScreenMode}</span>
-            </div>
+      {/* Minimal connection indicator — always visible */}
+      {sceneStatus !== 'ready' ? (
+        <div className="absolute left-4 top-4 z-10 pointer-events-none">
+          <div className="flex items-center gap-2 px-2.5 py-1.5 rounded bg-black/40 backdrop-blur-sm">
+            {sceneStatus === 'error' ? <AlertCircle size={11} className="text-red-400/80" /> : <Loader2 size={11} className="animate-spin text-white/50" />}
+            <span className="text-[10px] uppercase tracking-[0.15em] text-white/50">{sceneStatus === 'error' ? 'Scene error' : 'Linking'}</span>
           </div>
         </div>
+      ) : null}
 
-        <div className="pointer-events-auto flex items-center gap-2">
-          <button
-            type="button"
-            onClick={() => {
-              emitEvent('profile.scene.reload', {
-                source: 'scene',
-                metadata: {
-                  environmentMode,
-                  cameraShot,
-                },
-              });
-              setReloadNonce((value) => value + 1);
-            }}
-            className="xt-runtime-action xt-runtime-action--compact"
-            aria-label="Reload Scene"
-            title="Reload Scene"
-          >
-            <RefreshCw size={12} />
-          </button>
+      {/* Verbose debug HUD — dev mode only */}
+      {import.meta.env.DEV && settings.device.devHudEnabled ? (
+        <div className="absolute left-4 top-4 right-4 z-10 flex items-start justify-between gap-3">
+          <div className="xt-runtime-hud xt-runtime-hud--compact">
+            <div className="xt-runtime-hud-card xt-runtime-hud-card--compact pointer-events-auto" data-tone={statusTone}>
+              <div className="xt-runtime-hud-row">
+                <div className="xt-runtime-hud-label">
+                  {sceneStatus === 'error' ? <AlertCircle size={13} /> : sceneStatus === 'ready' ? <Box size={13} /> : <Loader2 size={13} className="animate-spin" />}
+                  <span>{statusLabel}</span>
+                </div>
+                <div className="xt-runtime-hud-chip">{effectiveStateLabel}</div>
+              </div>
+              <div className="xt-runtime-hud-meta xt-runtime-hud-meta--compact">
+                <span>{hudStatusCopy}</span>
+                <span>{environmentMode}</span>
+                <span>{cameraShot}</span>
+                <span>{currentScreenMode}</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="pointer-events-auto flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => {
+                emitEvent('profile.scene.reload', {
+                  source: 'scene',
+                  metadata: {
+                    environmentMode,
+                    cameraShot,
+                  },
+                });
+                setReloadNonce((value) => value + 1);
+              }}
+              className="xt-runtime-action xt-runtime-action--compact"
+              aria-label="Reload Scene"
+              title="Reload Scene"
+            >
+              <RefreshCw size={12} />
+            </button>
+          </div>
         </div>
-      </div>
+      ) : null}
 
       <div className="absolute left-4 bottom-4 z-10 max-w-[420px] pointer-events-none">
-          <div className="xt-runtime-relay">
-            <div className="xt-runtime-relay-kicker">{relayLabel}</div>
+        <div className="xt-runtime-relay">
           {relayBadge ? (
             <div className="xt-runtime-relay-badge">
               {relayBadge}
             </div>
           ) : null}
-          {activeAvatarPresencePreset?.label ? (
-            <div className="xt-runtime-relay-tag">
-              {activeAvatarPresencePreset.label}
-            </div>
-          ) : null}
           <div className="xt-runtime-relay-title">{relayTitle}</div>
           <div className="xt-runtime-relay-copy">{relayCopy}</div>
-          <div className="xt-runtime-relay-meta">{relayStateCopy}</div>
           <div className="xt-runtime-relay-meta">{loadoutMetaCopy}</div>
-          {loadoutOccupancyState !== 'ready' ? (
-            <div className="xt-runtime-relay-meta xt-runtime-relay-meta--subtle">{loadoutMissingLine}</div>
-          ) : null}
         </div>
       </div>
     </div>

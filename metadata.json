@@ -1,5 +1,5 @@
 {
-  "name": "Copy of League Client Clone -2",
-  "description": "A high-fidelity visual recreation of the League of Legends desktop client using React and Tailwind CSS, featuring navigation, social panel, profile, and lobby simulations.",
+  "name": "Xtation",
+  "description": "A personal operating system with a game-client interface. Built with React, TypeScript, Three.js, and Tailwind CSS.",
   "requestFramePermissions": []
 }

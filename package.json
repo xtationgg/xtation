@@ -1,5 +1,5 @@
 {
-  "name": "copy-of-league-client-clone--2",
+  "name": "xtation",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -48,8 +48,8 @@
     "wait-on": "^8.0.4"
   },
   "build": {
-    "appId": "com.hextech.client",
-    "productName": "Hextech Client",
+    "appId": "com.xtation.app",
+    "productName": "Xtation",
     "directories": {
       "output": "dist-desktop"
     },

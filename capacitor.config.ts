@@ -1,8 +1,8 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'com.example.clientd82pm',
-  appName: 'CLient-D82pm',
+  appId: 'com.xtation.app',
+  appName: 'Xtation',
   webDir: 'dist'
 };
 

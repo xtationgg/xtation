@@ -24,7 +24,8 @@ IMPORTANT: READ THESE FILES FIRST
 ---------------------------------
 1. /Users/sarynass/dyad-apps/CLient-D82pm/XTATION_CONTINUATION_MAP_V1.md
 2. /Users/sarynass/dyad-apps/CLient-D82pm/XTATION_NOW.md
-3. /Users/sarynass/dyad-apps/CLient-D82pm/XTATION_SPEC_INDEX.md
+3. /Users/sarynass/dyad-apps/CLient-D82pm/AI_BRIDGE.md
+4. /Users/sarynass/dyad-apps/CLient-D82pm/XTATION_SPEC_INDEX.md
 
 After that, inspect these implementation files:
 - /Users/sarynass/dyad-apps/CLient-D82pm/App.tsx

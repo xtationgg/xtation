@@ -13,6 +13,7 @@ import {
   Trophy,
 } from 'lucide-react';
 import { QuestModal } from '../Play/QuestModal';
+import { QuestDebriefPanel } from '../Play/QuestDebriefPanel';
 import { useXP } from '../XP/xpStore';
 import type { Project, QuestLevel, Task } from '../XP/xpTypes';
 import { ClientView } from '../../types';
@@ -241,6 +242,7 @@ export const Play: React.FC<PlayProps> = ({
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
   const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
+  const [debriefTaskId, setDebriefTaskId] = useState<string | null>(null);
 
   const activeSession = selectors.getActiveSession();
   const activeTasks = selectors.getActiveTasks();
@@ -517,6 +519,7 @@ export const Play: React.FC<PlayProps> = ({
         via: selectedTaskRunning ? 'session' : 'manual_done',
       },
     });
+    setDebriefTaskId(selectedTask.id);
   };
 
   const editingTask = editingTaskId ? selectors.getTaskById(editingTaskId) : null;
@@ -1238,6 +1241,14 @@ export const Play: React.FC<PlayProps> = ({
         onClose={closeModal}
         onSave={handleSaveQuest}
       />
+
+      {debriefTaskId ? (
+        <QuestDebriefPanel
+          taskId={debriefTaskId}
+          onClose={() => setDebriefTaskId(null)}
+          onNavigate={onOpenWorkspace ? (view) => onOpenWorkspace(view as ClientView) : undefined}
+        />
+      ) : null}
     </div>
   );
 };

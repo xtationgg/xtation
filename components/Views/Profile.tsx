@@ -88,7 +88,7 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
     } catch {}
     return 'PROFILE';
   });
-  const [summonerName, setSummonerName] = useState(() => localStorage.getItem('profileName') || 'Summoner Name');
+  const [summonerName, setSummonerName] = useState(() => localStorage.getItem('profileName') || 'Station Pilot');
   const [profileImage, setProfileImage] = useState(() => localStorage.getItem('profileImage') || ASSETS.PROFILE_ICON);
   const [coverImage, setCoverImage] = useState(() => localStorage.getItem('profileCover') || ASSETS.BACKGROUND_HOME);
   const [coverType, setCoverType] = useState<'image' | 'video'>(() => (localStorage.getItem('profileCoverType') as any) || 'image');
@@ -101,11 +101,11 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
     return 'cover';
   });
   const [characterModel, setCharacterModel] = useState<string>('');
-  const [roleText, setRoleText] = useState(() => localStorage.getItem('profileRole') || 'Mid_Lane');
+  const [roleText, setRoleText] = useState(() => localStorage.getItem('profileRole') || 'Operator');
   const [isEditingRole, setIsEditingRole] = useState(false);
   const [isEditingName, setIsEditingName] = useState(false);
   const [tempName, setTempName] = useState('');
-  const [profileId, setProfileId] = useState(() => localStorage.getItem('profileId') || '#NA1 // US_WEST // NETWORK_STABLE');
+  const [profileId, setProfileId] = useState(() => localStorage.getItem('profileId') || '#LOCAL // ACTIVE');
   type SectionKey = 'BREATHING' | 'MEDITATION' | 'BODY';
   const [bioStats, setBioStats] = useState<BioStats>(() => {
     try {
@@ -113,7 +113,7 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
       if (stored) return JSON.parse(stored);
     } catch {}
     return {
-      name: 'Summoner Name',
+      name: 'Station Pilot',
       gender: '',
       height: '',
       weight: '',
@@ -149,7 +149,7 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
     },
     MEDITATION: {
       title: 'Meditation',
-      subtitle: 'Chill you !!',
+      subtitle: 'Quiet the noise',
       icon: '🧘',
       details: [
         'Lower stress, quiet mind',
@@ -1174,7 +1174,7 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
             placeholder="Enter name"
             onChange={(e) => {
               setBioStats(prev => ({ ...prev, name: e.target.value }));
-              setSummonerName(e.target.value || 'Summoner Name');
+              setSummonerName(e.target.value || 'Station Pilot');
             }}
             className="w-full border border-[var(--app-border)] rounded px-3 py-2 text-sm text-[var(--app-text)] bg-[var(--app-panel)] focus:outline-none focus:border-[var(--app-accent)]"
           />
@@ -1185,7 +1185,7 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
           <input
             type="text"
             value={profileId}
-            placeholder="#NA1 // US_WEST // NETWORK_STABLE"
+            placeholder="#LOCAL // ACTIVE"
             onChange={(e) => setProfileId(e.target.value)}
             className="w-full border border-[var(--app-border)] rounded px-3 py-2 text-sm text-[var(--app-text)] bg-[var(--app-panel)] focus:outline-none focus:border-[var(--app-accent)]"
           />
@@ -1305,7 +1305,7 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
             </div>
             <div>
               <div className={fieldLabel}>Display Name</div>
-              <input className={inputCls} value={summonerName} placeholder="Your name" onChange={e => { setSummonerName(e.target.value || 'Summoner Name'); setBioStats(p => ({ ...p, name: e.target.value })); }} />
+              <input className={inputCls} value={summonerName} placeholder="Your name" onChange={e => { setSummonerName(e.target.value || 'Station Pilot'); setBioStats(p => ({ ...p, name: e.target.value })); }} />
             </div>
             <div>
               <div className={fieldLabel}>Role / Title</div>
