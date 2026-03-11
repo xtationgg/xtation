@@ -124,7 +124,7 @@ const formatSceneEventLabel = (eventName: string | null | undefined) => {
 
 const resolveDefaultScreenMode = (
   stageState: ProfileLobbySceneProps['stageState']
-): CreativeSceneScreenMode => (stageState === 'idle' ? 'base' : 'focus');
+): CreativeSceneScreenMode => (stageState === 'active' ? 'focus' : 'base');
 
 const resolveBaseCameraMotion = (
   motionProfile: 'calm' | 'sharp' | 'cinematic' | undefined,
@@ -190,10 +190,10 @@ const resolveBasePortraitLightRig = ({
   }
 
   return {
-    keyIntensity: isNight ? 2.18 : stageState === 'active' ? 2.34 : 2.14,
-    fillIntensity: isNight ? 0.1 : 0.14,
-    keyColor: '#fff7ed',
-    fillColor: '#8f7358',
+    keyIntensity: isNight ? 2.58 : stageState === 'active' ? 2.72 : 2.48,
+    fillIntensity: isNight ? 0.06 : 0.08,
+    keyColor: '#fff8ef',
+    fillColor: '#8796a8',
   };
 };
 
@@ -214,9 +214,10 @@ const resolvePortraitModelState = ({
       : 0.97;
 
   return {
-    modelScale: scale,
-    modelYaw: sceneProfile === 'void' ? -34 : sceneProfile === 'ops' ? -46 : -42,
-    modelPosY: isNight ? -0.09 : stageState === 'active' ? -0.08 : -0.06,
+    modelScale: sceneProfile === 'bureau' ? scale + 0.04 : scale,
+    modelYaw: sceneProfile === 'void' ? -30 : sceneProfile === 'ops' ? -42 : -30,
+    modelPosX: sceneProfile === 'void' ? 0.02 : sceneProfile === 'ops' ? 0.06 : 0.04,
+    modelPosY: isNight ? -0.05 : stageState === 'active' ? -0.04 : -0.02,
   };
 };
 
@@ -360,15 +361,15 @@ const resolveProfileScreenLayout = ({
 }): Record<'screen-a' | 'screen-b' | 'screen-c', ProfileSceneScreenPatch> => {
   const baseLayouts: Record<'screen-a' | 'screen-b' | 'screen-c', ProfileSceneScreenPatch> = {
     'screen-a': {
-      x: -1.3,
-      y: 1.44,
-      z: 0.22,
+      x: -1.56,
+      y: 1.46,
+      z: 0.16,
       yaw: 12,
-      scale: 0.54,
-      width: 0.82,
-      height: 0.68,
+      scale: 0.38,
+      width: 0.66,
+      height: 0.54,
       bend: -0.03,
-      showFrame: true,
+      showFrame: false,
       visible: true,
       shape: 'panel',
     },
@@ -403,10 +404,10 @@ const resolveProfileScreenLayout = ({
   if (sceneProfile === 'void') {
     baseLayouts['screen-a'] = {
       ...baseLayouts['screen-a'],
-      x: -1.4,
-      z: 0.06,
+      x: -1.62,
+      z: 0.02,
       yaw: 16,
-      scale: 0.52,
+      scale: 0.36,
     };
     baseLayouts['screen-b'] = {
       ...baseLayouts['screen-b'],
@@ -427,9 +428,9 @@ const resolveProfileScreenLayout = ({
   if (sceneProfile === 'ops') {
     baseLayouts['screen-a'] = {
       ...baseLayouts['screen-a'],
-      x: -1.22,
-      y: 1.42,
-      scale: 0.56,
+      x: -1.46,
+      y: 1.44,
+      scale: 0.4,
       showFrame: false,
     };
     baseLayouts['screen-b'] = {
@@ -470,10 +471,10 @@ const resolveProfileScreenLayout = ({
   if (mode === 'focus') {
     baseLayouts['screen-a'] = {
       ...baseLayouts['screen-a'],
-      x: -1.38,
+      x: -1.54,
       y: 1.5,
-      scale: 0.5,
-      width: 0.78,
+      scale: 0.4,
+      width: 0.64,
     };
     baseLayouts['screen-b'] = {
       ...baseLayouts['screen-b'],
@@ -923,6 +924,7 @@ export const ProfileLobbyScene: React.FC<ProfileLobbySceneProps> = ({
       modelFloat: baseModelFloat,
       modelScale: portraitModelState.modelScale,
       modelYaw: portraitModelState.modelYaw,
+      modelPosX: portraitModelState.modelPosX,
       modelPosY: portraitModelState.modelPosY,
       hideLightSource: baseHideLightSource,
       showLightMarkers: false,

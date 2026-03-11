@@ -130,6 +130,14 @@ Backup cadence:
   - hero shot is tighter and closer
   - portrait lens is narrower for a more deliberate bust framing
   - profile presentation fit-height is larger, so the character occupies the hero shot more assertively
+- the newest portrait-stage pass tightened subject separation again:
+  - closer portrait-first hero shot
+  - stronger bureau key light
+  - cooler and quieter fill
+  - more frontal bureau default yaw
+  - slightly larger bureau subject scale
+  - smaller calmer support-screen footprint
+  - tighter host-side spotlight / silhouette envelope
 - the next best visible-product move is still scene-side:
   - improve silhouette / light separation around the character
   - avoid solving character presence with more shell overlay

@@ -845,7 +845,7 @@ const ENVIRONMENT_MODE_CONFIG: Record<
       "--accent": "#d6a45d",
       "--grain-opacity": "0.08",
       "--env-backdrop":
-        "linear-gradient(180deg, rgba(255,255,255,0.03), rgba(11,13,16,0.02) 18%, rgba(11,13,16,0.94) 74%), radial-gradient(circle at 50% 22%, rgba(214,164,93,0.32), rgba(11,13,16,0.9) 50%), radial-gradient(circle at 50% 54%, rgba(246,239,226,0.08), rgba(11,13,16,0) 34%), radial-gradient(circle at 46% 72%, rgba(214,164,93,0.1), rgba(11,13,16,0) 28%)",
+        "linear-gradient(180deg, rgba(255,255,255,0.04), rgba(11,13,16,0.02) 16%, rgba(11,13,16,0.95) 74%), radial-gradient(circle at 50% 23%, rgba(214,164,93,0.48), rgba(11,13,16,0.92) 44%), radial-gradient(circle at 50% 46%, rgba(246,239,226,0.18), rgba(11,13,16,0) 30%), radial-gradient(circle at 50% 72%, rgba(214,164,93,0.06), rgba(11,13,16,0) 24%)",
       "--panel-bg": "rgba(9, 11, 13, 0.74)",
       "--panel-bg-soft": "rgba(16, 18, 21, 0.62)",
       "--panel-border": "rgba(244, 239, 230, 0.16)",
@@ -861,12 +861,12 @@ const ENVIRONMENT_MODE_CONFIG: Record<
       background: false,
     },
     lighting: {
-      keyMul: 1.46,
-      fillMul: 0.66,
-      atmoMul: 0.48,
-      reflectionMul: 1.08,
+      keyMul: 1.66,
+      fillMul: 0.48,
+      atmoMul: 0.38,
+      reflectionMul: 1.16,
       keyTint: "#fff7eb",
-      fillTint: "#ca9358",
+      fillTint: "#9ea9bc",
     },
   },
 };
@@ -962,9 +962,9 @@ const PRESETS: Record<PresetKey, ScenePreset> = {
 
 const SHOTS: Record<CameraShotKey, ShotConfig> = {
   hero: {
-    position: [0.38, 1.64, 1.48],
-    target: [0.0, 1.18, 0.02],
-    fov: 23,
+    position: [0.16, 1.66, 1.18],
+    target: [0.0, 1.24, 0.12],
+    fov: 20.8,
   },
   mid: {
     position: [0, 6.4, 0.01],

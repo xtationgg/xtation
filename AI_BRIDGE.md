@@ -84,27 +84,28 @@ All work should pass `npm run build` and `npx vitest run` (191 tests) before com
 
 ## Latest Codex Note
 
-- P1 committed on `main`:
-  - `codex: strengthen profile scene presence`
-  - stronger portrait framing, calmer orbit, brighter portrait-core bureau lighting, larger profile fit
-- P2 is now complete in the working tree alongside a starter-relay beta-readiness pass:
-  - QuestDebriefPanel restyled into the XTATION command-surface language
-  - entrance animation added
-  - tasteful local reward burst added
-  - presentation events added:
-    - `quest.debrief.opened`
-    - `quest.reward.burst`
-  - Creative Ops defaults now know about reward-burst audio/scene reactions
-- Play starter relay now reflects real state:
-  - `Starter relay armed`
-  - `Session live`
-  - `Route confirmed`
-  instead of repeating the stale `Start First Session` CTA after the first session is already live
+- P1 remains the active Codex zone and has been pushed further:
+  - closer portrait-first hero shot
+  - stronger bureau portrait core and key light
+  - quieter, cooler fill for better subject separation
+  - more frontal default bureau yaw
+  - smaller calmer support-screen footprint around the avatar
+  - tighter host-side spotlight / silhouette envelope
+- Latest scene-side files in this batch:
+  - `/Users/sarynass/dyad-apps/CLient-D82pm/scene-source/avatar-lobby/demo.tsx`
+  - `/Users/sarynass/dyad-apps/CLient-D82pm/components/Views/ProfileLobbyScene.tsx`
+  - `/Users/sarynass/dyad-apps/CLient-D82pm/index.css`
+  - rebuilt runtime synced into `/Users/sarynass/dyad-apps/CLient-D82pm/public/avatar-lobby`
+- P2 remains complete and stable:
+  - QuestDebriefPanel command-surface restyle
+  - entrance animation
+  - local reward burst
+  - reward-related presentation events
 - Verified:
   - `npm run build` passed
   - `npx vitest run` passed `198/198`
 - Latest backup:
-  - `/Users/sarynass/Desktop/html/backups/xtation-source-backup-20260312-033032.zip`
+  - `/Users/sarynass/Desktop/html/backups/xtation-source-backup-20260312-034723.zip`
 
 ## Latest Claude Note
 

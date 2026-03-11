@@ -1582,24 +1582,24 @@
 
 .xt-profile-scene-spotlight {
   top: 45%;
-  width: min(27vw, 300px);
-  height: min(60vh, 540px);
+  width: min(21vw, 232px);
+  height: min(52vh, 460px);
   border-radius: 44%;
   background:
-    radial-gradient(ellipse at 50% 10%, rgba(255, 255, 255, 0.24) 0%, color-mix(in srgb, var(--app-accent) 15%, transparent) 20%, transparent 62%);
-  filter: blur(28px);
-  opacity: 0.78;
+    radial-gradient(ellipse at 50% 10%, rgba(255, 255, 255, 0.34) 0%, color-mix(in srgb, var(--app-accent) 16%, transparent) 20%, transparent 58%);
+  filter: blur(18px);
+  opacity: 0.8;
 }
 
 .xt-profile-scene-silhouette-glow {
   top: 48%;
-  width: min(15vw, 168px);
-  height: min(54vh, 500px);
+  width: min(10vw, 112px);
+  height: min(46vh, 420px);
   border-radius: 48%;
   background:
-    radial-gradient(ellipse at 52% 32%, rgba(255, 255, 255, 0.16) 0%, color-mix(in srgb, var(--app-accent) 22%, rgba(255, 255, 255, 0.1)) 20%, color-mix(in srgb, var(--app-accent) 10%, transparent) 42%, transparent 78%);
-  filter: blur(18px);
-  opacity: 0.74;
+    radial-gradient(ellipse at 50% 34%, rgba(255, 255, 255, 0.24) 0%, color-mix(in srgb, var(--app-accent) 18%, rgba(255, 255, 255, 0.08)) 16%, color-mix(in srgb, var(--app-accent) 8%, transparent) 34%, transparent 72%);
+  filter: blur(12px);
+  opacity: 0.86;
 }
 
 .xt-profile-scene-focus-frame {
@@ -1619,12 +1619,12 @@
 
 .xt-profile-scene-focus-core {
   top: 46%;
-  width: min(14vw, 145px);
-  height: min(34vh, 320px);
+  width: min(12vw, 128px);
+  height: min(30vh, 280px);
   border-radius: 50%;
-  background: radial-gradient(circle at center, color-mix(in srgb, var(--app-accent) 16%, rgba(255, 255, 255, 0.08)) 0%, transparent 72%);
-  filter: blur(16px);
-  opacity: 0.62;
+  background: radial-gradient(circle at center, color-mix(in srgb, var(--app-accent) 20%, rgba(255, 255, 255, 0.1)) 0%, transparent 72%);
+  filter: blur(13px);
+  opacity: 0.58;
 }
 
 .xt-profile-scene-floor-glow {
