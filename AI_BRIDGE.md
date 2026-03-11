@@ -84,6 +84,11 @@ All work should pass `npm run build` and `npx vitest run` (191 tests) before com
 
 ## Latest Codex Note
 
+- Profile scene host now applies a profile-specific screen layout instead of inheriting the prototype defaults:
+  - calmer mission panel placement on the left
+  - the round support screen is suppressed in calm states
+  - brief/urgent/success states can still reintroduce support screens deliberately
+- The portrait model is now rotated further toward the viewer so the subject reads more frontally in the `hero` shot
 - The Dusk brief path is now centralized in `src/dusk/bridge.ts`:
   - bridge owns latest-brief persistence
   - `useLatestDuskBrief` and `HextechAssistant` read/write through the same helpers

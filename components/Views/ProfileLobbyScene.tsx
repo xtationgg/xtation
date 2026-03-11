@@ -215,7 +215,7 @@ const resolvePortraitModelState = ({
 
   return {
     modelScale: scale,
-    modelYaw: sceneProfile === 'void' ? -10 : -8,
+    modelYaw: sceneProfile === 'void' ? 6 : sceneProfile === 'ops' ? 14 : 12,
     modelPosY: isNight ? -0.08 : stageState === 'active' ? -0.06 : -0.04,
   };
 };
@@ -272,6 +272,20 @@ const applySceneLightRig = async (
       color: lightRig.fillColor,
     },
   });
+};
+
+type ProfileSceneScreenPatch = {
+  x?: number;
+  y?: number;
+  z?: number;
+  yaw?: number;
+  scale?: number;
+  width?: number;
+  height?: number;
+  bend?: number;
+  showFrame?: boolean;
+  visible?: boolean;
+  shape?: 'panel' | 'round' | 'diamond';
 };
 
 const buildSceneScreenPayloads = ({
@@ -335,6 +349,137 @@ const buildSceneScreenPayloads = ({
     default:
       return screens;
   }
+};
+
+const resolveProfileScreenLayout = ({
+  sceneProfile,
+  mode,
+}: {
+  sceneProfile: 'bureau' | 'void' | 'ops';
+  mode: CreativeSceneScreenMode;
+}): Record<'screen-a' | 'screen-b' | 'screen-c', ProfileSceneScreenPatch> => {
+  const baseLayouts: Record<'screen-a' | 'screen-b' | 'screen-c', ProfileSceneScreenPatch> = {
+    'screen-a': {
+      x: -1.3,
+      y: 1.44,
+      z: 0.22,
+      yaw: 12,
+      scale: 0.54,
+      width: 0.82,
+      height: 0.68,
+      bend: -0.03,
+      showFrame: true,
+      visible: true,
+      shape: 'panel',
+    },
+    'screen-b': {
+      x: 1.46,
+      y: 1.0,
+      z: -0.22,
+      yaw: -12,
+      scale: 0.38,
+      width: 0.66,
+      height: 0.66,
+      bend: 0.04,
+      showFrame: false,
+      visible: false,
+      shape: 'round',
+    },
+    'screen-c': {
+      x: 0,
+      y: 1.94,
+      z: -1.18,
+      yaw: 180,
+      scale: 0.54,
+      width: 0.92,
+      height: 0.62,
+      bend: -0.08,
+      showFrame: false,
+      visible: false,
+      shape: 'panel',
+    },
+  };
+
+  if (sceneProfile === 'void') {
+    baseLayouts['screen-a'] = {
+      ...baseLayouts['screen-a'],
+      x: -1.4,
+      z: 0.06,
+      yaw: 16,
+      scale: 0.52,
+    };
+    baseLayouts['screen-b'] = {
+      ...baseLayouts['screen-b'],
+      x: 1.52,
+      y: 0.98,
+      z: -0.28,
+      scale: 0.36,
+      showFrame: true,
+    };
+    baseLayouts['screen-c'] = {
+      ...baseLayouts['screen-c'],
+      y: 1.9,
+      z: -1.26,
+      scale: 0.5,
+    };
+  }
+
+  if (sceneProfile === 'ops') {
+    baseLayouts['screen-a'] = {
+      ...baseLayouts['screen-a'],
+      x: -1.22,
+      y: 1.42,
+      scale: 0.56,
+      showFrame: false,
+    };
+    baseLayouts['screen-b'] = {
+      ...baseLayouts['screen-b'],
+      x: 1.34,
+      y: 0.98,
+      z: -0.12,
+      scale: 0.4,
+      showFrame: true,
+    };
+    baseLayouts['screen-c'] = {
+      ...baseLayouts['screen-c'],
+      y: 1.96,
+      z: -1.04,
+      scale: 0.56,
+    };
+  }
+
+  if (mode === 'brief' || mode === 'urgent' || mode === 'success') {
+    baseLayouts['screen-c'] = {
+      ...baseLayouts['screen-c'],
+      visible: true,
+      showFrame: mode !== 'success',
+      scale: mode === 'urgent' ? 0.58 : 0.54,
+      y: mode === 'urgent' ? 1.98 : 1.94,
+    };
+    baseLayouts['screen-b'] = {
+      ...baseLayouts['screen-b'],
+      visible: true,
+      showFrame: mode === 'urgent',
+      scale: mode === 'urgent' ? 0.42 : 0.38,
+    };
+  }
+
+  if (mode === 'focus') {
+    baseLayouts['screen-a'] = {
+      ...baseLayouts['screen-a'],
+      x: -1.38,
+      y: 1.5,
+      scale: 0.5,
+      width: 0.78,
+    };
+    baseLayouts['screen-b'] = {
+      ...baseLayouts['screen-b'],
+      y: 0.96,
+      scale: 0.34,
+    };
+  }
+
+  return baseLayouts;
 };
 
 const injectHostSceneStyles = (frame: HTMLIFrameElement) => {
@@ -713,36 +858,34 @@ export const ProfileLobbyScene: React.FC<ProfileLobbySceneProps> = ({
       contextTitle,
       contextNote,
     });
+    const screenLayouts = resolveProfileScreenLayout({
+      sceneProfile: activeSceneProfile,
+      mode: screenMode,
+    });
     await bridge.command('setScreen', {
       screenId: 'screen-a',
       props: {
+        ...screenLayouts['screen-a'],
         label: screens.missionLabel,
         text: screens.missionText,
-        showFrame: true,
-        visible: true,
-        shape: 'panel',
       },
       select: false,
     });
     await bridge.command('setScreen', {
       screenId: 'screen-b',
       props: {
+        ...screenLayouts['screen-b'],
         label: screens.roleLabel,
         text: screens.roleText,
-        showFrame: true,
-        visible: true,
-        shape: 'round',
       },
       select: false,
     });
     await bridge.command('setScreen', {
       screenId: 'screen-c',
       props: {
+        ...screenLayouts['screen-c'],
         label: screens.traceLabel,
         text: screens.traceText,
-        showFrame: true,
-        visible: true,
-        shape: 'panel',
       },
       select: false,
     });

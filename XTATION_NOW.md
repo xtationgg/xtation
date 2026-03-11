@@ -122,6 +122,12 @@ Backup cadence:
     - slightly smaller portrait scale
     - front-biased default yaw
     - tighter portrait focus envelope
+- the profile host now applies a real profile-specific support-screen layout instead of inheriting the prototype defaults:
+  - smaller mission panel on the left
+  - calmer placement and scale
+  - round support screen suppressed in calm states
+  - support screens reappear deliberately for brief / urgent / success modes
+- the portrait model is rotated further toward the viewer so the subject reads more frontally inside the `hero` shot
 - live browser verification now shows the profile subject reading more front-facing and less like a dark side-on background
 - the next best visible-product move is still scene-side:
   - improve silhouette / light separation around the character

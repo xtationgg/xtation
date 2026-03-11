@@ -87,6 +87,10 @@ Current stop point:
     - slightly smaller portrait scale
     - front-biased default yaw
     - tighter portrait focus envelope
+  - the host now applies a profile-specific support-screen layout instead of inheriting the prototype defaults:
+    - smaller calmer mission panel on the left
+    - round support screen suppressed in calm states
+    - brief / urgent / success states can still reintroduce support screens deliberately
 - the Dusk brief path is now centralized and safer:
   - `src/dusk/bridge.ts` owns latest-brief persistence
   - `useLatestDuskBrief` and `HextechAssistant` now read/write through the same bridge helpers
