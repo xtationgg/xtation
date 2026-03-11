@@ -116,10 +116,20 @@ Backup cadence:
   - the hero shot is now closer and more portrait-driven
   - the avatar is rotated toward the viewer instead of holding the stronger side-profile pose
   - the heavier amber column has been replaced by a softer centered halo
+  - portrait light balance is now stronger:
+    - brighter warm key light
+    - quieter fill light
+    - slightly smaller portrait scale
+    - front-biased default yaw
+    - tighter portrait focus envelope
 - live browser verification now shows the profile subject reading more front-facing and less like a dark side-on background
 - the next best visible-product move is still scene-side:
   - improve silhouette / light separation around the character
   - avoid solving character presence with more shell overlay
+- the Dusk brief path is now centralized and safer:
+  - `src/dusk/bridge.ts` owns latest-brief persistence
+  - `useLatestDuskBrief` and `HextechAssistant` now read/write through the same bridge helpers
+  - `src/lib/userScopedStorage.ts` now has an in-memory fallback when browser storage is missing or degraded
 - accepted Dusk plans can be promoted into Lab baseline notes with preserved:
   - provider/model
   - accepted timestamp

@@ -22,7 +22,11 @@ import {
   writeUserScopedJSON,
   writeUserScopedString,
 } from './src/lib/userScopedStorage';
-import { DUSK_BRIEF_EVENT, LATEST_DUSK_BRIEF_KEY, type DuskBriefPayload, type StoredDuskBrief } from './src/dusk/bridge';
+import {
+  DUSK_BRIEF_EVENT,
+  persistLatestDuskBrief,
+  type StoredDuskBrief,
+} from './src/dusk/bridge';
 import {
   buildGuestStationSignature,
   buildGuestStationSummary,
@@ -1037,10 +1041,9 @@ const App: React.FC = () => {
 
   useEffect(() => {
     const handleAssistantBrief = (event: Event) => {
-      const detail = (event as CustomEvent<DuskBriefPayload>).detail;
+      const detail = (event as CustomEvent<StoredDuskBrief>).detail;
       if (!detail?.title || !detail?.body) return;
-      const storedBrief: StoredDuskBrief = { ...detail, receivedAt: Date.now() };
-      writeUserScopedJSON(LATEST_DUSK_BRIEF_KEY, storedBrief, activeUserId || 'local');
+      persistLatestDuskBrief(detail, activeUserId || 'local');
       setIsAssistantOpen(true);
     };
 

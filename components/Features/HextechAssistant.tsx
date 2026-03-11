@@ -8,8 +8,13 @@ import { playClickSound, playErrorSound, playSuccessSound } from '../../utils/So
 import { useOptionalAuth } from '../../src/auth/AuthProvider';
 import { useOptionalAdminConsole } from '../../src/admin/AdminConsoleProvider';
 import { useOptionalLab } from '../../src/lab/LabProvider';
-import { clearUserScopedKey, getActiveUserId, readUserScopedJSON } from '../../src/lib/userScopedStorage';
-import { DUSK_BRIEF_EVENT, LATEST_DUSK_BRIEF_KEY, type StoredDuskBrief } from '../../src/dusk/bridge';
+import { getActiveUserId } from '../../src/lib/userScopedStorage';
+import {
+  clearLatestDuskBrief,
+  DUSK_BRIEF_EVENT,
+  readLatestDuskBrief,
+  type StoredDuskBrief,
+} from '../../src/dusk/bridge';
 import {
   type DuskLabNoteSeed,
   deriveDuskActionDeck,
@@ -2887,20 +2892,11 @@ export const HextechAssistant: React.FC<HextechAssistantProps> = ({ isOpen, onCl
   };
 
   const loadLatestBrief = () => {
-    if (typeof window === 'undefined' || typeof window.localStorage?.getItem !== 'function') {
-      setLatestBrief(null);
-      return;
-    }
-    const scope = getActiveUserId() || 'local';
-    setLatestBrief(readUserScopedJSON<StoredDuskBrief | null>(LATEST_DUSK_BRIEF_KEY, null, scope));
+    setLatestBrief(readLatestDuskBrief(getActiveUserId() || 'local'));
   };
 
   const clearLatestBrief = () => {
-    if (typeof window === 'undefined' || typeof window.localStorage?.removeItem !== 'function') {
-      setLatestBrief(null);
-      return;
-    }
-    clearUserScopedKey(LATEST_DUSK_BRIEF_KEY, getActiveUserId() || 'local');
+    clearLatestDuskBrief(getActiveUserId() || 'local');
     setLatestBrief(null);
     pushToast('Dusk brief cleared');
   };

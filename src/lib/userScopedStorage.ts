@@ -1,6 +1,7 @@
 const USER_SCOPE_CHANGE_EVENT = 'dusk:user-scope-change';
 
 let activeUserId: string | null = null;
+const fallbackStorage = new Map<string, string>();
 
 const getStorage = () => {
   if (typeof window === 'undefined') return null;
@@ -37,11 +38,16 @@ export const getUserScopedKey = (baseKey: string, userId?: string | null): strin
 };
 
 export const clearUserScopedKey = (baseKey: string, userId?: string | null) => {
-  const storage = getStorage();
-  if (!storage || typeof storage.removeItem !== 'function') return;
   const key = getUserScopedKey(baseKey, userId);
   if (!key) return;
-  storage.removeItem(key);
+  fallbackStorage.delete(key);
+  const storage = getStorage();
+  if (!storage || typeof storage.removeItem !== 'function') return;
+  try {
+    storage.removeItem(key);
+  } catch {
+    // Fall back to in-memory storage only.
+  }
 };
 
 export const isUserScopedStorageKey = (key: string | null, baseKey: string, userId?: string | null) => {
@@ -56,30 +62,49 @@ export const readUserScopedString = (
   fallback: string | null = null,
   userId?: string | null
 ) => {
-  const storage = getStorage();
-  if (!storage || typeof storage.getItem !== 'function') return fallback;
   const key = getUserScopedKey(baseKey, userId);
   if (!key) return fallback;
-  const value = storage.getItem(key);
-  return value === null ? fallback : value;
+  const storage = getStorage();
+  if (storage && typeof storage.getItem === 'function') {
+    try {
+      const value = storage.getItem(key);
+      if (value !== null) {
+        fallbackStorage.set(key, value);
+        return value;
+      }
+    } catch {
+      // Fall through to in-memory storage.
+    }
+  }
+  return fallbackStorage.has(key) ? fallbackStorage.get(key)! : fallback;
 };
 
 export const writeUserScopedString = (baseKey: string, value: string, userId?: string | null) => {
-  const storage = getStorage();
-  if (!storage || typeof storage.setItem !== 'function') return false;
   const key = getUserScopedKey(baseKey, userId);
   if (!key) return false;
-  storage.setItem(key, value);
-  return true;
+  fallbackStorage.set(key, value);
+  const storage = getStorage();
+  if (!storage || typeof storage.setItem !== 'function') return true;
+  try {
+    storage.setItem(key, value);
+    return true;
+  } catch {
+    return true;
+  }
 };
 
 export const removeUserScopedString = (baseKey: string, userId?: string | null) => {
-  const storage = getStorage();
-  if (!storage || typeof storage.removeItem !== 'function') return false;
   const key = getUserScopedKey(baseKey, userId);
   if (!key) return false;
-  storage.removeItem(key);
-  return true;
+  fallbackStorage.delete(key);
+  const storage = getStorage();
+  if (!storage || typeof storage.removeItem !== 'function') return true;
+  try {
+    storage.removeItem(key);
+    return true;
+  } catch {
+    return true;
+  }
 };
 
 export const readUserScopedNumber = (baseKey: string, fallback = 0, userId?: string | null) => {

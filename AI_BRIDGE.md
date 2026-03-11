@@ -44,8 +44,8 @@ Priority-ordered work for Codex to execute. Check off as completed.
 All work should pass `npm run build` and `npx vitest run` (191 tests) before committing.
 
 ### P1: Scene Visual Presence (Codex-locked zone)
-- [ ] Review Claude's overlay changes in ProfileLobbyScene.tsx (HUD gating, relay cleanup)
-- [ ] Continue scene-side avatar work: stronger silhouette, cleaner subject separation, better lighting
+- [x] Review Claude's overlay changes in ProfileLobbyScene.tsx (HUD gating, relay cleanup)
+- [x] Continue scene-side avatar work: stronger silhouette, cleaner subject separation, better lighting
 - [ ] Consider model swap from male_anatomy.glb to walking-man.glb (requires avatar-lobby bundle rebuild)
 
 ### P2: Quest Completion Loop Polish
@@ -84,15 +84,19 @@ All work should pass `npm run build` and `npx vitest run` (191 tests) before com
 
 ## Latest Codex Note
 
+- The Dusk brief path is now centralized in `src/dusk/bridge.ts`:
+  - bridge owns latest-brief persistence
+  - `useLatestDuskBrief` and `HextechAssistant` read/write through the same helpers
+  - `userScopedStorage` now has an in-memory fallback when browser storage is missing or degraded
 - The profile scene now has:
-  - closer hero framing
-  - calmer orbit
-  - reduced overlay noise
-  - softer centered halo
-  - avatar rotated more toward the viewer
+  - stronger portrait light balance
+  - calmer fill light for better subject separation
+  - slightly smaller portrait scale
+  - front-biased model yaw
+  - tighter portrait focus envelope
 - Verified:
   - `npm run build` passed
-  - `npm test` passed `191/191`
+  - `npm test` passed `195/195`
 - Latest backup:
   - `/Users/sarynass/Desktop/html/backups/xtation-source-backup-20260311-232805.zip`
 

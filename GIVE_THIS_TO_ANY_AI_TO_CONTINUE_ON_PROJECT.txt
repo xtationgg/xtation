@@ -81,6 +81,16 @@ Current stop point:
   - the hero shot is now closer and more portrait-driven
   - the avatar is rotated toward the viewer instead of staying in the stronger side-profile pose
   - the heavier amber column was replaced by a softer centered halo
+  - portrait light balance is now stronger:
+    - brighter warm key light
+    - quieter fill light
+    - slightly smaller portrait scale
+    - front-biased default yaw
+    - tighter portrait focus envelope
+- the Dusk brief path is now centralized and safer:
+  - `src/dusk/bridge.ts` owns latest-brief persistence
+  - `useLatestDuskBrief` and `HextechAssistant` now read/write through the same bridge helpers
+  - `src/lib/userScopedStorage.ts` now has an in-memory fallback when browser storage is missing or degraded
 - accepted Dusk plans can be promoted into Lab baseline notes
 - baseline notes preserve accepted plan provenance
 - Lab can send baseline compare context back into Dusk

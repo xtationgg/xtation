@@ -148,6 +148,78 @@ const resolveBaseCameraMotion = (
   };
 };
 
+const resolveBasePortraitLightRig = ({
+  baseLightRig,
+  sceneProfile,
+  stageState,
+  isNight,
+}: {
+  baseLightRig:
+    | {
+        keyIntensity: number;
+        fillIntensity: number;
+        keyColor: string;
+        fillColor: string;
+      }
+    | null
+    | undefined;
+  sceneProfile: 'bureau' | 'void' | 'ops';
+  stageState: ProfileLobbySceneProps['stageState'];
+  isNight: boolean;
+}) => {
+  if (baseLightRig) {
+    return baseLightRig;
+  }
+
+  if (sceneProfile === 'void') {
+    return {
+      keyIntensity: isNight ? 1.42 : 1.3,
+      fillIntensity: isNight ? 0.18 : 0.22,
+      keyColor: '#f6f8ff',
+      fillColor: '#8d9fd4',
+    };
+  }
+
+  if (sceneProfile === 'ops') {
+    return {
+      keyIntensity: stageState === 'active' ? 1.78 : 1.6,
+      fillIntensity: 0.22,
+      keyColor: '#f7f2e8',
+      fillColor: '#c08e5f',
+    };
+  }
+
+  return {
+    keyIntensity: isNight ? 1.72 : stageState === 'active' ? 1.84 : 1.68,
+    fillIntensity: isNight ? 0.14 : 0.2,
+    keyColor: '#fff3df',
+    fillColor: '#b89569',
+  };
+};
+
+const resolvePortraitModelState = ({
+  sceneProfile,
+  stageState,
+  isNight,
+}: {
+  sceneProfile: 'bureau' | 'void' | 'ops';
+  stageState: ProfileLobbySceneProps['stageState'];
+  isNight: boolean;
+}) => {
+  const scale =
+    sceneProfile === 'void'
+      ? 0.92
+      : sceneProfile === 'ops'
+      ? 0.94
+      : 0.9;
+
+  return {
+    modelScale: scale,
+    modelYaw: sceneProfile === 'void' ? -10 : -8,
+    modelPosY: isNight ? -0.08 : stageState === 'active' ? -0.06 : -0.04,
+  };
+};
+
 const resolveCueTransitionImmediate = (style: 'calm' | 'sharp' | 'surge' | null | undefined) =>
   style === 'sharp';
 
@@ -429,12 +501,30 @@ export const ProfileLobbyScene: React.FC<ProfileLobbySceneProps> = ({
     [baseSceneState?.cameraShot, stageState, currentMissionTitle]
   );
   const baseAmbientAtmosphere = baseSceneState?.ambientAtmosphere ?? (stageState === 'active' ? 0.2 : 0.14);
-  const baseLightRig = baseSceneState?.lightRig ?? null;
+  const baseLightRig = useMemo(
+    () =>
+      resolveBasePortraitLightRig({
+        baseLightRig: baseSceneState?.lightRig,
+        sceneProfile: activeSceneProfile,
+        stageState,
+        isNight,
+      }),
+    [activeSceneProfile, baseSceneState?.lightRig, isNight, stageState]
+  );
   const baseBeatPulse = baseSceneState?.beatPulse ?? false;
   const baseRingPulse = baseSceneState?.ringPulse ?? false;
   const baseGroundMotion = baseSceneState?.groundMotion ?? false;
   const baseModelFloat = baseSceneState?.modelFloat ?? stageState !== 'active';
   const baseHideLightSource = baseSceneState?.hideLightSource ?? true;
+  const portraitModelState = useMemo(
+    () =>
+      resolvePortraitModelState({
+        sceneProfile: activeSceneProfile,
+        stageState,
+        isNight,
+      }),
+    [activeSceneProfile, isNight, stageState]
+  );
   const currentScreenMode = useMemo(
     () => {
       const fallback = resolveDefaultScreenMode(stageState);
@@ -680,6 +770,9 @@ export const ProfileLobbyScene: React.FC<ProfileLobbySceneProps> = ({
       performanceTier: 'balanced',
       beatPulse: baseBeatPulse,
       modelFloat: baseModelFloat,
+      modelScale: portraitModelState.modelScale,
+      modelYaw: portraitModelState.modelYaw,
+      modelPosY: portraitModelState.modelPosY,
       hideLightSource: baseHideLightSource,
       showLightMarkers: false,
       ringPulse: baseRingPulse,
@@ -789,6 +882,7 @@ export const ProfileLobbyScene: React.FC<ProfileLobbySceneProps> = ({
     baseHideLightSource,
     baseLightRig,
     baseModelFloat,
+    portraitModelState,
     baseRingPulse,
     currentScreenMode,
     currentScreenPreset,
