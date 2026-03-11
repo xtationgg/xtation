@@ -231,6 +231,7 @@ Current stop point:
 - the shell transition banner now suppresses duplicate `Recent continuity` rows when the newest activity entry is already the active banner event
 - the topbar guest `CONNECT` drawer now reads full station activity for starter-loop continuity, so it no longer drops the starter-loop state just because the newest two activity rows are unrelated
 - the topbar guest continuity drawer now also renders the same dedicated starter-loop summary block that Welcome and Settings show
+- the shared continuity panel now suppresses duplicate `Recent continuity` when `Latest transition` is already showing the same event
 - Welcome, the guest `CONNECT` drawer, and Settings now also share one explicit `Latest transition outcome` summary instead of only burying transition state inside generic recent activity
 - starter-loop milestones are now excluded from `Latest transition outcome`, so keep/import/return/account-state continuity does not get mixed up with first-loop progress
 - the main local-station CTA/status model now also uses the latest real transition when no relay or starter-loop milestone is active, so the primary entry wording and the visible transition summary no longer drift apart

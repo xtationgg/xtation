@@ -52,6 +52,7 @@ Backup cadence:
   - the shell banner does not offer `Review Settings` while the setup modal is already open
 - the topbar guest `CONNECT` path now reads full station activity for starter-loop continuity instead of only the newest two activity entries
 - the topbar guest continuity drawer now also renders the same dedicated starter-loop summary block as Welcome and Settings
+- the shared continuity panel now suppresses duplicate `Recent continuity` rows when the same event is already shown as `Latest transition`
 - the guest continuity path is now being hardened around shared readers instead of duplicated surface logic:
   - `src/station/continuityContext.ts`
   - `src/welcome/guestContinuity.ts`
@@ -97,6 +98,9 @@ Backup cadence:
   - fresh guided setup no longer masquerades as a resumed station
   - setup banner wording and chips now match the real setup mode
   - the active setup modal no longer shows an unrelated settings action
+- the shared continuity panel now avoids double-reporting the same transition:
+  - `Latest transition` no longer reappears underneath as `Recent continuity`
+  - the guest `CONNECT` drawer and Welcome stay cleaner and more trustworthy
 
 - the profile scene overlay has been compressed into product-style stage language:
   - removed visible command count

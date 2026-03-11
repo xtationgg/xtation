@@ -84,6 +84,14 @@ All work should pass `npm run build` and `npx vitest run` (191 tests) before com
 
 ## Latest Codex Note
 
+- Shared continuity panels now suppress duplicate `Recent continuity` rows when the same event is already shown as `Latest transition`.
+- Latest continuity-side files in this batch:
+  - `/Users/sarynass/dyad-apps/CLient-D82pm/src/station/continuityActivity.ts`
+  - `/Users/sarynass/dyad-apps/CLient-D82pm/components/Auth/StationContinuityPanel.tsx`
+  - `/Users/sarynass/dyad-apps/CLient-D82pm/tests/station-continuity-panel.test.tsx`
+- Verified:
+  - `npm run build` passed
+  - `npx vitest run` passed `199/199`
 - Guided setup continuity has been corrected end to end:
   - fresh guided setup now uses `Start local station`
   - guided setup chips are `Setup active` / `Setup resumed`

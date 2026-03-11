@@ -120,4 +120,30 @@ describe('StationContinuityPanel', () => {
 
     expect(screen.getByRole('button', { name: 'Return to Guided Setup' })).toBeInTheDocument();
   });
+
+  it('does not duplicate the latest transition inside recent continuity', () => {
+    const latestTransition = {
+      id: 'skip',
+      createdAt: Date.now(),
+      title: 'Starter setup skipped',
+      detail:
+        'XTATION left the local Play station open without seeding a starter loop. You can return to guided setup any time from Play.',
+      workspaceLabel: 'Play',
+    };
+
+    render(
+      <StationContinuityPanel
+        status={{
+          ...baseStatus,
+          mode: 'resume',
+        }}
+        activity={[latestTransition]}
+        latestTransitionActivity={latestTransition}
+        variant="welcome"
+      />
+    );
+
+    expect(screen.queryByText('Recent continuity')).not.toBeInTheDocument();
+    expect(screen.getByText('Latest transition outcome')).toBeInTheDocument();
+  });
 });

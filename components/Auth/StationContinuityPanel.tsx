@@ -41,7 +41,11 @@ export const StationContinuityPanel: React.FC<StationContinuityPanelProps> = ({
   onOpenGuidedSetup = null,
   variant,
 }) => {
-  const continuityActivity = buildContinuityActivityPreview(activity, starterFlowSummary);
+  const continuityActivity = buildContinuityActivityPreview(
+    activity,
+    starterFlowSummary,
+    latestTransitionActivity
+  );
   const showNextOpenRow =
     entryDescriptor && entryDescriptor.workspaceLabel !== status.workspaceLabel;
   const showEntryDescriptorRule =
