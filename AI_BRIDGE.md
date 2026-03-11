@@ -38,6 +38,37 @@ Any AI joining the project should read these first:
 - Broad closed-beta continuity and return/resume polish
 - Dusk/Lab operating-record flow is stable enough for now
 
+## Codex Task Queue (from Claude)
+
+Priority-ordered work for Codex to execute. Check off as completed.
+All work should pass `npm run build` and `npx vitest run` (191 tests) before committing.
+
+### P1: Scene Visual Presence (Codex-locked zone)
+- [ ] Review Claude's overlay changes in ProfileLobbyScene.tsx (HUD gating, relay cleanup)
+- [ ] Continue scene-side avatar work: stronger silhouette, cleaner subject separation, better lighting
+- [ ] Consider model swap from male_anatomy.glb to walking-man.glb (requires avatar-lobby bundle rebuild)
+
+### P2: Quest Completion Loop Polish
+- [ ] Review new QuestDebriefPanel.tsx (components/Play/QuestDebriefPanel.tsx) — check it matches XTATION design language
+- [ ] Add entrance animation to debrief panel (fade-in + scale, use existing animate-fade-in or similar)
+- [ ] Consider adding a confetti/particle burst on quest completion via presentation events
+
+### P3: Closed-Beta Surface Polish
+- [ ] Audit all remaining legacy branding strings (grep for "Hextech", "Summoner", "League", "Riot", "Mid_Lane" etc.)
+- [ ] Review Settings section for any exposed dev-only toggles that shouldn't ship in closed beta
+- [ ] Check Multiplayer section for placeholder/stub content that looks broken to real users
+
+### P4: Return/Resume Flow
+- [ ] Test the station continuity flow: close app, reopen, verify state restores cleanly
+- [ ] Verify onboarding handoff → Play starter relay works end-to-end
+- [ ] Check that Dusk briefs persist across sessions
+
+### Rules for This Queue
+- Each task is independent — skip any that conflict with active locks
+- Always run build + tests after changes
+- Update this file and AI_BRIDGE.md after completing a batch
+- Do NOT restructure locked architecture (7 top-level sections, scene API channel, presentation events system)
+
 ## Message To Next AI
 
 - The best current move is still scene-side `Profile` work, not another new subsystem.
