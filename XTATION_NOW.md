@@ -84,10 +84,11 @@ Backup cadence:
 
 ## Current Stop Point
 
-- the continuity lane is stable enough that the best current move is back on visible `Profile` scene presence
-- current bridge-queue status:
-  - `P1` scene visual presence is complete and ready to commit
-  - next queued move is `P2` quest debrief loop polish
+- the debrief polish batch is complete and verified
+- the starter relay now behaves like a real stateful first-run system instead of replaying stale CTAs
+- the current highest-value frontier is:
+  - one more visible `Profile` scene presence pass if needed
+  - otherwise broad closed-beta end-to-end journey polish across guest / local / account / imported flows
 
 - the profile scene overlay has been compressed into product-style stage language:
   - removed visible command count
@@ -289,6 +290,10 @@ Backup cadence:
   - session quests must land meaningful tracked work
   - instant quests can checkpoint on first real activation
 - the Play starter relay now shows checkpoint progress/status directly, so users can see when the first real session has actually landed
+- the Play starter relay now also reflects real phase state:
+  - armed -> `Start First Session`
+  - live -> `Checkpoint in progress`
+  - confirmed -> routed workspace action like `Open Profile`
 - routed `Starter checkpoint` cues now carry the same confirmed checkpoint state into:
   - the shell strip
   - Profile starter handoff cards
@@ -344,14 +349,16 @@ Backup cadence:
 
 ## Immediate Next Move
 
-Follow the AI bridge queue in order:
+Stay on the broad closed-beta readiness track:
 
-1. commit the locked-zone `P1` scene batch
-2. move to `P2` quest debrief polish:
-   - entrance animation
-   - design-language cleanup
-   - tasteful completion burst through presentation events
-3. then continue into broader closed-beta readiness work
+1. validate the full guest/local/account/imported journey in the real browser
+2. remove any last mismatch between:
+   - Welcome
+   - guest `CONNECT`
+   - shell transition banner
+   - Settings platform status
+   - actual resumed destination
+3. only then return to another targeted `Profile` scene presence pass if it is still the biggest visible-product gap
 
 ## Easy-To-Miss Notes
 
@@ -371,8 +378,8 @@ Follow the AI bridge queue in order:
 - build:
   - `npm run build` passed
 - tests:
-  - `npx vitest run` passed `195/195`
+  - `npx vitest run` passed `198/198`
 
 ## Latest Backup
 
-- [xtation-source-backup-20260311-214254.zip](/Users/sarynass/Desktop/html/backups/xtation-source-backup-20260311-214254.zip)
+- [xtation-source-backup-20260312-033032.zip](/Users/sarynass/Desktop/html/backups/xtation-source-backup-20260312-033032.zip)

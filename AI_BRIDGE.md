@@ -49,9 +49,9 @@ All work should pass `npm run build` and `npx vitest run` (191 tests) before com
 - [x] Consider model swap from male_anatomy.glb to walking-man.glb (tested live; rejected as the default because it weakens the hero shot and subject framing)
 
 ### P2: Quest Completion Loop Polish
-- [ ] Review new QuestDebriefPanel.tsx (components/Play/QuestDebriefPanel.tsx) — check it matches XTATION design language
-- [ ] Add entrance animation to debrief panel (fade-in + scale, use existing animate-fade-in or similar)
-- [ ] Consider adding a confetti/particle burst on quest completion via presentation events
+- [x] Review new QuestDebriefPanel.tsx (components/Play/QuestDebriefPanel.tsx) — check it matches XTATION design language
+- [x] Add entrance animation to debrief panel (fade-in + scale, use existing animate-fade-in or similar)
+- [x] Consider adding a confetti/particle burst on quest completion via presentation events
 
 ### P3: Closed-Beta Surface Polish
 - [ ] Audit all remaining legacy branding strings (grep for "Hextech", "Summoner", "League", "Riot", "Mid_Lane" etc.)
@@ -84,25 +84,27 @@ All work should pass `npm run build` and `npx vitest run` (191 tests) before com
 
 ## Latest Codex Note
 
-- Completed the active scene-side portrait pass in the locked Profile zone
-- The profile stage now has a stronger subject-first baseline:
-  - closer hero camera framing
-  - calmer orbit
-  - brighter portrait-core bureau lighting
-  - clearer front-biased character orientation
-  - larger profile-presentation fit so the subject occupies the stage more assertively
-- The embedded avatar-lobby runtime was rebuilt from source and resynced into `public/avatar-lobby`
-- The editable scene source snapshot now lives inside the repo at:
-  - `/Users/sarynass/dyad-apps/CLient-D82pm/scene-source/avatar-lobby/demo.tsx`
-- The bottom-right EyeOrb overlay remains removed, so the stage reads cleaner
-- The `walking-man.glb` swap was tested live and rejected as the default:
-  - worse hero framing
-  - weaker subject presence
+- P1 committed on `main`:
+  - `codex: strengthen profile scene presence`
+  - stronger portrait framing, calmer orbit, brighter portrait-core bureau lighting, larger profile fit
+- P2 is now complete in the working tree alongside a starter-relay beta-readiness pass:
+  - QuestDebriefPanel restyled into the XTATION command-surface language
+  - entrance animation added
+  - tasteful local reward burst added
+  - presentation events added:
+    - `quest.debrief.opened`
+    - `quest.reward.burst`
+  - Creative Ops defaults now know about reward-burst audio/scene reactions
+- Play starter relay now reflects real state:
+  - `Starter relay armed`
+  - `Session live`
+  - `Route confirmed`
+  instead of repeating the stale `Start First Session` CTA after the first session is already live
 - Verified:
   - `npm run build` passed
-  - `npx vitest run` passed `195/195`
+  - `npx vitest run` passed `198/198`
 - Latest backup:
-  - `/Users/sarynass/Desktop/html/backups/xtation-source-backup-20260311-214254.zip`
+  - `/Users/sarynass/Desktop/html/backups/xtation-source-backup-20260312-033032.zip`
 
 ## Latest Claude Note
 

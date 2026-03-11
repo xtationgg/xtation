@@ -260,15 +260,12 @@ Current stop point:
 BEST NEXT MOVE
 --------------
 Stay on broader closed-beta readiness instead of opening a new subsystem:
-1. use the now-coherent skin/audio runtime as the baseline
+1. use the now-coherent skin/audio/runtime baseline as the starting point
 2. avoid deepening the Dusk/Lab operating loop again unless it unlocks direct user-facing value
-3. the guest/account/imported continuity-action surfaces are now largely aligned, so the strongest immediate move shifts back to visible product work
-4. the best next frontier is `Profile` scene presence:
-  - stronger avatar silhouette
-  - stronger scene-side lighting
-  - less overlay competition
-  - more obvious “main character space” feeling
-  - prefer source-side scene/runtime changes before stacking more host-only framing
+3. the guest/account/imported continuity-action surfaces are now largely aligned, so keep validating them as one real browser journey
+4. the best next frontier is split:
+  - broad closed-beta journey polish
+  - or one more targeted `Profile` scene presence pass if it is still the clearest visible-product gap
 5. only return to continuity micro-fixes if a real browser journey exposes a mismatch
 
 HOW TO VERIFY THE CURRENT STATE
@@ -281,7 +278,7 @@ npm test
 
 Latest verified state:
 - `npm run build` passed
-- `npm test` passed `195/195`
+- `npx vitest run` passed `198/198`
 
 LOCAL REVIEW
 ------------
@@ -323,7 +320,7 @@ Backup policy:
 - also create one before risky refactors or important handoff milestones
 
 Latest known source backup when this file was created:
-- /Users/sarynass/Desktop/html/backups/xtation-source-backup-20260311-214254.zip
+- /Users/sarynass/Desktop/html/backups/xtation-source-backup-20260312-033032.zip
 
 LOW-COST CONTINUITY RULE
 ------------------------
@@ -351,4 +348,4 @@ If you are a new AI taking over XTATION:
 
 Current verified state:
 - npm run build passed
-- npm test passed 195/195
+- npx vitest run passed 198/198

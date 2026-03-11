@@ -26,7 +26,11 @@ import {
   openStarterWorkspaceCue,
   type XtationStarterSessionLiveTransition,
 } from '../../src/onboarding/workspaceCue';
-import { buildStarterCheckpointStatus, hasStarterCheckpointLanded } from '../../src/onboarding/starterCheckpoint';
+import {
+  buildStarterCheckpointStatus,
+  buildStarterRelayPhase,
+  hasStarterCheckpointLanded,
+} from '../../src/onboarding/starterCheckpoint';
 import {
   encodeQuestNotesWithSteps,
   getQuestStepCounts,
@@ -176,8 +180,15 @@ const PlayActionButton: React.FC<{
   onClick: () => void;
   icon?: React.ReactNode;
   tone?: 'default' | 'accent' | 'success' | 'muted';
-}> = ({ label, onClick, icon, tone = 'default' }) => (
-  <button type="button" onClick={onClick} className="xt-play-action ui-pressable" data-tone={tone}>
+  disabled?: boolean;
+}> = ({ label, onClick, icon, tone = 'default', disabled = false }) => (
+  <button
+    type="button"
+    onClick={onClick}
+    className="xt-play-action ui-pressable"
+    data-tone={tone}
+    disabled={disabled}
+  >
     {icon ? <span className="xt-play-action-icon">{icon}</span> : null}
     <span>{label}</span>
   </button>
@@ -365,6 +376,16 @@ export const Play: React.FC<PlayProps> = ({
         ? 'System relay'
         : 'Mission relay';
   const starterRoute = onboardingHandoff ? buildStarterWorkspaceRoute(onboardingHandoff) : null;
+  const starterRelayPhase = useMemo(
+    () =>
+      buildStarterRelayPhase({
+        task: starterTask,
+        trackedMs: starterTaskTodayMs,
+        running: starterTaskRunning,
+        workspaceActionLabel: starterRoute?.workspaceAction ?? null,
+      }),
+    [starterRoute, starterTask, starterTaskRunning, starterTaskTodayMs]
+  );
   const urgentPresentationSignal = useMemo(
     () => resolveUrgentPresentationSignal(orderedTasks, now),
     [now, orderedTasks]
@@ -591,12 +612,17 @@ export const Play: React.FC<PlayProps> = ({
                         <div className="max-w-2xl">
                           <div className="xt-play-panel-eyebrow text-[var(--app-accent)]">Starter Relay</div>
                           <div className="mt-2 text-lg font-semibold text-[var(--app-text)]">
-                            {starterTrackLabel} armed for {onboardingHandoff.branch}
+                            {starterCheckpointStatus?.landed
+                              ? `${starterTrackLabel} confirmed for ${onboardingHandoff.branch}`
+                              : starterTaskRunning
+                                ? `${starterTrackLabel} live in ${onboardingHandoff.branch}`
+                                : `${starterTrackLabel} armed for ${onboardingHandoff.branch}`}
                           </div>
                           <div className="mt-2 text-sm leading-6 text-[var(--app-muted)]">
-                            {onboardingHandoff.nodeTitle
-                              ? `You seeded ${onboardingHandoff.nodeTitle} under ${onboardingHandoff.branch}. Take the first clean action so XTATION can start building real momentum.`
-                              : `You seeded the first loop under ${onboardingHandoff.branch}. Take the first clean action so XTATION can start building real momentum.`}
+                            {starterRelayPhase?.detail ||
+                              (onboardingHandoff.nodeTitle
+                                ? `You seeded ${onboardingHandoff.nodeTitle} under ${onboardingHandoff.branch}. Take the first clean action so XTATION can start building real momentum.`
+                                : `You seeded the first loop under ${onboardingHandoff.branch}. Take the first clean action so XTATION can start building real momentum.`)}
                           </div>
                           {stationIdentity ? (
                             <div className="mt-4 grid gap-2">
@@ -662,13 +688,22 @@ export const Play: React.FC<PlayProps> = ({
 
                         <div className="flex flex-wrap gap-2">
                           <PlayActionButton
-                            label="Start First Session"
+                            label={starterRelayPhase?.actionLabel ?? 'Start First Session'}
                             onClick={() => {
+                              if (starterCheckpointStatus?.landed) {
+                                if (!starterRoute || !onOpenWorkspace || !onboardingHandoff) return;
+                                openStarterWorkspaceCue(buildStarterWorkspaceCue(onboardingHandoff));
+                                onOpenWorkspace(starterRoute.workspaceView);
+                                return;
+                              }
                               setSelectedTaskId(starterTask.id);
-                              resumeTaskSession(starterTask.id);
+                              if (!starterTaskRunning) {
+                                resumeTaskSession(starterTask.id);
+                              }
                             }}
-                            icon={<PlayCircle size={14} />}
-                            tone="accent"
+                            icon={starterCheckpointStatus?.landed ? <ChevronRight size={14} /> : <PlayCircle size={14} />}
+                            tone={starterRelayPhase?.actionTone ?? 'accent'}
+                            disabled={starterRelayPhase?.actionDisabled}
                           />
                           <PlayActionButton
                             label="Brief Dusk"

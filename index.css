@@ -4838,6 +4838,16 @@
   color: color-mix(in srgb, var(--app-text) 56%, transparent);
 }
 
+.xt-play-action:disabled {
+  cursor: default;
+  opacity: 0.72;
+  box-shadow: none;
+}
+
+.xt-play-action:disabled .xt-play-action-icon {
+  color: color-mix(in srgb, var(--app-text) 42%, transparent);
+}
+
 .xt-play-action-icon {
   display: inline-flex;
   color: var(--app-accent);
@@ -4978,6 +4988,190 @@
   border: 1px solid color-mix(in srgb, var(--app-text) 10%, transparent);
   background: color-mix(in srgb, var(--app-panel) 72%, #060607);
   padding: 10px 12px;
+}
+
+.xt-play-debrief-shell {
+  padding: 24px;
+}
+
+.xt-play-debrief-backdrop {
+  background:
+    radial-gradient(circle at center, rgba(173, 112, 47, 0.14), transparent 42%),
+    rgba(0, 0, 0, 0.68);
+  backdrop-filter: blur(6px);
+}
+
+.xt-play-debrief-panel {
+  border: 1px solid color-mix(in srgb, var(--app-accent) 18%, var(--app-border));
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.015), rgba(255, 255, 255, 0)),
+    linear-gradient(180deg, rgba(11, 11, 12, 0.985), rgba(7, 7, 8, 0.99));
+  box-shadow: 0 34px 110px rgba(0, 0, 0, 0.52);
+  animation: xt-debrief-enter 280ms var(--app-ease, ease-out);
+}
+
+.xt-play-debrief-header {
+  position: relative;
+  overflow: hidden;
+  border-bottom: 1px solid color-mix(in srgb, var(--app-text) 10%, transparent);
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--app-accent) 7%, transparent), rgba(255,255,255,0)),
+    linear-gradient(180deg, rgba(255,255,255,0.015), rgba(255,255,255,0));
+  padding: 20px 20px 16px;
+}
+
+.xt-play-debrief-trophy {
+  position: relative;
+  border: 1px solid rgba(67, 211, 158, 0.22);
+  background: color-mix(in srgb, #43d39e 16%, var(--app-panel-2));
+  box-shadow: 0 0 0 1px rgba(67, 211, 158, 0.06), 0 16px 34px rgba(0, 0, 0, 0.22);
+}
+
+.xt-play-debrief-kicker,
+.xt-play-debrief-section-label {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--app-accent) 86%, white 14%);
+}
+
+.xt-play-debrief-title {
+  margin-top: 6px;
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.24;
+  letter-spacing: -0.02em;
+  color: var(--app-text);
+}
+
+.xt-play-debrief-close,
+.xt-play-debrief-action {
+  border-color: color-mix(in srgb, var(--app-text) 10%, transparent);
+  background: color-mix(in srgb, var(--app-panel-2) 78%, #060607);
+  color: color-mix(in srgb, var(--app-text) 74%, transparent);
+}
+
+.xt-play-debrief-close:hover,
+.xt-play-debrief-action:hover {
+  border-color: color-mix(in srgb, var(--app-accent) 30%, transparent);
+  color: var(--app-text);
+}
+
+.xt-play-debrief-chip {
+  border: 1px solid color-mix(in srgb, var(--app-text) 10%, transparent);
+  background: color-mix(in srgb, var(--app-panel-2) 76%, #050505);
+  color: color-mix(in srgb, var(--app-text) 62%, transparent);
+}
+
+.xt-play-debrief-chip--accent {
+  border-color: color-mix(in srgb, var(--app-accent) 22%, transparent);
+  background: color-mix(in srgb, var(--app-accent) 10%, var(--app-panel-2));
+  color: var(--app-accent);
+}
+
+.xt-play-debrief-breakdown {
+  border: 1px solid color-mix(in srgb, var(--app-text) 10%, transparent);
+  background: color-mix(in srgb, var(--app-panel-2) 76%, #050505);
+}
+
+.xt-play-debrief-textarea {
+  border: 1px solid color-mix(in srgb, var(--app-text) 10%, transparent);
+  background: color-mix(in srgb, var(--app-panel-2) 76%, #050505);
+  color: var(--app-text);
+  transition: border-color 220ms ease-out, background-color 220ms ease-out;
+}
+
+.xt-play-debrief-textarea::placeholder {
+  color: color-mix(in srgb, var(--app-text) 42%, transparent);
+}
+
+.xt-play-debrief-textarea:focus {
+  outline: none;
+  border-color: color-mix(in srgb, var(--app-accent) 34%, transparent);
+}
+
+.xt-play-debrief-footer {
+  border-top: 1px solid color-mix(in srgb, var(--app-text) 10%, transparent);
+  padding: 14px 20px 18px;
+}
+
+.xt-play-debrief-action--lab {
+  background: color-mix(in srgb, var(--app-accent) 10%, var(--app-panel));
+  color: var(--app-text);
+}
+
+.xt-play-debrief-action--lab[data-saved='true'] {
+  border-color: rgba(67, 211, 158, 0.32);
+  background: rgba(67, 211, 158, 0.12);
+  color: #b5f2d7;
+}
+
+.xt-play-debrief-action--muted {
+  color: color-mix(in srgb, var(--app-text) 52%, transparent);
+}
+
+.xt-play-debrief-burst {
+  pointer-events: none;
+  position: absolute;
+  right: 34px;
+  top: 44px;
+  z-index: 2;
+  height: 0;
+  width: 0;
+}
+
+.xt-play-debrief-burst__particle {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 3px;
+  height: 22px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.94), color-mix(in srgb, var(--app-accent) 76%, transparent));
+  box-shadow: 0 0 16px color-mix(in srgb, var(--app-accent) 28%, transparent);
+  opacity: 0;
+  transform:
+    rotate(var(--xt-burst-angle))
+    translateY(-10px)
+    translateX(0)
+    scaleY(0.72);
+  animation: xt-debrief-burst 760ms var(--app-ease, ease-out) forwards;
+  animation-delay: var(--xt-burst-delay);
+  transform-origin: center bottom;
+}
+
+@keyframes xt-debrief-enter {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.982);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes xt-debrief-burst {
+  0% {
+    opacity: 0;
+    transform:
+      rotate(var(--xt-burst-angle))
+      translateY(-10px)
+      translateX(0)
+      scaleY(0.72);
+  }
+  18% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform:
+      rotate(var(--xt-burst-angle))
+      translateY(calc(var(--xt-burst-distance) * -1))
+      translateX(0)
+      scaleY(1.05);
+  }
 }
 
 .xt-welcome-shell {

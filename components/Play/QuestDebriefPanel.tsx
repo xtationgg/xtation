@@ -1,20 +1,18 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   BookOpen,
   Bot,
   CheckCircle2,
-  ChevronRight,
   Clock3,
-  Sparkles,
   Trophy,
   X,
   Zap,
 } from 'lucide-react';
 import { useXP } from '../XP/xpStore';
-import type { Task, XPBreakdown } from '../XP/xpTypes';
 import { getQuestStepCounts, parseQuestNotesAndSteps } from '../../src/lib/quests/steps';
 import { useLab } from '../../src/lab/LabProvider';
 import { openDuskBrief } from '../../src/dusk/bridge';
+import { useOptionalPresentationEvents } from '../../src/presentation/PresentationEventsProvider';
 
 export interface QuestDebriefPanelProps {
   taskId: string;
@@ -33,16 +31,50 @@ export const QuestDebriefPanel: React.FC<QuestDebriefPanelProps> = ({
   const xpBreakdown = selectors.getQuestCompletionXP(taskId);
   const [reflectionText, setReflectionText] = useState('');
   const [savedToLab, setSavedToLab] = useState(false);
+  const presentationEvents = useOptionalPresentationEvents();
 
   const stepCounts = useMemo(
     () => (task ? getQuestStepCounts(task.details) : { completed: 0, total: 0 }),
     [task],
   );
 
+  const burstNodes = useMemo(
+    () =>
+      Array.from({ length: 10 }, (_, index) => ({
+        id: `burst-${index}`,
+        style: {
+          '--xt-burst-angle': `${index * 34}deg`,
+          '--xt-burst-delay': `${index * 40}ms`,
+          '--xt-burst-distance': `${68 + (index % 3) * 10}px`,
+        } as React.CSSProperties,
+      })),
+    []
+  );
+
   const sessionMinutes = useMemo(() => {
     if (!task?.completedAt || !task?.startedAt) return 0;
     return Math.max(0, Math.floor((task.completedAt - task.startedAt) / 60000));
   }, [task]);
+
+  useEffect(() => {
+    if (!task) return;
+    presentationEvents?.emitEvent('quest.debrief.opened', {
+      source: 'user',
+      metadata: {
+        taskId: task.id,
+        title: task.title,
+        xpTotal: xpBreakdown?.total ?? 0,
+      },
+    });
+    presentationEvents?.emitEvent('quest.reward.burst', {
+      source: 'user',
+      metadata: {
+        taskId: task.id,
+        title: task.title,
+        tone: 'success',
+      },
+    });
+  }, [presentationEvents, task, xpBreakdown?.total]);
 
   const handleSaveToLab = useCallback(() => {
     if (!task || savedToLab) return;
@@ -81,33 +113,35 @@ export const QuestDebriefPanel: React.FC<QuestDebriefPanelProps> = ({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center"
+      className="xt-play-debrief-shell fixed inset-0 z-50 flex items-center justify-center"
       onClick={onClose}
       role="dialog"
       aria-modal="true"
       aria-label={`Quest debrief: ${task.title}`}
     >
-      <div className="absolute inset-0 bg-black/50" />
+      <div className="xt-play-debrief-backdrop absolute inset-0" />
 
       <div
-        className="relative z-10 flex w-full max-w-lg flex-col overflow-hidden rounded border border-[var(--app-border)] bg-[var(--app-panel)] shadow-2xl"
+        className="xt-play-debrief-panel animate-fade-in relative z-10 flex w-full max-w-xl flex-col overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Header */}
-        <div className="shrink-0 border-b border-[var(--app-border)] bg-[color-mix(in_srgb,var(--app-accent)_6%,var(--app-panel))] px-5 pt-5 pb-4">
-          <div className="flex items-start justify-between gap-3 mb-2">
+        <div className="xt-play-debrief-burst" aria-hidden="true">
+          {burstNodes.map((node) => (
+            <span key={node.id} className="xt-play-debrief-burst__particle" style={node.style} />
+          ))}
+        </div>
+
+        <div className="xt-play-debrief-header shrink-0">
+          <div className="mb-2 flex items-start justify-between gap-3">
             <div className="flex items-center gap-2.5">
-              <div
-                className="flex h-8 w-8 items-center justify-center rounded"
-                style={{ background: 'color-mix(in_srgb,#43d39e 18%,var(--app-panel-2))' }}
-              >
+              <div className="xt-play-debrief-trophy flex h-8 w-8 items-center justify-center rounded">
                 <Trophy size={16} className="text-emerald-400" />
               </div>
               <div>
-                <div className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[var(--app-muted)]">
+                <div className="xt-play-debrief-kicker">
                   Quest Complete
                 </div>
-                <h2 className="text-[15px] font-bold leading-[1.3] text-[var(--app-text)]">
+                <h2 className="xt-play-debrief-title">
                   {task.title}
                 </h2>
               </div>
@@ -115,59 +149,56 @@ export const QuestDebriefPanel: React.FC<QuestDebriefPanelProps> = ({
             <button
               type="button"
               onClick={onClose}
-              className="shrink-0 inline-flex h-7 w-7 items-center justify-center rounded border border-[var(--app-border)] text-[var(--app-muted)] hover:border-[var(--app-accent)] hover:text-[var(--app-accent)] transition-colors"
+              className="xt-play-debrief-close shrink-0 inline-flex h-7 w-7 items-center justify-center rounded"
               aria-label="Close debrief"
             >
               <X size={14} />
             </button>
           </div>
 
-          {/* Stat chips */}
-          <div className="flex flex-wrap items-center gap-2 mt-1">
+          <div className="mt-1 flex flex-wrap items-center gap-2">
             {xpTotal > 0 ? (
-              <span className="inline-flex items-center gap-1 rounded px-2 py-0.5 text-[10px] font-semibold tracking-[0.08em]" style={{ background: 'color-mix(in_srgb,var(--app-accent) 14%,var(--app-panel-2))', color: 'var(--app-accent)' }}>
+              <span className="xt-play-debrief-chip xt-play-debrief-chip--accent inline-flex items-center gap-1 rounded px-2 py-0.5 text-[10px] font-semibold tracking-[0.08em]">
                 <Zap size={10} /> +{xpTotal} XP
               </span>
             ) : null}
             {sessionMinutes > 0 ? (
-              <span className="inline-flex items-center gap-1 rounded px-2 py-0.5 text-[10px] font-medium text-[var(--app-muted)]" style={{ background: 'var(--app-panel-2)' }}>
+              <span className="xt-play-debrief-chip inline-flex items-center gap-1 rounded px-2 py-0.5 text-[10px] font-medium">
                 <Clock3 size={10} /> {sessionMinutes}m
               </span>
             ) : null}
             {stepCounts.total > 0 ? (
-              <span className="inline-flex items-center gap-1 rounded px-2 py-0.5 text-[10px] font-medium text-[var(--app-muted)]" style={{ background: 'var(--app-panel-2)' }}>
+              <span className="xt-play-debrief-chip inline-flex items-center gap-1 rounded px-2 py-0.5 text-[10px] font-medium">
                 <CheckCircle2 size={10} /> {stepCounts.completed}/{stepCounts.total} steps
               </span>
             ) : null}
           </div>
         </div>
 
-        {/* Body */}
-        <div className="flex-1 overflow-y-auto px-5 py-4 space-y-4">
-          {/* XP Breakdown */}
+        <div className="flex-1 space-y-5 overflow-y-auto px-5 py-4">
           {xpBreakdown && xpTotal > 0 ? (
             <div>
-              <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[var(--app-muted)] mb-2">
+              <div className="xt-play-debrief-section-label mb-2">
                 XP Breakdown
               </div>
-              <div className="grid grid-cols-2 gap-1.5">
+              <div className="grid grid-cols-2 gap-2">
                 {xpBreakdown.sessionXP > 0 ? (
-                  <div className="rounded px-2.5 py-1.5 text-[11px] text-[var(--app-text)]" style={{ background: 'var(--app-panel-2)' }}>
+                  <div className="xt-play-debrief-breakdown rounded px-2.5 py-1.5 text-[11px] text-[var(--app-text)]">
                     Session <span className="float-right font-semibold">+{xpBreakdown.sessionXP}</span>
                   </div>
                 ) : null}
                 {xpBreakdown.completionBonus > 0 ? (
-                  <div className="rounded px-2.5 py-1.5 text-[11px] text-[var(--app-text)]" style={{ background: 'var(--app-panel-2)' }}>
+                  <div className="xt-play-debrief-breakdown rounded px-2.5 py-1.5 text-[11px] text-[var(--app-text)]">
                     Completion <span className="float-right font-semibold">+{xpBreakdown.completionBonus}</span>
                   </div>
                 ) : null}
                 {xpBreakdown.deepBonus > 0 ? (
-                  <div className="rounded px-2.5 py-1.5 text-[11px] text-[var(--app-text)]" style={{ background: 'var(--app-panel-2)' }}>
+                  <div className="xt-play-debrief-breakdown rounded px-2.5 py-1.5 text-[11px] text-[var(--app-text)]">
                     Deep focus <span className="float-right font-semibold">+{xpBreakdown.deepBonus}</span>
                   </div>
                 ) : null}
                 {xpBreakdown.stepXP > 0 ? (
-                  <div className="rounded px-2.5 py-1.5 text-[11px] text-[var(--app-text)]" style={{ background: 'var(--app-panel-2)' }}>
+                  <div className="xt-play-debrief-breakdown rounded px-2.5 py-1.5 text-[11px] text-[var(--app-text)]">
                     Steps <span className="float-right font-semibold">+{xpBreakdown.stepXP}</span>
                   </div>
                 ) : null}
@@ -175,9 +206,8 @@ export const QuestDebriefPanel: React.FC<QuestDebriefPanelProps> = ({
             </div>
           ) : null}
 
-          {/* Reflection */}
           <div>
-            <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[var(--app-muted)] mb-2">
+            <div className="xt-play-debrief-section-label mb-2">
               Reflection <span className="normal-case tracking-normal font-normal">(optional)</span>
             </div>
             <textarea
@@ -185,25 +215,18 @@ export const QuestDebriefPanel: React.FC<QuestDebriefPanelProps> = ({
               onChange={(e) => setReflectionText(e.target.value)}
               placeholder="What went well? What's next?"
               rows={3}
-              className="w-full resize-none rounded border border-[var(--app-border)] bg-[var(--app-panel-2)] px-3 py-2.5 text-[12px] text-[var(--app-text)] placeholder:text-[var(--app-muted)] focus:outline-none focus:border-[var(--app-accent)] transition-colors"
+              className="xt-play-debrief-textarea w-full resize-none rounded px-3 py-2.5 text-[12px]"
             />
           </div>
         </div>
 
-        {/* Actions footer */}
-        <div className="shrink-0 border-t border-[var(--app-border)] px-5 py-3 flex items-center gap-2">
+        <div className="xt-play-debrief-footer shrink-0 flex items-center gap-2">
           <button
             type="button"
             onClick={handleSaveToLab}
             disabled={savedToLab}
-            className="inline-flex items-center gap-1.5 rounded px-3 py-1.5 text-[11px] font-semibold transition-colors border"
-            style={{
-              background: savedToLab
-                ? 'color-mix(in_srgb,#43d39e 14%,var(--app-panel-2))'
-                : 'color-mix(in_srgb,var(--app-accent) 10%,var(--app-panel-2))',
-              borderColor: savedToLab ? '#43d39e' : 'var(--app-border)',
-              color: savedToLab ? '#43d39e' : 'var(--app-text)',
-            }}
+            className="xt-play-debrief-action xt-play-debrief-action--lab inline-flex items-center gap-1.5 rounded px-3 py-1.5 text-[11px] font-semibold transition-colors border"
+            data-saved={savedToLab ? 'true' : 'false'}
           >
             {savedToLab ? <CheckCircle2 size={12} /> : <BookOpen size={12} />}
             {savedToLab ? 'Saved to Lab' : 'Save to Lab'}
@@ -212,8 +235,7 @@ export const QuestDebriefPanel: React.FC<QuestDebriefPanelProps> = ({
           <button
             type="button"
             onClick={handleBriefDusk}
-            className="inline-flex items-center gap-1.5 rounded border border-[var(--app-border)] px-3 py-1.5 text-[11px] font-semibold text-[var(--app-text)] hover:border-[var(--app-accent)] transition-colors"
-            style={{ background: 'var(--app-panel-2)' }}
+            className="xt-play-debrief-action inline-flex items-center gap-1.5 rounded border px-3 py-1.5 text-[11px] font-semibold transition-colors"
           >
             <Bot size={12} /> Brief Dusk
           </button>
@@ -223,7 +245,7 @@ export const QuestDebriefPanel: React.FC<QuestDebriefPanelProps> = ({
           <button
             type="button"
             onClick={onClose}
-            className="inline-flex items-center gap-1.5 rounded border border-[var(--app-border)] px-3 py-1.5 text-[11px] font-medium text-[var(--app-muted)] hover:text-[var(--app-text)] transition-colors"
+            className="xt-play-debrief-action xt-play-debrief-action--muted inline-flex items-center gap-1.5 rounded border px-3 py-1.5 text-[11px] font-medium transition-colors"
           >
             Done
           </button>

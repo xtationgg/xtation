@@ -323,6 +323,8 @@ export const RECOMMENDED_PRESENTATION_EVENT_NAMES = [
   'profile.avatar.loadout.ready',
   'dusk.brief.loaded',
   'quest.completed',
+  'quest.debrief.opened',
+  'quest.reward.burst',
   'play.session.start',
   'notification.urgent',
   'station.skin.fallback',
@@ -445,6 +447,8 @@ export const DEFAULT_CREATIVE_EVENT_MAP: CreativeSoundEventMapEntry[] = [
   { soundPackId: 'soundpack-bureau-amber', eventName: 'profile.avatar.loadout.partial', mixGroup: 'scene_fx', assetId: 'builtin-panel-open', volume: 74, cooldownMs: 220 },
   { soundPackId: 'soundpack-bureau-amber', eventName: 'profile.avatar.loadout.ready', mixGroup: 'quest', assetId: 'builtin-quest-complete', volume: 80, cooldownMs: 320 },
   { soundPackId: 'soundpack-bureau-amber', eventName: 'quest.completed', mixGroup: 'quest', assetId: 'builtin-quest-complete', volume: 86, cooldownMs: 360 },
+  { soundPackId: 'soundpack-bureau-amber', eventName: 'quest.reward.burst', mixGroup: 'quest', assetId: 'builtin-quest-complete', volume: 82, cooldownMs: 220 },
+  { soundPackId: 'soundpack-bureau-amber', eventName: 'quest.debrief.opened', mixGroup: 'scene_fx', assetId: 'builtin-panel-open', volume: 72, cooldownMs: 220 },
   { soundPackId: 'soundpack-bureau-amber', eventName: 'dusk.brief.loaded', mixGroup: 'dusk', assetId: 'builtin-dusk-relay', volume: 74, cooldownMs: 220 },
   { soundPackId: 'soundpack-void-command', eventName: 'nav.section.profile.open', mixGroup: 'ui', assetId: 'builtin-ui-select', volume: 82, cooldownMs: 90 },
   { soundPackId: 'soundpack-void-command', eventName: 'profile.deck.open', mixGroup: 'scene_fx', assetId: 'builtin-panel-open', volume: 84, cooldownMs: 140 },
@@ -457,6 +461,8 @@ export const DEFAULT_CREATIVE_EVENT_MAP: CreativeSoundEventMapEntry[] = [
   { soundPackId: 'soundpack-void-command', eventName: 'profile.avatar.loadout.partial', mixGroup: 'scene_fx', assetId: 'builtin-panel-open', volume: 80, cooldownMs: 180 },
   { soundPackId: 'soundpack-void-command', eventName: 'profile.avatar.loadout.ready', mixGroup: 'quest', assetId: 'builtin-quest-complete', volume: 88, cooldownMs: 280 },
   { soundPackId: 'soundpack-void-command', eventName: 'quest.completed', mixGroup: 'quest', assetId: 'builtin-quest-complete', volume: 92, cooldownMs: 320 },
+  { soundPackId: 'soundpack-void-command', eventName: 'quest.reward.burst', mixGroup: 'quest', assetId: 'builtin-quest-complete', volume: 90, cooldownMs: 220 },
+  { soundPackId: 'soundpack-void-command', eventName: 'quest.debrief.opened', mixGroup: 'scene_fx', assetId: 'builtin-panel-open', volume: 80, cooldownMs: 200 },
   { soundPackId: 'soundpack-void-command', eventName: 'dusk.brief.loaded', mixGroup: 'dusk', assetId: 'builtin-dusk-relay', volume: 80, cooldownMs: 160 },
   { soundPackId: 'soundpack-ops-amber', eventName: 'nav.section.profile.open', mixGroup: 'ui', assetId: 'builtin-ui-select', volume: 78, cooldownMs: 80 },
   { soundPackId: 'soundpack-ops-amber', eventName: 'profile.deck.open', mixGroup: 'scene_fx', assetId: 'builtin-panel-open', volume: 88, cooldownMs: 120 },
@@ -469,6 +475,8 @@ export const DEFAULT_CREATIVE_EVENT_MAP: CreativeSoundEventMapEntry[] = [
   { soundPackId: 'soundpack-ops-amber', eventName: 'profile.avatar.loadout.partial', mixGroup: 'scene_fx', assetId: 'builtin-panel-open', volume: 84, cooldownMs: 140 },
   { soundPackId: 'soundpack-ops-amber', eventName: 'profile.avatar.loadout.ready', mixGroup: 'quest', assetId: 'builtin-quest-complete', volume: 94, cooldownMs: 260 },
   { soundPackId: 'soundpack-ops-amber', eventName: 'quest.completed', mixGroup: 'quest', assetId: 'builtin-quest-complete', volume: 96, cooldownMs: 280 },
+  { soundPackId: 'soundpack-ops-amber', eventName: 'quest.reward.burst', mixGroup: 'quest', assetId: 'builtin-quest-complete', volume: 92, cooldownMs: 200 },
+  { soundPackId: 'soundpack-ops-amber', eventName: 'quest.debrief.opened', mixGroup: 'scene_fx', assetId: 'builtin-panel-open', volume: 86, cooldownMs: 180 },
   { soundPackId: 'soundpack-ops-amber', eventName: 'dusk.brief.loaded', mixGroup: 'dusk', assetId: 'builtin-dusk-relay', volume: 82, cooldownMs: 140 },
 ];
 
@@ -592,6 +600,18 @@ export const DEFAULT_CREATIVE_SCENE_CUES: CreativeSceneCueEntry[] = [
     groundMotion: true,
     ambientAtmosphere: 0.28,
     cueDurationMs: 2800,
+  },
+  {
+    sceneProfile: 'bureau',
+    eventName: 'quest.reward.burst',
+    environmentMode: 'core',
+    cameraShot: 'hero',
+    screenMode: 'success',
+    beatPulse: true,
+    ringPulse: true,
+    groundMotion: true,
+    ambientAtmosphere: 0.3,
+    cueDurationMs: 1800,
   },
   {
     sceneProfile: 'bureau',
@@ -751,6 +771,18 @@ export const DEFAULT_CREATIVE_SCENE_CUES: CreativeSceneCueEntry[] = [
   },
   {
     sceneProfile: 'void',
+    eventName: 'quest.reward.burst',
+    environmentMode: 'core',
+    cameraShot: 'hero',
+    screenMode: 'success',
+    beatPulse: true,
+    ringPulse: true,
+    groundMotion: true,
+    ambientAtmosphere: 0.34,
+    cueDurationMs: 1900,
+  },
+  {
+    sceneProfile: 'void',
     eventName: 'play.session.start',
     environmentMode: 'glacier',
     cameraShot: 'mid',
@@ -904,6 +936,18 @@ export const DEFAULT_CREATIVE_SCENE_CUES: CreativeSceneCueEntry[] = [
     groundMotion: true,
     ambientAtmosphere: 0.36,
     cueDurationMs: 3200,
+  },
+  {
+    sceneProfile: 'ops',
+    eventName: 'quest.reward.burst',
+    environmentMode: 'core',
+    cameraShot: 'hero',
+    screenMode: 'success',
+    beatPulse: true,
+    ringPulse: true,
+    groundMotion: true,
+    ambientAtmosphere: 0.38,
+    cueDurationMs: 2000,
   },
   {
     sceneProfile: 'ops',
@@ -1146,6 +1190,7 @@ export const DEFAULT_CREATIVE_SCENE_STATE_BINDINGS: CreativeSceneStateBinding[] 
   { sceneProfile: 'bureau', eventName: 'profile.tab.activity.open', stateKey: 'profile.focus', holdMs: 10000 },
   { sceneProfile: 'bureau', eventName: 'profile.tab.log.open', stateKey: 'profile.focus', holdMs: 10000 },
   { sceneProfile: 'bureau', eventName: 'quest.completed', stateKey: 'profile.focus', holdMs: 12000 },
+  { sceneProfile: 'bureau', eventName: 'quest.reward.burst', stateKey: 'profile.focus', holdMs: 9000 },
   { sceneProfile: 'bureau', eventName: 'notification.urgent', stateKey: 'profile.active', holdMs: 15000 },
   { sceneProfile: 'bureau', eventName: 'profile.avatar.loadout.empty', stateKey: 'profile.night', holdMs: 12000 },
   { sceneProfile: 'bureau', eventName: 'profile.avatar.loadout.partial', stateKey: 'profile.focus', holdMs: 12000 },
@@ -1158,6 +1203,7 @@ export const DEFAULT_CREATIVE_SCENE_STATE_BINDINGS: CreativeSceneStateBinding[] 
   { sceneProfile: 'void', eventName: 'profile.tab.activity.open', stateKey: 'profile.focus', holdMs: 12000 },
   { sceneProfile: 'void', eventName: 'profile.tab.log.open', stateKey: 'profile.focus', holdMs: 12000 },
   { sceneProfile: 'void', eventName: 'quest.completed', stateKey: 'profile.focus', holdMs: 14000 },
+  { sceneProfile: 'void', eventName: 'quest.reward.burst', stateKey: 'profile.focus', holdMs: 10000 },
   { sceneProfile: 'void', eventName: 'notification.urgent', stateKey: 'profile.active', holdMs: 18000 },
   { sceneProfile: 'void', eventName: 'profile.avatar.loadout.empty', stateKey: 'profile.night', holdMs: 14000 },
   { sceneProfile: 'void', eventName: 'profile.avatar.loadout.partial', stateKey: 'profile.focus', holdMs: 14000 },
@@ -1170,6 +1216,7 @@ export const DEFAULT_CREATIVE_SCENE_STATE_BINDINGS: CreativeSceneStateBinding[] 
   { sceneProfile: 'ops', eventName: 'profile.tab.activity.open', stateKey: 'profile.focus', holdMs: 12000 },
   { sceneProfile: 'ops', eventName: 'profile.tab.log.open', stateKey: 'profile.focus', holdMs: 12000 },
   { sceneProfile: 'ops', eventName: 'quest.completed', stateKey: 'profile.active', holdMs: 14000 },
+  { sceneProfile: 'ops', eventName: 'quest.reward.burst', stateKey: 'profile.active', holdMs: 10000 },
   { sceneProfile: 'ops', eventName: 'notification.urgent', stateKey: 'profile.active', holdMs: 22000 },
   { sceneProfile: 'ops', eventName: 'profile.avatar.loadout.empty', stateKey: 'profile.active', holdMs: 16000 },
   { sceneProfile: 'ops', eventName: 'profile.avatar.loadout.partial', stateKey: 'profile.focus', holdMs: 14000 },
@@ -1679,7 +1726,7 @@ const DEFAULT_MOTION_PRESET_KEYS: CreativeSceneMotionPresetKey[] = [
 const RESPONSE_PRESET_EVENT_MAP: Record<CreativeSceneResponseType, readonly string[]> = {
   focus: ['play.session.start', 'profile.avatar.loadout.partial'],
   brief: ['dusk.brief.loaded'],
-  reward: ['quest.completed', 'profile.avatar.loadout.ready'],
+  reward: ['quest.completed', 'quest.reward.burst', 'profile.avatar.loadout.ready'],
   alert: ['notification.urgent', 'profile.avatar.loadout.empty'],
 };
 const LIGHT_PRESET_TO_STATE_KEY: Partial<Record<CreativeSceneLightPresetKey, CreativeSceneStateKey>> = {
@@ -1875,7 +1922,11 @@ const resolveDefaultCreativeSceneCueLightRig = (
   eventName: string
 ) => {
   if (eventName === 'dusk.brief.loaded') return DEFAULT_CREATIVE_LIGHT_RIGS[sceneProfile].brief;
-  if (eventName === 'quest.completed' || eventName === 'profile.avatar.loadout.ready') {
+  if (
+    eventName === 'quest.completed' ||
+    eventName === 'quest.reward.burst' ||
+    eventName === 'profile.avatar.loadout.ready'
+  ) {
     return DEFAULT_CREATIVE_LIGHT_RIGS[sceneProfile].reward;
   }
   if (eventName === 'notification.urgent' || eventName === 'station.skin.fallback') {

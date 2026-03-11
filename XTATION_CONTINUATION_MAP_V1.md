@@ -628,7 +628,7 @@ npm test
 Latest verified state at time of writing:
 
 - `npm run build` passed
-- `npm test` passed `195/195`
+- `npx vitest run` passed `198/198`
 
 Known low-value warning still present during tests:
 
@@ -648,7 +648,7 @@ Current naming pattern:
 
 Latest backup at time of writing:
 
-- [xtation-source-backup-20260311-214254.zip](/Users/sarynass/Desktop/html/backups/xtation-source-backup-20260311-214254.zip)
+- [xtation-source-backup-20260312-033032.zip](/Users/sarynass/Desktop/html/backups/xtation-source-backup-20260312-033032.zip)
 
 ## Fresh AI Bootstrap Notes
 
@@ -678,6 +678,10 @@ These are easy to forget but important:
 - Dusk managed planning is no longer just chat; it has revision, acceptance, compare, and Lab promotion history
 - Lab baselines are now an operating-record system, not only notes
 - design consolidation already happened broadly; avoid accidentally reintroducing old rounded utility styling
+- the starter relay in Play is now stateful:
+  - armed -> start first session/action
+  - live -> checkpoint in progress
+  - confirmed -> routed workspace action
 
 ## Summary
 
