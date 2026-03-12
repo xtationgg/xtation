@@ -187,7 +187,7 @@ export const TopBar: React.FC<TopBarProps> = ({
     <>
       <div className="xt-topbar xt-topbar-shell h-[56px] md:h-[60px] flex items-center relative z-40 select-none">
       {/* Middle: Navigation */}
-      <div className="xt-nav-tabs flex-1 flex items-center h-full overflow-x-auto no-scrollbar min-w-0">
+      <div className="xt-nav-tabs flex-1 flex items-center h-full overflow-x-auto no-scrollbar min-w-0 xt-nav-scroll-fade">
         <NavTab label="Play" isActive={isPlayView} onClick={onPlayClick} />
         {featureVisibility.lab ? (
           <NavTab label="Lab" isActive={currentView === ClientView.LAB} onClick={() => onChangeView(ClientView.LAB)} />

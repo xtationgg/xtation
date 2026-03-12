@@ -298,6 +298,8 @@
   padding-inline: 12px;
 }
 
+/* Mobile: tighter nav spacing + scroll fade hint (all themes) — placed near top, overrides below in @layer or end-of-file */
+
 [data-theme='dusk'] .xt-nav-tab,
 [data-theme='dusk_soft'] .xt-nav-tab {
   border-right: none !important;
@@ -7401,4 +7403,20 @@ a {
 [data-motion="reduced"] .quest-card-shell,
 [data-motion="reduced"] .quest-priority-arrow--active {
   animation-duration: 0.01ms !important;
+}
+
+/* ── Mobile nav: compact tabs + scroll fade (all themes) ─────────────────── */
+@media (max-width: 639px) {
+  .xt-nav-tabs.xt-nav-scroll-fade {
+    gap: 4px !important;
+    padding-inline: 6px !important;
+    -webkit-mask-image: linear-gradient(to right, black 80%, transparent 100%);
+    mask-image: linear-gradient(to right, black 80%, transparent 100%);
+  }
+
+  .xt-nav-tabs .xt-nav-tab {
+    padding: 0 10px !important;
+    font-size: 9px !important;
+    letter-spacing: 0.1em !important;
+  }
 }

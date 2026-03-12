@@ -149,8 +149,8 @@ export const NavTab: React.FC<NavTabProps> = ({ label, isActive, onClick }) => {
       data-active={isActive ? 'true' : 'false'}
       onClick={handleClick}
       onMouseEnter={playHoverSound}
-      className={`xt-nav-tab relative h-full px-4 sm:px-6 md:px-7 font-mono uppercase tracking-[0.18em] text-[10px] sm:text-[11px] font-bold
-        transition-all duration-200 border-r border-[var(--app-border)] flex items-center justify-center`}
+      className={`xt-nav-tab relative h-full px-2 xs:px-3 sm:px-6 md:px-7 font-mono uppercase tracking-[0.12em] sm:tracking-[0.18em] text-[9px] sm:text-[11px] font-bold
+        transition-all duration-200 border-r border-[var(--app-border)] flex items-center justify-center whitespace-nowrap flex-shrink-0`}
     >
       <span className="xt-nav-label relative z-10 flex items-center gap-2">
         {isActive ? <span className="xt-nav-dot" /> : <span className="xt-nav-dot xt-nav-dot--idle" />}
