@@ -93,7 +93,7 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
       window.sessionStorage.setItem('profileActiveTab', 'PROFILE');
     } catch {}
   }, []);
-  const [summonerName, setSummonerName] = useState(() => localStorage.getItem('profileName') || 'Station Pilot');
+  const [stationName, setStationName] = useState(() => localStorage.getItem('profileName') || 'Station Pilot');
   const [profileImage, setProfileImage] = useState(() => localStorage.getItem('profileImage') || ASSETS.PROFILE_ICON);
   const [coverImage, setCoverImage] = useState(() => localStorage.getItem('profileCover') || ASSETS.BACKGROUND_HOME);
   const [coverType, setCoverType] = useState<'image' | 'video'>(() => (localStorage.getItem('profileCoverType') as any) || 'image');
@@ -333,7 +333,7 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
     resolvedCreativeSkin?.avatarProfile,
     resolvedCreativeSkin?.sceneProfile,
   ]);
-  useEffect(() => localStorage.setItem('profileName', summonerName), [summonerName]);
+  useEffect(() => localStorage.setItem('profileName', stationName), [stationName]);
   useEffect(() => localStorage.setItem('profileRole', roleText), [roleText]);
   useEffect(() => { try { localStorage.setItem('profileCoverType', coverType); } catch {} }, [coverType]);
   useEffect(() => { try { localStorage.setItem('profileCoverFit', coverFit); } catch {} }, [coverFit]);
@@ -652,8 +652,8 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
     } finally { e.target.value = ''; }
   };
 
-  const startEditingName = () => { playClickSound(); setTempName(summonerName); setIsEditingName(true); };
-  const saveName = () => { if (tempName.trim()) { setSummonerName(tempName.trim()); playSuccessSound(); } setIsEditingName(false); };
+  const startEditingName = () => { playClickSound(); setTempName(stationName); setIsEditingName(true); };
+  const saveName = () => { if (tempName.trim()) { setStationName(tempName.trim()); playSuccessSound(); } setIsEditingName(false); };
   const cancelEdit = () => { playClickSound(); setIsEditingName(false); };
   const saveRole = () => { if (roleText.trim()) { setRoleText(roleText.trim()); playSuccessSound(); } setIsEditingRole(false); };
 
@@ -1179,7 +1179,7 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
             placeholder="Enter name"
             onChange={(e) => {
               setBioStats(prev => ({ ...prev, name: e.target.value }));
-              setSummonerName(e.target.value || 'Station Pilot');
+              setStationName(e.target.value || 'Station Pilot');
             }}
             className="w-full border border-[var(--app-border)] rounded px-3 py-2 text-sm text-[var(--app-text)] bg-[var(--app-panel)] focus:outline-none focus:border-[var(--app-accent)]"
           />
@@ -1310,7 +1310,7 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
             </div>
             <div>
               <div className={fieldLabel}>Display Name</div>
-              <input className={inputCls} value={summonerName} placeholder="Your name" onChange={e => { setSummonerName(e.target.value || 'Station Pilot'); setBioStats(p => ({ ...p, name: e.target.value })); }} />
+              <input className={inputCls} value={stationName} placeholder="Your name" onChange={e => { setStationName(e.target.value || 'Station Pilot'); setBioStats(p => ({ ...p, name: e.target.value })); }} />
             </div>
             <div>
               <div className={fieldLabel}>Role / Title</div>
@@ -1761,7 +1761,7 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
               )}
 
               <ProfileLobbyScene
-                displayName={summonerName}
+                displayName={stationName}
                 roleText={roleText}
                 theme={theme}
                 stageState={stageState}
@@ -1803,7 +1803,7 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
                     <div className="xt-profile-compact-kicker">
                       {activeAvatarPreset?.shellLabel || 'Profile deck'}
                     </div>
-                    <div className="xt-profile-compact-title">{summonerName}</div>
+                    <div className="xt-profile-compact-title">{stationName}</div>
                     <div className="xt-profile-compact-detail">
                       {currentDeckPrompt}
                     </div>
@@ -2016,7 +2016,7 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
                             <div className="xt-profile-lobby-command-kicker">
                               {activeAvatarPreset?.shellLabel || 'Profile deck'}
                             </div>
-                            <div className="xt-profile-lobby-command-title">{summonerName}</div>
+                            <div className="xt-profile-lobby-command-title">{stationName}</div>
                             <div className="xt-profile-lobby-command-detail">{currentDeckPrompt}</div>
                           </div>
                           <div className="xt-runtime-package-badge">{activeAvatarIdentityBadge}</div>
