@@ -190,10 +190,10 @@ const resolveBasePortraitLightRig = ({
   }
 
   return {
-    keyIntensity: isNight ? 2.58 : stageState === 'active' ? 2.72 : 2.48,
-    fillIntensity: isNight ? 0.06 : 0.08,
-    keyColor: '#fff8ef',
-    fillColor: '#8796a8',
+    keyIntensity: isNight ? 2.84 : stageState === 'active' ? 3.02 : 2.74,
+    fillIntensity: isNight ? 0.04 : 0.06,
+    keyColor: '#fff8f1',
+    fillColor: '#8fa0b8',
   };
 };
 
@@ -214,10 +214,10 @@ const resolvePortraitModelState = ({
       : 0.97;
 
   return {
-    modelScale: sceneProfile === 'bureau' ? scale + 0.04 : scale,
-    modelYaw: sceneProfile === 'void' ? -30 : sceneProfile === 'ops' ? -42 : -30,
-    modelPosX: sceneProfile === 'void' ? 0.02 : sceneProfile === 'ops' ? 0.06 : 0.04,
-    modelPosY: isNight ? -0.05 : stageState === 'active' ? -0.04 : -0.02,
+    modelScale: sceneProfile === 'bureau' ? scale + 0.06 : scale,
+    modelYaw: sceneProfile === 'void' ? -28 : sceneProfile === 'ops' ? -40 : -20,
+    modelPosX: sceneProfile === 'void' ? 0.02 : sceneProfile === 'ops' ? 0.05 : 0.01,
+    modelPosY: isNight ? -0.04 : stageState === 'active' ? -0.035 : -0.015,
   };
 };
 

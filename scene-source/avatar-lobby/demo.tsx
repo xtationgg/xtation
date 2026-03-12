@@ -845,7 +845,7 @@ const ENVIRONMENT_MODE_CONFIG: Record<
       "--accent": "#d6a45d",
       "--grain-opacity": "0.08",
       "--env-backdrop":
-        "linear-gradient(180deg, rgba(255,255,255,0.04), rgba(11,13,16,0.02) 16%, rgba(11,13,16,0.95) 74%), radial-gradient(circle at 50% 23%, rgba(214,164,93,0.48), rgba(11,13,16,0.92) 44%), radial-gradient(circle at 50% 46%, rgba(246,239,226,0.18), rgba(11,13,16,0) 30%), radial-gradient(circle at 50% 72%, rgba(214,164,93,0.06), rgba(11,13,16,0) 24%)",
+        "linear-gradient(180deg, rgba(255,255,255,0.05), rgba(11,13,16,0.02) 14%, rgba(11,13,16,0.96) 72%), radial-gradient(circle at 50% 18%, rgba(214,164,93,0.58), rgba(11,13,16,0.9) 38%), radial-gradient(circle at 49% 42%, rgba(247,240,229,0.22), rgba(11,13,16,0) 28%), radial-gradient(ellipse at 50% 56%, rgba(140,153,177,0.14), rgba(11,13,16,0) 38%), radial-gradient(circle at 50% 78%, rgba(214,164,93,0.08), rgba(11,13,16,0) 22%)",
       "--panel-bg": "rgba(9, 11, 13, 0.74)",
       "--panel-bg-soft": "rgba(16, 18, 21, 0.62)",
       "--panel-border": "rgba(244, 239, 230, 0.16)",
@@ -854,27 +854,27 @@ const ENVIRONMENT_MODE_CONFIG: Record<
     },
     hdri: {
       preset: "studio",
-      intensity: 0.94,
+      intensity: 0.98,
       rotation: 6,
-      blur: 0.045,
+      blur: 0.03,
       exposure: -0.01,
       background: false,
     },
     lighting: {
-      keyMul: 1.66,
-      fillMul: 0.48,
-      atmoMul: 0.38,
-      reflectionMul: 1.16,
-      keyTint: "#fff7eb",
-      fillTint: "#9ea9bc",
+      keyMul: 1.84,
+      fillMul: 0.34,
+      atmoMul: 0.32,
+      reflectionMul: 1.12,
+      keyTint: "#fff8f0",
+      fillTint: "#93a2bb",
     },
   },
 };
 
 const DEFAULT_FILL_OFFSET = {
-  x: 0.08,
+  x: 0.02,
   y: 0.56,
-  z: 0.24,
+  z: 0.36,
 };
 
 const HISTORY_LIMIT = 60;
@@ -885,12 +885,12 @@ const DEFAULT_RIG: LightRigState = {
   worldAnchorX: 0,
   worldAnchorY: 1.1,
   worldAnchorZ: 0,
-  keyAzimuth: 36,
-  keyElevation: 61,
-  keyDistance: 3.45,
-  fillAzimuth: -26,
-  fillElevation: 48,
-  fillDistance: 3.15,
+  keyAzimuth: 24,
+  keyElevation: 68,
+  keyDistance: 3.12,
+  fillAzimuth: -84,
+  fillElevation: 24,
+  fillDistance: 4.2,
   keyOffsetX: 0,
   keyOffsetY: 0,
   keyOffsetZ: 0,
@@ -899,8 +899,8 @@ const DEFAULT_RIG: LightRigState = {
   fillOffsetZ: DEFAULT_FILL_OFFSET.z,
   keyColor: "#ffffff",
   keyIntensity: 1.54,
-  fillColor: "#bc8350",
-  fillIntensity: 0.2,
+  fillColor: "#96a5be",
+  fillIntensity: 0.16,
   hideLightSource: true,
 };
 
@@ -962,9 +962,9 @@ const PRESETS: Record<PresetKey, ScenePreset> = {
 
 const SHOTS: Record<CameraShotKey, ShotConfig> = {
   hero: {
-    position: [0.16, 1.66, 1.18],
-    target: [0.0, 1.24, 0.12],
-    fov: 20.8,
+    position: [0.08, 1.6, 1.02],
+    target: [0.0, 1.3, 0.06],
+    fov: 18.9,
   },
   mid: {
     position: [0, 6.4, 0.01],

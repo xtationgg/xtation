@@ -1374,12 +1374,12 @@ export const Settings: React.FC<SettingsProps> = ({
                                 </div>
 
                                 <div className="space-y-3">
-                                    <div>
-                                        <div className="text-[10px] uppercase tracking-[0.2em] text-[var(--app-muted)]">Modules</div>
-                                        <div className="text-[10px] uppercase tracking-[0.14em] text-[var(--app-muted)] mt-1">
-                                            Feature gates for the next system layers we are building.
+                                        <div>
+                                            <div className="text-[10px] uppercase tracking-[0.2em] text-[var(--app-muted)]">Workspace Modules</div>
+                                            <div className="text-[10px] uppercase tracking-[0.14em] text-[var(--app-muted)] mt-1">
+                                            Choose which major station surfaces stay visible in this workspace.
+                                            </div>
                                         </div>
-                                    </div>
                                     {([
                                         ['multiplayerEnabled', 'Multiplayer'],
                                         ['labEnabled', 'Lab'],
@@ -1398,26 +1398,28 @@ export const Settings: React.FC<SettingsProps> = ({
                                             </button>
                                         </div>
                                     ))}
-                                    <div className="flex flex-wrap gap-2 pt-1">
-                                        <button
-                                            type="button"
-                                            onClick={() => setExperimentalFlag('labsV2', !features.experimentalFlags.labsV2)}
-                                            disabled={userSettingsLocked}
-                                            className={toggleChipClass(!!features.experimentalFlags.labsV2, userSettingsLocked)}
-                                            aria-pressed={!!features.experimentalFlags.labsV2}
-                                        >
-                                            Labs V2 {features.experimentalFlags.labsV2 ? 'On' : 'Off'}
-                                        </button>
-                                        <button
-                                            type="button"
-                                            onClick={() => setExperimentalFlag('storeEntitlements', !features.experimentalFlags.storeEntitlements)}
-                                            disabled={userSettingsLocked}
-                                            className={toggleChipClass(!!features.experimentalFlags.storeEntitlements, userSettingsLocked)}
-                                            aria-pressed={!!features.experimentalFlags.storeEntitlements}
-                                        >
-                                            Store Entitlements {features.experimentalFlags.storeEntitlements ? 'On' : 'Off'}
-                                        </button>
-                                    </div>
+                                    {operatorAccess.allowed ? (
+                                        <div className="flex flex-wrap gap-2 pt-1">
+                                            <button
+                                                type="button"
+                                                onClick={() => setExperimentalFlag('labsV2', !features.experimentalFlags.labsV2)}
+                                                disabled={userSettingsLocked}
+                                                className={toggleChipClass(!!features.experimentalFlags.labsV2, userSettingsLocked)}
+                                                aria-pressed={!!features.experimentalFlags.labsV2}
+                                            >
+                                                Labs V2 {features.experimentalFlags.labsV2 ? 'On' : 'Off'}
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => setExperimentalFlag('storeEntitlements', !features.experimentalFlags.storeEntitlements)}
+                                                disabled={userSettingsLocked}
+                                                className={toggleChipClass(!!features.experimentalFlags.storeEntitlements, userSettingsLocked)}
+                                                aria-pressed={!!features.experimentalFlags.storeEntitlements}
+                                            >
+                                                Store Entitlements {features.experimentalFlags.storeEntitlements ? 'On' : 'Off'}
+                                            </button>
+                                        </div>
+                                    ) : null}
                                 </div>
                             </div>
 
@@ -1575,17 +1577,19 @@ export const Settings: React.FC<SettingsProps> = ({
                                             );
                                         })}
                                     </div>
-                                    <div className="flex items-center justify-between gap-3 border border-[var(--app-border)] bg-[var(--app-panel-2)] px-3 py-2 rounded-[var(--app-radius-sm)]">
-                                        <span className="text-[10px] uppercase tracking-[0.18em] text-[var(--app-text)]">Developer HUD</span>
-                                        <button
-                                            type="button"
-                                            onClick={() => setDevHudEnabled(!device.devHudEnabled)}
-                                            className={toggleChipClass(device.devHudEnabled)}
-                                            aria-pressed={device.devHudEnabled}
-                                        >
-                                            {device.devHudEnabled ? 'On' : 'Off'}
-                                        </button>
-                                    </div>
+                                    {operatorAccess.allowed ? (
+                                        <div className="flex items-center justify-between gap-3 border border-[var(--app-border)] bg-[var(--app-panel-2)] px-3 py-2 rounded-[var(--app-radius-sm)]">
+                                            <span className="text-[10px] uppercase tracking-[0.18em] text-[var(--app-text)]">Developer HUD</span>
+                                            <button
+                                                type="button"
+                                                onClick={() => setDevHudEnabled(!device.devHudEnabled)}
+                                                className={toggleChipClass(device.devHudEnabled)}
+                                                aria-pressed={device.devHudEnabled}
+                                            >
+                                                {device.devHudEnabled ? 'On' : 'Off'}
+                                            </button>
+                                        </div>
+                                    ) : null}
                                 </div>
                             </div>
 

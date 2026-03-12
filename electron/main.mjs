@@ -17,7 +17,7 @@ function createWindow() {
     minWidth: 1180,
     minHeight: 760,
     backgroundColor: '#0a0a0a',
-    title: 'Hextech Client',
+    title: 'Xtation',
     autoHideMenuBar: true,
     webPreferences: {
       preload: path.join(__dirname, 'preload.mjs'),
@@ -26,12 +26,12 @@ function createWindow() {
       sandbox: false,
     },
   });
-  mainWindow.setTitle('Hextech Client');
+  mainWindow.setTitle('Xtation');
 
   // Keep desktop title stable instead of inheriting <title> from web page.
   mainWindow.webContents.on('page-title-updated', (event) => {
     event.preventDefault();
-    if (mainWindow) mainWindow.setTitle('Hextech Client');
+    if (mainWindow) mainWindow.setTitle('Xtation');
   });
 
   mainWindow.webContents.setWindowOpenHandler(({ url }) => {

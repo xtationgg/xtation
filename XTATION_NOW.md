@@ -86,6 +86,11 @@ Backup cadence:
   - Welcome / guest CONNECT / Settings continuity
   - main local-station CTA
   - starter-flow summaries
+- closed-beta surface polish batch is complete:
+  - stale desktop `Hextech Client` branding removed from Electron window title
+  - Settings now hides experimental flags and Developer HUD unless operator access is allowed
+  - Multiplayer no longer exposes the test-era `Advanced People Workstation` to normal users
+  - user-facing multiplayer briefing language now reads `Open Brief` / `Brief ready`
 
 ## Current Stop Point
 

@@ -54,9 +54,9 @@ All work should pass `npm run build` and `npx vitest run` (191 tests) before com
 - [x] Consider adding a confetti/particle burst on quest completion via presentation events
 
 ### P3: Closed-Beta Surface Polish
-- [ ] Audit all remaining legacy branding strings (grep for "Hextech", "Summoner", "League", "Riot", "Mid_Lane" etc.)
-- [ ] Review Settings section for any exposed dev-only toggles that shouldn't ship in closed beta
-- [ ] Check Multiplayer section for placeholder/stub content that looks broken to real users
+- [x] Audit all remaining legacy branding strings (grep for "Hextech", "Summoner", "League", "Riot", "Mid_Lane" etc.)
+- [x] Review Settings section for any exposed dev-only toggles that shouldn't ship in closed beta
+- [x] Check Multiplayer section for placeholder/stub content that looks broken to real users
 
 ### P4: Return/Resume Flow
 - [ ] Test the station continuity flow: close app, reopen, verify state restores cleanly
@@ -84,48 +84,22 @@ All work should pass `npm run build` and `npx vitest run` (191 tests) before com
 
 ## Latest Codex Note
 
-- Shared continuity panels now suppress duplicate `Recent continuity` rows when the same event is already shown as `Latest transition`.
-- Latest continuity-side files in this batch:
-  - `/Users/sarynass/dyad-apps/CLient-D82pm/src/station/continuityActivity.ts`
-  - `/Users/sarynass/dyad-apps/CLient-D82pm/components/Auth/StationContinuityPanel.tsx`
-  - `/Users/sarynass/dyad-apps/CLient-D82pm/tests/station-continuity-panel.test.tsx`
+- P3 closed-beta polish batch is complete.
+- User-facing beta cleanup in this batch:
+  - Electron window title is now `Xtation`
+  - Settings hides experimental flags and Developer HUD unless operator access is allowed
+  - the Settings module section now reads as a user-facing workspace module control instead of internal feature-gate copy
+  - Multiplayer no longer exposes the old `Advanced People Workstation` to normal users; it is now gated as `Operator Workbench`
+  - Multiplayer briefing actions now read `Open Brief` and the user-facing toast is `Brief ready`
+- Latest files in this batch:
+  - `/Users/sarynass/dyad-apps/CLient-D82pm/electron/main.mjs`
+  - `/Users/sarynass/dyad-apps/CLient-D82pm/components/Views/Settings.tsx`
+  - `/Users/sarynass/dyad-apps/CLient-D82pm/components/Views/MultiplayerNew.tsx`
 - Verified:
   - `npm run build` passed
   - `npx vitest run` passed `199/199`
-- Guided setup continuity has been corrected end to end:
-  - fresh guided setup now uses `Start local station`
-  - guided setup chips are `Setup active` / `Setup resumed`
-  - the shell no longer offers `Review Settings` while the setup modal is already open
-- Latest continuity-side files in this batch:
-  - `/Users/sarynass/dyad-apps/CLient-D82pm/App.tsx`
-  - `/Users/sarynass/dyad-apps/CLient-D82pm/src/welcome/localEntryTransition.ts`
-  - `/Users/sarynass/dyad-apps/CLient-D82pm/tests/local-entry-transition.test.ts`
-  - `/Users/sarynass/dyad-apps/CLient-D82pm/.gitignore`
-- Verified:
-  - `npm run build` passed
-  - `npx vitest run` passed `198/198`
-- P1 remains the active Codex zone and has been pushed further:
-  - closer portrait-first hero shot
-  - stronger bureau portrait core and key light
-  - quieter, cooler fill for better subject separation
-  - more frontal default bureau yaw
-  - smaller calmer support-screen footprint around the avatar
-  - tighter host-side spotlight / silhouette envelope
-- Latest scene-side files in this batch:
-  - `/Users/sarynass/dyad-apps/CLient-D82pm/scene-source/avatar-lobby/demo.tsx`
-  - `/Users/sarynass/dyad-apps/CLient-D82pm/components/Views/ProfileLobbyScene.tsx`
-  - `/Users/sarynass/dyad-apps/CLient-D82pm/index.css`
-  - rebuilt runtime synced into `/Users/sarynass/dyad-apps/CLient-D82pm/public/avatar-lobby`
-- P2 remains complete and stable:
-  - QuestDebriefPanel command-surface restyle
-  - entrance animation
-  - local reward burst
-  - reward-related presentation events
-- Verified:
-  - `npm run build` passed
-  - `npx vitest run` passed `198/198`
 - Latest backup:
-  - `/Users/sarynass/Desktop/html/backups/xtation-source-backup-20260312-034723.zip`
+  - `/Users/sarynass/Desktop/html/backups/xtation-source-backup-20260312-121940.zip`
 
 ## Latest Claude Note
 

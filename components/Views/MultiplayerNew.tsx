@@ -27,6 +27,7 @@ import { buildMultiplayerSnapshot } from '../../src/multiplayer/metrics';
 import { createMultiplayerAuditEntry, MultiplayerAuditEntry } from '../../src/multiplayer/audit';
 import { MultiplayerRouteTarget } from '../../src/multiplayer/routes';
 import { useAuth } from '../../src/auth/AuthProvider';
+import { useAdminConsole } from '../../src/admin/AdminConsoleProvider';
 import { useXtationSettings } from '../../src/settings/SettingsProvider';
 import {
   Activity,
@@ -486,6 +487,7 @@ const signalModeFromTarget = (target: MultiplayerRouteTarget): SignalsMode => {
 
 export const Multiplayer: React.FC = () => {
   const { user } = useAuth();
+  const { access: operatorAccess } = useAdminConsole();
   const { settings } = useXtationSettings();
   const { user: userSettings, privacy, features } = settings;
 
@@ -1166,7 +1168,7 @@ export const Multiplayer: React.FC = () => {
     );
   };
 
-  const seedBriefingForPlayer = (playerId: string) => {
+  const openBriefForPlayer = (playerId: string) => {
     const player = players.find((entry) => entry.id === playerId);
     if (!player) return;
     const thread = ensureThreadForPlayer(playerId, player.name);
@@ -1187,14 +1189,14 @@ export const Multiplayer: React.FC = () => {
     setSelectedThreadId(thread.id);
     logAudit({
       action: 'briefing_seeded',
-      title: 'Seeded squad briefing',
-      detail: `A starter message was created for ${player.name}.`,
+      title: 'Opened player brief',
+      detail: `A briefing lane is now open for ${player.name}.`,
       entity: 'message',
       actorId: viewAsId,
       targetId: playerId,
       route: 'COMMS',
     });
-    setToast('Briefing seeded');
+    setToast('Brief ready');
   };
 
   const markThreadRead = (threadId: string) => {
@@ -2125,7 +2127,7 @@ export const Multiplayer: React.FC = () => {
                                   <ActionButton label="Open Map" onClick={() => onOpenEarthFocusByPlayerId(selectedPlayer.id)} />
                                 ) : null}
                                 {selectedPlayer?.id !== 'me' ? (
-                                  <ActionButton label="Seed Brief" onClick={() => seedBriefingForPlayer(selectedPlayer.id)} tone="accent" />
+                                  <ActionButton label="Open Brief" onClick={() => openBriefForPlayer(selectedPlayer.id)} tone="accent" />
                                 ) : null}
                               </div>
                             ) : null
@@ -2336,7 +2338,7 @@ export const Multiplayer: React.FC = () => {
                                 </div>
                                 <div className="flex flex-wrap gap-2">
                                   <ActionButton label="Message" onClick={() => openThreadForPlayer(player.id, player.name)} />
-                                  <ActionButton label="Brief" onClick={() => seedBriefingForPlayer(player.id)} tone="accent" />
+                                  <ActionButton label="Open Brief" onClick={() => openBriefForPlayer(player.id)} tone="accent" />
                                   <ActionButton
                                     label="Fix"
                                     onClick={() => {
@@ -2353,26 +2355,28 @@ export const Multiplayer: React.FC = () => {
                     ) : null}
                   </div>
 
-                  <details className="rounded-2xl border border-[color-mix(in_srgb,var(--app-text)_12%,transparent)] bg-[var(--app-panel)] shadow-sm">
-                    <summary className="cursor-pointer list-none px-4 py-3 text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--app-text)]">
-                      Advanced People Workstation
-                    </summary>
-                    <div className="border-t border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] p-4">
-                      <Test01View
-                        players={players}
-                        onUpdatePlayer={onUpdatePlayer}
-                        onAddPlayer={onAddPlayer}
-                        onDeletePlayer={onDeletePlayer}
-                        onGoToEarth={({ playerId, loc }) => {
-                          setEarthFocus({ playerId, loc });
-                          setSurface('MAP');
-                        }}
-                        setToast={setToast}
-                        focusPlayerId={selectedPlayerId}
-                        onClearFocusPlayer={() => undefined}
-                      />
-                    </div>
-                  </details>
+                  {operatorAccess.allowed ? (
+                    <details className="rounded-2xl border border-[color-mix(in_srgb,var(--app-text)_12%,transparent)] bg-[var(--app-panel)] shadow-sm">
+                      <summary className="cursor-pointer list-none px-4 py-3 text-[11px] font-semibold uppercase tracking-[0.18em] text-[var(--app-text)]">
+                        Operator Workbench
+                      </summary>
+                      <div className="border-t border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] p-4">
+                        <Test01View
+                          players={players}
+                          onUpdatePlayer={onUpdatePlayer}
+                          onAddPlayer={onAddPlayer}
+                          onDeletePlayer={onDeletePlayer}
+                          onGoToEarth={({ playerId, loc }) => {
+                            setEarthFocus({ playerId, loc });
+                            setSurface('MAP');
+                          }}
+                          setToast={setToast}
+                          focusPlayerId={selectedPlayerId}
+                          onClearFocusPlayer={() => undefined}
+                        />
+                      </div>
+                    </details>
+                  ) : null}
                 </div>
               ) : null}
 
@@ -2797,7 +2801,7 @@ export const Multiplayer: React.FC = () => {
                                     <div className="xt-mp-list-detail">{player.role}</div>
                                   </div>
                                   <div className="flex flex-wrap gap-2">
-                                    <ActionButton label="Brief" onClick={() => seedBriefingForPlayer(player.id)} tone="accent" />
+                                    <ActionButton label="Open Brief" onClick={() => openBriefForPlayer(player.id)} tone="accent" />
                                     <ActionButton label="Open" onClick={() => openThreadForPlayer(player.id, player.name)} />
                                   </div>
                                 </div>

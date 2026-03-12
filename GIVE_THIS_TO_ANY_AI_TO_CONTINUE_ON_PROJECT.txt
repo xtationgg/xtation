@@ -99,13 +99,18 @@ Current stop point:
     - tighter / closer hero shot
     - narrower portrait lens
     - larger profile-presentation fit height so the character occupies the shot more clearly
-  - the newest portrait-stage pass pushed subject separation further:
+- the newest portrait-stage pass pushed subject separation further:
     - closer portrait-first hero shot
     - more frontal bureau default yaw
     - slightly larger bureau portrait scale
     - cooler/quieter fill for stronger silhouette separation
     - smaller calmer support-screen footprint
     - tighter host-side spotlight and silhouette envelope
+- closed-beta surface polish batch is now complete:
+  - stale `Hextech Client` desktop title removed
+  - Settings hides dev-only runtime toggles unless operator access is allowed
+  - Multiplayer hides the old test/workbench surface from normal users
+  - player briefing actions now read `Open Brief` / `Brief ready`
 - the Dusk brief path is now centralized and safer:
   - `src/dusk/bridge.ts` owns latest-brief persistence
   - `useLatestDuskBrief` and `HextechAssistant` now read/write through the same bridge helpers
