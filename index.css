@@ -3683,7 +3683,6 @@
 }
 
 .xt-shell-stage {
-  height: 100%;
   min-height: 100%;
   width: 100%;
 }
@@ -5177,7 +5176,8 @@
 .xt-welcome-shell {
   position: relative;
   min-height: 100dvh;
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
   background: linear-gradient(180deg, #090909 0%, #0b0b0c 48%, #060607 100%);
   color: var(--app-text);
 }

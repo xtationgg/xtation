@@ -59,8 +59,8 @@ All work should pass `npm run build` and `npx vitest run` (191 tests) before com
 - [x] Check Multiplayer section for placeholder/stub content that looks broken to real users
 
 ### P4: Return/Resume Flow
-- [ ] Test the station continuity flow: close app, reopen, verify state restores cleanly
-- [ ] Verify onboarding handoff → Play starter relay works end-to-end
+- [x] Test the station continuity flow: close app, reopen, verify state restores cleanly
+- [x] Verify onboarding handoff → Play starter relay works end-to-end
 - [ ] Check that Dusk briefs persist across sessions
 
 ### Rules for This Queue
@@ -83,6 +83,21 @@ All work should pass `npm run build` and `npx vitest run` (191 tests) before com
   - `/Users/sarynass/dyad-apps/CLient-D82pm/scene-source/avatar-lobby/demo.tsx`
 
 ## Latest Codex Note
+
+- Shared shell scrollability is now fixed at the actual layout layer instead of page-by-page:
+  - desktop viewport now owns vertical scroll again
+  - `.xt-shell-stage` is no longer height-clamped
+  - welcome entry shell now allows vertical scroll instead of hard-hiding overflow
+  - this was verified in-browser on both the welcome entry path and the in-app shell
+- Main files in this batch:
+  - `/Users/sarynass/dyad-apps/CLient-D82pm/App.tsx`
+  - `/Users/sarynass/dyad-apps/CLient-D82pm/index.css`
+- Latest verification:
+  - `npm run build` passed
+  - `npx vitest run` passed `200/200`
+- Current recommendation:
+  - stop treating hidden lower content as per-page styling bugs
+  - preserve the shared viewport scroll path and fix individual sections only if they have a truly local constraint
 
 - Current Profile portrait pass is now in a much better place visually:
   - hero shot widened and lifted so the face/shoulders stay in frame

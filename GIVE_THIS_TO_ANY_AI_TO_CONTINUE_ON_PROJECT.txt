@@ -71,6 +71,10 @@ Right now the strongest active work loop is:
 - user-facing skin and sound runtime coherence
 
 Current stop point:
+- shared scroll reachability was fixed at the shell layer:
+  - welcome entry now allows vertical scrolling
+  - desktop in-app viewport scroll is restored
+  - `.xt-shell-stage` is no longer height-clamped
 - the Profile 3D stage is working again and the active pass is now visual/product-facing:
   - overlay language compressed
   - relay simplified

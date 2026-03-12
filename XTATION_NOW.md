@@ -39,6 +39,10 @@ Backup cadence:
 ## Current Frontier
 
 - profile scene readability and stage presence
+- shared shell/page scroll reachability on welcome and in-app sections is now fixed at the layout layer:
+  - desktop viewport owns vertical scroll again
+  - `xt-shell-stage` is no longer height-clamped
+  - `xt-welcome-shell` now allows vertical overflow
 - make the 3D profile stage read like the main character space, not a runtime/debug layer
 - broad closed-beta readiness, with the guest/account/imported continuity lane now mostly aligned
 - persistent station activity and continuity history
