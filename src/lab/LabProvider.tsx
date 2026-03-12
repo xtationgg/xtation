@@ -411,26 +411,23 @@ export const useLab = () => {
 
 export const useOptionalLab = () => useContext(LabContext);
 
+const GUEST_SCOPE_ID = 'anon';
+
 export const LabProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user } = useAuth();
-  const activeUserId = user?.id || null;
+  const scopeId = user?.id || GUEST_SCOPE_ID;
   const [state, setState] = useState<LabWorkspaceState>(() => createDefaultState());
 
   useEffect(() => {
-    if (!activeUserId) {
-      setState(createDefaultState());
-      return;
-    }
-    const stored = readUserScopedJSON<LabWorkspaceState | null>(LAB_STORAGE_KEY, null, activeUserId);
+    const stored = readUserScopedJSON<LabWorkspaceState | null>(LAB_STORAGE_KEY, null, scopeId);
     const next = normalizeLabWorkspaceState(stored);
     setState(next);
-    writeUserScopedJSON(LAB_STORAGE_KEY, next, activeUserId);
-  }, [activeUserId]);
+    writeUserScopedJSON(LAB_STORAGE_KEY, next, scopeId);
+  }, [scopeId]);
 
   useEffect(() => {
-    if (!activeUserId) return;
-    writeUserScopedJSON(LAB_STORAGE_KEY, state, activeUserId);
-  }, [state, activeUserId]);
+    writeUserScopedJSON(LAB_STORAGE_KEY, state, scopeId);
+  }, [state, scopeId]);
 
   const value = useMemo<LabContextValue>(
     () => ({

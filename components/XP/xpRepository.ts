@@ -59,6 +59,16 @@ const safeParse = <T,>(raw: string | null): T | null => {
   }
 };
 
+const safeSetItem = (key: string, value: string): boolean => {
+  try {
+    localStorage.setItem(key, value);
+    return true;
+  } catch (err) {
+    console.error('[xp] localStorage write failed — quota may be exceeded', err);
+    return false;
+  }
+};
+
 const formatDateKey = (date = new Date()) => {
   const year = date.getFullYear();
   const month = `${date.getMonth() + 1}`.padStart(2, '0');
@@ -784,27 +794,27 @@ export const xpRepository = {
       const legacy = safeParse<any>(localStorage.getItem(LEGACY_LEDGER_KEY));
       if (legacy) {
         const migrated = migrateLedger(legacy);
-        localStorage.setItem(cacheKey, JSON.stringify(migrated));
+        safeSetItem(cacheKey, JSON.stringify(migrated));
         return migrated;
       }
 
       if (!normalizedUserId) {
         const seeded = buildLegacySeedState();
-        localStorage.setItem(cacheKey, JSON.stringify(seeded));
+        safeSetItem(cacheKey, JSON.stringify(seeded));
         return seeded;
       }
     }
 
     const initial = createEmptyState();
     if (initializeIfMissing) {
-      localStorage.setItem(cacheKey, JSON.stringify(initial));
+      safeSetItem(cacheKey, JSON.stringify(initial));
     }
     return initial;
   },
   save: (state: XPLedgerState, userId?: string | null) => {
     if (typeof window === 'undefined') return;
     const cacheKey = buildCacheKey(userId);
-    localStorage.setItem(cacheKey, JSON.stringify(state));
+    safeSetItem(cacheKey, JSON.stringify(state));
   },
   reset: (userId?: string | null): XPLedgerState => {
     const normalizedUserId = normalizeUserId(userId);
@@ -821,7 +831,7 @@ export const xpRepository = {
       });
     }
 
-    localStorage.setItem(cacheKey, JSON.stringify(initial));
+    safeSetItem(cacheKey, JSON.stringify(initial));
     return initial;
   },
   normalize: (state: unknown): XPLedgerState => {

@@ -259,7 +259,7 @@ const ThemeContext = createContext<ThemeContextValue | null>(null);
 
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user, loading: authLoading } = useAuth();
-  const activeUserId = user?.id || null;
+  const scopeId = user?.id || 'anon';
   const [theme, setThemeState] = useState<XtationTheme>(() => initializeThemeFromStorage());
   const [accent, setAccentState] = useState<XtationAccent>(() => readStoredAccent());
   const [resolution, setResolutionState] = useState<XtationResolutionMode>(() => readStoredResolution());
@@ -282,31 +282,30 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
 
   useEffect(() => {
     if (authLoading) return;
-    const scopeKey = activeUserId || 'local';
-    migrateThemeDirection(activeUserId);
-    setThemeState(readStoredThemeForUser(activeUserId));
-    setAccentState(readStoredAccentForUser(activeUserId));
-    setResolutionState(readStoredResolutionForUser(activeUserId));
-    setHydratedScopeKey(scopeKey);
-  }, [authLoading, activeUserId]);
+    migrateThemeDirection(scopeId);
+    setThemeState(readStoredThemeForUser(scopeId));
+    setAccentState(readStoredAccentForUser(scopeId));
+    setResolutionState(readStoredResolutionForUser(scopeId));
+    setHydratedScopeKey(scopeId);
+  }, [authLoading, scopeId]);
 
   useEffect(() => {
-    if (authLoading || hydratedScopeKey !== (activeUserId || 'local')) return;
+    if (authLoading || hydratedScopeKey !== scopeId) return;
     applyThemeToDom(theme);
-    persistThemeSelection(theme, activeUserId);
-  }, [theme, authLoading, hydratedScopeKey, activeUserId]);
+    persistThemeSelection(theme, scopeId);
+  }, [theme, authLoading, hydratedScopeKey, scopeId]);
 
   useEffect(() => {
-    if (authLoading || hydratedScopeKey !== (activeUserId || 'local')) return;
+    if (authLoading || hydratedScopeKey !== scopeId) return;
     applyAccentToDom(accent);
-    persistAccentSelection(accent, activeUserId);
-  }, [accent, authLoading, hydratedScopeKey, activeUserId]);
+    persistAccentSelection(accent, scopeId);
+  }, [accent, authLoading, hydratedScopeKey, scopeId]);
 
   useEffect(() => {
-    if (authLoading || hydratedScopeKey !== (activeUserId || 'local')) return;
+    if (authLoading || hydratedScopeKey !== scopeId) return;
     applyResolutionToDom(resolution);
-    persistResolutionSelection(resolution, activeUserId);
-  }, [resolution, authLoading, hydratedScopeKey, activeUserId]);
+    persistResolutionSelection(resolution, scopeId);
+  }, [resolution, authLoading, hydratedScopeKey, scopeId]);
 
   useEffect(() => {
     if (typeof document === 'undefined') return;

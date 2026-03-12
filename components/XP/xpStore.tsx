@@ -378,10 +378,15 @@ const isEventInDay = (
 };
 
 const cloneLedgerState = (ledger: XPLedgerState): XPStateSnapshot => {
-  if (typeof structuredClone === 'function') {
-    return structuredClone(ledger);
+  try {
+    if (typeof structuredClone === 'function') {
+      return structuredClone(ledger);
+    }
+    return JSON.parse(JSON.stringify(ledger)) as XPStateSnapshot;
+  } catch (err) {
+    console.error('[xp] Failed to clone ledger state:', err);
+    return { ...ledger } as XPStateSnapshot;
   }
-  return JSON.parse(JSON.stringify(ledger)) as XPStateSnapshot;
 };
 
 const getLedgerSyncSignature = (ledger: XPLedgerState): string => {
@@ -1214,11 +1219,14 @@ export const XPProvider: React.FC<{ children: React.ReactNode }> = ({ children }
 
   useEffect(() => {
     const interval = window.setInterval(() => {
-      const nextKey = getDateKey();
-      if (nextKey !== dateKey) setDateKey(nextKey);
+      setDateKey((prev) => {
+        const nextKey = getDateKey();
+        return nextKey !== prev ? nextKey : prev;
+      });
     }, 60000);
     return () => window.clearInterval(interval);
-  }, [dateKey]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- stable interval, no deps needed
+  }, []);
 
   useEffect(() => {
     const running = XPSelectors.getActiveSession(ledger);
@@ -1696,6 +1704,9 @@ export const XPProvider: React.FC<{ children: React.ReactNode }> = ({ children }
           updatedAt: Date.now(),
         };
       }),
+      completions: prev.completions.filter((c) => c.taskId !== id),
+      manualLogs: prev.manualLogs.filter((m) => m.taskId !== id),
+      taskEvents: prev.taskEvents.filter((e) => e.taskId !== id),
     }));
   };
 

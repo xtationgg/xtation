@@ -319,9 +319,11 @@ interface XtationSettingsContextValue {
 
 const XtationSettingsContext = createContext<XtationSettingsContextValue | null>(null);
 
+const GUEST_SCOPE_ID = 'anon';
+
 export const XtationSettingsProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user, loading: authLoading } = useAuth();
-  const activeUserId = user?.id || null;
+  const scopeId = user?.id || GUEST_SCOPE_ID;
   const [settings, setSettings] = useState<XtationSettingsState>(() => ({
     ...cloneDefaults(),
     device: readDeviceSettings(),
@@ -334,35 +336,22 @@ export const XtationSettingsProvider: React.FC<{ children: React.ReactNode }> = 
 
   useEffect(() => {
     if (authLoading) return;
-    if (!activeUserId) {
-      setSettings((prev) => ({
-        ...prev,
-        user: { ...defaultUserSettings },
-        notifications: { ...defaultNotificationSettings },
-        privacy: { ...defaultPrivacySettings },
-        features: { ...defaultFeatureSettings, experimentalFlags: {} },
-        unlocks: { ...defaultUnlockSettings, activeWidgetIds: [], activeLabModuleIds: [] },
-      }));
-      return;
-    }
-
-    const nextUserSettings = readUserSettings(activeUserId);
+    const nextUserSettings = readUserSettings(scopeId);
     setSettings((prev) => ({
       ...prev,
       ...nextUserSettings,
     }));
-  }, [authLoading, activeUserId]);
+  }, [authLoading, scopeId]);
 
   useEffect(() => {
-    if (!activeUserId) return;
-    persistUserSettings(activeUserId, {
+    persistUserSettings(scopeId, {
       user: settings.user,
       notifications: settings.notifications,
       privacy: settings.privacy,
       features: settings.features,
       unlocks: settings.unlocks,
     });
-  }, [activeUserId, settings.user, settings.notifications, settings.privacy, settings.features, settings.unlocks]);
+  }, [scopeId, settings.user, settings.notifications, settings.privacy, settings.features, settings.unlocks]);
 
   const value = useMemo<XtationSettingsContextValue>(
     () => ({
