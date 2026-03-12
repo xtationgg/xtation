@@ -41,7 +41,7 @@ Any AI joining the project should read these first:
 ## Codex Task Queue (from Claude)
 
 Priority-ordered work for Codex to execute. Check off as completed.
-All work should pass `npm run build` and `npx vitest run` (191 tests) before committing.
+All work should pass `npm run build` and `npx vitest run` before committing.
 
 ### P1: Scene Visual Presence (Codex-locked zone)
 - [x] Review Claude's overlay changes in ProfileLobbyScene.tsx (HUD gating, relay cleanup)
@@ -84,30 +84,26 @@ All work should pass `npm run build` and `npx vitest run` (191 tests) before com
 
 ## Latest Codex Note
 
-- Shared shell scrollability is now fixed at the real root/layout layer, not page-by-page:
-  - desktop viewport still owns vertical scroll
-  - `.xt-shell-stage` is no longer height-clamped
-  - welcome entry shell allows vertical scroll
-  - the real trap was global:
-    - `html/body` were still `overflow: hidden`
-    - desktop `#root` scaling used fixed `height` plus `overflow: hidden`
-  - root scaling now uses `min-height` and visible overflow instead, so lower welcome content is reachable
-- A shared wheel-scroll fallback now also exists for:
-  - `/Users/sarynass/dyad-apps/CLient-D82pm/components/Views/Welcome.tsx`
-  - `/Users/sarynass/dyad-apps/CLient-D82pm/App.tsx` viewport
-  so mouse-wheel scrolling is routed to the active top-level container even when transformed/root layers interfere with browser scroll chaining
-- Main file in this batch:
-  - `/Users/sarynass/dyad-apps/CLient-D82pm/index.css`
+- The scroll fix is now stronger and browser-verified:
+  - root/layout clipping was already removed
+  - wheel handling now uses a native capture-phase bridge instead of only a bubbling React fallback
+  - the bridge scrolls the nearest real scrollable ancestor that can still move, then falls back outward at scroll edges
+  - local wheel controls stay protected:
+    - `[role=\"spinbutton\"]`
+    - editable inputs
+    - explicit wheel-lock regions
+- Main files in this batch:
   - `/Users/sarynass/dyad-apps/CLient-D82pm/src/ui/wheelScroll.ts`
   - `/Users/sarynass/dyad-apps/CLient-D82pm/components/Views/Welcome.tsx`
   - `/Users/sarynass/dyad-apps/CLient-D82pm/App.tsx`
+  - `/Users/sarynass/dyad-apps/CLient-D82pm/tests/wheel-scroll.test.ts`
 - Latest verification:
   - `npm run build` passed
-  - `npx vitest run` passed `204/204`
-  - local browser snapshot now reaches the lower welcome controls, including `Start Guided Setup`
+  - `npx vitest run` passed `208/208`
+  - real Playwright wheel input on welcome moved `window.scrollY` from `0` to `863`
 - Current recommendation:
-  - treat future hidden-content issues as root/shell contract problems first
-  - only patch page-local overflow after ruling out `html/body/#root` and desktop scale clamps
+  - keep treating future scroll problems as shared shell/root contract bugs first
+  - only patch section-local overflow after ruling out the root, viewport, or wheel bridge
 
 - Current Profile portrait pass is now in a much better place visually:
   - hero shot widened and lifted so the face/shoulders stay in frame

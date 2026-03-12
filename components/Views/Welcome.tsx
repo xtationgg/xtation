@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useRef } from 'react';
 import { ArrowRight, Bot, Boxes, Compass, Layers3, ShieldCheck, UserRound } from 'lucide-react';
 import { AuthCard } from '../Auth/AuthCard';
 import { StationContinuityPanel } from '../Auth/StationContinuityPanel';
@@ -9,7 +9,7 @@ import { readStationActivity } from '../../src/station/stationActivity';
 import { buildStationContinuityContext } from '../../src/station/continuityContext';
 import { useXtationSettings } from '../../src/settings/SettingsProvider';
 import { resolveGuestStationEntryState } from '../../src/welcome/guestContinuity';
-import { routeWheelToContainer } from '../../src/ui/wheelScroll';
+import { useWheelScrollBridge } from '../../src/ui/wheelScroll';
 
 interface WelcomeProps {
   onEnterLocalMode: () => void;
@@ -47,8 +47,10 @@ const operatingSignals = [
 ];
 
 export const Welcome: React.FC<WelcomeProps> = ({ onEnterLocalMode, onResumeGuidedSetup }) => {
+  const shellRef = useRef<HTMLDivElement | null>(null);
   const { currentStation, access } = useAdminConsole();
   const { settings } = useXtationSettings();
+  useWheelScrollBridge(shellRef);
   const stationActivity = useMemo(() => readStationActivity(), []);
   const lastView = useMemo(() => readStoredXtationLastView(), []);
   const continuityContext = useMemo(
@@ -104,7 +106,7 @@ export const Welcome: React.FC<WelcomeProps> = ({ onEnterLocalMode, onResumeGuid
       : null;
 
   return (
-    <div className="xt-welcome-shell" onWheel={routeWheelToContainer}>
+    <div ref={shellRef} className="xt-welcome-shell">
       <div className="xt-welcome-backdrop" />
 
       <div className="xt-welcome-frame">

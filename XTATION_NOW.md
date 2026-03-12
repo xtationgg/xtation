@@ -391,14 +391,9 @@ Backup cadence:
 
 Stay on the broad closed-beta readiness track:
 
-1. validate the full guest/local/account/imported journey in the real browser
-2. remove any last mismatch between:
-   - Welcome
-   - guest `CONNECT`
-   - shell transition banner
-   - Settings platform status
-   - actual resumed destination
-3. only then return to another targeted `Profile` scene presence pass if it is still the biggest visible-product gap
+1. run a live browser sweep across the main sections and catch any remaining hidden lower controls or scroll traps
+2. treat scroll failures as shared shell/root contract issues first, page-level issues second
+3. only return to another targeted `Profile` scene presence pass if it is still the biggest visible-product gap
 
 ## Easy-To-Miss Notes
 
@@ -418,7 +413,10 @@ Stay on the broad closed-beta readiness track:
 - build:
   - `npm run build` passed
 - tests:
-  - `npx vitest run` passed `198/198`
+  - `npx vitest run` passed `208/208`
+- browser check:
+  - real Playwright wheel input on welcome moved `window.scrollY` from `0` to `863`
+  - the main fix is now a native capture-phase wheel bridge on the welcome shell and app viewport
 
 ## Latest Backup
 

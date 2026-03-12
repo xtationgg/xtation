@@ -380,4 +380,13 @@ If you are a new AI taking over XTATION:
 
 Current verified state:
 - npm run build passed
-- npx vitest run passed 198/198
+- npx vitest run passed 208/208
+
+Current UI/runtime note:
+- shell/root scroll clipping is fixed
+- normal mouse-wheel scrolling now uses a native capture-phase bridge on the welcome shell and main app viewport
+- if scrolling breaks again, inspect:
+  - src/ui/wheelScroll.ts
+  - App.tsx
+  - components/Views/Welcome.tsx
+  before patching page-local overflow by hand

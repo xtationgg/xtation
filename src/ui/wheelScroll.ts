@@ -1,9 +1,10 @@
+import { useEffect } from 'react';
 import type React from 'react';
 
-const NESTED_SCROLLABLE_SELECTOR = [
-  '.xt-scroll',
+const LOCAL_WHEEL_LOCK_SELECTOR = [
   '[data-wheel-scroll-local]',
   '[data-wheel-scroll-lock="true"]',
+  '[role="spinbutton"]',
 ].join(', ');
 
 const EDITABLE_SELECTOR = [
@@ -14,39 +15,83 @@ const EDITABLE_SELECTOR = [
   '[contenteditable="true"]',
 ].join(', ');
 
-export function shouldRouteWheelToContainer(
+function isVerticallyScrollable(element: HTMLElement) {
+  const style = window.getComputedStyle(element);
+  if (!/(auto|scroll|overlay)/.test(style.overflowY)) return false;
+  return element.scrollHeight > element.clientHeight + 1;
+}
+
+function canScrollInDirection(element: HTMLElement, deltaY: number) {
+  const maxScrollTop = Math.max(0, element.scrollHeight - element.clientHeight);
+  if (maxScrollTop <= 0) return false;
+  if (deltaY < 0) return element.scrollTop > 0;
+  if (deltaY > 0) return element.scrollTop < maxScrollTop - 1;
+  return false;
+}
+
+function shouldIgnoreWheelTarget(container: HTMLElement, target: Element | null) {
+  if (!target) return false;
+  const localLock = target.closest(LOCAL_WHEEL_LOCK_SELECTOR);
+  if (localLock && localLock !== container) return true;
+  const editable = target.closest(EDITABLE_SELECTOR);
+  if (editable && editable !== container) return true;
+  return false;
+}
+
+export function findNearestScrollableAncestor(
   container: HTMLElement,
   target: Element | null,
-  deltaX: number,
-  deltaY: number
-): boolean {
-  if (Math.abs(deltaY) <= Math.abs(deltaX)) return false;
-  if (container.scrollHeight <= container.clientHeight) return false;
-  if (!target) return true;
-
-  const nestedScrollable = target.closest(NESTED_SCROLLABLE_SELECTOR);
-  if (
-    nestedScrollable &&
-    nestedScrollable !== container &&
-    container.contains(nestedScrollable) &&
-    nestedScrollable instanceof HTMLElement &&
-    nestedScrollable.scrollHeight > nestedScrollable.clientHeight
-  ) {
-    return false;
+  deltaY?: number
+) {
+  let fallback: HTMLElement | null = null;
+  let node = target;
+  while (node && node instanceof HTMLElement) {
+    if (node === container) break;
+    if (isVerticallyScrollable(node)) {
+      fallback ??= node;
+      if (deltaY == null || canScrollInDirection(node, deltaY)) return node;
+    }
+    node = node.parentElement;
   }
-
-  const editable = target.closest(EDITABLE_SELECTOR);
-  if (editable && editable !== container) {
-    return false;
+  if (isVerticallyScrollable(container) && (deltaY == null || canScrollInDirection(container, deltaY))) {
+    return container;
   }
+  return fallback ?? (isVerticallyScrollable(container) ? container : null);
+}
 
-  return true;
+function handleWheelEvent(container: HTMLElement, event: Pick<WheelEvent, 'target' | 'deltaX' | 'deltaY' | 'preventDefault' | 'ctrlKey' | 'metaKey'>) {
+  if (event.ctrlKey || event.metaKey) return;
+  if (Math.abs(event.deltaY) <= Math.abs(event.deltaX)) return;
+  const target = event.target instanceof Element ? event.target : null;
+  if (shouldIgnoreWheelTarget(container, target)) return;
+  const scrollTarget = findNearestScrollableAncestor(container, target, event.deltaY);
+  if (!scrollTarget) return;
+  event.preventDefault();
+  scrollTarget.scrollTop += event.deltaY;
 }
 
 export function routeWheelToContainer(event: React.WheelEvent<HTMLElement>) {
-  const container = event.currentTarget;
-  const target = event.target instanceof Element ? event.target : null;
-  if (!shouldRouteWheelToContainer(container, target, event.deltaX, event.deltaY)) return;
-  event.preventDefault();
-  container.scrollTop += event.deltaY;
+  handleWheelEvent(
+    event.currentTarget,
+    ((event as unknown as { nativeEvent?: WheelEvent }).nativeEvent ?? event) as Pick<
+      WheelEvent,
+      'target' | 'deltaX' | 'deltaY' | 'preventDefault' | 'ctrlKey' | 'metaKey'
+    >
+  );
+}
+
+export function useWheelScrollBridge(ref: React.RefObject<HTMLElement | null>) {
+  useEffect(() => {
+    const container = ref.current;
+    if (!container) return;
+
+    const onWheel = (event: WheelEvent) => {
+      handleWheelEvent(container, event);
+    };
+
+    container.addEventListener('wheel', onWheel, { passive: false, capture: true });
+    return () => {
+      container.removeEventListener('wheel', onWheel, true);
+    };
+  }, [ref]);
 }
