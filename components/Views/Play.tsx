@@ -242,6 +242,7 @@ export const Play: React.FC<PlayProps> = ({
     completeTask,
     resumeTaskSession,
     stopSession,
+    pauseSession,
   } = useXP();
   const { settings } = useXtationSettings();
   const latestBrief = useLatestDuskBrief();
@@ -801,7 +802,7 @@ export const Play: React.FC<PlayProps> = ({
                             <div className="flex flex-col gap-2">
                               <PlayActionButton
                                 label={selectedTaskRunning ? 'Pause Session' : activeSession ? 'Switch and Start' : 'Start Session'}
-                                onClick={selectedTaskRunning ? stopSession : handleRunSelectedQuest}
+                                onClick={selectedTaskRunning ? pauseSession : handleRunSelectedQuest}
                                 icon={selectedTaskRunning ? <PauseCircle size={16} /> : <PlayCircle size={16} />}
                                 tone="accent"
                               />
@@ -987,7 +988,7 @@ export const Play: React.FC<PlayProps> = ({
                         {selectedTask ? (
                           <PlayActionButton
                             label={selectedTaskRunning ? 'Pause' : 'Run'}
-                            onClick={selectedTaskRunning ? stopSession : handleRunSelectedQuest}
+                            onClick={selectedTaskRunning ? pauseSession : handleRunSelectedQuest}
                             icon={selectedTaskRunning ? <PauseCircle size={14} /> : <PlayCircle size={14} />}
                             tone="accent"
                           />

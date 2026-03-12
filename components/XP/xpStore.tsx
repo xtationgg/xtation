@@ -1160,7 +1160,7 @@ export const XPProvider: React.FC<{ children: React.ReactNode }> = ({ children }
           if (hasAnonData) {
             nextSnapshot = anonSnapshot;
             const totalMs = anonSnapshot.sessions
-              .filter((s) => s.status === 'completed')
+              .filter((s) => s.status === 'completed' || s.status === 'paused')
               .reduce((sum, s) => sum + getSessionDisplayMs(s), 0);
             const totalXp =
               toXPMinutes(totalMs) +
@@ -1273,7 +1273,7 @@ export const XPProvider: React.FC<{ children: React.ReactNode }> = ({ children }
     const todayTargetXP = XPSelectors.getTargetXP(ledger, dateKey);
     // Session XP: apply new engine formula (3-min minimum + deep bonuses).
     const totalSessionXP = ledger.sessions
-      .filter((session) => session.status === 'completed')
+      .filter((session) => session.status === 'completed' || session.status === 'paused')
       .reduce((sum, session) => sum + calculateSessionXP(toXPMinutes(getSessionDisplayMs(session))), 0);
     // Completion XP: step XP + completion bonus + schedule bonus for every done quest.
     const totalCompletionXP = ledger.tasks
@@ -1884,7 +1884,7 @@ export const XPProvider: React.FC<{ children: React.ReactNode }> = ({ children }
     sessions: XPSession[],
     sessionId: string,
     now: number,
-    status: 'completed' | 'canceled'
+    status: 'completed' | 'paused' | 'canceled'
   ) => {
     const target = sessions.find((session) => session.id === sessionId);
     if (!target) return { sessions, target: null as XPSession | null };
@@ -2005,7 +2005,28 @@ export const XPProvider: React.FC<{ children: React.ReactNode }> = ({ children }
   };
 
   const pauseSession = () => {
-    stopSession();
+    const now = Date.now();
+    let pausedSessionId: string | null = null;
+    setLedger((prev) => {
+      const running = XPSelectors.getActiveSession(prev);
+      const targetId = activeSessionId || running?.id;
+      if (!targetId) return prev;
+      const finalized = finalizeRunningSession(prev.sessions, targetId, now, 'paused');
+      if (!finalized.target) return prev;
+      pausedSessionId = finalized.target.id;
+      return {
+        ...prev,
+        sessions: finalized.sessions,
+        tasks: prev.tasks.map((task) =>
+          (finalized.target?.linkedTaskIds || []).includes(task.id) && task.status === 'active'
+            ? { ...task, status: 'paused' as const, updatedAt: now }
+            : task
+        ),
+      };
+    });
+    if (pausedSessionId) {
+      setActiveSessionId(null);
+    }
   };
 
   const resumeTaskSession = (taskId: string) => {

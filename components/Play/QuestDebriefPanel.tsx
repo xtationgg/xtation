@@ -34,7 +34,7 @@ export const QuestDebriefPanel: React.FC<QuestDebriefPanelProps> = ({
   const presentationEvents = useOptionalPresentationEvents();
 
   const stepCounts = useMemo(
-    () => (task ? getQuestStepCounts(task.details) : { completed: 0, total: 0 }),
+    () => (task ? getQuestStepCounts(task.details) ?? { completed: 0, total: 0 } : { completed: 0, total: 0 }),
     [task],
   );
 
@@ -74,7 +74,8 @@ export const QuestDebriefPanel: React.FC<QuestDebriefPanelProps> = ({
         tone: 'success',
       },
     });
-  }, [presentationEvents, task, xpBreakdown?.total]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- fire once on mount
+  }, [taskId]);
 
   const handleSaveToLab = useCallback(() => {
     if (!task || savedToLab) return;

@@ -11,7 +11,7 @@ export type SelfTreeBranch =
   | 'Physical'
   | 'Inner';
 
-export type XPSessionStatus = 'running' | 'completed' | 'canceled';
+export type XPSessionStatus = 'running' | 'completed' | 'paused' | 'canceled';
 export type XPSessionImpact = 'normal' | 'medium' | 'hard';
 export type XPSessionSource = 'timer' | 'manual' | 'challenge' | 'import';
 export type XPCompletionSource = 'manual_done' | 'retro' | 'session';
