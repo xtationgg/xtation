@@ -1582,30 +1582,30 @@
 
 .xt-profile-scene-spotlight {
   top: 45%;
-  width: min(21vw, 232px);
-  height: min(52vh, 460px);
+  width: min(17vw, 192px);
+  height: min(48vh, 396px);
   border-radius: 44%;
   background:
-    radial-gradient(ellipse at 50% 10%, rgba(255, 255, 255, 0.34) 0%, color-mix(in srgb, var(--app-accent) 16%, transparent) 20%, transparent 58%);
-  filter: blur(18px);
-  opacity: 0.8;
+    radial-gradient(ellipse at 50% 10%, rgba(255, 255, 255, 0.36) 0%, color-mix(in srgb, var(--app-accent) 14%, transparent) 18%, transparent 56%);
+  filter: blur(14px);
+  opacity: 0.68;
 }
 
 .xt-profile-scene-silhouette-glow {
-  top: 48%;
-  width: min(10vw, 112px);
-  height: min(46vh, 420px);
+  top: 47.5%;
+  width: min(11vw, 124px);
+  height: min(42vh, 360px);
   border-radius: 48%;
   background:
-    radial-gradient(ellipse at 50% 34%, rgba(255, 255, 255, 0.24) 0%, color-mix(in srgb, var(--app-accent) 18%, rgba(255, 255, 255, 0.08)) 16%, color-mix(in srgb, var(--app-accent) 8%, transparent) 34%, transparent 72%);
-  filter: blur(12px);
-  opacity: 0.86;
+    radial-gradient(ellipse at 50% 30%, rgba(255, 255, 255, 0.32) 0%, color-mix(in srgb, var(--app-accent) 22%, rgba(255, 255, 255, 0.1)) 14%, color-mix(in srgb, var(--app-accent) 8%, transparent) 32%, transparent 70%);
+  filter: blur(11px);
+  opacity: 0.96;
 }
 
 .xt-profile-scene-focus-frame {
   top: 47%;
-  width: min(29vw, 320px);
-  height: min(58vh, 540px);
+  width: min(24vw, 276px);
+  height: min(56vh, 510px);
   border-radius: 40px;
   border: 1px solid color-mix(in srgb, var(--app-accent) 14%, transparent);
   background:
@@ -1614,28 +1614,28 @@
   box-shadow:
     inset 0 0 0 1px rgba(255, 255, 255, 0.02),
     0 0 0 1px rgba(0, 0, 0, 0.2);
-  opacity: 0.3;
+  opacity: 0.22;
 }
 
 .xt-profile-scene-focus-core {
   top: 46%;
-  width: min(12vw, 128px);
-  height: min(30vh, 280px);
+  width: min(12vw, 132px);
+  height: min(28vh, 248px);
   border-radius: 50%;
   background: radial-gradient(circle at center, color-mix(in srgb, var(--app-accent) 20%, rgba(255, 255, 255, 0.1)) 0%, transparent 72%);
   filter: blur(13px);
-  opacity: 0.58;
+  opacity: 0.7;
 }
 
 .xt-profile-scene-floor-glow {
   top: auto;
   bottom: 8%;
-  width: min(28vw, 320px);
+  width: min(22vw, 260px);
   height: 84px;
   border-radius: 999px;
   background: radial-gradient(ellipse at center, color-mix(in srgb, var(--app-accent) 18%, transparent) 0%, transparent 74%);
   filter: blur(20px);
-  opacity: 0.82;
+  opacity: 0.68;
 }
 
 .xt-profile-compact-anchor {

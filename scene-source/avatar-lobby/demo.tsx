@@ -861,10 +861,10 @@ const ENVIRONMENT_MODE_CONFIG: Record<
       background: false,
     },
     lighting: {
-      keyMul: 1.84,
-      fillMul: 0.34,
-      atmoMul: 0.32,
-      reflectionMul: 1.12,
+      keyMul: 2.12,
+      fillMul: 0.2,
+      atmoMul: 0.22,
+      reflectionMul: 1.08,
       keyTint: "#fff8f0",
       fillTint: "#93a2bb",
     },
@@ -962,9 +962,9 @@ const PRESETS: Record<PresetKey, ScenePreset> = {
 
 const SHOTS: Record<CameraShotKey, ShotConfig> = {
   hero: {
-    position: [0.08, 1.6, 1.02],
-    target: [0.0, 1.3, 0.06],
-    fov: 18.9,
+    position: [0.03, 1.78, 2.24],
+    target: [0, 1.46, 0.02],
+    fov: 26.2,
   },
   mid: {
     position: [0, 6.4, 0.01],
@@ -10762,7 +10762,7 @@ const HalideLanding: React.FC = () => {
         const box = new THREE.Box3().setFromObject(root);
         const center = box.getCenter(new THREE.Vector3());
         const size = box.getSize(new THREE.Vector3());
-        const fitHeight = isProfilePresentation ? 3.06 : 2.7;
+        const fitHeight = isProfilePresentation ? 2.28 : 2.7;
         const scale = fitHeight / Math.max(size.y, 0.001);
 
         root.scale.setScalar(scale);

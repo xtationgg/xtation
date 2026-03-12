@@ -212,12 +212,20 @@ const resolvePortraitModelState = ({
       : sceneProfile === 'ops'
       ? 0.98
       : 0.97;
+  const bureauLift = isNight ? 0.3 : stageState === 'active' ? 0.28 : 0.34;
 
   return {
-    modelScale: sceneProfile === 'bureau' ? scale + 0.06 : scale,
-    modelYaw: sceneProfile === 'void' ? -28 : sceneProfile === 'ops' ? -40 : -20,
+    modelScale: sceneProfile === 'bureau' ? scale + 0.07 : scale,
+    modelYaw: sceneProfile === 'void' ? -28 : sceneProfile === 'ops' ? -40 : 8,
     modelPosX: sceneProfile === 'void' ? 0.02 : sceneProfile === 'ops' ? 0.05 : 0.01,
-    modelPosY: isNight ? -0.04 : stageState === 'active' ? -0.035 : -0.015,
+    modelPosY:
+      sceneProfile === 'bureau'
+        ? bureauLift
+        : isNight
+        ? -0.04
+        : stageState === 'active'
+        ? -0.035
+        : -0.015,
   };
 };
 
@@ -361,13 +369,13 @@ const resolveProfileScreenLayout = ({
 }): Record<'screen-a' | 'screen-b' | 'screen-c', ProfileSceneScreenPatch> => {
   const baseLayouts: Record<'screen-a' | 'screen-b' | 'screen-c', ProfileSceneScreenPatch> = {
     'screen-a': {
-      x: -1.56,
-      y: 1.46,
-      z: 0.16,
-      yaw: 12,
-      scale: 0.38,
-      width: 0.66,
-      height: 0.54,
+      x: -2.02,
+      y: 1.44,
+      z: -0.02,
+      yaw: 8,
+      scale: 0.28,
+      width: 0.52,
+      height: 0.46,
       bend: -0.03,
       showFrame: false,
       visible: true,
@@ -471,10 +479,10 @@ const resolveProfileScreenLayout = ({
   if (mode === 'focus') {
     baseLayouts['screen-a'] = {
       ...baseLayouts['screen-a'],
-      x: -1.54,
-      y: 1.5,
-      scale: 0.4,
-      width: 0.64,
+      x: -1.92,
+      y: 1.48,
+      scale: 0.3,
+      width: 0.52,
     };
     baseLayouts['screen-b'] = {
       ...baseLayouts['screen-b'],

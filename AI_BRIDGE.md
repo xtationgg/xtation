@@ -84,6 +84,22 @@ All work should pass `npm run build` and `npx vitest run` (191 tests) before com
 
 ## Latest Codex Note
 
+- Current Profile portrait pass is now in a much better place visually:
+  - hero shot widened and lifted so the face/shoulders stay in frame
+  - bureau key/fill balance is stronger for silhouette separation
+  - bureau model lift now centers the character inside the portrait focus zone
+  - host yaw is less side-on, so the subject reads more like a character portrait than a torso plate
+- External scene source and embedded runtime are synced again:
+  - `/Users/sarynass/Desktop/html/src/components/ui/demo.tsx`
+  - `/Users/sarynass/dyad-apps/CLient-D82pm/scene-source/avatar-lobby/demo.tsx`
+  - `/Users/sarynass/dyad-apps/CLient-D82pm/public/avatar-lobby`
+- Latest verification:
+  - `npm run build` passed
+  - `npx vitest run` passed `200/200`
+- Current recommendation:
+  - stop chasing micro camera tweaks for a moment
+  - return to broader closed-beta journey polish unless another obvious scene-side readability issue appears in live review
+
 - Real browser pass on the guest/local continuity flow is now clean enough to trust:
   - `Start Guided Setup -> Skip for now -> CONNECT -> Exit -> Welcome`
   - continuity wording and actual destinations align across shell, Welcome, and the guest drawer

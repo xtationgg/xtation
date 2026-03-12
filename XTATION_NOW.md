@@ -140,6 +140,7 @@ Backup cadence:
   - round support screen suppressed in calm states
   - support screens reappear deliberately for brief / urgent / success modes
   - the portrait model is rotated further toward the viewer so the subject reads more frontally inside the `hero` shot
+  - the bureau portrait model is now lifted into the focus frame so the head and shoulders land in the portrait zone instead of the lower third
   - live browser verification now shows the profile subject reading more front-facing and less like a dark side-on background
 - the embedded profile scene runtime was rebuilt from the live source workspace and resynced into `public/avatar-lobby`
 - the latest portrait-stage pass is now source-side, not only host-side:
@@ -156,8 +157,11 @@ Backup cadence:
   - slightly larger bureau subject scale
   - smaller calmer support-screen footprint
   - tighter host-side spotlight / silhouette envelope
+  - wider hero lens and smaller profile fit to reduce torso dominance
+  - stronger bureau key/fill contrast for facial and shoulder edge separation
+  - host-side bureau lift now centers the character around the head/shoulder silhouette
 - the next best visible-product move is still scene-side:
-  - improve silhouette / light separation around the character
+  - if another pass is needed, improve silhouette / light separation around the character
   - avoid solving character presence with more shell overlay
   - if one more scene pass is needed, prefer source-side light/shot changes before adding more host framing
 - the Dusk brief path is now centralized and safer:
