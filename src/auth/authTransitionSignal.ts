@@ -1,3 +1,9 @@
+import {
+  readSessionString,
+  removeSessionString,
+  writeSessionString,
+} from '../lib/safeSessionStorage';
+
 export type AuthTransitionMode = 'login' | 'signup' | 'oauth';
 
 export interface AuthTransitionSignal {
@@ -8,44 +14,8 @@ export interface AuthTransitionSignal {
 
 const AUTH_TRANSITION_SIGNAL_KEY = 'xtation_auth_transition_signal_v1';
 
-const getSessionStorage = () => {
-  if (typeof window === 'undefined') return null;
-  return window.sessionStorage as Partial<Storage> | undefined;
-};
-
-const safeSessionGetItem = (storage: Partial<Storage>, key: string): string | null => {
-  if (typeof storage.getItem !== 'function') return null;
-  try {
-    return storage.getItem(key);
-  } catch {
-    return null;
-  }
-};
-
-const safeSessionSetItem = (storage: Partial<Storage>, key: string, value: string): boolean => {
-  if (typeof storage.setItem !== 'function') return false;
-  try {
-    storage.setItem(key, value);
-    return true;
-  } catch {
-    return false;
-  }
-};
-
-const safeSessionRemoveItem = (storage: Partial<Storage>, key: string) => {
-  if (typeof storage.removeItem !== 'function') return;
-  try {
-    storage.removeItem(key);
-  } catch {
-    // Ignore storage-level failures.
-  }
-};
-
 export const writeAuthTransitionSignal = (signal: Omit<AuthTransitionSignal, 'createdAt'>) => {
-  const storage = getSessionStorage();
-  if (!storage) return false;
-  return safeSessionSetItem(
-    storage,
+  return writeSessionString(
     AUTH_TRANSITION_SIGNAL_KEY,
     JSON.stringify({
       ...signal,
@@ -55,9 +25,7 @@ export const writeAuthTransitionSignal = (signal: Omit<AuthTransitionSignal, 'cr
 };
 
 export const readAuthTransitionSignal = (): AuthTransitionSignal | null => {
-  const storage = getSessionStorage();
-  if (!storage) return null;
-  const raw = safeSessionGetItem(storage, AUTH_TRANSITION_SIGNAL_KEY);
+  const raw = readSessionString(AUTH_TRANSITION_SIGNAL_KEY);
   if (!raw) return null;
   try {
     const parsed = JSON.parse(raw) as AuthTransitionSignal;
@@ -76,7 +44,5 @@ export const readAuthTransitionSignal = (): AuthTransitionSignal | null => {
 };
 
 export const clearAuthTransitionSignal = () => {
-  const storage = getSessionStorage();
-  if (!storage) return;
-  safeSessionRemoveItem(storage, AUTH_TRANSITION_SIGNAL_KEY);
+  removeSessionString(AUTH_TRANSITION_SIGNAL_KEY);
 };

@@ -181,6 +181,27 @@ const normalizePublishItem = (
   };
 };
 
+const normalizeTemplate = (
+  value: Partial<LabTemplate> | null | undefined
+): LabTemplate => {
+  const source = safeLabObject<LabTemplate>(value);
+  const type =
+    source.type === 'note' || source.type === 'project' || source.type === 'automation'
+      ? source.type
+      : 'note';
+  const accent =
+    source.accent === 'amber' || source.accent === 'cyan' || source.accent === 'emerald' || source.accent === 'rose'
+      ? source.accent
+      : 'cyan';
+  return {
+    id: typeof source.id === 'string' ? source.id : createId('lab-template'),
+    title: typeof source.title === 'string' && source.title.trim() ? source.title : 'Untitled template',
+    description: typeof source.description === 'string' ? source.description : '',
+    type,
+    accent,
+  };
+};
+
 const createDefaultState = (): LabWorkspaceState => {
   const seededNoteId = createId('lab-note');
   const seededAutomationId = createId('lab-rule');
@@ -284,6 +305,9 @@ export const normalizeLabWorkspaceState = (
   stored: LabWorkspaceState | null | undefined
 ): LabWorkspaceState => {
   if (!stored) return createDefaultState();
+  const normalizedTemplates = Array.isArray(stored.templates)
+    ? stored.templates.map((template) => normalizeTemplate(template))
+    : [];
   return {
     assistantProjects: Array.isArray(stored.assistantProjects)
       ? stored.assistantProjects.map((project) => normalizeProject(project))
@@ -292,7 +316,7 @@ export const normalizeLabWorkspaceState = (
     automations: Array.isArray(stored.automations)
       ? stored.automations.map((automation) => normalizeAutomation(automation))
       : [],
-    templates: Array.isArray(stored.templates) && stored.templates.length ? stored.templates : defaultTemplates,
+    templates: normalizedTemplates.length ? normalizedTemplates : defaultTemplates,
     mediaAccounts: Array.isArray(stored.mediaAccounts)
       ? stored.mediaAccounts.map((account) => normalizeMediaAccount(account))
       : [],

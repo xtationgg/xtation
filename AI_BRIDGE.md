@@ -86,6 +86,23 @@ All work should pass `npm run build` and `npx vitest run` before committing.
 ## Latest Codex Note
 
 - Date: 2026-03-12
+- Auth + Lab runtime hardening pass:
+  - Added safe session-storage wrapper used by auth/guest/transition modules:
+    - `/Users/sarynass/dyad-apps/CLient-D82pm/src/lib/safeSessionStorage.ts`
+  - Routed these modules through safe storage reads/writes (no raw `window.sessionStorage` calls in these paths):
+    - `/Users/sarynass/dyad-apps/CLient-D82pm/src/auth/authTransitionSignal.ts`
+    - `/Users/sarynass/dyad-apps/CLient-D82pm/src/auth/guestModeSession.ts`
+    - `/Users/sarynass/dyad-apps/CLient-D82pm/src/auth/stationTransitionNotice.ts`
+  - Hardened Lab persisted-state normalization for malformed template entries (prevents `Cannot read properties of undefined (reading 'title')` on template render):
+    - `/Users/sarynass/dyad-apps/CLient-D82pm/src/lab/LabProvider.tsx`
+  - Added regression coverage for malformed template entries:
+    - `/Users/sarynass/dyad-apps/CLient-D82pm/tests/lab-provider-normalization.test.ts`
+  - Verification:
+    - `npm run build` passed
+    - `npx vitest run tests/lab-provider-normalization.test.ts` passed
+    - `npx vitest run` passed (`240/240`)
+
+- Date: 2026-03-12
 - App shell guest-mode + guest-entry path hardening/refactor:
   - Added safe guest-mode session helpers (no raw `sessionStorage` calls in App shell flow):
     - `/Users/sarynass/dyad-apps/CLient-D82pm/src/auth/guestModeSession.ts`

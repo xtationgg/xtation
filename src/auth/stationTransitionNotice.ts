@@ -1,4 +1,9 @@
 import { ClientView } from '../../types';
+import {
+  readSessionString,
+  removeSessionString,
+  writeSessionString,
+} from '../lib/safeSessionStorage';
 import { resolveLocalStationEntryView } from '../welcome/localEntryView';
 
 export type StationTransitionNoticeScope = 'guest' | 'account' | 'any';
@@ -34,39 +39,6 @@ const STATION_TRANSITION_NOTICE_KEY = 'xtation_station_transition_notice_v1';
 
 export const XTATION_STATION_TRANSITION_NOTICE_EVENT = 'xtation:station-transition-notice';
 
-const getSessionStorage = () => {
-  if (typeof window === 'undefined') return null;
-  return window.sessionStorage as Partial<Storage> | undefined;
-};
-
-const safeSessionGetItem = (storage: Partial<Storage>, key: string): string | null => {
-  if (typeof storage.getItem !== 'function') return null;
-  try {
-    return storage.getItem(key);
-  } catch {
-    return null;
-  }
-};
-
-const safeSessionSetItem = (storage: Partial<Storage>, key: string, value: string): boolean => {
-  if (typeof storage.setItem !== 'function') return false;
-  try {
-    storage.setItem(key, value);
-    return true;
-  } catch {
-    return false;
-  }
-};
-
-const safeSessionRemoveItem = (storage: Partial<Storage>, key: string) => {
-  if (typeof storage.removeItem !== 'function') return;
-  try {
-    storage.removeItem(key);
-  } catch {
-    // Ignore storage-level failures.
-  }
-};
-
 const buildNoticeId = () => `notice-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 
 const formatWorkspaceLabel = (view: ClientView | null | undefined) => {
@@ -98,10 +70,7 @@ const formatWorkspaceLabel = (view: ClientView | null | undefined) => {
 };
 
 export const readStationTransitionNotice = (): StationTransitionNotice | null => {
-  const storage = getSessionStorage();
-  if (!storage) return null;
-
-  const raw = safeSessionGetItem(storage, STATION_TRANSITION_NOTICE_KEY);
+  const raw = readSessionString(STATION_TRANSITION_NOTICE_KEY);
   if (!raw) return null;
 
   try {
@@ -183,9 +152,6 @@ export const resolveGuidedSetupTransitionActionLabel = (
 export const writeStationTransitionNotice = (
   notice: Omit<StationTransitionNotice, 'id' | 'createdAt'>
 ): StationTransitionNotice | null => {
-  const storage = getSessionStorage();
-  if (!storage) return null;
-
   const normalized: StationTransitionNotice = {
     id: buildNoticeId(),
     createdAt: Date.now(),
@@ -198,7 +164,7 @@ export const writeStationTransitionNotice = (
     tone: notice.tone === 'accent' ? 'accent' : 'default',
   };
 
-  if (!safeSessionSetItem(storage, STATION_TRANSITION_NOTICE_KEY, JSON.stringify(normalized))) {
+  if (!writeSessionString(STATION_TRANSITION_NOTICE_KEY, JSON.stringify(normalized))) {
     return null;
   }
   if (typeof window !== 'undefined') {
@@ -212,9 +178,7 @@ export const writeStationTransitionNotice = (
 };
 
 export const clearStationTransitionNotice = () => {
-  const storage = getSessionStorage();
-  if (!storage) return;
-  safeSessionRemoveItem(storage, STATION_TRANSITION_NOTICE_KEY);
+  removeSessionString(STATION_TRANSITION_NOTICE_KEY);
   if (typeof window !== 'undefined') {
     window.dispatchEvent(
       new CustomEvent<StationTransitionNotice | null>(XTATION_STATION_TRANSITION_NOTICE_EVENT, {
