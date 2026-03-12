@@ -26,6 +26,7 @@ IMPORTANT: READ THESE FILES FIRST
 2. /Users/sarynass/dyad-apps/CLient-D82pm/XTATION_NOW.md
 3. /Users/sarynass/dyad-apps/CLient-D82pm/AI_BRIDGE.md
 4. /Users/sarynass/dyad-apps/CLient-D82pm/XTATION_SPEC_INDEX.md
+5. /Users/sarynass/dyad-apps/CLient-D82pm/XTATION_SCENE_STUDIO_INTEGRATION_V1.md
 
 After that, inspect these implementation files:
 - /Users/sarynass/dyad-apps/CLient-D82pm/App.tsx
@@ -63,6 +64,7 @@ CURRENT MAIN FRONTIER
 ---------------------
 Right now the strongest active work loop is:
 - profile scene readability and stage presence
+- XTATION-side scene-studio runtime-pack receiving boundary
 - closed-beta account/station coherence
 - persistent station activity / continuity history
 - Dusk managed planning
@@ -142,6 +144,11 @@ Current stop point:
   - Apply + Sync Audio
   - Apply Skin Package
 - Apply Skin Package now syncs theme + accent + sound pack + active creative skin runtime
+- XTATION now has a real runtime-pack adapter for external scene studio exports:
+  - /Users/sarynass/dyad-apps/CLient-D82pm/src/sceneStudio/runtimePack.ts
+  - validates `xtation.scene-runtime-pack` version `1`
+  - resolves included segments
+  - applies imported scene/audio/avatar/screen/light/motion data into Creative Ops draft or published state
 - guest-mode CONNECT now shows a local station continuity panel before sign-in
 - Welcome and the guest connect drawer now both surface:
   - resume workspace

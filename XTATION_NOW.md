@@ -38,6 +38,12 @@ Backup cadence:
 
 ## Current Frontier
 
+- XTATION-side Scene Studio receiving boundary is now real:
+  - `src/sceneStudio/runtimePack.ts`
+  - validates `xtation.scene-runtime-pack` version `1`
+  - resolves included export segments
+  - summarizes studio exports against current Creative Ops state
+  - applies studio exports into Creative Ops `draft` or `published` runtime state
 - profile scene readability and stage presence
 - shared shell/page scroll reachability on welcome and in-app sections is now fixed at the actual root/layout layer:
   - desktop viewport owns vertical scroll again
@@ -389,15 +395,22 @@ Backup cadence:
 
 ## Immediate Next Move
 
-Stay on the broad closed-beta readiness track:
+Stay on the broad closed-beta readiness track while the external studio work advances:
 
 1. run a live browser sweep across the main sections and catch any remaining hidden lower controls or scroll traps
 2. treat scroll failures as shared shell/root contract issues first, page-level issues second
-3. only return to another targeted `Profile` scene presence pass if it is still the biggest visible-product gap
+3. keep XTATION ready to consume exported scene/runtime packs instead of inventing another local scene-editing path
+4. only return to another targeted `Profile` scene presence pass if it is still the biggest visible-product gap
 
 ## Easy-To-Miss Notes
 
 - The local app is the authoritative review path.
+- The external Scene Studio authoring source is:
+  - `/Users/sarynass/Desktop/html`
+- XTATION should consume its exports through:
+  - `src/sceneStudio/runtimePack.ts`
+- The XTATION-side studio split/contract is documented in:
+  - [XTATION_SCENE_STUDIO_INTEGRATION_V1.md](/Users/sarynass/dyad-apps/CLient-D82pm/XTATION_SCENE_STUDIO_INTEGRATION_V1.md)
 - The profile scene now has both:
   - embedded runtime in [public/avatar-lobby/index.html](/Users/sarynass/dyad-apps/CLient-D82pm/public/avatar-lobby/index.html)
   - vendored source snapshot in [scene-source/avatar-lobby/README.md](/Users/sarynass/dyad-apps/CLient-D82pm/scene-source/avatar-lobby/README.md)

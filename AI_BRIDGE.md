@@ -27,13 +27,14 @@ Any AI joining the project should read these first:
 
 ## Current Locks
 
-- `Profile / ProfileLobbyScene / scene-source avatar-lobby`
+- `Scene Studio runtime-pack boundary / Creative Ops import contract`
   - Owner: Codex
-  - Status: active visible-product pass
-  - Goal: make the 3D profile stage read like the main character space
+  - Status: active integration pass
+  - Goal: let XTATION consume external scene-studio exports without another runtime rewrite
 
 ## Current Frontier
 
+- Scene Studio runtime-pack receiving boundary
 - Profile scene readability and avatar presence
 - Broad closed-beta continuity and return/resume polish
 - Dusk/Lab operating-record flow is stable enough for now
@@ -83,6 +84,32 @@ All work should pass `npm run build` and `npx vitest run` before committing.
   - `/Users/sarynass/dyad-apps/CLient-D82pm/scene-source/avatar-lobby/demo.tsx`
 
 ## Latest Codex Note
+
+- XTATION now has a real Scene Studio receiving boundary:
+  - `/Users/sarynass/dyad-apps/CLient-D82pm/src/sceneStudio/runtimePack.ts`
+- What it does:
+  - validates `xtation.scene-runtime-pack` version `1`
+  - detects which export segments are present
+  - summarizes an incoming pack against current Creative Ops state
+  - applies scene/audio/avatar/screen/light/motion data into Creative Ops `draft` or `published` state
+- Covered segments:
+  - `soundEventMap`
+  - `sceneCues`
+  - `sceneStates`
+  - `sceneStateBindings`
+  - `sceneScreenPresets`
+  - `sceneAvatarPresets`
+  - `sceneResponsePresets`
+  - `sceneLightPresets`
+  - `sceneMotionPresets`
+- Tests added:
+  - `/Users/sarynass/dyad-apps/CLient-D82pm/tests/scene-studio-runtime-pack.test.ts`
+- Verification:
+  - `npm run build` passed
+  - `npx vitest run` passed
+- Recommendation:
+  - external Scene Studio should now target this runtime-pack contract
+  - next XTATION-side step is a real Creative Ops import/publish path once the first export exists
 
 - The shell scroll fix is now wider and browser-verified:
   - root/layout clipping was already removed

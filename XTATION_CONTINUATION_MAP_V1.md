@@ -35,6 +35,7 @@ For a fresh handoff, read in this order:
 10. [XTATION_CREATIVE_OPS_V1.md](/Users/sarynass/dyad-apps/CLient-D82pm/XTATION_CREATIVE_OPS_V1.md)
 11. [XTATION_AUDIO_DIRECTION_V1.md](/Users/sarynass/dyad-apps/CLient-D82pm/XTATION_AUDIO_DIRECTION_V1.md)
 12. [XTATION_PRESENTATION_EVENT_TAXONOMY_V1.md](/Users/sarynass/dyad-apps/CLient-D82pm/XTATION_PRESENTATION_EVENT_TAXONOMY_V1.md)
+13. [XTATION_SCENE_STUDIO_INTEGRATION_V1.md](/Users/sarynass/dyad-apps/CLient-D82pm/XTATION_SCENE_STUDIO_INTEGRATION_V1.md)
 
 After that, inspect the current implementation surfaces:
 
@@ -127,6 +128,7 @@ Current active visual frontier:
 - reduce runtime/debug phrasing inside the profile scene overlay
 - strengthen avatar-stage framing and silhouette before opening another major subsystem
 - prefer source-side scene/runtime adjustments over stacking more host-side overlay chrome
+- keep XTATION-side scene consumption clean while the external studio becomes the canonical authoring tool
 
 Recent design consolidation has already been pushed through:
 
@@ -246,6 +248,7 @@ Main files:
 
 - [Profile.tsx](/Users/sarynass/dyad-apps/CLient-D82pm/components/Views/Profile.tsx)
 - [ProfileLobbyScene.tsx](/Users/sarynass/dyad-apps/CLient-D82pm/components/Views/ProfileLobbyScene.tsx)
+- [runtimePack.ts](/Users/sarynass/dyad-apps/CLient-D82pm/src/sceneStudio/runtimePack.ts)
 
 ### Lab
 
