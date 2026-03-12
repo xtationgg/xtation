@@ -106,6 +106,7 @@ Backup cadence:
 - the shared continuity panel now avoids double-reporting the same transition:
   - `Latest transition` no longer reappears underneath as `Recent continuity`
   - the guest `CONNECT` drawer and Welcome stay cleaner and more trustworthy
+- the shared continuity panel now also suppresses `Latest transition outcome` when the primary continuity summary already covers the same event, so Welcome and the guest `CONNECT` drawer stop repeating the same transition twice
 
 - the profile scene overlay has been compressed into product-style stage language:
   - removed visible command count

@@ -239,6 +239,7 @@ Current stop point:
 - the shared continuity panel now suppresses duplicate `Recent continuity` when `Latest transition` is already showing the same event
 - Welcome, the guest `CONNECT` drawer, and Settings now also share one explicit `Latest transition outcome` summary instead of only burying transition state inside generic recent activity
 - starter-loop milestones are now excluded from `Latest transition outcome`, so keep/import/return/account-state continuity does not get mixed up with first-loop progress
+- the shared continuity panel now also suppresses `Latest transition outcome` when the primary continuity summary already covers that same event, so Welcome and the guest `CONNECT` drawer do not repeat the same transition twice
 - the main local-station CTA/status model now also uses the latest real transition when no relay or starter-loop milestone is active, so the primary entry wording and the visible transition summary no longer drift apart
 - the shell station identity crash is fixed:
   - `App.tsx` must use the top-level `currentStation` from `useAdminConsole()`

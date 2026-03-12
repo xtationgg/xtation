@@ -146,4 +146,32 @@ describe('StationContinuityPanel', () => {
     expect(screen.queryByText('Recent continuity')).not.toBeInTheDocument();
     expect(screen.getByText('Latest transition outcome')).toBeInTheDocument();
   });
+
+  it('hides the latest transition outcome when the primary summary already covers it', () => {
+    const latestTransition = {
+      id: 'skip',
+      createdAt: Date.now(),
+      title: 'Starter setup skipped',
+      detail:
+        'XTATION left the local Play station open without seeding a starter loop. You can return to guided setup any time from Play.',
+      workspaceLabel: 'Play',
+    };
+
+    render(
+      <StationContinuityPanel
+        status={{
+          ...baseStatus,
+          mode: 'resume',
+          title: 'Continue local station',
+          detail:
+            'XTATION left the local Play station open without seeding a starter loop. You can return to guided setup any time from Play. Resume in Play and keep the local station moving from the latest confirmed state.',
+        }}
+        activity={[]}
+        latestTransitionActivity={latestTransition}
+        variant="welcome"
+      />
+    );
+
+    expect(screen.queryByText('Latest transition outcome')).not.toBeInTheDocument();
+  });
 });

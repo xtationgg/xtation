@@ -84,6 +84,14 @@ All work should pass `npm run build` and `npx vitest run` (191 tests) before com
 
 ## Latest Codex Note
 
+- Real browser pass on the guest/local continuity flow is now clean enough to trust:
+  - `Start Guided Setup -> Skip for now -> CONNECT -> Exit -> Welcome`
+  - continuity wording and actual destinations align across shell, Welcome, and the guest drawer
+- The shared continuity panel no longer repeats the same transition in both the main summary and `Latest transition outcome`
+- Latest verification:
+  - `npm run build` passed
+  - `npx vitest run` passed `200/200`
+
 - P3 closed-beta polish batch is complete.
 - User-facing beta cleanup in this batch:
   - Electron window title is now `Xtation`

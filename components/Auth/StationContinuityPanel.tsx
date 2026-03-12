@@ -29,6 +29,27 @@ const formatActivityTime = (createdAt: number) => {
   return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 };
 
+const normalizeCopy = (value: string | null | undefined) => value?.trim().toLowerCase() ?? '';
+
+const primarySummaryCoversLatestTransition = (
+  status: LocalStationStatus,
+  latestTransitionActivity: StationActivityEntry | null
+) => {
+  if (!latestTransitionActivity) return false;
+
+  const latestTitle = normalizeCopy(latestTransitionActivity.title);
+  const latestDetail = normalizeCopy(latestTransitionActivity.detail);
+  const statusTitle = normalizeCopy(status.title);
+  const statusDetail = normalizeCopy(status.detail);
+  const relayTitle = normalizeCopy(status.relayTitle);
+
+  return (
+    statusTitle === latestTitle ||
+    relayTitle === latestTitle ||
+    (latestDetail.length > 0 && statusDetail.includes(latestDetail))
+  );
+};
+
 export const StationContinuityPanel: React.FC<StationContinuityPanelProps> = ({
   status,
   releaseChannel,
@@ -55,6 +76,9 @@ export const StationContinuityPanel: React.FC<StationContinuityPanelProps> = ({
     Boolean(onOpenGuidedSetup) &&
     shouldOfferGuidedSetupResumeAction(status, latestTransitionActivity) &&
     Boolean(guidedSetupActionLabel);
+  const showLatestTransitionRule =
+    Boolean(latestTransitionActivity) &&
+    !primarySummaryCoversLatestTransition(status, latestTransitionActivity);
 
   if (variant === 'drawer') {
     return (
@@ -161,7 +185,7 @@ export const StationContinuityPanel: React.FC<StationContinuityPanelProps> = ({
           </div>
         ) : null}
 
-        {latestTransitionActivity ? (
+        {showLatestTransitionRule && latestTransitionActivity ? (
           <div className="auth-station-brief-rule">
             <div className="auth-station-brief-rule-head">
               <ArrowRightLeft size={13} className="text-[var(--app-accent)]" />
@@ -331,7 +355,7 @@ export const StationContinuityPanel: React.FC<StationContinuityPanelProps> = ({
           </div>
         </div>
       ) : null}
-      {latestTransitionActivity ? (
+      {showLatestTransitionRule && latestTransitionActivity ? (
         <div className="xt-welcome-station-activity">
           <div className="xt-welcome-panel-eyebrow">Latest transition outcome</div>
           <div className="xt-welcome-station-activity-list">
