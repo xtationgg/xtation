@@ -1681,7 +1681,7 @@ const App: React.FC = () => {
               </div>
             ) : null}
             <Suspense fallback={<SectionLoadingState view={currentView} />}>
-              <div className={`xt-shell-stage ${viewMotionToken}`}>
+              <div className={`xt-shell-stage ${viewMotionToken} ${currentView === ClientView.PROFILE ? 'h-full' : ''}`}>
                 {renderContent()}
               </div>
             </Suspense>
