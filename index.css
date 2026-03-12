@@ -6315,7 +6315,9 @@
 }
 
 .auth-skel-canvas {
-  background: #573778;
+  background:
+    radial-gradient(120% 100% at 0% 0%, color-mix(in srgb, var(--app-accent) 14%, transparent), transparent 60%),
+    linear-gradient(180deg, #090a0e 0%, #0a0b10 48%, #060709 100%);
 }
 
 .auth-skel-shell {
@@ -6395,7 +6397,7 @@
 }
 
 .auth-modal-shell {
-  box-shadow: none;
+  box-shadow: 0 28px 80px rgba(0, 0, 0, 0.56);
 }
 
 .auth-skel-left,
@@ -6425,11 +6427,11 @@
 .auth-station-brief {
   border: 1px solid color-mix(in srgb, var(--app-accent) 16%, var(--app-border));
   background:
-    linear-gradient(180deg, color-mix(in srgb, var(--app-panel) 88%, rgba(6, 7, 10, 0.18)), color-mix(in srgb, var(--app-panel) 92%, rgba(6, 7, 10, 0.24))),
+    linear-gradient(180deg, color-mix(in srgb, var(--app-panel) 90%, rgba(6, 7, 10, 0.18)), color-mix(in srgb, var(--app-panel) 94%, rgba(6, 7, 10, 0.24))),
     radial-gradient(circle at top left, color-mix(in srgb, var(--app-accent) 11%, transparent), transparent 48%);
-  box-shadow: 0 18px 60px rgba(0, 0, 0, 0.28);
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.34);
   padding: 18px 18px 16px;
-  backdrop-filter: blur(12px);
+  backdrop-filter: blur(6px);
 }
 
 .auth-station-brief-eyebrow,
@@ -6535,7 +6537,7 @@
 .auth-station-brief-metrics {
   margin-top: 14px;
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 8px;
 }
 
@@ -6646,9 +6648,10 @@
   }
 
   .auth-station-brief {
-    left: 51.5% !important;
-    top: 56.2% !important;
-    width: 35.8% !important;
+    left: 53.2% !important;
+    top: 46.8% !important;
+    width: 42.4% !important;
+    max-height: 49.8% !important;
   }
 }
 

@@ -170,11 +170,6 @@ export const TopBar: React.FC<TopBarProps> = ({
     return () => window.removeEventListener('keydown', handler);
   }, [onOpenPalette]);
 
-  const drawerDate = new Date();
-  const drawerDayLabel = drawerDate.toLocaleDateString(undefined, { weekday: 'long' });
-  const drawerDateLabel = `${drawerDate.getFullYear()}/${drawerDate
-    .toLocaleDateString(undefined, { month: 'short' })
-    .toLowerCase()}/${String(drawerDate.getDate()).padStart(2, '0')}`;
   const isPlayView =
     currentView === ClientView.LOBBY ||
     currentView === ClientView.MATCH_FOUND ||
@@ -383,59 +378,25 @@ export const TopBar: React.FC<TopBarProps> = ({
         triggerRef={loginTriggerRef as React.RefObject<HTMLElement | null>}
       >
         <div
-          className="auth-modal-shell relative aspect-[359.15/269.17] overflow-hidden rounded-[20px] bg-[#573778]"
+          className="auth-modal-shell relative aspect-[359.15/269.17] overflow-hidden rounded-[20px] border border-[color-mix(in_srgb,var(--app-border)_78%,transparent)] bg-[var(--app-bg)]"
           style={{ width: 'min(82vw, calc(82dvh * 1.334), 1420px)' }}
         >
           <div className="pointer-events-none absolute inset-0">
             <div className="auth-skel-canvas absolute inset-0"></div>
-            <div className="auth-skel-left absolute left-[2.2%] top-[2.2%] h-[95.6%] w-[40.8%] rounded-[14px] bg-[#1f162d]"></div>
+            <div className="auth-skel-left absolute left-[2.2%] top-[2.2%] h-[95.6%] w-[40.8%] rounded-[14px] bg-[color-mix(in_srgb,var(--app-panel)_92%,#060607)]"></div>
+            <div className="absolute left-[51.5%] top-[2.2%] h-[95.6%] w-[46.2%] rounded-[14px] border border-[color-mix(in_srgb,var(--app-border)_74%,transparent)] bg-[color-mix(in_srgb,var(--app-panel)_86%,#060607)]" />
+            <div className="absolute left-[52.8%] top-[4.8%] h-[40.2%] w-[43.4%] rounded-[12px] border border-[color-mix(in_srgb,var(--app-accent)_20%,transparent)] bg-[color-mix(in_srgb,var(--app-panel-2)_78%,#08090c)]" />
 
             <div className="auth-center-divider absolute left-[47.6%] top-[2.2%] h-[95.6%] w-[1px]"></div>
 
-            <div className="auth-skel-top auth-skel-card absolute left-[51.5%] top-0 h-[49%] w-[35.8%] overflow-hidden bg-transparent">
+            <div className="auth-skel-top auth-skel-card absolute left-[53.2%] top-[6.6%] h-[36.8%] w-[42.4%] overflow-hidden rounded-[10px] bg-transparent">
               <div className="absolute inset-0 flex items-start justify-center">
                 <img
                   src="/ui-reference/auth/illustration-up.svg"
                   alt="Top illustration"
-                  className="h-[132%] w-full -translate-y-[18%] object-contain object-top"
+                  className="h-[128%] w-full -translate-y-[16%] object-contain object-top"
                   draggable={false}
                 />
-              </div>
-            </div>
-
-            <div className="auth-skel-bottom auth-skel-card absolute left-[51.5%] top-[53.9%] h-[43.9%] w-[35.8%] overflow-visible bg-transparent">
-              <div className="absolute inset-0 flex items-end justify-center">
-                <img
-                  src="/ui-reference/auth/character.svg"
-                  alt="Character illustration"
-                  className="h-[116%] w-auto max-w-none translate-y-[6%] object-contain"
-                  draggable={false}
-                />
-              </div>
-            </div>
-
-            <div className="auth-skel-rail absolute right-[1.65%] top-[1.95%] h-[96.1%] w-[5.75%] rounded-[12px] bg-[#f0c33f]"></div>
-            <div className="auth-skel-rail-alert absolute right-[2.05%] top-[14.2%] flex h-[14.8%] w-[4.95%] flex-col items-center justify-center gap-3 overflow-hidden rounded-[12px] bg-[#ef3131]">
-              {Array.from({ length: 4 }).map((_, index) => (
-                <span key={`chev-${index}`} className="auth-rail-chevron" style={{ animationDelay: `${index * 120}ms` }} />
-              ))}
-            </div>
-            <div className="auth-skel-rail-pattern absolute right-[2.05%] top-[70.5%] h-[23%] w-[4.95%] overflow-hidden rounded-[12px] bg-[#f0c33f]">
-              <div className="auth-rail-pattern absolute inset-[6%] rounded-[10px]"></div>
-            </div>
-            <div className="auth-skel-day-text absolute right-[2.05%] top-[35.8%] h-[9%] w-[4.95%]">
-              <div className="flex h-full w-full items-center justify-center">
-                <span className="whitespace-nowrap [writing-mode:vertical-rl] text-[clamp(10px,0.82vw,14px)] font-semibold tracking-[0.08em] text-[#de3e36]">
-                  {drawerDayLabel}
-                </span>
-              </div>
-            </div>
-            <div className="absolute right-[4.45%] top-[48.6%] h-[6.2%] w-[1px] bg-[#de3e36]"></div>
-            <div className="auth-skel-date-text absolute right-[2.05%] top-[55.2%] h-[14%] w-[4.95%]">
-              <div className="flex h-full w-full items-center justify-center">
-                <span className="whitespace-nowrap [writing-mode:vertical-rl] text-[clamp(10px,0.82vw,14px)] font-semibold tracking-[0.05em] text-[#de3e36]">
-                  {drawerDateLabel}
-                </span>
               </div>
             </div>
           </div>

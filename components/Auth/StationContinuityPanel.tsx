@@ -108,10 +108,19 @@ export const StationContinuityPanel: React.FC<StationContinuityPanelProps> = ({
   const showLatestTransitionRule =
     Boolean(latestTransitionActivity) &&
     !primarySummaryCoversLatestTransition(status, latestTransitionActivity);
+  const drawerMetrics = status.metrics.slice(0, 2);
+  const drawerActivity = continuityActivity.slice(0, 2);
+  const drawerSecondaryMode: 'entry' | 'transition' | 'starter' | null = showEntryDescriptorRule
+    ? 'entry'
+    : showLatestTransitionRule
+      ? 'transition'
+      : starterFlowSummary
+        ? 'starter'
+        : null;
 
   if (variant === 'drawer') {
     return (
-      <div className="auth-station-brief auth-drawer-stagger absolute left-[51.8%] top-[58.8%] z-10 w-[31.8%] rounded-[16px]">
+      <div className="auth-station-brief auth-drawer-stagger absolute left-[53.2%] top-[46.8%] z-10 max-h-[50.8%] w-[42.4%] overflow-y-auto rounded-[16px]">
         <div className="auth-station-brief-eyebrow">
           <HardDriveDownload size={13} className="text-[var(--app-accent)]" />
           Station continuity
@@ -157,9 +166,9 @@ export const StationContinuityPanel: React.FC<StationContinuityPanelProps> = ({
           {plan ? <div className="auth-station-brief-chip">{plan}</div> : null}
         </div>
 
-        {status.metrics.length ? (
+        {drawerMetrics.length ? (
           <div className="auth-station-brief-metrics">
-            {status.metrics.map((metric) => (
+            {drawerMetrics.map((metric) => (
               <div key={metric.label} className="auth-station-brief-metric">
                 <div className="auth-station-brief-metric-value">{metric.value}</div>
                 <div className="auth-station-brief-metric-label">{metric.label}</div>
@@ -168,14 +177,14 @@ export const StationContinuityPanel: React.FC<StationContinuityPanelProps> = ({
           </div>
         ) : null}
 
-        {continuityActivity.length ? (
+        {drawerActivity.length ? (
           <div className="auth-station-brief-activity">
             <div className="auth-station-brief-rule-head">
               <ArrowRightLeft size={13} className="text-[var(--app-accent)]" />
               Recent continuity
             </div>
             <div className="auth-station-brief-activity-list">
-              {continuityActivity.map((entry) => (
+              {drawerActivity.map((entry) => (
                 <div key={entry.id} className="auth-station-brief-activity-row">
                   <div>
                     <div className="auth-station-brief-activity-title">{entry.title}</div>
@@ -193,7 +202,7 @@ export const StationContinuityPanel: React.FC<StationContinuityPanelProps> = ({
           </div>
         ) : null}
 
-        {showEntryDescriptorRule ? (
+        {drawerSecondaryMode === 'entry' && entryDescriptor ? (
           <div className="auth-station-brief-rule">
             <div className="auth-station-brief-rule-head">
               <ArrowRightLeft size={13} className="text-[var(--app-accent)]" />
@@ -214,7 +223,7 @@ export const StationContinuityPanel: React.FC<StationContinuityPanelProps> = ({
           </div>
         ) : null}
 
-        {showLatestTransitionRule && latestTransitionActivity ? (
+        {drawerSecondaryMode === 'transition' && latestTransitionActivity ? (
           <div className="auth-station-brief-rule">
             <div className="auth-station-brief-rule-head">
               <ArrowRightLeft size={13} className="text-[var(--app-accent)]" />
@@ -245,7 +254,7 @@ export const StationContinuityPanel: React.FC<StationContinuityPanelProps> = ({
           </button>
         ) : null}
 
-        {starterFlowSummary ? (
+        {drawerSecondaryMode === 'starter' && starterFlowSummary ? (
           <div className="auth-station-brief-rule">
             <div className="auth-station-brief-rule-head">
               <ArrowRightLeft size={13} className="text-[var(--app-accent)]" />
