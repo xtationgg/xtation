@@ -282,7 +282,7 @@ const App: React.FC = () => {
   const [viewBackgrounds, setViewBackgrounds] = useState<Record<ClientView, string | null>>(defaultViewBackgrounds);
   const [resolvedBackgrounds, setResolvedBackgrounds] = useState<Record<string, string>>({});
   const backgroundInputRef = useRef<HTMLInputElement>(null);
-  const shellViewportRef = useRef<HTMLDivElement>(null);
+  const shellRootRef = useRef<HTMLDivElement>(null);
 
   const { tasks, stats, selectors, authStatus, getLedgerSnapshot, replaceLedger } = useXP();
 
@@ -364,7 +364,7 @@ const App: React.FC = () => {
     [stationTransitionNotice, visibleRecentStationActivity]
   );
   const isProfileTransitionCompact = currentView === ClientView.PROFILE;
-  useWheelScrollBridge(shellViewportRef);
+  useWheelScrollBridge(shellRootRef);
 
   useEffect(() => {
     if (!featureVisibility.lab && (currentView === ClientView.LAB || currentView === ClientView.HOME)) {
@@ -1361,6 +1361,7 @@ const App: React.FC = () => {
 
   return (
     <div 
+        ref={shellRootRef}
         className="xt-shell-root w-full min-h-[100dvh] md:h-screen lg:h-full flex flex-col overflow-hidden text-[var(--ui-text)] font-mono bg-cover bg-center transition-all duration-200 ease-out relative"
         style={getBackgroundStyle()}
     >
@@ -1667,7 +1668,6 @@ const App: React.FC = () => {
         {/* Center Viewport */}
         <div
           key={`viewport-${userScopeRenderKey}`}
-          ref={shellViewportRef}
           className="xt-shell-viewport flex-1 min-h-0 relative overflow-y-auto overscroll-contain bg-transparent"
         >
             {operatorState.supportLens ? (

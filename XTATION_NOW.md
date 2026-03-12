@@ -413,10 +413,13 @@ Stay on the broad closed-beta readiness track:
 - build:
   - `npm run build` passed
 - tests:
-  - `npx vitest run` passed `208/208`
+  - `npx vitest run` passed `209/209`
 - browser check:
-  - real Playwright wheel input on welcome moved `window.scrollY` from `0` to `863`
-  - the main fix is now a native capture-phase wheel bridge on the welcome shell and app viewport
+  - real Playwright wheel input in the full app now scrolls through the document path after moving the bridge to document capture
+  - the main fix is now:
+    - native capture-phase wheel bridging
+    - document-scroll fallback
+    - app hook widened from the inner viewport to the full shell root
 
 ## Latest Backup
 

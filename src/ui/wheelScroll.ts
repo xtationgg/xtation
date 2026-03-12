@@ -29,6 +29,16 @@ function canScrollInDirection(element: HTMLElement, deltaY: number) {
   return false;
 }
 
+function getDocumentScrollTarget(deltaY: number) {
+  const scrollingElement =
+    (document.scrollingElement instanceof HTMLElement ? document.scrollingElement : null) ??
+    document.documentElement;
+  if (!(scrollingElement instanceof HTMLElement)) return null;
+  if (scrollingElement.scrollHeight <= scrollingElement.clientHeight + 1) return null;
+  if (canScrollInDirection(scrollingElement, deltaY)) return scrollingElement;
+  return scrollingElement;
+}
+
 function shouldIgnoreWheelTarget(container: HTMLElement, target: Element | null) {
   if (!target) return false;
   const localLock = target.closest(LOCAL_WHEEL_LOCK_SELECTOR);
@@ -64,7 +74,11 @@ function handleWheelEvent(container: HTMLElement, event: Pick<WheelEvent, 'targe
   if (Math.abs(event.deltaY) <= Math.abs(event.deltaX)) return;
   const target = event.target instanceof Element ? event.target : null;
   if (shouldIgnoreWheelTarget(container, target)) return;
-  const scrollTarget = findNearestScrollableAncestor(container, target, event.deltaY);
+  const nearestTarget = findNearestScrollableAncestor(container, target, event.deltaY);
+  const scrollTarget =
+    nearestTarget && canScrollInDirection(nearestTarget, event.deltaY)
+      ? nearestTarget
+      : getDocumentScrollTarget(event.deltaY) ?? nearestTarget;
   if (!scrollTarget) return;
   event.preventDefault();
   scrollTarget.scrollTop += event.deltaY;
@@ -86,12 +100,14 @@ export function useWheelScrollBridge(ref: React.RefObject<HTMLElement | null>) {
     if (!container) return;
 
     const onWheel = (event: WheelEvent) => {
+      const target = event.target;
+      if (!(target instanceof Node) || !container.contains(target)) return;
       handleWheelEvent(container, event);
     };
 
-    container.addEventListener('wheel', onWheel, { passive: false, capture: true });
+    document.addEventListener('wheel', onWheel, { passive: false, capture: true });
     return () => {
-      container.removeEventListener('wheel', onWheel, true);
+      document.removeEventListener('wheel', onWheel, true);
     };
   }, [ref]);
 }

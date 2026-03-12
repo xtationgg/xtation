@@ -151,4 +151,30 @@ describe('routeWheelToContainer', () => {
     expect(nested.scrollTop).toBe(600);
     expect(event.preventDefault).toHaveBeenCalledOnce();
   });
+
+  it('falls back to the document scroller when no local container can move', () => {
+    const container = document.createElement('div');
+    const target = document.createElement('div');
+    container.appendChild(target);
+
+    Object.defineProperty(container, 'scrollHeight', { value: 400, configurable: true });
+    Object.defineProperty(container, 'clientHeight', { value: 400, configurable: true });
+
+    Object.defineProperty(document.documentElement, 'scrollHeight', { value: 2400, configurable: true });
+    Object.defineProperty(document.documentElement, 'clientHeight', { value: 900, configurable: true });
+    Object.defineProperty(document.documentElement, 'scrollTop', { value: 0, writable: true, configurable: true });
+
+    const event = {
+      currentTarget: container,
+      target,
+      deltaX: 0,
+      deltaY: 120,
+      preventDefault: vi.fn(),
+    } as unknown as React.WheelEvent<HTMLElement>;
+
+    routeWheelToContainer(event);
+
+    expect(document.documentElement.scrollTop).toBe(120);
+    expect(event.preventDefault).toHaveBeenCalledOnce();
+  });
 });

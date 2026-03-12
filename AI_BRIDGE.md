@@ -84,26 +84,26 @@ All work should pass `npm run build` and `npx vitest run` before committing.
 
 ## Latest Codex Note
 
-- The scroll fix is now stronger and browser-verified:
+- The shell scroll fix is now wider and browser-verified:
   - root/layout clipping was already removed
-  - wheel handling now uses a native capture-phase bridge instead of only a bubbling React fallback
-  - the bridge scrolls the nearest real scrollable ancestor that can still move, then falls back outward at scroll edges
+  - wheel handling uses a native capture-phase bridge with document-scroll fallback
+  - the bridge now attaches to the full XTATION shell root, not only the inner viewport
+  - that means wheel input still routes correctly when the pointer is over shell chrome like the top bar or transition strips
   - local wheel controls stay protected:
     - `[role=\"spinbutton\"]`
     - editable inputs
     - explicit wheel-lock regions
 - Main files in this batch:
   - `/Users/sarynass/dyad-apps/CLient-D82pm/src/ui/wheelScroll.ts`
-  - `/Users/sarynass/dyad-apps/CLient-D82pm/components/Views/Welcome.tsx`
   - `/Users/sarynass/dyad-apps/CLient-D82pm/App.tsx`
   - `/Users/sarynass/dyad-apps/CLient-D82pm/tests/wheel-scroll.test.ts`
 - Latest verification:
   - `npm run build` passed
-  - `npx vitest run` passed `208/208`
-  - real Playwright wheel input on welcome moved `window.scrollY` from `0` to `863`
+  - `npx vitest run` passed `209/209`
+  - real Playwright wheel input in the full app now moves through the document path after the bridge/root fix
 - Current recommendation:
   - keep treating future scroll problems as shared shell/root contract bugs first
-  - only patch section-local overflow after ruling out the root, viewport, or wheel bridge
+  - only patch section-local overflow after ruling out the root, document scroller, or wheel bridge
 
 - Current Profile portrait pass is now in a much better place visually:
   - hero shot widened and lifted so the face/shoulders stay in frame
