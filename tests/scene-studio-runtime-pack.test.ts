@@ -349,4 +349,36 @@ describe('scene studio runtime pack integration', () => {
     expect(rolledBack.runtimePackHistory[0]?.rolledBackAt).toBe(13100);
     expect(rolledBack.publishLog[0]?.action).toBe('restored');
   });
+
+  it('prevents rolling back an older import while a newer active import exists for the same scene profile', () => {
+    const state = createDefaultCreativeOpsState();
+    const firstImport = applySceneStudioRuntimePackImportToCreativeOpsState(state, createRuntimePack(), {
+      mode: 'draft',
+      occurredAt: 15000,
+      actorScope: 'account',
+    });
+    const secondImport = applySceneStudioRuntimePackImportToCreativeOpsState(
+      firstImport,
+      createRuntimePack(),
+      {
+        mode: 'draft',
+        occurredAt: 15100,
+        actorScope: 'account',
+      }
+    );
+
+    const olderImportId = secondImport.runtimePackHistory[1].id;
+    const rollbackAttempt = rollbackSceneStudioRuntimePackImportInCreativeOpsState(
+      secondImport,
+      olderImportId,
+      {
+        occurredAt: 15200,
+        actorScope: 'account',
+      }
+    );
+
+    expect(rollbackAttempt).toBe(secondImport);
+    expect(rollbackAttempt.runtimePackHistory[1]?.rolledBackAt).toBeNull();
+    expect(rollbackAttempt.publishLog[0]?.action).not.toBe('restored');
+  });
 });

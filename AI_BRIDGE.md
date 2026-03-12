@@ -98,10 +98,11 @@ All work should pass `npm run build` and `npx vitest run` before committing.
 - Regression coverage added:
   - rollback restores prior draft scene data after draft import
   - rollback restores prior published scene data after published import
-  - rollback writes a `restored` publish-log entry and marks history item as rolled back
+  - older imports cannot be rolled back while a newer active import exists for the same scene profile
+- rollback writes a `restored` publish-log entry and marks history item as rolled back
 - Verification:
   - `npm run build` passed
-  - `npx vitest run` passed (`219/219`)
+  - `npx vitest run` passed (`220/220`)
 
 - Date: 2026-03-12
 - Creative Ops now has a real Scene Studio import/apply bridge in Admin:

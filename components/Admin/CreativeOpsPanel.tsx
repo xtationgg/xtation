@@ -379,6 +379,18 @@ export const CreativeOpsPanel: React.FC<CreativeOpsPanelProps> = ({
     () => runtimePackHistory.slice(0, 8),
     [runtimePackHistory]
   );
+  const rollbackEligibleImportIds = useMemo(() => {
+    const seenSceneProfiles = new Set<string>();
+    const eligible = new Set<string>();
+    runtimePackHistory.forEach((entry) => {
+      if (entry.rolledBackAt) return;
+      const sceneProfile = entry.manifest.sceneProfile;
+      if (seenSceneProfiles.has(sceneProfile)) return;
+      seenSceneProfiles.add(sceneProfile);
+      eligible.add(entry.id);
+    });
+    return eligible;
+  }, [runtimePackHistory]);
   const previewAvatarPreset = useMemo(
     () =>
       previewSkin
@@ -966,63 +978,74 @@ export const CreativeOpsPanel: React.FC<CreativeOpsPanelProps> = ({
                 {runtimePackHistory.length} total
               </div>
             </div>
+            <div className="mt-1 text-[10px] text-[var(--app-muted)]">
+              Rollback is locked to the newest active import per scene profile.
+            </div>
 
             {recentRuntimePackImports.length ? (
               <div className="mt-3 space-y-2">
-                {recentRuntimePackImports.map((entry) => (
-                  <div
-                    key={entry.id}
-                    className="rounded-[8px] border border-[var(--app-border)] bg-[color-mix(in_srgb,var(--app-surface)_64%,transparent)] p-2.5"
-                  >
-                    <div className="flex flex-wrap items-start justify-between gap-2">
-                      <div className="min-w-0">
-                        <div className="text-xs font-semibold text-[var(--app-text)]">
-                          {entry.manifest.name}
+                {recentRuntimePackImports.map((entry) => {
+                  const canRollback =
+                    !entry.rolledBackAt && rollbackEligibleImportIds.has(entry.id);
+                  return (
+                    <div
+                      key={entry.id}
+                      className="rounded-[8px] border border-[var(--app-border)] bg-[color-mix(in_srgb,var(--app-surface)_64%,transparent)] p-2.5"
+                    >
+                      <div className="flex flex-wrap items-start justify-between gap-2">
+                        <div className="min-w-0">
+                          <div className="text-xs font-semibold text-[var(--app-text)]">
+                            {entry.manifest.name}
+                          </div>
+                          <div className="mt-0.5 text-[11px] text-[var(--app-muted)]">
+                            {entry.fileName || entry.manifest.exportId} • {entry.manifest.sceneProfile} • {entry.mode}
+                          </div>
+                          <div className="mt-0.5 text-[10px] text-[var(--app-muted)]">
+                            imported {formatDateTime(entry.occurredAt)}
+                            {entry.rolledBackAt ? ` • rolled back ${formatDateTime(entry.rolledBackAt)}` : ''}
+                          </div>
                         </div>
-                        <div className="mt-0.5 text-[11px] text-[var(--app-muted)]">
-                          {entry.fileName || entry.manifest.exportId} • {entry.manifest.sceneProfile} • {entry.mode}
-                        </div>
-                        <div className="mt-0.5 text-[10px] text-[var(--app-muted)]">
-                          imported {formatDateTime(entry.occurredAt)}
-                          {entry.rolledBackAt ? ` • rolled back ${formatDateTime(entry.rolledBackAt)}` : ''}
+                        <div className="flex flex-wrap gap-1">
+                          <button
+                            type="button"
+                            className={`${panelButton} border-[var(--app-border)] px-2 py-1 text-[10px] text-[var(--app-muted)] hover:border-[var(--app-accent)] hover:text-[var(--app-text)]`}
+                            onClick={() => handleReapplyRuntimePack(entry, 'draft')}
+                          >
+                            Reapply Draft
+                          </button>
+                          <button
+                            type="button"
+                            className={`${panelButton} border-[var(--app-border)] px-2 py-1 text-[10px] text-[var(--app-muted)] hover:border-[var(--app-accent)] hover:text-[var(--app-text)]`}
+                            onClick={() => handleReapplyRuntimePack(entry, 'published')}
+                          >
+                            Reapply Publish
+                          </button>
+                          <button
+                            type="button"
+                            className={`${panelButton} border-[var(--app-border)] px-2 py-1 text-[10px] text-[var(--app-muted)] hover:border-[#ff9b7a] hover:text-[#ffcfbe] disabled:cursor-not-allowed disabled:opacity-60`}
+                            disabled={!canRollback}
+                            onClick={() => handleRollbackRuntimePack(entry)}
+                          >
+                            {entry.rolledBackAt
+                              ? 'Rolled Back'
+                              : canRollback
+                              ? 'Rollback'
+                              : 'Locked'}
+                          </button>
                         </div>
                       </div>
-                      <div className="flex flex-wrap gap-1">
-                        <button
-                          type="button"
-                          className={`${panelButton} border-[var(--app-border)] px-2 py-1 text-[10px] text-[var(--app-muted)] hover:border-[var(--app-accent)] hover:text-[var(--app-text)]`}
-                          onClick={() => handleReapplyRuntimePack(entry, 'draft')}
-                        >
-                          Reapply Draft
-                        </button>
-                        <button
-                          type="button"
-                          className={`${panelButton} border-[var(--app-border)] px-2 py-1 text-[10px] text-[var(--app-muted)] hover:border-[var(--app-accent)] hover:text-[var(--app-text)]`}
-                          onClick={() => handleReapplyRuntimePack(entry, 'published')}
-                        >
-                          Reapply Publish
-                        </button>
-                        <button
-                          type="button"
-                          className={`${panelButton} border-[var(--app-border)] px-2 py-1 text-[10px] text-[var(--app-muted)] hover:border-[#ff9b7a] hover:text-[#ffcfbe] disabled:cursor-not-allowed disabled:opacity-60`}
-                          disabled={Boolean(entry.rolledBackAt)}
-                          onClick={() => handleRollbackRuntimePack(entry)}
-                        >
-                          {entry.rolledBackAt ? 'Rolled Back' : 'Rollback'}
-                        </button>
-                      </div>
+                      {entry.includedSegments.length ? (
+                        <div className="mt-2 flex flex-wrap gap-1">
+                          {entry.includedSegments.map((segment) => (
+                            <span key={`${entry.id}-${segment}`} className="xt-runtime-relay-tag">
+                              {segment}
+                            </span>
+                          ))}
+                        </div>
+                      ) : null}
                     </div>
-                    {entry.includedSegments.length ? (
-                      <div className="mt-2 flex flex-wrap gap-1">
-                        {entry.includedSegments.map((segment) => (
-                          <span key={`${entry.id}-${segment}`} className="xt-runtime-relay-tag">
-                            {segment}
-                          </span>
-                        ))}
-                      </div>
-                    ) : null}
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             ) : (
               <div className="mt-3 text-[11px] text-[var(--app-muted)]">

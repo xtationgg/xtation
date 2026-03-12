@@ -4071,8 +4071,18 @@ export const rollbackSceneStudioRuntimePackImportInCreativeOpsState = (
   importId: string,
   options: RollbackCreativeSceneStudioRuntimePackImportOptions = {}
 ): CreativeOpsState => {
-  const target = currentState.runtimePackHistory.find((entry) => entry.id === importId);
-  if (!target) return currentState;
+  const targetIndex = currentState.runtimePackHistory.findIndex((entry) => entry.id === importId);
+  if (targetIndex === -1) return currentState;
+  const target = currentState.runtimePackHistory[targetIndex];
+  if (target.rolledBackAt) return currentState;
+
+  const hasNewerActiveImportForSceneProfile = currentState.runtimePackHistory
+    .slice(0, targetIndex)
+    .some(
+      (entry) =>
+        !entry.rolledBackAt && entry.manifest.sceneProfile === target.manifest.sceneProfile
+    );
+  if (hasNewerActiveImportForSceneProfile) return currentState;
 
   const occurredAt = options.occurredAt || Date.now();
   const actorScope = options.actorScope || target.actorScope;
