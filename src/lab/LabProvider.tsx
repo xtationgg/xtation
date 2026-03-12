@@ -65,90 +65,121 @@ const normalizeStringArray = (value: unknown): string[] =>
     ? value.filter((item): item is string => typeof item === 'string' && item.trim().length > 0)
     : [];
 
-const normalizeNote = (value: Partial<LabNote>): LabNote => ({
-  id: typeof value.id === 'string' ? value.id : createId('lab-note'),
-  title: typeof value.title === 'string' && value.title.trim() ? value.title : 'Untitled note',
-  content: typeof value.content === 'string' ? value.content : '',
-  kind: (value.kind as LabNoteKind) || 'capture',
-  status: (value.status as LabNote['status']) || 'active',
-  pinned: !!value.pinned,
-  tags: normalizeStringArray(value.tags),
-  linkedQuestIds: normalizeStringArray(value.linkedQuestIds),
-  linkedProjectIds: normalizeStringArray(value.linkedProjectIds),
-  createdAt: typeof value.createdAt === 'number' ? value.createdAt : now(),
-  updatedAt: typeof value.updatedAt === 'number' ? value.updatedAt : now(),
-});
+const safeLabObject = <T extends object>(value: Partial<T> | null | undefined): Partial<T> =>
+  value && typeof value === 'object' ? value : {};
 
-const normalizeProject = (value: Partial<LabAssistantProject>): LabAssistantProject => {
-  const kind = (value.kind as LabProjectKind) || 'strategy';
+const normalizeNote = (value: Partial<LabNote> | null | undefined): LabNote => {
+  const source = safeLabObject<LabNote>(value);
   return {
-    id: typeof value.id === 'string' ? value.id : createId('lab-project'),
-    title: typeof value.title === 'string' && value.title.trim() ? value.title : 'Untitled project',
-    kind,
-    status: value.status || 'draft',
-    summary: typeof value.summary === 'string' ? value.summary : '',
-    nextAction: typeof value.nextAction === 'string' ? value.nextAction : 'Define the next concrete step.',
-    accent: value.accent || accentByKind[kind],
-    linkedQuestIds: normalizeStringArray(value.linkedQuestIds),
-    linkedNoteIds: normalizeStringArray(value.linkedNoteIds),
-    linkedAutomationIds: normalizeStringArray(value.linkedAutomationIds),
-    createdAt: typeof value.createdAt === 'number' ? value.createdAt : now(),
-    updatedAt: typeof value.updatedAt === 'number' ? value.updatedAt : now(),
+    id: typeof source.id === 'string' ? source.id : createId('lab-note'),
+    title: typeof source.title === 'string' && source.title.trim() ? source.title : 'Untitled note',
+    content: typeof source.content === 'string' ? source.content : '',
+    kind: (source.kind as LabNoteKind) || 'capture',
+    status: (source.status as LabNote['status']) || 'active',
+    pinned: !!source.pinned,
+    tags: normalizeStringArray(source.tags),
+    linkedQuestIds: normalizeStringArray(source.linkedQuestIds),
+    linkedProjectIds: normalizeStringArray(source.linkedProjectIds),
+    createdAt: typeof source.createdAt === 'number' ? source.createdAt : now(),
+    updatedAt: typeof source.updatedAt === 'number' ? source.updatedAt : now(),
   };
 };
 
-const normalizeAutomation = (value: Partial<LabAutomation>): LabAutomation => ({
-  id: typeof value.id === 'string' ? value.id : createId('lab-rule'),
-  name: typeof value.name === 'string' && value.name.trim() ? value.name : 'Untitled automation',
-  description: typeof value.description === 'string' ? value.description : '',
-  enabled: !!value.enabled,
-  triggerSummary: typeof value.triggerSummary === 'string' ? value.triggerSummary : 'Manual trigger',
-  actionSummary: typeof value.actionSummary === 'string' ? value.actionSummary : 'Prepare a suggestion',
-  scope: (value.scope as LabAutomationScope) || 'lab',
-  mode: (value.mode as LabAutomationMode) || 'suggest',
-  linkedNoteIds: normalizeStringArray(value.linkedNoteIds),
-  linkedProjectIds: normalizeStringArray(value.linkedProjectIds),
-  lastRunAt: typeof value.lastRunAt === 'number' ? value.lastRunAt : undefined,
-  createdAt: typeof value.createdAt === 'number' ? value.createdAt : now(),
-  updatedAt: typeof value.updatedAt === 'number' ? value.updatedAt : now(),
-});
+const normalizeProject = (value: Partial<LabAssistantProject> | null | undefined): LabAssistantProject => {
+  const source = safeLabObject<LabAssistantProject>(value);
+  const kind = (source.kind as LabProjectKind) || 'strategy';
+  return {
+    id: typeof source.id === 'string' ? source.id : createId('lab-project'),
+    title: typeof source.title === 'string' && source.title.trim() ? source.title : 'Untitled project',
+    kind,
+    status: source.status || 'draft',
+    summary: typeof source.summary === 'string' ? source.summary : '',
+    nextAction: typeof source.nextAction === 'string' ? source.nextAction : 'Define the next concrete step.',
+    accent: source.accent || accentByKind[kind],
+    linkedQuestIds: normalizeStringArray(source.linkedQuestIds),
+    linkedNoteIds: normalizeStringArray(source.linkedNoteIds),
+    linkedAutomationIds: normalizeStringArray(source.linkedAutomationIds),
+    createdAt: typeof source.createdAt === 'number' ? source.createdAt : now(),
+    updatedAt: typeof source.updatedAt === 'number' ? source.updatedAt : now(),
+  };
+};
 
-const normalizeMediaAccount = (value: Partial<LabMediaAccount>): LabMediaAccount => ({
-  id: typeof value.id === 'string' ? value.id : createId('lab-media-account'),
-  platform: (value.platform as LabMediaPlatform) || 'website',
-  handle: typeof value.handle === 'string' && value.handle.trim() ? value.handle : '@untitled',
-  status: (value.status as LabMediaAccountStatus) || 'active',
-  cadence: typeof value.cadence === 'string' && value.cadence.trim() ? value.cadence : 'Weekly',
-  focus: typeof value.focus === 'string' ? value.focus : '',
-  linkedProjectIds: normalizeStringArray(value.linkedProjectIds),
-  createdAt: typeof value.createdAt === 'number' ? value.createdAt : now(),
-  updatedAt: typeof value.updatedAt === 'number' ? value.updatedAt : now(),
-});
+const normalizeAutomation = (value: Partial<LabAutomation> | null | undefined): LabAutomation => {
+  const source = safeLabObject<LabAutomation>(value);
+  return {
+    id: typeof source.id === 'string' ? source.id : createId('lab-rule'),
+    name: typeof source.name === 'string' && source.name.trim() ? source.name : 'Untitled automation',
+    description: typeof source.description === 'string' ? source.description : '',
+    enabled: !!source.enabled,
+    triggerSummary: typeof source.triggerSummary === 'string' ? source.triggerSummary : 'Manual trigger',
+    actionSummary: typeof source.actionSummary === 'string' ? source.actionSummary : 'Prepare a suggestion',
+    scope: (source.scope as LabAutomationScope) || 'lab',
+    mode: (source.mode as LabAutomationMode) || 'suggest',
+    linkedNoteIds: normalizeStringArray(source.linkedNoteIds),
+    linkedProjectIds: normalizeStringArray(source.linkedProjectIds),
+    lastRunAt: typeof source.lastRunAt === 'number' ? source.lastRunAt : undefined,
+    createdAt: typeof source.createdAt === 'number' ? source.createdAt : now(),
+    updatedAt: typeof source.updatedAt === 'number' ? source.updatedAt : now(),
+  };
+};
 
-const normalizeMediaCampaign = (value: Partial<LabMediaCampaign>): LabMediaCampaign => ({
-  id: typeof value.id === 'string' ? value.id : createId('lab-media-campaign'),
-  title: typeof value.title === 'string' && value.title.trim() ? value.title : 'Untitled campaign',
-  status: (value.status as LabCampaignStatus) || 'planned',
-  objective: typeof value.objective === 'string' ? value.objective : '',
-  primaryChannel: (value.primaryChannel as LabMediaPlatform) || 'website',
-  nextAction: typeof value.nextAction === 'string' && value.nextAction.trim() ? value.nextAction : 'Define the next content move.',
-  linkedProjectIds: normalizeStringArray(value.linkedProjectIds),
-  linkedNoteIds: normalizeStringArray(value.linkedNoteIds),
-  createdAt: typeof value.createdAt === 'number' ? value.createdAt : now(),
-  updatedAt: typeof value.updatedAt === 'number' ? value.updatedAt : now(),
-});
+const normalizeMediaAccount = (
+  value: Partial<LabMediaAccount> | null | undefined
+): LabMediaAccount => {
+  const source = safeLabObject<LabMediaAccount>(value);
+  return {
+    id: typeof source.id === 'string' ? source.id : createId('lab-media-account'),
+    platform: (source.platform as LabMediaPlatform) || 'website',
+    handle: typeof source.handle === 'string' && source.handle.trim() ? source.handle : '@untitled',
+    status: (source.status as LabMediaAccountStatus) || 'active',
+    cadence: typeof source.cadence === 'string' && source.cadence.trim() ? source.cadence : 'Weekly',
+    focus: typeof source.focus === 'string' ? source.focus : '',
+    linkedProjectIds: normalizeStringArray(source.linkedProjectIds),
+    createdAt: typeof source.createdAt === 'number' ? source.createdAt : now(),
+    updatedAt: typeof source.updatedAt === 'number' ? source.updatedAt : now(),
+  };
+};
 
-const normalizePublishItem = (value: Partial<LabPublishItem>): LabPublishItem => ({
-  id: typeof value.id === 'string' ? value.id : createId('lab-media-item'),
-  title: typeof value.title === 'string' && value.title.trim() ? value.title : 'Untitled queue item',
-  status: (value.status as LabPublishStatus) || 'draft',
-  channel: (value.channel as LabMediaPlatform) || 'website',
-  scheduledAt: typeof value.scheduledAt === 'number' ? value.scheduledAt : undefined,
-  campaignId: typeof value.campaignId === 'string' && value.campaignId.trim() ? value.campaignId : undefined,
-  summary: typeof value.summary === 'string' ? value.summary : '',
-  createdAt: typeof value.createdAt === 'number' ? value.createdAt : now(),
-  updatedAt: typeof value.updatedAt === 'number' ? value.updatedAt : now(),
-});
+const normalizeMediaCampaign = (
+  value: Partial<LabMediaCampaign> | null | undefined
+): LabMediaCampaign => {
+  const source = safeLabObject<LabMediaCampaign>(value);
+  return {
+    id: typeof source.id === 'string' ? source.id : createId('lab-media-campaign'),
+    title: typeof source.title === 'string' && source.title.trim() ? source.title : 'Untitled campaign',
+    status: (source.status as LabCampaignStatus) || 'planned',
+    objective: typeof source.objective === 'string' ? source.objective : '',
+    primaryChannel: (source.primaryChannel as LabMediaPlatform) || 'website',
+    nextAction:
+      typeof source.nextAction === 'string' && source.nextAction.trim()
+        ? source.nextAction
+        : 'Define the next content move.',
+    linkedProjectIds: normalizeStringArray(source.linkedProjectIds),
+    linkedNoteIds: normalizeStringArray(source.linkedNoteIds),
+    createdAt: typeof source.createdAt === 'number' ? source.createdAt : now(),
+    updatedAt: typeof source.updatedAt === 'number' ? source.updatedAt : now(),
+  };
+};
+
+const normalizePublishItem = (
+  value: Partial<LabPublishItem> | null | undefined
+): LabPublishItem => {
+  const source = safeLabObject<LabPublishItem>(value);
+  return {
+    id: typeof source.id === 'string' ? source.id : createId('lab-media-item'),
+    title: typeof source.title === 'string' && source.title.trim() ? source.title : 'Untitled queue item',
+    status: (source.status as LabPublishStatus) || 'draft',
+    channel: (source.channel as LabMediaPlatform) || 'website',
+    scheduledAt: typeof source.scheduledAt === 'number' ? source.scheduledAt : undefined,
+    campaignId:
+      typeof source.campaignId === 'string' && source.campaignId.trim()
+        ? source.campaignId
+        : undefined,
+    summary: typeof source.summary === 'string' ? source.summary : '',
+    createdAt: typeof source.createdAt === 'number' ? source.createdAt : now(),
+    updatedAt: typeof source.updatedAt === 'number' ? source.updatedAt : now(),
+  };
+};
 
 const createDefaultState = (): LabWorkspaceState => {
   const seededNoteId = createId('lab-note');
@@ -249,7 +280,9 @@ const createDefaultState = (): LabWorkspaceState => {
   };
 };
 
-const normalizeState = (stored: LabWorkspaceState | null | undefined): LabWorkspaceState => {
+export const normalizeLabWorkspaceState = (
+  stored: LabWorkspaceState | null | undefined
+): LabWorkspaceState => {
   if (!stored) return createDefaultState();
   return {
     assistantProjects: Array.isArray(stored.assistantProjects)
@@ -365,7 +398,7 @@ export const LabProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       return;
     }
     const stored = readUserScopedJSON<LabWorkspaceState | null>(LAB_STORAGE_KEY, null, activeUserId);
-    const next = normalizeState(stored);
+    const next = normalizeLabWorkspaceState(stored);
     setState(next);
     writeUserScopedJSON(LAB_STORAGE_KEY, next, activeUserId);
   }, [activeUserId]);

@@ -86,6 +86,21 @@ All work should pass `npm run build` and `npx vitest run` before committing.
 ## Latest Codex Note
 
 - Date: 2026-03-12
+- Lab crash hardening + welcome auth-card cleanup:
+  - Fixed a login-time Lab crash path (`Cannot read properties of undefined (reading 'title')`) by hardening malformed-data normalization in:
+    - `/Users/sarynass/dyad-apps/CLient-D82pm/src/lab/LabProvider.tsx`
+  - Added regression coverage for malformed persisted entries:
+    - `/Users/sarynass/dyad-apps/CLient-D82pm/tests/lab-provider-normalization.test.ts`
+  - Landing auth panel in welcome flow is now cleaner and safer on smaller viewports:
+    - scroll-safe card body (no clipped controls)
+    - reduced guest guardrail verbosity in landing variant
+    - updated:
+      - `/Users/sarynass/dyad-apps/CLient-D82pm/components/Auth/AuthCard.tsx`
+  - Verification:
+    - `npm run build` passed
+    - `npx vitest run` passed (`221/221`)
+
+- Date: 2026-03-12
 - Hotfix: fixed live auth/logout runtime crash (`readGuestStationRecoverySnapshot is not defined`).
   - Root cause: `App.tsx` referenced `readGuestStationRecoverySnapshot(...)` but missed importing it from `src/auth/guestStation`.
   - Fix:

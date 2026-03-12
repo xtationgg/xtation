@@ -128,12 +128,19 @@ export const AuthCard: React.FC<AuthCardProps> = ({
     variant === 'landing'
       ? 'h-11 text-[11px]'
       : 'h-9 rounded-[8px] text-[11px]';
+  const continuityGuardrails = [
+    'No local station is overwritten without a handoff review.',
+    'You can keep the account station, import local work, or return to local mode.',
+    'XTATION confirms the active workspace after sign-in before you continue.',
+  ];
 
   return (
     <div className={`relative overflow-hidden ${shellClassName}`}>
       <form
-        className={`relative z-10 flex h-full min-h-0 flex-col justify-center ${
-          variant === 'landing' ? 'gap-4 px-5 py-5 sm:px-6 sm:py-6' : 'gap-2.5 px-7 py-6'
+        className={`relative z-10 flex h-full min-h-0 flex-col ${
+          variant === 'landing'
+            ? 'max-h-[min(840px,calc(100dvh-180px))] justify-start gap-4 overflow-y-auto px-5 py-5 pr-3 sm:px-6 sm:py-6 sm:pr-4'
+            : 'justify-center gap-2.5 px-7 py-6'
         }`}
         onSubmit={(event) => {
           event.preventDefault();
@@ -194,11 +201,19 @@ export const AuthCard: React.FC<AuthCardProps> = ({
               </div>
             ) : null}
             {isGuestMode ? (
-              <div className="xt-auth-continuity__list">
-                <div className="xt-auth-continuity__item">No local station is overwritten without a handoff review.</div>
-                <div className="xt-auth-continuity__item">You can keep the account station, import local work, or return to local mode.</div>
-                <div className="xt-auth-continuity__item">XTATION confirms the active workspace after sign-in before you continue.</div>
-              </div>
+              variant === 'landing' ? (
+                <div className="rounded-[8px] border border-[color-mix(in_srgb,var(--app-border)_80%,transparent)] bg-[color-mix(in_srgb,var(--app-panel)_72%,transparent)] px-3 py-2 text-[11px] leading-5 text-[var(--ui-muted)]">
+                  Safety checks stay active: no overwrite without review, and workspace confirmation happens before continue.
+                </div>
+              ) : (
+                <div className="xt-auth-continuity__list">
+                  {continuityGuardrails.map((line) => (
+                    <div key={line} className="xt-auth-continuity__item">
+                      {line}
+                    </div>
+                  ))}
+                </div>
+              )
             ) : null}
           </div>
         ) : null}
