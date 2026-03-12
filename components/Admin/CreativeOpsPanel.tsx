@@ -164,6 +164,7 @@ export const CreativeOpsPanel: React.FC<CreativeOpsPanelProps> = ({
   const { settings, setActiveThemeId, setActiveSoundPackId } = useXtationSettings();
   const {
     state,
+    runtimePackHistory,
     selectedSkin,
     activeSkin,
     soundAssetMap,
@@ -216,6 +217,7 @@ export const CreativeOpsPanel: React.FC<CreativeOpsPanelProps> = ({
     applySkinAvatarProfileTemplate,
     uploadSoundAssetForEvent,
     importSceneStudioRuntimePack,
+    rollbackSceneStudioRuntimePackImport,
   } = useCreativeOpsStudio(recentEvents);
   const uploadInputRef = useRef<HTMLInputElement>(null);
   const runtimePackInputRef = useRef<HTMLInputElement>(null);
@@ -372,6 +374,10 @@ export const CreativeOpsPanel: React.FC<CreativeOpsPanelProps> = ({
   const packageSummary = useMemo(
     () => (selectedSkin ? buildCreativeSkinPackageSummary(state, selectedSkin.id) : null),
     [selectedSkin, state]
+  );
+  const recentRuntimePackImports = useMemo(
+    () => runtimePackHistory.slice(0, 8),
+    [runtimePackHistory]
   );
   const previewAvatarPreset = useMemo(
     () =>
@@ -648,7 +654,10 @@ export const CreativeOpsPanel: React.FC<CreativeOpsPanelProps> = ({
 
   const handleApplyRuntimePack = (mode: 'draft' | 'published') => {
     if (!runtimePackCandidate || !runtimePackSummary) return;
-    importSceneStudioRuntimePack(runtimePackCandidate, mode);
+    importSceneStudioRuntimePack(runtimePackCandidate, {
+      mode,
+      fileName: runtimePackFileName,
+    });
     setRuntimePackError(null);
     setPreviewMode(mode === 'published' ? 'published' : 'draft');
     emitEvent('admin.creative.runtime_pack.apply', {
@@ -659,6 +668,39 @@ export const CreativeOpsPanel: React.FC<CreativeOpsPanelProps> = ({
         exportId: runtimePackCandidate.manifest.exportId,
         sceneProfile: runtimePackSummary.sceneProfile,
         segmentCount: runtimePackSummary.includedSegments.length,
+      },
+    });
+  };
+
+  const handleReapplyRuntimePack = (
+    entry: (typeof runtimePackHistory)[number],
+    mode: 'draft' | 'published'
+  ) => {
+    importSceneStudioRuntimePack(entry.pack, {
+      mode,
+      fileName: entry.fileName,
+    });
+    setPreviewMode(mode === 'published' ? 'published' : 'draft');
+    emitEvent('admin.creative.runtime_pack.reapply', {
+      source: 'admin',
+      metadata: {
+        importId: entry.id,
+        mode,
+        exportId: entry.manifest.exportId,
+        sceneProfile: entry.manifest.sceneProfile,
+      },
+    });
+  };
+
+  const handleRollbackRuntimePack = (entry: (typeof runtimePackHistory)[number]) => {
+    rollbackSceneStudioRuntimePackImport(entry.id);
+    setPreviewMode('published');
+    emitEvent('admin.creative.runtime_pack.rollback', {
+      source: 'admin',
+      metadata: {
+        importId: entry.id,
+        exportId: entry.manifest.exportId,
+        sceneProfile: entry.manifest.sceneProfile,
       },
     });
   };
@@ -913,6 +955,80 @@ export const CreativeOpsPanel: React.FC<CreativeOpsPanelProps> = ({
             >
               Apply + Publish
             </button>
+          </div>
+
+          <div className="mt-4 rounded-[8px] border border-[var(--app-border)] bg-[color-mix(in_srgb,var(--app-surface)_72%,transparent)] p-3">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div className="text-[10px] uppercase tracking-[0.24em] text-[var(--app-muted)]">
+                Import History
+              </div>
+              <div className="text-[11px] text-[var(--app-muted)]">
+                {runtimePackHistory.length} total
+              </div>
+            </div>
+
+            {recentRuntimePackImports.length ? (
+              <div className="mt-3 space-y-2">
+                {recentRuntimePackImports.map((entry) => (
+                  <div
+                    key={entry.id}
+                    className="rounded-[8px] border border-[var(--app-border)] bg-[color-mix(in_srgb,var(--app-surface)_64%,transparent)] p-2.5"
+                  >
+                    <div className="flex flex-wrap items-start justify-between gap-2">
+                      <div className="min-w-0">
+                        <div className="text-xs font-semibold text-[var(--app-text)]">
+                          {entry.manifest.name}
+                        </div>
+                        <div className="mt-0.5 text-[11px] text-[var(--app-muted)]">
+                          {entry.fileName || entry.manifest.exportId} • {entry.manifest.sceneProfile} • {entry.mode}
+                        </div>
+                        <div className="mt-0.5 text-[10px] text-[var(--app-muted)]">
+                          imported {formatDateTime(entry.occurredAt)}
+                          {entry.rolledBackAt ? ` • rolled back ${formatDateTime(entry.rolledBackAt)}` : ''}
+                        </div>
+                      </div>
+                      <div className="flex flex-wrap gap-1">
+                        <button
+                          type="button"
+                          className={`${panelButton} border-[var(--app-border)] px-2 py-1 text-[10px] text-[var(--app-muted)] hover:border-[var(--app-accent)] hover:text-[var(--app-text)]`}
+                          onClick={() => handleReapplyRuntimePack(entry, 'draft')}
+                        >
+                          Reapply Draft
+                        </button>
+                        <button
+                          type="button"
+                          className={`${panelButton} border-[var(--app-border)] px-2 py-1 text-[10px] text-[var(--app-muted)] hover:border-[var(--app-accent)] hover:text-[var(--app-text)]`}
+                          onClick={() => handleReapplyRuntimePack(entry, 'published')}
+                        >
+                          Reapply Publish
+                        </button>
+                        <button
+                          type="button"
+                          className={`${panelButton} border-[var(--app-border)] px-2 py-1 text-[10px] text-[var(--app-muted)] hover:border-[#ff9b7a] hover:text-[#ffcfbe] disabled:cursor-not-allowed disabled:opacity-60`}
+                          disabled={Boolean(entry.rolledBackAt)}
+                          onClick={() => handleRollbackRuntimePack(entry)}
+                        >
+                          {entry.rolledBackAt ? 'Rolled Back' : 'Rollback'}
+                        </button>
+                      </div>
+                    </div>
+                    {entry.includedSegments.length ? (
+                      <div className="mt-2 flex flex-wrap gap-1">
+                        {entry.includedSegments.map((segment) => (
+                          <span key={`${entry.id}-${segment}`} className="xt-runtime-relay-tag">
+                            {segment}
+                          </span>
+                        ))}
+                      </div>
+                    ) : null}
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="mt-3 text-[11px] text-[var(--app-muted)]">
+                No runtime-pack imports yet.
+              </div>
+            )}
           </div>
         </div>
 

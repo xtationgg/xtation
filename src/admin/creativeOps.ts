@@ -11,6 +11,7 @@ import type { PresentationEventRecord } from '../presentation/events';
 import {
   applySceneStudioRuntimePack,
   resolveSceneStudioRuntimePackSegments,
+  type SceneStudioRuntimePackSegment,
   type SceneStudioRuntimePackV1,
 } from '../sceneStudio/runtimePack';
 import {
@@ -250,6 +251,44 @@ export interface CreativeSceneResponsePreset {
   cueDurationMs: number;
 }
 
+export interface CreativeRuntimePackRollbackSnapshot {
+  sceneProfile: CreativeSkinPack['sceneProfile'];
+  soundPackId: string | null;
+  skinPacks: CreativeSkinPack[];
+  scenePack: CreativeScenePack | null;
+  eventMap: CreativeSoundEventMapEntry[];
+  sceneCues: CreativeSceneCueEntry[];
+  sceneStates: CreativeSceneStateEntry[];
+  sceneStateBindings: CreativeSceneStateBinding[];
+  sceneScreenPresets: CreativeSceneScreenPreset[];
+  sceneAvatarPresets: CreativeSceneAvatarPreset[];
+  sceneResponsePresets: CreativeSceneResponsePreset[];
+  sceneLightPresets: CreativeSceneLightPreset[];
+  sceneMotionPresets: CreativeSceneMotionPreset[];
+  publishedEventMap: CreativeSoundEventMapEntry[];
+  publishedSceneCues: CreativeSceneCueEntry[];
+  publishedSceneStates: CreativeSceneStateEntry[];
+  publishedSceneStateBindings: CreativeSceneStateBinding[];
+  publishedSceneScreenPresets: CreativeSceneScreenPreset[];
+  publishedSceneAvatarPresets: CreativeSceneAvatarPreset[];
+  publishedSceneResponsePresets: CreativeSceneResponsePreset[];
+  publishedSceneLightPresets: CreativeSceneLightPreset[];
+  publishedSceneMotionPresets: CreativeSceneMotionPreset[];
+}
+
+export interface CreativeRuntimePackImportEntry {
+  id: string;
+  mode: 'draft' | 'published';
+  actorScope: 'guest' | 'account';
+  occurredAt: number;
+  fileName: string | null;
+  includedSegments: SceneStudioRuntimePackSegment[];
+  manifest: SceneStudioRuntimePackV1['manifest'];
+  pack: SceneStudioRuntimePackV1;
+  rollback: CreativeRuntimePackRollbackSnapshot;
+  rolledBackAt: number | null;
+}
+
 export interface CreativeOpsState {
   selectedSkinId: string;
   activeSkinId: string;
@@ -275,6 +314,7 @@ export interface CreativeOpsState {
   publishedSceneLightPresets: CreativeSceneLightPreset[];
   publishedSceneMotionPresets: CreativeSceneMotionPreset[];
   publishLog: CreativePublishLogEntry[];
+  runtimePackHistory: CreativeRuntimePackImportEntry[];
 }
 
 export interface CreativeDifferenceEntry {
@@ -2531,6 +2571,7 @@ export const createDefaultCreativeOpsState = (): CreativeOpsState => ({
     DEFAULT_CREATIVE_SCENE_PACKS
   ),
   publishLog: [],
+  runtimePackHistory: [],
 });
 
 const normalizeCreativeOpsState = (input: Partial<CreativeOpsState> | null | undefined): CreativeOpsState => {
@@ -2661,6 +2702,26 @@ const normalizeCreativeOpsState = (input: Partial<CreativeOpsState> | null | und
             Array.isArray(input.scenePacks) && input.scenePacks.length ? input.scenePacks : fallback.scenePacks
           ),
     publishLog: Array.isArray(input.publishLog) ? input.publishLog : fallback.publishLog,
+    runtimePackHistory:
+      Array.isArray(input.runtimePackHistory) && input.runtimePackHistory.length
+        ? input.runtimePackHistory
+            .filter((entry): entry is CreativeRuntimePackImportEntry => {
+              if (!entry || typeof entry !== 'object') return false;
+              const candidate = entry as Partial<CreativeRuntimePackImportEntry>;
+              return (
+                typeof candidate.id === 'string' &&
+                !!candidate.id &&
+                (candidate.mode === 'draft' || candidate.mode === 'published') &&
+                (candidate.actorScope === 'guest' || candidate.actorScope === 'account') &&
+                typeof candidate.occurredAt === 'number' &&
+                candidate.manifest?.format === 'xtation.scene-runtime-pack' &&
+                candidate.manifest?.version === 1 &&
+                isSceneStudioRuntimePackV1(candidate.pack) &&
+                candidate.rollback != null
+              );
+            })
+            .slice(0, 20)
+        : fallback.runtimePackHistory,
   };
 };
 
@@ -3777,7 +3838,177 @@ export interface ApplyCreativeSceneStudioRuntimePackOptions {
   mode?: 'draft' | 'published';
   occurredAt?: number;
   actorScope?: 'guest' | 'account';
+  fileName?: string | null;
 }
+
+export interface RollbackCreativeSceneStudioRuntimePackImportOptions {
+  occurredAt?: number;
+  actorScope?: 'guest' | 'account';
+}
+
+const restoreBySceneProfile = <T extends { sceneProfile: CreativeSkinPack['sceneProfile'] }>(
+  source: T[],
+  sceneProfile: CreativeSkinPack['sceneProfile'],
+  snapshotEntries: T[]
+): T[] => [...source.filter((entry) => entry.sceneProfile !== sceneProfile), ...snapshotEntries];
+
+const restoreBySoundPackId = (
+  source: CreativeSoundEventMapEntry[],
+  soundPackId: string | null,
+  snapshotEntries: CreativeSoundEventMapEntry[]
+) => {
+  if (!soundPackId) return source;
+  return [...source.filter((entry) => entry.soundPackId !== soundPackId), ...snapshotEntries];
+};
+
+const resolveRuntimePackSoundPackIdFromState = (
+  state: CreativeOpsState,
+  pack: SceneStudioRuntimePackV1
+) =>
+  pack.skin?.soundPackId ??
+  state.skinPacks.find((entry) => entry.sceneProfile === pack.manifest.sceneProfile)?.soundPackId ??
+  null;
+
+const buildRuntimePackRollbackSnapshot = (
+  state: CreativeOpsState,
+  pack: SceneStudioRuntimePackV1
+): CreativeRuntimePackRollbackSnapshot => {
+  const sceneProfile = pack.manifest.sceneProfile;
+  const soundPackId = resolveRuntimePackSoundPackIdFromState(state, pack);
+  return {
+    sceneProfile,
+    soundPackId,
+    skinPacks: state.skinPacks.filter((entry) => entry.sceneProfile === sceneProfile),
+    scenePack: state.scenePacks.find((entry) => entry.sceneProfile === sceneProfile) || null,
+    eventMap: soundPackId ? state.eventMap.filter((entry) => entry.soundPackId === soundPackId) : [],
+    sceneCues: state.sceneCues.filter((entry) => entry.sceneProfile === sceneProfile),
+    sceneStates: state.sceneStates.filter((entry) => entry.sceneProfile === sceneProfile),
+    sceneStateBindings: state.sceneStateBindings.filter((entry) => entry.sceneProfile === sceneProfile),
+    sceneScreenPresets: state.sceneScreenPresets.filter((entry) => entry.sceneProfile === sceneProfile),
+    sceneAvatarPresets: state.sceneAvatarPresets.filter((entry) => entry.sceneProfile === sceneProfile),
+    sceneResponsePresets: state.sceneResponsePresets.filter((entry) => entry.sceneProfile === sceneProfile),
+    sceneLightPresets: state.sceneLightPresets.filter((entry) => entry.sceneProfile === sceneProfile),
+    sceneMotionPresets: state.sceneMotionPresets.filter((entry) => entry.sceneProfile === sceneProfile),
+    publishedEventMap: soundPackId ? state.publishedEventMap.filter((entry) => entry.soundPackId === soundPackId) : [],
+    publishedSceneCues: state.publishedSceneCues.filter((entry) => entry.sceneProfile === sceneProfile),
+    publishedSceneStates: state.publishedSceneStates.filter((entry) => entry.sceneProfile === sceneProfile),
+    publishedSceneStateBindings: state.publishedSceneStateBindings.filter(
+      (entry) => entry.sceneProfile === sceneProfile
+    ),
+    publishedSceneScreenPresets: state.publishedSceneScreenPresets.filter(
+      (entry) => entry.sceneProfile === sceneProfile
+    ),
+    publishedSceneAvatarPresets: state.publishedSceneAvatarPresets.filter(
+      (entry) => entry.sceneProfile === sceneProfile
+    ),
+    publishedSceneResponsePresets: state.publishedSceneResponsePresets.filter(
+      (entry) => entry.sceneProfile === sceneProfile
+    ),
+    publishedSceneLightPresets: state.publishedSceneLightPresets.filter(
+      (entry) => entry.sceneProfile === sceneProfile
+    ),
+    publishedSceneMotionPresets: state.publishedSceneMotionPresets.filter(
+      (entry) => entry.sceneProfile === sceneProfile
+    ),
+  };
+};
+
+const restoreCreativeStateFromRuntimePackRollbackSnapshot = (
+  state: CreativeOpsState,
+  snapshot: CreativeRuntimePackRollbackSnapshot
+): CreativeOpsState => {
+  const { sceneProfile, soundPackId } = snapshot;
+  const nextScenePacks = snapshot.scenePack
+    ? [
+        ...state.scenePacks.filter((entry) => entry.sceneProfile !== sceneProfile),
+        snapshot.scenePack,
+      ]
+    : state.scenePacks.filter((entry) => entry.sceneProfile !== sceneProfile);
+
+  return {
+    ...state,
+    skinPacks: restoreBySceneProfile(state.skinPacks, sceneProfile, snapshot.skinPacks),
+    scenePacks: nextScenePacks,
+    eventMap: restoreBySoundPackId(state.eventMap, soundPackId, snapshot.eventMap),
+    sceneCues: restoreBySceneProfile(state.sceneCues, sceneProfile, snapshot.sceneCues),
+    sceneStates: restoreBySceneProfile(state.sceneStates, sceneProfile, snapshot.sceneStates),
+    sceneStateBindings: restoreBySceneProfile(
+      state.sceneStateBindings,
+      sceneProfile,
+      snapshot.sceneStateBindings
+    ),
+    sceneScreenPresets: restoreBySceneProfile(
+      state.sceneScreenPresets,
+      sceneProfile,
+      snapshot.sceneScreenPresets
+    ),
+    sceneAvatarPresets: restoreBySceneProfile(
+      state.sceneAvatarPresets,
+      sceneProfile,
+      snapshot.sceneAvatarPresets
+    ),
+    sceneResponsePresets: restoreBySceneProfile(
+      state.sceneResponsePresets,
+      sceneProfile,
+      snapshot.sceneResponsePresets
+    ),
+    sceneLightPresets: restoreBySceneProfile(
+      state.sceneLightPresets,
+      sceneProfile,
+      snapshot.sceneLightPresets
+    ),
+    sceneMotionPresets: restoreBySceneProfile(
+      state.sceneMotionPresets,
+      sceneProfile,
+      snapshot.sceneMotionPresets
+    ),
+    publishedEventMap: restoreBySoundPackId(
+      state.publishedEventMap,
+      soundPackId,
+      snapshot.publishedEventMap
+    ),
+    publishedSceneCues: restoreBySceneProfile(
+      state.publishedSceneCues,
+      sceneProfile,
+      snapshot.publishedSceneCues
+    ),
+    publishedSceneStates: restoreBySceneProfile(
+      state.publishedSceneStates,
+      sceneProfile,
+      snapshot.publishedSceneStates
+    ),
+    publishedSceneStateBindings: restoreBySceneProfile(
+      state.publishedSceneStateBindings,
+      sceneProfile,
+      snapshot.publishedSceneStateBindings
+    ),
+    publishedSceneScreenPresets: restoreBySceneProfile(
+      state.publishedSceneScreenPresets,
+      sceneProfile,
+      snapshot.publishedSceneScreenPresets
+    ),
+    publishedSceneAvatarPresets: restoreBySceneProfile(
+      state.publishedSceneAvatarPresets,
+      sceneProfile,
+      snapshot.publishedSceneAvatarPresets
+    ),
+    publishedSceneResponsePresets: restoreBySceneProfile(
+      state.publishedSceneResponsePresets,
+      sceneProfile,
+      snapshot.publishedSceneResponsePresets
+    ),
+    publishedSceneLightPresets: restoreBySceneProfile(
+      state.publishedSceneLightPresets,
+      sceneProfile,
+      snapshot.publishedSceneLightPresets
+    ),
+    publishedSceneMotionPresets: restoreBySceneProfile(
+      state.publishedSceneMotionPresets,
+      sceneProfile,
+      snapshot.publishedSceneMotionPresets
+    ),
+  };
+};
 
 export const applySceneStudioRuntimePackImportToCreativeOpsState = (
   currentState: CreativeOpsState,
@@ -3787,6 +4018,8 @@ export const applySceneStudioRuntimePackImportToCreativeOpsState = (
   const mode = options.mode || 'draft';
   const occurredAt = options.occurredAt || Date.now();
   const actorScope = options.actorScope || 'guest';
+  const rollbackSnapshot = buildRuntimePackRollbackSnapshot(currentState, pack);
+  const importId = `runtime-pack-${Math.random().toString(36).slice(2, 10)}`;
   const next = applySceneStudioRuntimePack(currentState, pack, { mode, occurredAt });
   const sceneProfile = pack.manifest.sceneProfile;
   const scenePack = next.scenePacks.find((entry) => entry.sceneProfile === sceneProfile) || null;
@@ -3814,6 +4047,65 @@ export const applySceneStudioRuntimePackImportToCreativeOpsState = (
         actorScope,
       },
       ...next.publishLog,
+    ].slice(0, 40),
+    runtimePackHistory: [
+      {
+        id: importId,
+        mode,
+        actorScope,
+        occurredAt,
+        fileName: options.fileName || null,
+        includedSegments: resolveSceneStudioRuntimePackSegments(pack),
+        manifest: pack.manifest,
+        pack,
+        rollback: rollbackSnapshot,
+        rolledBackAt: null,
+      },
+      ...next.runtimePackHistory,
+    ].slice(0, 20),
+  };
+};
+
+export const rollbackSceneStudioRuntimePackImportInCreativeOpsState = (
+  currentState: CreativeOpsState,
+  importId: string,
+  options: RollbackCreativeSceneStudioRuntimePackImportOptions = {}
+): CreativeOpsState => {
+  const target = currentState.runtimePackHistory.find((entry) => entry.id === importId);
+  if (!target) return currentState;
+
+  const occurredAt = options.occurredAt || Date.now();
+  const actorScope = options.actorScope || target.actorScope;
+  const restored = restoreCreativeStateFromRuntimePackRollbackSnapshot(currentState, target.rollback);
+  const restoredScenePack =
+    restored.scenePacks.find((entry) => entry.sceneProfile === target.rollback.sceneProfile) ||
+    target.rollback.scenePack;
+  const revision = restoredScenePack
+    ? Math.max(restoredScenePack.draftRevision, restoredScenePack.publishedRevision)
+    : 1;
+
+  return {
+    ...restored,
+    runtimePackHistory: currentState.runtimePackHistory.map((entry) =>
+      entry.id === target.id
+        ? {
+            ...entry,
+            rolledBackAt: occurredAt,
+          }
+        : entry
+    ),
+    publishLog: [
+      {
+        id: `creative-log-${Math.random().toString(36).slice(2, 10)}`,
+        targetType: 'scene',
+        targetId: restoredScenePack?.id || `scene-pack-${target.rollback.sceneProfile}`,
+        label: `${target.manifest.name} rollback`,
+        action: 'restored',
+        revision,
+        occurredAt,
+        actorScope,
+      },
+      ...restored.publishLog,
     ].slice(0, 40),
   };
 };
@@ -4961,10 +5253,28 @@ export const useCreativeOpsStudio = (recentEvents: PresentationEventRecord[]) =>
   );
 
   const importSceneStudioRuntimePack = useCallback(
-    (pack: SceneStudioRuntimePackV1, mode: 'draft' | 'published' = 'draft') => {
+    (
+      pack: SceneStudioRuntimePackV1,
+      options: {
+        mode?: 'draft' | 'published';
+        fileName?: string | null;
+      } = {}
+    ) => {
       setState((current) =>
         applySceneStudioRuntimePackImportToCreativeOpsState(current, pack, {
-          mode,
+          mode: options.mode || 'draft',
+          fileName: options.fileName || null,
+          actorScope: userId ? 'account' : 'guest',
+        })
+      );
+    },
+    [userId]
+  );
+
+  const rollbackSceneStudioRuntimePackImport = useCallback(
+    (importId: string) => {
+      setState((current) =>
+        rollbackSceneStudioRuntimePackImportInCreativeOpsState(current, importId, {
           actorScope: userId ? 'account' : 'guest',
         })
       );
@@ -4974,6 +5284,7 @@ export const useCreativeOpsStudio = (recentEvents: PresentationEventRecord[]) =>
 
   return {
     state,
+    runtimePackHistory: state.runtimePackHistory,
     selectedSkin,
     activeSkin,
     soundAssetMap,
@@ -5026,6 +5337,7 @@ export const useCreativeOpsStudio = (recentEvents: PresentationEventRecord[]) =>
     applySkinAvatarProfileTemplate,
     uploadSoundAssetForEvent,
     importSceneStudioRuntimePack,
+    rollbackSceneStudioRuntimePackImport,
   };
 };
 

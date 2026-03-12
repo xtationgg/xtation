@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   applySceneStudioRuntimePackImportToCreativeOpsState,
   createDefaultCreativeOpsState,
+  rollbackSceneStudioRuntimePackImportInCreativeOpsState,
   resolveCreativeSceneCue,
   resolveCreativeSoundCue,
 } from '../src/admin/creativeOps';
@@ -286,5 +287,66 @@ describe('scene studio runtime pack integration', () => {
     expect(resolveCreativeSceneCue(next, 'profile.deck.open', 'bureau', 'published')?.transitionStyle).toBe(
       'sharp'
     );
+  });
+
+  it('rolls back a draft runtime-pack import and restores the previous scene state', () => {
+    const state = createDefaultCreativeOpsState();
+    const previousDraftTransition =
+      resolveCreativeSceneCue(state, 'profile.deck.open', 'bureau', 'draft')?.transitionStyle || null;
+
+    const imported = applySceneStudioRuntimePackImportToCreativeOpsState(state, createRuntimePack(), {
+      mode: 'draft',
+      occurredAt: 12000,
+      actorScope: 'account',
+    });
+    expect(resolveCreativeSceneCue(imported, 'profile.deck.open', 'bureau', 'draft')?.transitionStyle).toBe(
+      'sharp'
+    );
+    expect(imported.runtimePackHistory[0]?.rolledBackAt).toBeNull();
+
+    const rolledBack = rollbackSceneStudioRuntimePackImportInCreativeOpsState(
+      imported,
+      imported.runtimePackHistory[0].id,
+      {
+        occurredAt: 12100,
+        actorScope: 'account',
+      }
+    );
+
+    expect(
+      resolveCreativeSceneCue(rolledBack, 'profile.deck.open', 'bureau', 'draft')?.transitionStyle || null
+    ).toBe(previousDraftTransition);
+    expect(rolledBack.runtimePackHistory[0]?.rolledBackAt).toBe(12100);
+    expect(rolledBack.publishLog[0]?.action).toBe('restored');
+  });
+
+  it('rolls back a published runtime-pack import and restores published scene data', () => {
+    const state = createDefaultCreativeOpsState();
+    const previousPublishedTransition =
+      resolveCreativeSceneCue(state, 'profile.deck.open', 'bureau', 'published')?.transitionStyle || null;
+
+    const imported = applySceneStudioRuntimePackImportToCreativeOpsState(state, createRuntimePack(), {
+      mode: 'published',
+      occurredAt: 13000,
+      actorScope: 'guest',
+    });
+    expect(resolveCreativeSceneCue(imported, 'profile.deck.open', 'bureau', 'published')?.transitionStyle).toBe(
+      'sharp'
+    );
+
+    const rolledBack = rollbackSceneStudioRuntimePackImportInCreativeOpsState(
+      imported,
+      imported.runtimePackHistory[0].id,
+      {
+        occurredAt: 13100,
+        actorScope: 'guest',
+      }
+    );
+
+    expect(
+      resolveCreativeSceneCue(rolledBack, 'profile.deck.open', 'bureau', 'published')?.transitionStyle || null
+    ).toBe(previousPublishedTransition);
+    expect(rolledBack.runtimePackHistory[0]?.rolledBackAt).toBe(13100);
+    expect(rolledBack.publishLog[0]?.action).toBe('restored');
   });
 });

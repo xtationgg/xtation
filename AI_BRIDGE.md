@@ -86,6 +86,24 @@ All work should pass `npm run build` and `npx vitest run` before committing.
 ## Latest Codex Note
 
 - Date: 2026-03-12
+- Scene Studio runtime-pack bridge now includes import history + rollback controls:
+  - Admin UI now shows recent imports with:
+    - reapply to draft
+    - reapply to published
+    - one-click rollback per import
+  - Runtime state now persists rollback metadata (`rolledBackAt`) for each import history entry.
+  - Files updated:
+    - `/Users/sarynass/dyad-apps/CLient-D82pm/components/Admin/CreativeOpsPanel.tsx`
+    - `/Users/sarynass/dyad-apps/CLient-D82pm/tests/scene-studio-runtime-pack.test.ts`
+- Regression coverage added:
+  - rollback restores prior draft scene data after draft import
+  - rollback restores prior published scene data after published import
+  - rollback writes a `restored` publish-log entry and marks history item as rolled back
+- Verification:
+  - `npm run build` passed
+  - `npx vitest run` passed (`219/219`)
+
+- Date: 2026-03-12
 - Creative Ops now has a real Scene Studio import/apply bridge in Admin:
   - Added runtime-pack import UI in:
     - `/Users/sarynass/dyad-apps/CLient-D82pm/components/Admin/CreativeOpsPanel.tsx`
