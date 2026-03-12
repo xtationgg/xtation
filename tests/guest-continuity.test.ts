@@ -9,6 +9,8 @@ const mocks = vi.hoisted(() => ({
   readXtationOnboardingHandoff: vi.fn(),
   readStoredXtationLastView: vi.fn(),
   resolveXtationLastView: vi.fn(),
+  readStationActivity: vi.fn(),
+  buildStationContinuityContext: vi.fn(),
   buildLocalStationStatus: vi.fn(),
 }));
 
@@ -28,6 +30,14 @@ vi.mock('../src/navigation/lastView', () => ({
   resolveXtationLastView: mocks.resolveXtationLastView,
 }));
 
+vi.mock('../src/station/stationActivity', () => ({
+  readStationActivity: mocks.readStationActivity,
+}));
+
+vi.mock('../src/station/continuityContext', () => ({
+  buildStationContinuityContext: mocks.buildStationContinuityContext,
+}));
+
 vi.mock('../src/welcome/localStationStatus', () => ({
   buildLocalStationStatus: mocks.buildLocalStationStatus,
 }));
@@ -41,6 +51,8 @@ describe('readGuestStationContinuityState', () => {
     mocks.readXtationOnboardingHandoff.mockReset();
     mocks.readStoredXtationLastView.mockReset();
     mocks.resolveXtationLastView.mockReset();
+    mocks.readStationActivity.mockReset();
+    mocks.buildStationContinuityContext.mockReset();
     mocks.buildLocalStationStatus.mockReset();
     mocks.resolveXtationLastView.mockImplementation((view) => view ?? ClientView.LOBBY);
   });
@@ -178,5 +190,62 @@ describe('readGuestStationContinuityState', () => {
     expect(result.resumeView).toBe(ClientView.PROFILE);
     expect(result.transitionDescriptor.title).toBe('Starter loop resumed');
     expect(result.transitionDescriptor.targetView).toBe(ClientView.PROFILE);
+  });
+
+  it('resolves guest entry state directly from stored continuity context', async () => {
+    const { resolveGuestStationEntryStateFromStorage } = await import('../src/welcome/guestContinuity');
+
+    const stationActivity = [
+      {
+        id: 'transition-1',
+        createdAt: 200,
+        title: 'Imported local station',
+        detail: 'Imported into account state.',
+        targetView: ClientView.LAB,
+        workspaceLabel: 'Lab',
+      },
+    ];
+
+    mocks.readStationActivity.mockReturnValue(stationActivity);
+    mocks.readStoredXtationLastView.mockReturnValue(ClientView.LAB);
+    mocks.buildStationContinuityContext.mockReturnValue({
+      starterFlowSummary: null,
+      latestTransitionActivity: stationActivity[0],
+      visibleRecentStationActivity: stationActivity,
+    });
+    mocks.getGuestStationSnapshot.mockReturnValue({ ledger: true });
+    mocks.hasGuestStationData.mockReturnValue(false);
+    mocks.readXtationOnboardingState.mockReturnValue({});
+    mocks.readXtationOnboardingHandoff.mockReturnValue(null);
+    mocks.buildLocalStationStatus.mockReturnValue({
+      mode: 'resume',
+      eyebrow: 'Starter loop',
+      title: 'Continue local station',
+      detail: 'Continue from local station.',
+      workspaceLabel: 'Lab',
+      targetView: ClientView.LAB,
+      actionLabel: 'Continue',
+      statusLabel: 'Local',
+      statusValue: 'Active',
+      chips: [],
+    });
+
+    const result = resolveGuestStationEntryStateFromStorage({
+      canAccessAdmin: false,
+      featureVisibility: { lab: true, multiplayer: true, store: true },
+    });
+
+    expect(mocks.readStationActivity).toHaveBeenCalledTimes(1);
+    expect(mocks.buildStationContinuityContext).toHaveBeenCalledWith(
+      stationActivity,
+      ClientView.LAB,
+      {
+        canAccessAdmin: false,
+        featureVisibility: { lab: true, multiplayer: true, store: true },
+      },
+      2
+    );
+    expect(result.resumeView).toBe(ClientView.LAB);
+    expect(result.transitionDescriptor.workspaceLabel).toBe('Lab');
   });
 });

@@ -86,6 +86,21 @@ All work should pass `npm run build` and `npx vitest run` before committing.
 ## Latest Codex Note
 
 - Date: 2026-03-12
+- App shell guest-mode + guest-entry path hardening/refactor:
+  - Added safe guest-mode session helpers (no raw `sessionStorage` calls in App shell flow):
+    - `/Users/sarynass/dyad-apps/CLient-D82pm/src/auth/guestModeSession.ts`
+  - `App.tsx` now routes all guest-mode read/write/clear through the helper, reducing crash risk when storage is degraded:
+    - `/Users/sarynass/dyad-apps/CLient-D82pm/App.tsx`
+  - Added shared `resolveGuestStationEntryStateFromStorage(...)` to remove duplicated continuity assembly in Welcome/local-entry and guided-setup routes:
+    - `/Users/sarynass/dyad-apps/CLient-D82pm/src/welcome/guestContinuity.ts`
+  - Updated continuity tests + new guest-mode storage tests:
+    - `/Users/sarynass/dyad-apps/CLient-D82pm/tests/guest-continuity.test.ts`
+    - `/Users/sarynass/dyad-apps/CLient-D82pm/tests/guest-mode-session.test.ts`
+  - Verification:
+    - `npm run build` passed
+    - `npx vitest run` passed (`240/240`)
+
+- Date: 2026-03-12
 - Auth/session transition storage hardening pass:
   - `authTransitionSignal` now uses safe session-storage wrappers (read/write/clear) to avoid runtime crashes when storage is unavailable or throws.
     - `/Users/sarynass/dyad-apps/CLient-D82pm/src/auth/authTransitionSignal.ts`

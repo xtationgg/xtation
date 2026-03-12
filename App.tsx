@@ -50,6 +50,11 @@ import {
   type StationTransitionNotice,
 } from './src/auth/stationTransitionNotice';
 import { clearAuthTransitionSignal, readAuthTransitionSignal } from './src/auth/authTransitionSignal';
+import {
+  clearGuestModeSession,
+  readGuestModeSession,
+  writeGuestModeSession,
+} from './src/auth/guestModeSession';
 import { buildAuthTransitionResultDescriptor } from './src/auth/authTransitionDescriptor';
 import {
   buildStarterSkippedTransition,
@@ -83,7 +88,7 @@ import {
   writeStoredXtationLastView,
   XTATION_LAST_VIEW_STORAGE_EVENT,
 } from './src/navigation/lastView';
-import { resolveGuestStationEntryState } from './src/welcome/guestContinuity';
+import { resolveGuestStationEntryStateFromStorage } from './src/welcome/guestContinuity';
 import { buildLocalEntryTransitionDescriptor } from './src/welcome/localEntryTransition';
 import type { LocalStationStatus } from './src/welcome/localStationStatus';
 import {
@@ -92,7 +97,6 @@ import {
   XTATION_STATION_ACTIVITY_EVENT,
   type StationActivityEntry,
 } from './src/station/stationActivity';
-import { buildStationContinuityContext } from './src/station/continuityContext';
 import { buildStationIdentitySummary } from './src/station/stationIdentity';
 import { buildStarterLoopChips } from './src/station/starterFlow';
 import {
@@ -210,8 +214,6 @@ const defaultViewBackgrounds: Record<ClientView, string | null> = {
   [ClientView.CHAMP_SELECT]: null,
 };
 
-const GUEST_MODE_SESSION_KEY = 'xtation_guest_mode';
-
 const formatWorkspaceLabel = (view: ClientView | null | undefined) => {
   switch (view) {
     case ClientView.LOBBY:
@@ -273,10 +275,7 @@ const App: React.FC = () => {
     detail: string;
   } | null>(null);
   const [recentStationActivity, setRecentStationActivity] = useState<StationActivityEntry[]>([]);
-  const [isGuestMode, setIsGuestMode] = useState<boolean>(() => {
-    if (typeof window === 'undefined') return false;
-    return window.sessionStorage.getItem(GUEST_MODE_SESSION_KEY) === 'true';
-  });
+  const [isGuestMode, setIsGuestMode] = useState<boolean>(() => readGuestModeSession());
   
   // New State for dynamic background (e.g., Champ Select splash art)
   const [customBackground, setCustomBackground] = useState<string | null>(null);
@@ -534,20 +533,7 @@ const App: React.FC = () => {
   }, [currentView]);
 
   const openGuestGuidedSetup = () => {
-    const localStationActivity = readStationActivity();
-    const continuityContext = buildStationContinuityContext(
-      localStationActivity,
-      readStoredXtationLastView(),
-      {
-        canAccessAdmin: operatorAccess.allowed,
-        featureVisibility,
-      },
-      2
-    );
-    const guestEntry = resolveGuestStationEntryState(
-      localStationActivity,
-      continuityContext.starterFlowSummary,
-      continuityContext.latestTransitionActivity,
+    const guestEntry = resolveGuestStationEntryStateFromStorage(
       {
         canAccessAdmin: operatorAccess.allowed,
         featureVisibility,
@@ -602,7 +588,7 @@ const App: React.FC = () => {
     setIsAssistantOpen(false);
     setIsPaletteOpen(false);
     setIsGuestMode(true);
-    window.sessionStorage.setItem(GUEST_MODE_SESSION_KEY, 'true');
+    writeGuestModeSession(true);
     setIsOnboardingOpen(true);
   };
 
@@ -668,7 +654,7 @@ const App: React.FC = () => {
   useEffect(() => {
     if (authLoading || !user) return;
     setIsGuestMode(false);
-    window.sessionStorage.removeItem(GUEST_MODE_SESSION_KEY);
+    clearGuestModeSession();
   }, [authLoading, user]);
 
   useEffect(() => {
@@ -1318,27 +1304,10 @@ const App: React.FC = () => {
     return (
       <Welcome
         onEnterLocalMode={() => {
-          const lastView = readStoredXtationLastView();
-          const localStationActivity = readStationActivity();
-          const continuityContext =
-            buildStationContinuityContext(
-              localStationActivity,
-              lastView,
-              {
-                canAccessAdmin: operatorAccess.allowed,
-                featureVisibility,
-              },
-              2
-            );
-          const guestEntry = resolveGuestStationEntryState(
-            localStationActivity,
-            continuityContext.starterFlowSummary,
-            continuityContext.latestTransitionActivity,
-            {
-              canAccessAdmin: operatorAccess.allowed,
-              featureVisibility,
-            }
-          );
+          const guestEntry = resolveGuestStationEntryStateFromStorage({
+            canAccessAdmin: operatorAccess.allowed,
+            featureVisibility,
+          });
           writeStationTransitionNotice({
             scope: 'guest',
             title: guestEntry.transitionDescriptor.title,
@@ -1354,7 +1323,7 @@ const App: React.FC = () => {
           setIsAssistantOpen(false);
           setIsPaletteOpen(false);
           setIsGuestMode(true);
-          window.sessionStorage.setItem(GUEST_MODE_SESSION_KEY, 'true');
+          writeGuestModeSession(true);
         }}
         onResumeGuidedSetup={openGuestGuidedSetup}
       />
@@ -1390,7 +1359,7 @@ const App: React.FC = () => {
           !user && isGuestMode
             ? () => {
                 setIsGuestMode(false);
-                window.sessionStorage.removeItem(GUEST_MODE_SESSION_KEY);
+                clearGuestModeSession();
               }
             : undefined
         }
@@ -1910,7 +1879,7 @@ const App: React.FC = () => {
                   targetView: guestReturnView,
                   chips: ['Account unchanged', 'Import deferred', `${formatWorkspaceLabel(guestReturnView)} resumed`],
                 });
-                window.sessionStorage.setItem(GUEST_MODE_SESSION_KEY, 'true');
+                writeGuestModeSession(true);
                 setIsGuestMode(true);
                 setIsGuestStationHandoffOpen(false);
                 void signOut();

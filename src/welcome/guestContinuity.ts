@@ -2,7 +2,8 @@ import { ClientView } from '../../types';
 import { buildGuestStationSummary, getGuestStationSnapshot, hasGuestStationData } from '../auth/guestStation';
 import { readStoredXtationLastView } from '../navigation/lastView';
 import { readXtationOnboardingHandoff, readXtationOnboardingState } from '../onboarding/storage';
-import type { StationActivityEntry } from '../station/stationActivity';
+import { readStationActivity, type StationActivityEntry } from '../station/stationActivity';
+import { buildStationContinuityContext } from '../station/continuityContext';
 import type { StationStarterFlowSummary } from '../station/starterFlow';
 import { buildLocalStationStatus, type LocalStationStatus } from './localStationStatus';
 import {
@@ -90,4 +91,20 @@ export const resolveGuestStationEntryState = (
       resumeView
     ),
   };
+};
+
+export const resolveGuestStationEntryStateFromStorage = (access?: GuestContinuityAccess) => {
+  const stationActivity = readStationActivity();
+  const continuityContext = buildStationContinuityContext(
+    stationActivity,
+    readStoredXtationLastView(),
+    access,
+    2
+  );
+  return resolveGuestStationEntryState(
+    stationActivity,
+    continuityContext.starterFlowSummary,
+    continuityContext.latestTransitionActivity,
+    access
+  );
 };
