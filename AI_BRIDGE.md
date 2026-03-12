@@ -84,20 +84,23 @@ All work should pass `npm run build` and `npx vitest run` (191 tests) before com
 
 ## Latest Codex Note
 
-- Shared shell scrollability is now fixed at the actual layout layer instead of page-by-page:
-  - desktop viewport now owns vertical scroll again
+- Shared shell scrollability is now fixed at the real root/layout layer, not page-by-page:
+  - desktop viewport still owns vertical scroll
   - `.xt-shell-stage` is no longer height-clamped
-  - welcome entry shell now allows vertical scroll instead of hard-hiding overflow
-  - this was verified in-browser on both the welcome entry path and the in-app shell
-- Main files in this batch:
-  - `/Users/sarynass/dyad-apps/CLient-D82pm/App.tsx`
+  - welcome entry shell allows vertical scroll
+  - the real trap was global:
+    - `html/body` were still `overflow: hidden`
+    - desktop `#root` scaling used fixed `height` plus `overflow: hidden`
+  - root scaling now uses `min-height` and visible overflow instead, so lower welcome content is reachable
+- Main file in this batch:
   - `/Users/sarynass/dyad-apps/CLient-D82pm/index.css`
 - Latest verification:
   - `npm run build` passed
   - `npx vitest run` passed `200/200`
+  - local browser snapshot now reaches the lower welcome controls, including `Start Guided Setup`
 - Current recommendation:
-  - stop treating hidden lower content as per-page styling bugs
-  - preserve the shared viewport scroll path and fix individual sections only if they have a truly local constraint
+  - treat future hidden-content issues as root/shell contract problems first
+  - only patch page-local overflow after ruling out `html/body/#root` and desktop scale clamps
 
 - Current Profile portrait pass is now in a much better place visually:
   - hero shot widened and lifted so the face/shoulders stay in frame

@@ -6743,11 +6743,13 @@
 
 html,
 body {
+  min-height: 100%;
   background-color: var(--dc-bg) !important;
   background-image: var(--ui-bg-overlay) !important;
   color: var(--dc-text) !important;
   letter-spacing: var(--ui-body-letter-spacing);
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
 }
 
 body::before {
@@ -6765,6 +6767,7 @@ body::before {
 #root {
   position: relative;
   z-index: 1;
+  min-height: 100dvh;
   background-color: var(--dc-bg);
   background-image: var(--ui-bg-overlay);
   color: var(--dc-text);
@@ -6795,10 +6798,10 @@ body::before {
   #root {
     max-width: none;
     width: calc(100% / var(--xt-ui-scale));
-    height: calc(100dvh / var(--xt-ui-scale));
+    min-height: calc(100dvh / var(--xt-ui-scale));
     transform: scale(var(--xt-ui-scale));
     transform-origin: top left;
-    overflow: hidden;
+    overflow: visible;
   }
 }
 
