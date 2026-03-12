@@ -33,6 +33,7 @@ import {
   clearGuestStationSnapshot,
   getGuestStationSnapshot,
   hasGuestStationData,
+  readGuestStationRecoverySnapshot,
   readDismissedGuestStationSignature,
   writeDismissedGuestStationSignature,
   writeGuestStationRecoverySnapshot,

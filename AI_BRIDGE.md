@@ -86,6 +86,15 @@ All work should pass `npm run build` and `npx vitest run` before committing.
 ## Latest Codex Note
 
 - Date: 2026-03-12
+- Hotfix: fixed live auth/logout runtime crash (`readGuestStationRecoverySnapshot is not defined`).
+  - Root cause: `App.tsx` referenced `readGuestStationRecoverySnapshot(...)` but missed importing it from `src/auth/guestStation`.
+  - Fix:
+    - added missing import in `/Users/sarynass/dyad-apps/CLient-D82pm/App.tsx`
+  - Verification:
+    - `npm run build` passed
+    - `npx vitest run` passed (`220/220`)
+
+- Date: 2026-03-12
 - Scene Studio runtime-pack bridge now includes import history + rollback controls:
   - Admin UI now shows recent imports with:
     - reapply to draft
