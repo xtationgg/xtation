@@ -30,26 +30,71 @@ export const defaultXtationOnboardingState: XtationOnboardingState = {
   updatedAt: null,
 };
 
+const ONBOARDING_STATUS_VALUES: XtationOnboardingStatus[] = ['pending', 'skipped', 'completed'];
+const STARTER_TRACK_VALUES: XtationStarterTrack[] = ['mission', 'practice', 'system'];
+const SELF_TREE_BRANCH_VALUES: SelfTreeBranch[] = [
+  'Knowledge',
+  'Creation',
+  'Systems',
+  'Communication',
+  'Physical',
+  'Inner',
+];
+
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === 'object' && value !== null && !Array.isArray(value);
+
+const isOnboardingStatus = (value: unknown): value is XtationOnboardingStatus =>
+  typeof value === 'string' && ONBOARDING_STATUS_VALUES.includes(value as XtationOnboardingStatus);
+
+const isStarterTrack = (value: unknown): value is XtationStarterTrack =>
+  typeof value === 'string' && STARTER_TRACK_VALUES.includes(value as XtationStarterTrack);
+
+const isSelfTreeBranch = (value: unknown): value is SelfTreeBranch =>
+  typeof value === 'string' && SELF_TREE_BRANCH_VALUES.includes(value as SelfTreeBranch);
+
+const parseOnboardingState = (value: unknown): XtationOnboardingState | null => {
+  if (!isRecord(value) || !isOnboardingStatus(value.status)) return null;
+  if (value.updatedAt !== null && value.updatedAt !== undefined && typeof value.updatedAt !== 'number') return null;
+  return {
+    status: value.status,
+    updatedAt: typeof value.updatedAt === 'number' ? value.updatedAt : null,
+  };
+};
+
+const parseOnboardingHandoff = (value: unknown): XtationOnboardingHandoff | null => {
+  if (!isRecord(value)) return null;
+  if (typeof value.questId !== 'string' || !value.questId.trim()) return null;
+  if (typeof value.title !== 'string' || !value.title.trim()) return null;
+  if (!isSelfTreeBranch(value.branch)) return null;
+  if (!isStarterTrack(value.track)) return null;
+  if (typeof value.createdAt !== 'number') return null;
+  return {
+    questId: value.questId,
+    title: value.title,
+    branch: value.branch,
+    track: value.track,
+    nodeTitle: typeof value.nodeTitle === 'string' && value.nodeTitle.trim() ? value.nodeTitle : undefined,
+    createdAt: value.createdAt,
+    dismissedAt: typeof value.dismissedAt === 'number' ? value.dismissedAt : null,
+  };
+};
+
 export const readXtationOnboardingState = (userId?: string | null): XtationOnboardingState => {
   if (typeof window === 'undefined') return defaultXtationOnboardingState;
 
   if (userId) {
-    return readUserScopedJSON<XtationOnboardingState>(ONBOARDING_STORAGE_KEY, defaultXtationOnboardingState, userId);
+    const parsed = parseOnboardingState(
+      readUserScopedJSON<unknown>(ONBOARDING_STORAGE_KEY, null, userId)
+    );
+    return parsed ?? defaultXtationOnboardingState;
   }
 
   try {
     const raw = window.localStorage.getItem(GUEST_ONBOARDING_STORAGE_KEY);
     if (!raw) return defaultXtationOnboardingState;
-    const parsed = JSON.parse(raw) as Partial<XtationOnboardingState>;
-    if (
-      (parsed.status === 'pending' || parsed.status === 'skipped' || parsed.status === 'completed') &&
-      (parsed.updatedAt === null || typeof parsed.updatedAt === 'number')
-    ) {
-      return {
-        status: parsed.status,
-        updatedAt: parsed.updatedAt ?? null,
-      };
-    }
+    const parsed = parseOnboardingState(JSON.parse(raw) as unknown);
+    if (parsed) return parsed;
   } catch {
     // Ignore malformed guest onboarding state.
   }
@@ -91,30 +136,15 @@ export const readXtationOnboardingHandoff = (userId?: string | null): XtationOnb
   if (typeof window === 'undefined') return null;
 
   if (userId) {
-    return readUserScopedJSON<XtationOnboardingHandoff | null>(ONBOARDING_HANDOFF_STORAGE_KEY, null, userId);
+    return parseOnboardingHandoff(
+      readUserScopedJSON<unknown>(ONBOARDING_HANDOFF_STORAGE_KEY, null, userId)
+    );
   }
 
   try {
     const raw = window.localStorage.getItem(GUEST_ONBOARDING_HANDOFF_STORAGE_KEY);
     if (!raw) return null;
-    const parsed = JSON.parse(raw) as Partial<XtationOnboardingHandoff>;
-    if (
-      typeof parsed.questId === 'string' &&
-      typeof parsed.title === 'string' &&
-      typeof parsed.branch === 'string' &&
-      typeof parsed.track === 'string' &&
-      typeof parsed.createdAt === 'number'
-    ) {
-      return {
-        questId: parsed.questId,
-        title: parsed.title,
-        branch: parsed.branch as SelfTreeBranch,
-        track: parsed.track as XtationStarterTrack,
-        nodeTitle: typeof parsed.nodeTitle === 'string' ? parsed.nodeTitle : undefined,
-        createdAt: parsed.createdAt,
-        dismissedAt: typeof parsed.dismissedAt === 'number' ? parsed.dismissedAt : null,
-      };
-    }
+    return parseOnboardingHandoff(JSON.parse(raw) as unknown);
   } catch {
     // Ignore malformed guest onboarding handoff.
   }

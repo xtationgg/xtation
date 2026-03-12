@@ -86,6 +86,22 @@ All work should pass `npm run build` and `npx vitest run` before committing.
 ## Latest Codex Note
 
 - Date: 2026-03-12
+- Stability hardening pass for auth/onboarding continuity hydration:
+  - Signed-in onboarding reads are now normalized (same rigor as guest path), so malformed scoped payloads fall back safely instead of leaking invalid shapes into runtime:
+    - `/Users/sarynass/dyad-apps/CLient-D82pm/src/onboarding/storage.ts`
+  - Guest station recovery snapshot reads are now normalized/validated at the boundary:
+    - invalid structures return `null`
+    - malformed ledgers are normalized to safe empty/default ledger structures
+    - malformed guest-context fields are dropped instead of crashing consumers
+    - `/Users/sarynass/dyad-apps/CLient-D82pm/src/auth/guestStation.ts`
+  - New regression coverage:
+    - `/Users/sarynass/dyad-apps/CLient-D82pm/tests/onboarding-storage-normalization.test.ts`
+    - `/Users/sarynass/dyad-apps/CLient-D82pm/tests/guest-station-recovery-normalization.test.ts`
+  - Verification:
+    - `npm run build` passed
+    - `npx vitest run` passed (`227/227`)
+
+- Date: 2026-03-12
 - Auth/connect modal visual cleanup shipped (matches current user feedback screenshot target):
   - Removed right-rail/day-date decorative stack from auth shell.
   - Reworked shell into darker cinematic panel treatment with cleaner right-stage geometry.

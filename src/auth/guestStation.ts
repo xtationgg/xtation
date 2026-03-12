@@ -1,6 +1,6 @@
 import { xpRepository } from '../../components/XP/xpRepository';
 import type { XPLedgerState } from '../../components/XP/xpTypes';
-import type { ClientView } from '../../types';
+import { ClientView } from '../../types';
 import {
   clearUserScopedKey,
   readUserScopedJSON,
@@ -37,6 +37,106 @@ export interface GuestStationRecoverySnapshot {
     onboardingHandoff: XtationOnboardingHandoff | null;
   };
 }
+
+const ONBOARDING_STATUS_VALUES = new Set(['pending', 'skipped', 'completed']);
+const STARTER_TRACK_VALUES = new Set(['mission', 'practice', 'system']);
+const SELF_TREE_BRANCH_VALUES = new Set([
+  'Knowledge',
+  'Creation',
+  'Systems',
+  'Communication',
+  'Physical',
+  'Inner',
+]);
+
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === 'object' && value !== null && !Array.isArray(value);
+
+const parseClientView = (value: unknown): ClientView | null =>
+  typeof value === 'string' && Object.values(ClientView).includes(value as ClientView)
+    ? (value as ClientView)
+    : null;
+
+const parseOnboardingState = (value: unknown): XtationOnboardingState | null => {
+  if (!isRecord(value) || typeof value.status !== 'string' || !ONBOARDING_STATUS_VALUES.has(value.status)) {
+    return null;
+  }
+  if (value.updatedAt !== null && value.updatedAt !== undefined && typeof value.updatedAt !== 'number') {
+    return null;
+  }
+  return {
+    status: value.status,
+    updatedAt: typeof value.updatedAt === 'number' ? value.updatedAt : null,
+  };
+};
+
+const parseOnboardingHandoff = (value: unknown): XtationOnboardingHandoff | null => {
+  if (!isRecord(value)) return null;
+  if (typeof value.questId !== 'string' || !value.questId.trim()) return null;
+  if (typeof value.title !== 'string' || !value.title.trim()) return null;
+  if (typeof value.branch !== 'string' || !SELF_TREE_BRANCH_VALUES.has(value.branch)) return null;
+  if (typeof value.track !== 'string' || !STARTER_TRACK_VALUES.has(value.track)) return null;
+  if (typeof value.createdAt !== 'number') return null;
+
+  return {
+    questId: value.questId,
+    title: value.title,
+    branch: value.branch as XtationOnboardingHandoff['branch'],
+    track: value.track as XtationOnboardingHandoff['track'],
+    nodeTitle: typeof value.nodeTitle === 'string' && value.nodeTitle.trim() ? value.nodeTitle : undefined,
+    createdAt: value.createdAt,
+    dismissedAt: typeof value.dismissedAt === 'number' ? value.dismissedAt : null,
+  };
+};
+
+const normalizeSnapshot = (value: unknown): XPLedgerState => {
+  try {
+    return xpRepository.normalize(value);
+  } catch {
+    return xpRepository.createEmpty();
+  }
+};
+
+const normalizeGuestContext = (
+  value: unknown
+): GuestStationRecoverySnapshot['guestContext'] | undefined => {
+  if (!isRecord(value)) return undefined;
+
+  const context: GuestStationRecoverySnapshot['guestContext'] = {
+    lastView: parseClientView(value.lastView),
+    importedView: parseClientView(value.importedView),
+    onboardingState: parseOnboardingState(value.onboardingState),
+    onboardingHandoff: parseOnboardingHandoff(value.onboardingHandoff),
+  };
+
+  if (
+    !context.lastView &&
+    !context.importedView &&
+    !context.onboardingState &&
+    !context.onboardingHandoff
+  ) {
+    return undefined;
+  }
+
+  return context;
+};
+
+const normalizeGuestStationRecoverySnapshot = (
+  value: unknown
+): GuestStationRecoverySnapshot | null => {
+  if (!isRecord(value) || typeof value.importedUserId !== 'string' || !value.importedUserId.trim()) {
+    return null;
+  }
+
+  return {
+    createdAt: typeof value.createdAt === 'number' ? value.createdAt : Date.now(),
+    importedUserId: value.importedUserId.trim(),
+    importedUserEmail: typeof value.importedUserEmail === 'string' ? value.importedUserEmail : null,
+    accountSnapshot: normalizeSnapshot(value.accountSnapshot),
+    guestSnapshot: normalizeSnapshot(value.guestSnapshot),
+    guestContext: normalizeGuestContext(value.guestContext),
+  };
+};
 
 const hashString = (value: string) => {
   let hash = 5381;
@@ -108,7 +208,9 @@ export const writeGuestStationRecoverySnapshot = (
   userId: string,
   snapshot: GuestStationRecoverySnapshot
 ) => {
-  const written = writeUserScopedJSON(RECOVERY_SNAPSHOT_KEY, snapshot, userId);
+  const normalized = normalizeGuestStationRecoverySnapshot(snapshot);
+  if (!normalized) return false;
+  const written = writeUserScopedJSON(RECOVERY_SNAPSHOT_KEY, normalized, userId);
   if (written && typeof window !== 'undefined') {
     window.dispatchEvent(
       new CustomEvent(XTATION_GUEST_STATION_RECOVERY_EVENT, {
@@ -123,7 +225,9 @@ export const writeGuestStationRecoverySnapshot = (
 };
 
 export const readGuestStationRecoverySnapshot = (userId: string) =>
-  readUserScopedJSON<GuestStationRecoverySnapshot | null>(RECOVERY_SNAPSHOT_KEY, null, userId);
+  normalizeGuestStationRecoverySnapshot(
+    readUserScopedJSON<unknown>(RECOVERY_SNAPSHOT_KEY, null, userId)
+  );
 
 export const clearGuestStationRecoverySnapshot = (userId: string) =>
   {
