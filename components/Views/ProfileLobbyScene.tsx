@@ -1275,6 +1275,21 @@ export const ProfileLobbyScene: React.FC<ProfileLobbySceneProps> = ({
     }
   };
 
+  const handleSceneReload = useCallback(() => {
+    emitEvent('profile.scene.reload', {
+      source: 'scene',
+      metadata: {
+        environmentMode,
+        cameraShot,
+      },
+    });
+    setCapabilities(null);
+    setLastSceneRuntimeEvent(null);
+    setSceneStatus('booting');
+    setStatusMessage('Reloading stage');
+    setReloadNonce((value) => value + 1);
+  }, [cameraShot, emitEvent, environmentMode]);
+
   const statusTone =
     sceneStatus === 'error' ? 'error' : sceneStatus === 'ready' ? 'ready' : 'syncing';
   const effectiveStateLabel = formatRuntimeKey(effectiveSceneStateKey);
@@ -1382,10 +1397,21 @@ export const ProfileLobbyScene: React.FC<ProfileLobbySceneProps> = ({
 
       {/* Minimal connection indicator — always visible */}
       {sceneStatus !== 'ready' ? (
-        <div className="absolute left-4 top-4 z-10 pointer-events-none">
-          <div className="flex items-center gap-2 px-2.5 py-1.5 rounded bg-black/40 backdrop-blur-sm">
+        <div className="absolute left-4 top-4 z-10">
+          <div className="flex items-center gap-2 px-2.5 py-1.5 rounded bg-black/40 backdrop-blur-sm pointer-events-none">
             {sceneStatus === 'error' ? <AlertCircle size={11} className="text-red-400/80" /> : <Loader2 size={11} className="animate-spin text-white/50" />}
             <span className="text-[10px] uppercase tracking-[0.15em] text-white/50">{sceneStatus === 'error' ? 'Scene error' : 'Linking'}</span>
+            {sceneStatus === 'error' ? (
+              <button
+                type="button"
+                onClick={handleSceneReload}
+                className="xt-runtime-action xt-runtime-action--compact pointer-events-auto"
+                aria-label="Retry profile scene"
+                title="Retry profile scene"
+              >
+                <RefreshCw size={11} />
+              </button>
+            ) : null}
           </div>
         </div>
       ) : null}
@@ -1414,16 +1440,7 @@ export const ProfileLobbyScene: React.FC<ProfileLobbySceneProps> = ({
           <div className="pointer-events-auto flex items-center gap-2">
             <button
               type="button"
-              onClick={() => {
-                emitEvent('profile.scene.reload', {
-                  source: 'scene',
-                  metadata: {
-                    environmentMode,
-                    cameraShot,
-                  },
-                });
-                setReloadNonce((value) => value + 1);
-              }}
+              onClick={handleSceneReload}
               className="xt-runtime-action xt-runtime-action--compact"
               aria-label="Reload Scene"
               title="Reload Scene"

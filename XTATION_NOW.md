@@ -109,6 +109,11 @@ Backup cadence:
 
 ## Current Stop Point
 
+- profile function-first reliability pass completed:
+  - scene runtime error state now exposes a direct retry action in production
+  - scene reload behavior is unified through one handler instead of split ad-hoc calls
+  - build/tests pass after the pass
+
 - multiplayer command-surface copy quality pass completed:
   - singular/plural wording in HQ queue/recommendation/risk lanes now reads correctly
   - no new runtime errors found in the live sweep path (welcome -> local -> guided setup skip -> multiplayer HQ)

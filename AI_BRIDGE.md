@@ -86,6 +86,15 @@ All work should pass `npm run build` and `npx vitest run` before committing.
 ## Latest Codex Note
 
 - Date: 2026-03-12
+- Profile scene is now function-first safer in production:
+  - when scene runtime errors, users now get an immediate retry control in the visible status chip (not dev-only)
+  - reload behavior is now centralized through one scene-reload handler used by both the production error chip and the dev HUD control
+  - updated:
+    - `/Users/sarynass/dyad-apps/CLient-D82pm/components/Views/ProfileLobbyScene.tsx`
+  - verification:
+    - `npm run build` passed
+    - `npx vitest run` passed
+
 - Closed-beta browser sweep pass (welcome -> local -> guided setup skip -> multiplayer HQ) is clean on runtime/console.
 - Multiplayer HQ language is now count-safe in singular/plural states:
   - fixed visible copy like:
