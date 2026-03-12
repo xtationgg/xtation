@@ -8,6 +8,27 @@ import {
   writeStationTransitionNotice,
 } from '../src/auth/stationTransitionNotice';
 
+const withSessionStorageOverride = (
+  method: 'getItem' | 'setItem' | 'removeItem',
+  override: Storage['getItem'] | Storage['setItem'] | Storage['removeItem'],
+  run: () => void
+) => {
+  const storageProto = Object.getPrototypeOf(window.sessionStorage) as Storage;
+  const original = storageProto[method];
+  Object.defineProperty(storageProto, method, {
+    configurable: true,
+    value: override,
+  });
+  try {
+    run();
+  } finally {
+    Object.defineProperty(storageProto, method, {
+      configurable: true,
+      value: original,
+    });
+  }
+};
+
 describe('stationTransitionNotice', () => {
   beforeEach(() => {
     window.sessionStorage.clear();
@@ -109,5 +130,47 @@ describe('stationTransitionNotice', () => {
     ).toBe('Return to Guided Setup');
 
     expect(resolveGuidedSetupTransitionActionLabel(null)).toBe('Start Guided Setup');
+  });
+
+  it('returns null instead of throwing when session storage write fails', () => {
+    withSessionStorageOverride(
+      'setItem',
+      () => {
+        throw new Error('blocked');
+      },
+      () => {
+        expect(
+          writeStationTransitionNotice({
+            scope: 'guest',
+            title: 'Guest',
+            detail: 'Detail',
+          })
+        ).toBeNull();
+      }
+    );
+  });
+
+  it('returns null when session storage read fails', () => {
+    withSessionStorageOverride(
+      'getItem',
+      () => {
+        throw new Error('blocked');
+      },
+      () => {
+        expect(readStationTransitionNotice()).toBeNull();
+      }
+    );
+  });
+
+  it('does not throw when session storage remove fails', () => {
+    withSessionStorageOverride(
+      'removeItem',
+      () => {
+        throw new Error('blocked');
+      },
+      () => {
+        expect(() => clearStationTransitionNotice()).not.toThrow();
+      }
+    );
   });
 });

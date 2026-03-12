@@ -39,6 +39,34 @@ const getSessionStorage = () => {
   return window.sessionStorage as Partial<Storage> | undefined;
 };
 
+const safeSessionGetItem = (storage: Partial<Storage>, key: string): string | null => {
+  if (typeof storage.getItem !== 'function') return null;
+  try {
+    return storage.getItem(key);
+  } catch {
+    return null;
+  }
+};
+
+const safeSessionSetItem = (storage: Partial<Storage>, key: string, value: string): boolean => {
+  if (typeof storage.setItem !== 'function') return false;
+  try {
+    storage.setItem(key, value);
+    return true;
+  } catch {
+    return false;
+  }
+};
+
+const safeSessionRemoveItem = (storage: Partial<Storage>, key: string) => {
+  if (typeof storage.removeItem !== 'function') return;
+  try {
+    storage.removeItem(key);
+  } catch {
+    // Ignore storage-level failures.
+  }
+};
+
 const buildNoticeId = () => `notice-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 
 const formatWorkspaceLabel = (view: ClientView | null | undefined) => {
@@ -71,9 +99,9 @@ const formatWorkspaceLabel = (view: ClientView | null | undefined) => {
 
 export const readStationTransitionNotice = (): StationTransitionNotice | null => {
   const storage = getSessionStorage();
-  if (!storage || typeof storage.getItem !== 'function') return null;
+  if (!storage) return null;
 
-  const raw = storage.getItem(STATION_TRANSITION_NOTICE_KEY);
+  const raw = safeSessionGetItem(storage, STATION_TRANSITION_NOTICE_KEY);
   if (!raw) return null;
 
   try {
@@ -156,7 +184,7 @@ export const writeStationTransitionNotice = (
   notice: Omit<StationTransitionNotice, 'id' | 'createdAt'>
 ): StationTransitionNotice | null => {
   const storage = getSessionStorage();
-  if (!storage || typeof storage.setItem !== 'function') return null;
+  if (!storage) return null;
 
   const normalized: StationTransitionNotice = {
     id: buildNoticeId(),
@@ -170,7 +198,9 @@ export const writeStationTransitionNotice = (
     tone: notice.tone === 'accent' ? 'accent' : 'default',
   };
 
-  storage.setItem(STATION_TRANSITION_NOTICE_KEY, JSON.stringify(normalized));
+  if (!safeSessionSetItem(storage, STATION_TRANSITION_NOTICE_KEY, JSON.stringify(normalized))) {
+    return null;
+  }
   if (typeof window !== 'undefined') {
     window.dispatchEvent(
       new CustomEvent<StationTransitionNotice | null>(XTATION_STATION_TRANSITION_NOTICE_EVENT, {
@@ -183,8 +213,8 @@ export const writeStationTransitionNotice = (
 
 export const clearStationTransitionNotice = () => {
   const storage = getSessionStorage();
-  if (!storage || typeof storage.removeItem !== 'function') return;
-  storage.removeItem(STATION_TRANSITION_NOTICE_KEY);
+  if (!storage) return;
+  safeSessionRemoveItem(storage, STATION_TRANSITION_NOTICE_KEY);
   if (typeof window !== 'undefined') {
     window.dispatchEvent(
       new CustomEvent<StationTransitionNotice | null>(XTATION_STATION_TRANSITION_NOTICE_EVENT, {

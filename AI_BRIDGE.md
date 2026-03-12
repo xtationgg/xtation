@@ -86,6 +86,19 @@ All work should pass `npm run build` and `npx vitest run` before committing.
 ## Latest Codex Note
 
 - Date: 2026-03-12
+- Auth/session transition storage hardening pass:
+  - `authTransitionSignal` now uses safe session-storage wrappers (read/write/clear) to avoid runtime crashes when storage is unavailable or throws.
+    - `/Users/sarynass/dyad-apps/CLient-D82pm/src/auth/authTransitionSignal.ts`
+  - `stationTransitionNotice` now uses the same safe session-storage handling for notice persistence and cleanup.
+    - `/Users/sarynass/dyad-apps/CLient-D82pm/src/auth/stationTransitionNotice.ts`
+  - Added regression tests for throw-path storage behavior:
+    - `/Users/sarynass/dyad-apps/CLient-D82pm/tests/auth-transition-signal.test.ts`
+    - `/Users/sarynass/dyad-apps/CLient-D82pm/tests/station-transition-notice.test.ts`
+  - Verification:
+    - `npm run build` passed
+    - `npx vitest run` passed (`235/235`)
+
+- Date: 2026-03-12
 - Restore snapshot hydration boundary hardened:
   - `readXtationStationRestoreRecoverySnapshot(...)` now normalizes/validates nested restore payloads instead of trusting raw parsed JSON.
   - Station export normalization is centralized and reused by both import parsing and restore recovery reads.

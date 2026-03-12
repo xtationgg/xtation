@@ -13,23 +13,51 @@ const getSessionStorage = () => {
   return window.sessionStorage as Partial<Storage> | undefined;
 };
 
+const safeSessionGetItem = (storage: Partial<Storage>, key: string): string | null => {
+  if (typeof storage.getItem !== 'function') return null;
+  try {
+    return storage.getItem(key);
+  } catch {
+    return null;
+  }
+};
+
+const safeSessionSetItem = (storage: Partial<Storage>, key: string, value: string): boolean => {
+  if (typeof storage.setItem !== 'function') return false;
+  try {
+    storage.setItem(key, value);
+    return true;
+  } catch {
+    return false;
+  }
+};
+
+const safeSessionRemoveItem = (storage: Partial<Storage>, key: string) => {
+  if (typeof storage.removeItem !== 'function') return;
+  try {
+    storage.removeItem(key);
+  } catch {
+    // Ignore storage-level failures.
+  }
+};
+
 export const writeAuthTransitionSignal = (signal: Omit<AuthTransitionSignal, 'createdAt'>) => {
   const storage = getSessionStorage();
-  if (!storage || typeof storage.setItem !== 'function') return false;
-  storage.setItem(
+  if (!storage) return false;
+  return safeSessionSetItem(
+    storage,
     AUTH_TRANSITION_SIGNAL_KEY,
     JSON.stringify({
       ...signal,
       createdAt: Date.now(),
     } satisfies AuthTransitionSignal)
   );
-  return true;
 };
 
 export const readAuthTransitionSignal = (): AuthTransitionSignal | null => {
   const storage = getSessionStorage();
-  if (!storage || typeof storage.getItem !== 'function') return null;
-  const raw = storage.getItem(AUTH_TRANSITION_SIGNAL_KEY);
+  if (!storage) return null;
+  const raw = safeSessionGetItem(storage, AUTH_TRANSITION_SIGNAL_KEY);
   if (!raw) return null;
   try {
     const parsed = JSON.parse(raw) as AuthTransitionSignal;
@@ -49,6 +77,6 @@ export const readAuthTransitionSignal = (): AuthTransitionSignal | null => {
 
 export const clearAuthTransitionSignal = () => {
   const storage = getSessionStorage();
-  if (!storage || typeof storage.removeItem !== 'function') return;
-  storage.removeItem(AUTH_TRANSITION_SIGNAL_KEY);
+  if (!storage) return;
+  safeSessionRemoveItem(storage, AUTH_TRANSITION_SIGNAL_KEY);
 };
