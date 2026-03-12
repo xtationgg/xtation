@@ -92,11 +92,18 @@ All work should pass `npm run build` and `npx vitest run` (191 tests) before com
     - `html/body` were still `overflow: hidden`
     - desktop `#root` scaling used fixed `height` plus `overflow: hidden`
   - root scaling now uses `min-height` and visible overflow instead, so lower welcome content is reachable
+- A shared wheel-scroll fallback now also exists for:
+  - `/Users/sarynass/dyad-apps/CLient-D82pm/components/Views/Welcome.tsx`
+  - `/Users/sarynass/dyad-apps/CLient-D82pm/App.tsx` viewport
+  so mouse-wheel scrolling is routed to the active top-level container even when transformed/root layers interfere with browser scroll chaining
 - Main file in this batch:
   - `/Users/sarynass/dyad-apps/CLient-D82pm/index.css`
+  - `/Users/sarynass/dyad-apps/CLient-D82pm/src/ui/wheelScroll.ts`
+  - `/Users/sarynass/dyad-apps/CLient-D82pm/components/Views/Welcome.tsx`
+  - `/Users/sarynass/dyad-apps/CLient-D82pm/App.tsx`
 - Latest verification:
   - `npm run build` passed
-  - `npx vitest run` passed `200/200`
+  - `npx vitest run` passed `204/204`
   - local browser snapshot now reaches the lower welcome controls, including `Start Guided Setup`
 - Current recommendation:
   - treat future hidden-content issues as root/shell contract problems first

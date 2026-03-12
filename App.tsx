@@ -85,6 +85,7 @@ import {
 import { resolveGuestStationEntryState } from './src/welcome/guestContinuity';
 import { buildLocalEntryTransitionDescriptor } from './src/welcome/localEntryTransition';
 import type { LocalStationStatus } from './src/welcome/localStationStatus';
+import { routeWheelToContainer } from './src/ui/wheelScroll';
 import {
   appendStationActivity,
   readStationActivity,
@@ -1662,7 +1663,11 @@ const App: React.FC = () => {
       <div className="xt-shell-main flex-1 min-h-0 flex overflow-hidden relative z-10">
         
         {/* Center Viewport */}
-        <div key={`viewport-${userScopeRenderKey}`} className="xt-shell-viewport flex-1 min-h-0 relative overflow-y-auto overscroll-contain bg-transparent">
+        <div
+          key={`viewport-${userScopeRenderKey}`}
+          className="xt-shell-viewport flex-1 min-h-0 relative overflow-y-auto overscroll-contain bg-transparent"
+          onWheel={routeWheelToContainer}
+        >
             {operatorState.supportLens ? (
               <div className="absolute left-4 right-4 top-4 z-20 rounded-[20px] border border-[color-mix(in_srgb,var(--app-accent)_46%,transparent)] bg-[color-mix(in_srgb,var(--app-accent)_12%,transparent)] px-4 py-3 text-sm text-[var(--app-text)] shadow-[0_12px_40px_rgba(0,0,0,0.18)] backdrop-blur-sm">
                 <span className="text-[10px] uppercase tracking-[0.22em] text-[var(--app-accent)]">Support Lens</span>

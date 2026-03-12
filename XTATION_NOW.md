@@ -45,6 +45,10 @@ Backup cadence:
   - `xt-welcome-shell` now allows vertical overflow
   - `html`, `body`, and `#root` no longer trap the desktop app in a fixed-height hidden-overflow canvas
   - desktop UI scaling now uses root `min-height` + visible overflow instead of masking lower content
+  - top-level wheel scrolling is now explicitly routed for:
+    - `xt-welcome-shell`
+    - `xt-shell-viewport`
+  - nested local scroll regions and editable inputs keep their own native wheel behavior
 - make the 3D profile stage read like the main character space, not a runtime/debug layer
 - broad closed-beta readiness, with the guest/account/imported continuity lane now mostly aligned
 - persistent station activity and continuity history

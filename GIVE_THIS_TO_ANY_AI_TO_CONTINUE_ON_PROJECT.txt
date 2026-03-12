@@ -78,6 +78,10 @@ Current stop point:
   - the real bug was at the root contract:
     - `html/body/#root` were still effectively acting like a fixed-height masked canvas on desktop
     - desktop scaling now uses `min-height` + visible root overflow so lower welcome content is reachable
+  - a shared wheel-scroll fallback now exists for:
+    - `xt-welcome-shell`
+    - `xt-shell-viewport`
+    so mouse-wheel scrolling still works even if transformed/root layers interfere with default browser routing
 - the Profile 3D stage is working again and the active pass is now visual/product-facing:
   - overlay language compressed
   - relay simplified
