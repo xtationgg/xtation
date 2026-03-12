@@ -86,6 +86,22 @@ All work should pass `npm run build` and `npx vitest run` before committing.
 ## Latest Codex Note
 
 - Date: 2026-03-12
+- Auth/connect modal visual cleanup shipped (matches current user feedback screenshot target):
+  - Removed right-rail/day-date decorative stack from auth shell.
+  - Reworked shell into darker cinematic panel treatment with cleaner right-stage geometry.
+  - Tightened continuity drawer density (fewer metrics/activity rows, bounded height + internal scroll).
+  - Updated responsive geometry so drawer content stays reachable.
+  - Updated:
+    - `/Users/sarynass/dyad-apps/CLient-D82pm/components/Layout/TopBar.tsx`
+    - `/Users/sarynass/dyad-apps/CLient-D82pm/components/Auth/StationContinuityPanel.tsx`
+    - `/Users/sarynass/dyad-apps/CLient-D82pm/index.css`
+  - Commit:
+    - `c72bb6b` (`refine auth continuity modal layout and visual hierarchy`)
+  - Verification:
+    - `npm run build` passed
+    - `npx vitest run` passed (`221/221`)
+
+- Date: 2026-03-12
 - Lab crash hardening + welcome auth-card cleanup:
   - Fixed a login-time Lab crash path (`Cannot read properties of undefined (reading 'title')`) by hardening malformed-data normalization in:
     - `/Users/sarynass/dyad-apps/CLient-D82pm/src/lab/LabProvider.tsx`
