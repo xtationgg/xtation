@@ -360,8 +360,11 @@ const App: React.FC = () => {
     [currentView, featureVisibility, operatorAccess.allowed, recentStationActivity]
   );
   const visibleTransitionHistory = useMemo(
-    () => filterVisibleTransitionHistory(visibleRecentStationActivity, stationTransitionNotice),
-    [stationTransitionNotice, visibleRecentStationActivity]
+    () =>
+      isOnboardingOpen
+        ? []
+        : filterVisibleTransitionHistory(visibleRecentStationActivity, stationTransitionNotice),
+    [isOnboardingOpen, stationTransitionNotice, visibleRecentStationActivity]
   );
   const isProfileTransitionCompact = currentView === ClientView.PROFILE;
   useWheelScrollBridge(shellRootRef);

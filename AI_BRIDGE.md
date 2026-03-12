@@ -90,6 +90,8 @@ All work should pass `npm run build` and `npx vitest run` before committing.
   - the guest `CONNECT` continuity drawer no longer repeats the same local resume state in both the primary summary and the `Next local resume` block
   - shared suppression logic now lives in:
     - `/Users/sarynass/dyad-apps/CLient-D82pm/components/Auth/StationContinuityPanel.tsx`
+  - the shell transition banner now also hides stale `Recent continuity` rows while guided setup is actively open again:
+    - `/Users/sarynass/dyad-apps/CLient-D82pm/App.tsx`
   - regression coverage added in:
     - `/Users/sarynass/dyad-apps/CLient-D82pm/tests/station-continuity-panel.test.tsx`
 - Verification:

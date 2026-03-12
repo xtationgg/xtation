@@ -76,8 +76,10 @@ Current stop point:
 - active work is now a real browser sweep on the closed-beta continuity flow, not another architecture pass
 - latest concrete fix:
   - the guest CONNECT continuity drawer no longer repeats the same local resume state in both the main summary and the `Next local resume` block
+  - the shell transition banner now hides stale `Recent continuity` rows when guided setup is actively open again, so the modal reads as the single active flow
   - files:
     - /Users/sarynass/dyad-apps/CLient-D82pm/components/Auth/StationContinuityPanel.tsx
+    - /Users/sarynass/dyad-apps/CLient-D82pm/App.tsx
     - /Users/sarynass/dyad-apps/CLient-D82pm/tests/station-continuity-panel.test.tsx
 - best next move:
   - continue the live guest/local/account/import journey sweep in the browser

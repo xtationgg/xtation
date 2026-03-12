@@ -113,8 +113,12 @@ Backup cadence:
 - live browser sweep is active on the closed-beta guest/local/account continuity lane
 - latest concrete fix:
   - the guest `CONNECT` drawer no longer repeats the same local resume state in both the primary summary and `Next local resume`
-  - shared suppression logic lives in `components/Auth/StationContinuityPanel.tsx`
-  - regression coverage lives in `tests/station-continuity-panel.test.tsx`
+  - the shell transition banner now also suppresses stale `Recent continuity` rows while guided setup is actively open again
+  - shared suppression logic lives in:
+    - `components/Auth/StationContinuityPanel.tsx`
+    - `App.tsx`
+  - regression coverage lives in:
+    - `tests/station-continuity-panel.test.tsx`
 - current best move:
   - keep sweeping real guest/local/account flows in the browser
   - fix only the next visible mismatch
