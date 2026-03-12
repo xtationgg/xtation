@@ -86,6 +86,19 @@ All work should pass `npm run build` and `npx vitest run` before committing.
 ## Latest Codex Note
 
 - Date: 2026-03-12
+- Closed-beta browser sweep pass (welcome -> local -> guided setup skip -> multiplayer HQ) is clean on runtime/console.
+- Multiplayer HQ language is now count-safe in singular/plural states:
+  - fixed visible copy like:
+    - `1 player invitation are ...` -> `1 player invitation is ...`
+    - `1 proposal are ...` -> `1 proposal is ...`
+    - `1 ... need review` -> `1 ... needs review`
+  - updated:
+    - `/Users/sarynass/dyad-apps/CLient-D82pm/src/multiplayer/metrics.ts`
+    - `/Users/sarynass/dyad-apps/CLient-D82pm/components/Views/MultiplayerNew.tsx`
+  - verification:
+    - `npm run build` passed
+    - `npx vitest run` passed
+
 - Dusk brief persistence across sessions is now locked with an explicit reload regression test:
   - updated:
     - `/Users/sarynass/dyad-apps/CLient-D82pm/tests/dusk-bridge.test.ts`

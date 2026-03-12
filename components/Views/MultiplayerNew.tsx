@@ -971,7 +971,7 @@ export const Multiplayer: React.FC = () => {
         items.push({
           id: `collab-${collab.id}`,
           title: `${collab.title} has pending proposals`,
-          detail: `${pending} proposal${pending === 1 ? '' : 's'} are waiting for review.`,
+          detail: `${pending} proposal${pending === 1 ? ' is' : 's are'} waiting for review.`,
           target: 'COLLAB',
           tone: 'default',
           onSelect: () => setSelectedCollabId(collab.id),

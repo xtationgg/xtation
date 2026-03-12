@@ -118,6 +118,11 @@ const sortObjectEntries = <T extends string>(counts: Record<T, number>) =>
     .sort((a, b) => b[1] - a[1])
     .map(([key, count]) => ({ key, count }));
 
+const describeCount = (count: number, singular: string, plural = `${singular}s`) =>
+  `${count} ${count === 1 ? singular : plural}`;
+
+const beVerb = (count: number) => (count === 1 ? 'is' : 'are');
+
 const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
 
 const timeZoneLabelForPlayer = (player: Player) => {
@@ -309,10 +314,12 @@ export const buildMultiplayerSnapshot = ({
     riskFlags.push('No direct message threads exist yet. Multiplayer coordination is isolated from chat.');
   }
   if (orphanThreads > 0) {
-    riskFlags.push(`${orphanThreads} message thread${orphanThreads === 1 ? '' : 's'} no longer map to an active player.`);
+    riskFlags.push(
+      `${describeCount(orphanThreads, 'message thread')} ${orphanThreads === 1 ? 'no longer maps' : 'no longer map'} to an active player.`
+    );
   }
   if (attentionEvents > 0) {
-    riskFlags.push(`${attentionEvents} operator trace event${attentionEvents === 1 ? '' : 's'} need review.`);
+    riskFlags.push(`${describeCount(attentionEvents, 'operator trace event')} ${attentionEvents === 1 ? 'needs' : 'need'} review.`);
   }
 
   const recommendations: MultiplayerRecommendation[] = [];
@@ -320,7 +327,7 @@ export const buildMultiplayerSnapshot = ({
     recommendations.push({
       id: 'pending-invites',
       title: 'Resolve pending squad invites',
-      detail: `${pendingPlayers} player invitation${pendingPlayers === 1 ? '' : 's'} are still waiting for acceptance.`,
+      detail: `${describeCount(pendingPlayers, 'player invitation')} ${beVerb(pendingPlayers)} still waiting for acceptance.`,
       target: 'SQUAD',
     });
   }
@@ -344,7 +351,7 @@ export const buildMultiplayerSnapshot = ({
     recommendations.push({
       id: 'review-proposals',
       title: 'Review pending collaboration proposals',
-      detail: `${pendingProposals} proposal${pendingProposals === 1 ? '' : 's'} are queued inside collaboration spaces.`,
+      detail: `${describeCount(pendingProposals, 'proposal')} ${beVerb(pendingProposals)} queued inside collaboration spaces.`,
       target: 'COLLAB',
     });
   }

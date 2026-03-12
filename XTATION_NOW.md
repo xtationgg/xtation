@@ -109,6 +109,11 @@ Backup cadence:
 
 ## Current Stop Point
 
+- multiplayer command-surface copy quality pass completed:
+  - singular/plural wording in HQ queue/recommendation/risk lanes now reads correctly
+  - no new runtime errors found in the live sweep path (welcome -> local -> guided setup skip -> multiplayer HQ)
+  - build/tests pass after the pass
+
 - Dusk brief persistence across sessions is now explicitly verified:
   - regression test added in `tests/dusk-bridge.test.ts`
   - covers post-reload read path (`vi.resetModules()` + fresh bridge import)
