@@ -86,6 +86,22 @@ All work should pass `npm run build` and `npx vitest run` before committing.
 ## Latest Codex Note
 
 - Date: 2026-03-12
+- Creative Ops now has a real Scene Studio import/apply bridge in Admin:
+  - Added runtime-pack import UI in:
+    - `/Users/sarynass/dyad-apps/CLient-D82pm/components/Admin/CreativeOpsPanel.tsx`
+  - Flow now supported:
+    - import `xtation.scene-runtime-pack` JSON
+    - preview included segments + skin patch impact
+    - apply to `draft` or apply directly to `published`
+  - Hook/runtime integration added in:
+    - `/Users/sarynass/dyad-apps/CLient-D82pm/src/admin/creativeOps.ts`
+  - Regression coverage extended:
+    - `/Users/sarynass/dyad-apps/CLient-D82pm/tests/scene-studio-runtime-pack.test.ts`
+    - verifies draft import logs `revised`
+    - verifies published import logs `published`
+  - verification:
+    - `npm run build` passed
+    - `npx vitest run` passed
 - Profile scene is now function-first safer in production:
   - when scene runtime errors, users now get an immediate retry control in the visible status chip (not dev-only)
   - reload behavior is now centralized through one scene-reload handler used by both the production error chip and the dev HUD control

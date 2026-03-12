@@ -9,6 +9,11 @@ import {
 } from '../theme/ThemeProvider';
 import type { PresentationEventRecord } from '../presentation/events';
 import {
+  applySceneStudioRuntimePack,
+  resolveSceneStudioRuntimePackSegments,
+  type SceneStudioRuntimePackV1,
+} from '../sceneStudio/runtimePack';
+import {
   playClickSound,
   playErrorSound,
   playHoverSound,
@@ -3768,6 +3773,51 @@ export const applyCreativeAvatarProfileTemplateToSceneAvatarPresets = (
   );
 };
 
+export interface ApplyCreativeSceneStudioRuntimePackOptions {
+  mode?: 'draft' | 'published';
+  occurredAt?: number;
+  actorScope?: 'guest' | 'account';
+}
+
+export const applySceneStudioRuntimePackImportToCreativeOpsState = (
+  currentState: CreativeOpsState,
+  pack: SceneStudioRuntimePackV1,
+  options: ApplyCreativeSceneStudioRuntimePackOptions = {}
+): CreativeOpsState => {
+  const mode = options.mode || 'draft';
+  const occurredAt = options.occurredAt || Date.now();
+  const actorScope = options.actorScope || 'guest';
+  const next = applySceneStudioRuntimePack(currentState, pack, { mode, occurredAt });
+  const sceneProfile = pack.manifest.sceneProfile;
+  const scenePack = next.scenePacks.find((entry) => entry.sceneProfile === sceneProfile) || null;
+  const revision =
+    mode === 'published'
+      ? scenePack?.publishedRevision ?? scenePack?.draftRevision ?? 1
+      : scenePack?.draftRevision ?? scenePack?.publishedRevision ?? 1;
+  const segmentCount = resolveSceneStudioRuntimePackSegments(pack).length;
+  const label =
+    scenePack?.name ||
+    pack.scenePack?.name ||
+    `${pack.manifest.name} (${sceneProfile.toUpperCase()} • ${segmentCount} segments)`;
+
+  return {
+    ...next,
+    publishLog: [
+      {
+        id: `creative-log-${Math.random().toString(36).slice(2, 10)}`,
+        targetType: 'scene',
+        targetId: scenePack?.id || `scene-pack-${sceneProfile}`,
+        label,
+        action: mode === 'published' ? 'published' : 'revised',
+        revision,
+        occurredAt,
+        actorScope,
+      },
+      ...next.publishLog,
+    ].slice(0, 40),
+  };
+};
+
 export const useCreativeOpsStudio = (recentEvents: PresentationEventRecord[]) => {
   const { user } = useAuth();
   const userId = user?.id || null;
@@ -4910,6 +4960,18 @@ export const useCreativeOpsStudio = (recentEvents: PresentationEventRecord[]) =>
     []
   );
 
+  const importSceneStudioRuntimePack = useCallback(
+    (pack: SceneStudioRuntimePackV1, mode: 'draft' | 'published' = 'draft') => {
+      setState((current) =>
+        applySceneStudioRuntimePackImportToCreativeOpsState(current, pack, {
+          mode,
+          actorScope: userId ? 'account' : 'guest',
+        })
+      );
+    },
+    [userId]
+  );
+
   return {
     state,
     selectedSkin,
@@ -4963,6 +5025,7 @@ export const useCreativeOpsStudio = (recentEvents: PresentationEventRecord[]) =>
     applySkinScreenProfileTemplate,
     applySkinAvatarProfileTemplate,
     uploadSoundAssetForEvent,
+    importSceneStudioRuntimePack,
   };
 };
 

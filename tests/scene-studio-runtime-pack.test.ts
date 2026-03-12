@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { createDefaultCreativeOpsState, resolveCreativeSceneCue, resolveCreativeSoundCue } from '../src/admin/creativeOps';
+import {
+  applySceneStudioRuntimePackImportToCreativeOpsState,
+  createDefaultCreativeOpsState,
+  resolveCreativeSceneCue,
+  resolveCreativeSoundCue,
+} from '../src/admin/creativeOps';
 import {
   applySceneStudioRuntimePack,
   isSceneStudioRuntimePackV1,
@@ -247,5 +252,39 @@ describe('scene studio runtime pack integration', () => {
     expect(scenePack?.status).toBe('published');
     expect(scenePack?.publishedRevision).toBeGreaterThanOrEqual(1);
     expect(scenePack?.lastPublishedAt).toBe(5000);
+  });
+
+  it('records a revised publish-log entry when importing a runtime pack into draft via creative ops helper', () => {
+    const state = createDefaultCreativeOpsState();
+    const next = applySceneStudioRuntimePackImportToCreativeOpsState(state, createRuntimePack(), {
+      mode: 'draft',
+      occurredAt: 6400,
+      actorScope: 'guest',
+    });
+
+    expect(next.publishLog[0]?.action).toBe('revised');
+    expect(next.publishLog[0]?.targetType).toBe('scene');
+    expect(next.publishLog[0]?.occurredAt).toBe(6400);
+    expect(next.publishLog[0]?.actorScope).toBe('guest');
+    expect(resolveCreativeSceneCue(next, 'profile.deck.open', 'bureau', 'published')?.transitionStyle).not.toBe(
+      'sharp'
+    );
+  });
+
+  it('records a published publish-log entry when importing a runtime pack as published via creative ops helper', () => {
+    const state = createDefaultCreativeOpsState();
+    const next = applySceneStudioRuntimePackImportToCreativeOpsState(state, createRuntimePack(), {
+      mode: 'published',
+      occurredAt: 9100,
+      actorScope: 'account',
+    });
+
+    expect(next.publishLog[0]?.action).toBe('published');
+    expect(next.publishLog[0]?.targetType).toBe('scene');
+    expect(next.publishLog[0]?.occurredAt).toBe(9100);
+    expect(next.publishLog[0]?.actorScope).toBe('account');
+    expect(resolveCreativeSceneCue(next, 'profile.deck.open', 'bureau', 'published')?.transitionStyle).toBe(
+      'sharp'
+    );
   });
 });

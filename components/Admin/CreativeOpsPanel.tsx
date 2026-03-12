@@ -26,6 +26,12 @@ import {
   useCreativeOpsStudio,
   type CreativeMixGroup,
 } from '../../src/admin/creativeOps';
+import {
+  isSceneStudioRuntimePackV1,
+  summarizeSceneStudioRuntimePack,
+  type SceneStudioRuntimePackImportResult,
+  type SceneStudioRuntimePackV1,
+} from '../../src/sceneStudio/runtimePack';
 import { ProfileLobbyScene } from '../Views/ProfileLobbyScene';
 
 interface CreativeOpsPanelProps {
@@ -209,10 +215,16 @@ export const CreativeOpsPanel: React.FC<CreativeOpsPanelProps> = ({
     applySkinScreenProfileTemplate,
     applySkinAvatarProfileTemplate,
     uploadSoundAssetForEvent,
+    importSceneStudioRuntimePack,
   } = useCreativeOpsStudio(recentEvents);
   const uploadInputRef = useRef<HTMLInputElement>(null);
+  const runtimePackInputRef = useRef<HTMLInputElement>(null);
   const previewScenarioTimerRef = useRef<number | null>(null);
   const [uploadTargetEvent, setUploadTargetEvent] = useState<string | null>(null);
+  const [runtimePackFileName, setRuntimePackFileName] = useState<string | null>(null);
+  const [runtimePackCandidate, setRuntimePackCandidate] = useState<SceneStudioRuntimePackV1 | null>(null);
+  const [runtimePackSummary, setRuntimePackSummary] = useState<SceneStudioRuntimePackImportResult | null>(null);
+  const [runtimePackError, setRuntimePackError] = useState<string | null>(null);
   const [previewMode, setPreviewMode] = useState<'draft' | 'published'>('draft');
   const [previewAvatarState, setPreviewAvatarState] = useState<'empty' | 'partial' | 'ready'>('ready');
   const [previewStageState, setPreviewStageState] = useState<'idle' | 'productive' | 'active'>('productive');
@@ -623,6 +635,34 @@ export const CreativeOpsPanel: React.FC<CreativeOpsPanelProps> = ({
     uploadInputRef.current?.click();
   };
 
+  const handleRuntimePackClick = () => {
+    runtimePackInputRef.current?.click();
+  };
+
+  const handleClearRuntimePack = () => {
+    setRuntimePackFileName(null);
+    setRuntimePackCandidate(null);
+    setRuntimePackSummary(null);
+    setRuntimePackError(null);
+  };
+
+  const handleApplyRuntimePack = (mode: 'draft' | 'published') => {
+    if (!runtimePackCandidate || !runtimePackSummary) return;
+    importSceneStudioRuntimePack(runtimePackCandidate, mode);
+    setRuntimePackError(null);
+    setPreviewMode(mode === 'published' ? 'published' : 'draft');
+    emitEvent('admin.creative.runtime_pack.apply', {
+      source: 'admin',
+      metadata: {
+        mode,
+        fileName: runtimePackFileName,
+        exportId: runtimePackCandidate.manifest.exportId,
+        sceneProfile: runtimePackSummary.sceneProfile,
+        segmentCount: runtimePackSummary.includedSegments.length,
+      },
+    });
+  };
+
   const triggerPreviewEvent = (eventName: string, extraMetadata?: Record<string, unknown>) => {
     emitEvent(eventName, {
       source: 'admin',
@@ -672,6 +712,41 @@ export const CreativeOpsPanel: React.FC<CreativeOpsPanelProps> = ({
           if (!file || !targetEvent || !selectedSkin?.soundPackId) return;
           await uploadSoundAssetForEvent(selectedSkin.soundPackId, targetEvent, file);
           setUploadTargetEvent(null);
+        }}
+      />
+      <input
+        ref={runtimePackInputRef}
+        type="file"
+        accept="application/json,.json"
+        className="hidden"
+        onChange={async (event) => {
+          const file = event.target.files?.[0];
+          event.target.value = '';
+          if (!file) return;
+
+          try {
+            const raw = await file.text();
+            const parsed = JSON.parse(raw) as unknown;
+            if (!isSceneStudioRuntimePackV1(parsed)) {
+              setRuntimePackError('Unsupported runtime pack. Expected xtation.scene-runtime-pack v1.');
+              setRuntimePackCandidate(null);
+              setRuntimePackSummary(null);
+              setRuntimePackFileName(file.name);
+              return;
+            }
+            const summary = summarizeSceneStudioRuntimePack(parsed, state);
+            setRuntimePackCandidate(parsed);
+            setRuntimePackSummary(summary);
+            setRuntimePackFileName(file.name);
+            setRuntimePackError(null);
+          } catch (error) {
+            setRuntimePackCandidate(null);
+            setRuntimePackSummary(null);
+            setRuntimePackFileName(file.name);
+            setRuntimePackError(
+              error instanceof Error ? `Runtime pack read failed: ${error.message}` : 'Runtime pack read failed.'
+            );
+          }
         }}
       />
 
@@ -731,6 +806,114 @@ export const CreativeOpsPanel: React.FC<CreativeOpsPanelProps> = ({
               </div>
             </>
           ) : null}
+        </div>
+
+        <div className={`${sectionCard} p-5`}>
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <div className="text-[10px] uppercase tracking-[0.24em] text-[var(--app-muted)]">Scene Runtime Pack Bridge</div>
+              <div className="mt-2 text-sm text-[var(--app-muted)]">
+                Import Scene Studio runtime packs, review affected segments, then apply to draft or publish live.
+              </div>
+            </div>
+            <div className="xt-runtime-toolbar">
+              <button
+                type="button"
+                onClick={handleRuntimePackClick}
+                className={`${panelButton} border-[var(--app-accent)] text-[var(--app-text)] hover:border-[var(--app-accent)]`}
+              >
+                <Upload size={13} className="mr-1.5" />
+                Import Pack
+              </button>
+              <button
+                type="button"
+                onClick={handleClearRuntimePack}
+                className={`${panelButton} border-[var(--app-border)] text-[var(--app-muted)] hover:border-[var(--app-accent)] hover:text-[var(--app-text)]`}
+              >
+                Clear
+              </button>
+            </div>
+          </div>
+
+          <div className="mt-3 grid gap-3 md:grid-cols-3">
+            <SummaryCard
+              icon={<Clapperboard size={18} />}
+              label="Pack File"
+              value={runtimePackFileName || 'none loaded'}
+              detail={
+                runtimePackCandidate
+                  ? `${runtimePackCandidate.manifest.name} • ${runtimePackCandidate.manifest.exportId}`
+                  : 'Select a runtime pack export from the external Scene Studio.'
+              }
+            />
+            <SummaryCard
+              icon={<Workflow size={18} />}
+              label="Scene Profile"
+              value={runtimePackSummary?.sceneProfile || 'n/a'}
+              detail={
+                runtimePackSummary
+                  ? `${runtimePackSummary.includedSegments.length} segments • draft R${runtimePackSummary.scenePack.draftRevision}`
+                  : 'No runtime pack analyzed yet.'
+              }
+            />
+            <SummaryCard
+              icon={<ShieldCheck size={18} />}
+              label="Skin Patch"
+              value={
+                runtimePackSummary
+                  ? `${runtimePackSummary.skinPatch.theme || 'theme:keep'} / ${runtimePackSummary.skinPatch.accent || 'accent:keep'}`
+                  : 'n/a'
+              }
+              detail={
+                runtimePackSummary
+                  ? `sound ${runtimePackSummary.skinPatch.soundPackId || 'unchanged'} • motion ${runtimePackSummary.skinPatch.motionProfile || 'unchanged'}`
+                  : 'Theme/accent/sound patch appears here after import.'
+              }
+            />
+          </div>
+
+          {runtimePackSummary ? (
+            <div className="mt-3 flex flex-wrap gap-2">
+              {runtimePackSummary.includedSegments.map((segment) => (
+                <span key={segment} className="xt-runtime-relay-tag">
+                  {segment}
+                </span>
+              ))}
+            </div>
+          ) : null}
+
+          {runtimePackError ? (
+            <div className="mt-3 rounded-[8px] border border-[#ff9b7a]/40 bg-[#2b120f]/45 px-3 py-2 text-[11px] text-[#ffb39a]">
+              {runtimePackError}
+            </div>
+          ) : null}
+
+          <div className="mt-4 flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={() => handleApplyRuntimePack('draft')}
+              disabled={!runtimePackCandidate || !runtimePackSummary}
+              className={`${panelButton} ${
+                runtimePackCandidate
+                  ? 'border-[var(--app-accent)] text-[var(--app-text)]'
+                  : 'border-[var(--app-border)] text-[var(--app-muted)] opacity-60 cursor-not-allowed'
+              }`}
+            >
+              Apply to Draft
+            </button>
+            <button
+              type="button"
+              onClick={() => handleApplyRuntimePack('published')}
+              disabled={!runtimePackCandidate || !runtimePackSummary}
+              className={`${panelButton} ${
+                runtimePackCandidate
+                  ? 'border-[var(--app-accent)] bg-[color-mix(in_srgb,var(--app-accent)_14%,transparent)] text-[var(--app-text)]'
+                  : 'border-[var(--app-border)] text-[var(--app-muted)] opacity-60 cursor-not-allowed'
+              }`}
+            >
+              Apply + Publish
+            </button>
+          </div>
         </div>
 
         <div className={`${sectionCard} p-5`}>
