@@ -85,7 +85,6 @@ import {
 import { resolveGuestStationEntryState } from './src/welcome/guestContinuity';
 import { buildLocalEntryTransitionDescriptor } from './src/welcome/localEntryTransition';
 import type { LocalStationStatus } from './src/welcome/localStationStatus';
-import { useWheelScrollBridge } from './src/ui/wheelScroll';
 import {
   appendStationActivity,
   readStationActivity,
@@ -367,8 +366,6 @@ const App: React.FC = () => {
     [isOnboardingOpen, stationTransitionNotice, visibleRecentStationActivity]
   );
   const isProfileTransitionCompact = currentView === ClientView.PROFILE;
-  useWheelScrollBridge(shellRootRef);
-
   useEffect(() => {
     if (!featureVisibility.lab && (currentView === ClientView.LAB || currentView === ClientView.HOME)) {
       setCurrentView(ClientView.LOBBY);

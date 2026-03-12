@@ -45,15 +45,14 @@ Backup cadence:
   - summarizes studio exports against current Creative Ops state
   - applies studio exports into Creative Ops `draft` or `published` runtime state
 - profile scene readability and stage presence
-- shared shell/page scroll reachability on welcome and in-app sections is now fixed at the actual root/layout layer:
-  - desktop viewport owns vertical scroll again
+- shared shell/page scroll reachability is now being fixed by one real rule:
+  - the browser document/root is the primary vertical scroll owner again
+  - top-level sections no longer each own their own full-page `overflow-y-auto`
   - `xt-shell-stage` is no longer height-clamped
   - `xt-welcome-shell` now allows vertical overflow
   - `html`, `body`, and `#root` no longer trap the desktop app in a fixed-height hidden-overflow canvas
   - desktop UI scaling now uses root `min-height` + visible overflow instead of masking lower content
-  - top-level wheel scrolling is now explicitly routed for:
-    - `xt-welcome-shell`
-    - `xt-shell-viewport`
+  - the temporary app-shell wheel bridge was removed once the root/document contract was corrected
   - nested local scroll regions and editable inputs keep their own native wheel behavior
 - make the 3D profile stage read like the main character space, not a runtime/debug layer
 - broad closed-beta readiness, with the guest/account/imported continuity lane now mostly aligned
@@ -121,6 +120,7 @@ Backup cadence:
     - `tests/station-continuity-panel.test.tsx`
 - current best move:
   - keep sweeping real guest/local/account flows in the browser
+  - keep checking section-by-section scroll behavior now that the root/document contract is simplified
   - fix only the next visible mismatch
   - do not reopen deep subsystem work unless the live journey points there
 

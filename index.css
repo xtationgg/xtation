@@ -4709,7 +4709,6 @@
 .xt-play-shell {
   min-height: 100%;
   width: 100%;
-  overflow-y: auto;
   background:
     radial-gradient(circle at top, color-mix(in srgb, var(--app-accent) 14%, transparent), transparent 34%),
     linear-gradient(180deg, #0a0a0b, #09090a 44%, #060607 100%);

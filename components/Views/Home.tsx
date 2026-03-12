@@ -30,7 +30,7 @@ const labCards = [
 
 export const Home: React.FC = () => {
   return (
-    <div className="min-h-full w-full overflow-y-auto bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.06),transparent_32%),linear-gradient(180deg,rgba(12,12,17,0.96),rgba(10,10,14,0.98))] px-4 py-6 md:px-8 md:py-8">
+    <div className="min-h-full w-full bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.06),transparent_32%),linear-gradient(180deg,rgba(12,12,17,0.96),rgba(10,10,14,0.98))] px-4 py-6 md:px-8 md:py-8">
       <div className="mx-auto flex w-full max-w-[1440px] flex-col gap-6">
         <section className="overflow-hidden rounded-[28px] border border-[color-mix(in_srgb,var(--app-border)_70%,transparent)] bg-[linear-gradient(135deg,rgba(255,255,255,0.04),rgba(255,255,255,0.01))] p-6 shadow-[0_28px_80px_rgba(0,0,0,0.32)] md:p-7">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">

@@ -86,17 +86,13 @@ Current stop point:
   - fix the next real mismatch that appears
   - do not reopen deep subsystem work unless the live journey points there
 
-- shared scroll reachability was fixed at the shell layer:
+- shared scroll reachability is being fixed at the real root contract:
   - welcome entry now allows vertical scrolling
-  - desktop in-app viewport scroll is restored
+  - document/root is the main vertical scroll owner again
+  - top-level sections no longer compete as full-page `overflow-y-auto` containers
   - `.xt-shell-stage` is no longer height-clamped
-  - the real bug was at the root contract:
-    - `html/body/#root` were still effectively acting like a fixed-height masked canvas on desktop
-    - desktop scaling now uses `min-height` + visible root overflow so lower welcome content is reachable
-  - a shared wheel-scroll fallback now exists for:
-    - `xt-welcome-shell`
-    - `xt-shell-viewport`
-    so mouse-wheel scrolling still works even if transformed/root layers interfere with default browser routing
+  - `html/body/#root` no longer behave like a fixed masked canvas on desktop
+  - the temporary app-shell wheel bridge has been removed now that the root/document contract is corrected
 - the Profile 3D stage is working again and the active pass is now visual/product-facing:
   - overlay language compressed
   - relay simplified

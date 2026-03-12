@@ -330,7 +330,7 @@ export const UiKitPlayground: React.FC = () => {
   }, [timelinePoints, activeTimelineConfig.granularity]);
 
   return (
-    <div className="h-full overflow-y-auto bg-[var(--ui-bg)] px-8 py-6 text-[var(--ui-text)]">
+    <div className="min-h-full bg-[var(--ui-bg)] px-8 py-6 text-[var(--ui-text)]">
       <div className="mx-auto max-w-[1400px] space-y-6">
         <header className="space-y-3">
           <p className="text-[10px] uppercase tracking-[0.35em] text-[var(--ui-muted)]">Xtation UI Kit Playground</p>

@@ -85,6 +85,31 @@ All work should pass `npm run build` and `npx vitest run` before committing.
 
 ## Latest Codex Note
 
+- Date: 2026-03-12
+- Scroll root-cause pass is now structural, not another wheel hack:
+  - top-level sections were still behaving like competing full-page scroll containers
+  - document/root is now the intended vertical scroll owner again
+  - app-shell and welcome wheel bridges were removed after the root contract was corrected
+  - changed files include:
+    - `/Users/sarynass/dyad-apps/CLient-D82pm/App.tsx`
+    - `/Users/sarynass/dyad-apps/CLient-D82pm/components/Views/Welcome.tsx`
+    - `/Users/sarynass/dyad-apps/CLient-D82pm/components/Views/Lobby.tsx`
+    - `/Users/sarynass/dyad-apps/CLient-D82pm/components/Views/Home.tsx`
+    - `/Users/sarynass/dyad-apps/CLient-D82pm/components/Views/Admin.tsx`
+    - `/Users/sarynass/dyad-apps/CLient-D82pm/components/Views/Settings.tsx`
+    - `/Users/sarynass/dyad-apps/CLient-D82pm/components/Views/MultiplayerNew.tsx`
+    - `/Users/sarynass/dyad-apps/CLient-D82pm/components/Views/Store.tsx`
+    - `/Users/sarynass/dyad-apps/CLient-D82pm/components/Views/Lab.tsx`
+    - `/Users/sarynass/dyad-apps/CLient-D82pm/components/Views/Inventory.tsx`
+    - `/Users/sarynass/dyad-apps/CLient-D82pm/components/Views/TimeXP.tsx`
+    - `/Users/sarynass/dyad-apps/CLient-D82pm/components/Views/UiKitPlayground.tsx`
+    - `/Users/sarynass/dyad-apps/CLient-D82pm/index.css`
+  - verify with:
+    - `npm run build`
+    - `npx vitest run`
+  - next best move after this commit:
+    - do a live browser sweep and patch only any remaining section-local scroll trap
+
 - Broad closed-beta continuity/browser sweep is active now, not a new architecture pass.
 - Latest concrete fix:
   - the guest `CONNECT` continuity drawer no longer repeats the same local resume state in both the primary summary and the `Next local resume` block

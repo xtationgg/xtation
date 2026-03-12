@@ -435,7 +435,7 @@ export const Admin: React.FC<AdminProps> = ({ onChangeView }) => {
   }, [activeTab, user?.id, session?.access_token]);
 
   return (
-    <div className="xt-admin-shell h-full overflow-y-auto px-4 pb-10 pt-5 md:px-6 lg:px-8">
+    <div className="xt-admin-shell min-h-full px-4 pb-10 pt-5 md:px-6 lg:px-8">
       <div className="mx-auto flex w-full max-w-[1500px] flex-col gap-6">
         <div className={`${sectionCard} xt-admin-hero overflow-hidden`}>
           <div className="xt-admin-hero-inner px-6 py-6">

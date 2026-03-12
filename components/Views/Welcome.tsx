@@ -9,7 +9,6 @@ import { readStationActivity } from '../../src/station/stationActivity';
 import { buildStationContinuityContext } from '../../src/station/continuityContext';
 import { useXtationSettings } from '../../src/settings/SettingsProvider';
 import { resolveGuestStationEntryState } from '../../src/welcome/guestContinuity';
-import { useWheelScrollBridge } from '../../src/ui/wheelScroll';
 
 interface WelcomeProps {
   onEnterLocalMode: () => void;
@@ -50,7 +49,6 @@ export const Welcome: React.FC<WelcomeProps> = ({ onEnterLocalMode, onResumeGuid
   const shellRef = useRef<HTMLDivElement | null>(null);
   const { currentStation, access } = useAdminConsole();
   const { settings } = useXtationSettings();
-  useWheelScrollBridge(shellRef);
   const stationActivity = useMemo(() => readStationActivity(), []);
   const lastView = useMemo(() => readStoredXtationLastView(), []);
   const continuityContext = useMemo(

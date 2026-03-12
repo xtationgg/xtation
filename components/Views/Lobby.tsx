@@ -26,7 +26,7 @@ export const Lobby: React.FC<LobbyProps> = ({
   onStarterSessionLive,
 }) => {
   return (
-    <div className="h-full w-full font-mono overflow-y-auto">
+    <div className="min-h-full w-full font-mono">
       <Play
         onOpenWorkspace={onOpenWorkspace}
         onOpenGuidedSetup={onOpenGuidedSetup}

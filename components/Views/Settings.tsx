@@ -549,7 +549,7 @@ export const Settings: React.FC<SettingsProps> = ({
     };
 
     return (
-        <div className="xt-settings-shell p-8 h-full overflow-y-auto custom-scrollbar">
+        <div className="xt-settings-shell min-h-full p-8 custom-scrollbar">
             <div className="xt-settings-hero mb-8 flex items-center justify-between gap-4 pb-4">
                 <div className="flex items-center gap-4">
                     <div className="xt-settings-hero-icon p-4">

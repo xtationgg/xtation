@@ -1837,7 +1837,7 @@ export const Multiplayer: React.FC = () => {
 
   return (
     <MultiplayerErrorBoundary>
-      <div className="xt-mp-shell h-full overflow-y-auto text-[var(--app-text)]">
+      <div className="xt-mp-shell min-h-full text-[var(--app-text)]">
         {toast ? (
           <div className="fixed right-4 top-16 z-50 rounded-lg border border-[color-mix(in_srgb,var(--app-accent)_50%,transparent)] bg-[var(--app-panel)] px-4 py-2 text-[10px] uppercase tracking-[0.14em] text-[var(--app-text)] shadow-lg animate-fade-in">
             {toast}

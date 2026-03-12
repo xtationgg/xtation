@@ -536,7 +536,7 @@ export const Inventory: React.FC<{ uiTheme?: 'kpr' | 'valorant-a' | 'valorant-b'
     };
 
     return (
-        <div className={(isValorantB ? 'p-10 ui-font ' : 'xt-inventory-shell p-8 ') + 'h-full overflow-y-auto custom-scrollbar flex flex-col'}>
+        <div className={(isValorantB ? 'p-10 ui-font ' : 'xt-inventory-shell p-8 ') + 'min-h-full custom-scrollbar flex flex-col'}>
             {/* Header */}
             {isValorantB ? (
               <div className="mb-10 ui-panel clip-cut-corner border border-white/15 bg-black/20 overflow-hidden">

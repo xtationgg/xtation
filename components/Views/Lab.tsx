@@ -827,7 +827,7 @@ export const Lab: React.FC = () => {
   }, []);
 
   return (
-    <div className="xt-lab-shell min-h-full w-full overflow-y-auto px-4 py-6 md:px-8 md:py-8">
+    <div className="xt-lab-shell min-h-full w-full px-4 py-6 md:px-8 md:py-8">
       <div className="mx-auto flex w-full max-w-[1520px] flex-col gap-6">
         <section className="xt-lab-hero overflow-hidden p-6 md:p-7">
           <div className="grid gap-5 xl:grid-cols-[1.45fr_1fr]">
