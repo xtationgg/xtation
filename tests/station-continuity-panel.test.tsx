@@ -174,4 +174,31 @@ describe('StationContinuityPanel', () => {
 
     expect(screen.queryByText('Latest transition outcome')).not.toBeInTheDocument();
   });
+
+  it('hides the next-local-resume block when the primary summary already covers it', () => {
+    render(
+      <StationContinuityPanel
+        status={{
+          ...baseStatus,
+          mode: 'resume',
+          entryState: 'resume',
+          title: 'Continue local station',
+          detail:
+            'XTATION reopened the offline-first Play station and restored the latest local continuity on this device.',
+        }}
+        activity={[]}
+        entryDescriptor={{
+          title: 'Local station resumed',
+          detail:
+            'XTATION reopened the offline-first Play station and restored the latest local continuity on this device.',
+          workspaceLabel: 'Play',
+          targetView: ClientView.PLAY,
+          chips: ['Play reopened', 'Setup skipped'],
+        }}
+        variant="drawer"
+      />
+    );
+
+    expect(screen.queryByText('Next local resume')).not.toBeInTheDocument();
+  });
 });

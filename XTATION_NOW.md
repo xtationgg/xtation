@@ -110,6 +110,16 @@ Backup cadence:
 
 ## Current Stop Point
 
+- live browser sweep is active on the closed-beta guest/local/account continuity lane
+- latest concrete fix:
+  - the guest `CONNECT` drawer no longer repeats the same local resume state in both the primary summary and `Next local resume`
+  - shared suppression logic lives in `components/Auth/StationContinuityPanel.tsx`
+  - regression coverage lives in `tests/station-continuity-panel.test.tsx`
+- current best move:
+  - keep sweeping real guest/local/account flows in the browser
+  - fix only the next visible mismatch
+  - do not reopen deep subsystem work unless the live journey points there
+
 - the debrief polish batch is complete and verified
 - the starter relay now behaves like a real stateful first-run system instead of replaying stale CTAs
 - the current highest-value frontier is:

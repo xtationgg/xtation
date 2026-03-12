@@ -50,6 +50,33 @@ const primarySummaryCoversLatestTransition = (
   );
 };
 
+const primarySummaryCoversEntryDescriptor = (
+  status: LocalStationStatus,
+  entryDescriptor: LocalEntryTransitionDescriptor | null
+) => {
+  if (!entryDescriptor) return false;
+
+  const statusTitle = normalizeCopy(status.title);
+  const statusDetail = normalizeCopy(status.detail);
+  const relayTitle = normalizeCopy(status.relayTitle);
+  const entryTitle = normalizeCopy(entryDescriptor.title);
+  const entryDetail = normalizeCopy(entryDescriptor.detail);
+  const sameWorkspace = status.workspaceLabel === entryDescriptor.workspaceLabel;
+  const bothLocalStation =
+    statusTitle.includes('local station') && entryTitle.includes('local station');
+  const bothStarterLoop =
+    statusTitle.includes('starter loop') && entryTitle.includes('starter loop');
+
+  return (
+    sameWorkspace &&
+    (statusTitle === entryTitle ||
+      relayTitle === entryTitle ||
+      bothLocalStation ||
+      bothStarterLoop ||
+      (entryDetail.length > 0 && statusDetail.includes(entryDetail)))
+  );
+};
+
 export const StationContinuityPanel: React.FC<StationContinuityPanelProps> = ({
   status,
   releaseChannel,
@@ -70,7 +97,9 @@ export const StationContinuityPanel: React.FC<StationContinuityPanelProps> = ({
   const showNextOpenRow =
     entryDescriptor && entryDescriptor.workspaceLabel !== status.workspaceLabel;
   const showEntryDescriptorRule =
-    Boolean(entryDescriptor) && (status.mode === 'relay' || status.entryState === 'resume');
+    Boolean(entryDescriptor) &&
+    (status.mode === 'relay' || status.entryState === 'resume') &&
+    !primarySummaryCoversEntryDescriptor(status, entryDescriptor);
   const guidedSetupActionLabel = resolveGuidedSetupResumeActionLabel(status, latestTransitionActivity);
   const showGuidedSetupAction =
     Boolean(onOpenGuidedSetup) &&

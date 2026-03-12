@@ -73,6 +73,17 @@ Right now the strongest active work loop is:
 - user-facing skin and sound runtime coherence
 
 Current stop point:
+- active work is now a real browser sweep on the closed-beta continuity flow, not another architecture pass
+- latest concrete fix:
+  - the guest CONNECT continuity drawer no longer repeats the same local resume state in both the main summary and the `Next local resume` block
+  - files:
+    - /Users/sarynass/dyad-apps/CLient-D82pm/components/Auth/StationContinuityPanel.tsx
+    - /Users/sarynass/dyad-apps/CLient-D82pm/tests/station-continuity-panel.test.tsx
+- best next move:
+  - continue the live guest/local/account/import journey sweep in the browser
+  - fix the next real mismatch that appears
+  - do not reopen deep subsystem work unless the live journey points there
+
 - shared scroll reachability was fixed at the shell layer:
   - welcome entry now allows vertical scrolling
   - desktop in-app viewport scroll is restored

@@ -85,6 +85,21 @@ All work should pass `npm run build` and `npx vitest run` before committing.
 
 ## Latest Codex Note
 
+- Broad closed-beta continuity/browser sweep is active now, not a new architecture pass.
+- Latest concrete fix:
+  - the guest `CONNECT` continuity drawer no longer repeats the same local resume state in both the primary summary and the `Next local resume` block
+  - shared suppression logic now lives in:
+    - `/Users/sarynass/dyad-apps/CLient-D82pm/components/Auth/StationContinuityPanel.tsx`
+  - regression coverage added in:
+    - `/Users/sarynass/dyad-apps/CLient-D82pm/tests/station-continuity-panel.test.tsx`
+- Verification:
+  - `npm run build` passed
+  - `npx vitest run` passed
+- Current recommendation:
+  - keep doing real browser sweeps across guest/local/account continuity
+  - fix only the next concrete mismatch that appears
+  - do not reopen deep subsystem or architecture work unless the live journey exposes it
+
 - XTATION now has a real Scene Studio receiving boundary:
   - `/Users/sarynass/dyad-apps/CLient-D82pm/src/sceneStudio/runtimePack.ts`
 - What it does:
