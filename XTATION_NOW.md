@@ -109,6 +109,11 @@ Backup cadence:
 
 ## Current Stop Point
 
+- Dusk brief persistence across sessions is now explicitly verified:
+  - regression test added in `tests/dusk-bridge.test.ts`
+  - covers post-reload read path (`vi.resetModules()` + fresh bridge import)
+  - build/tests pass after this check
+
 - live browser sweep is active on the closed-beta guest/local/account continuity lane
 - latest concrete fix:
   - the guest `CONNECT` drawer no longer repeats the same local resume state in both the primary summary and `Next local resume`

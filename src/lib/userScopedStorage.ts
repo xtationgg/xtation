@@ -1,7 +1,21 @@
 const USER_SCOPE_CHANGE_EVENT = 'dusk:user-scope-change';
 
 let activeUserId: string | null = null;
-const fallbackStorage = new Map<string, string>();
+const FALLBACK_STORAGE_GLOBAL_KEY = '__xtationUserScopedFallbackStorage';
+
+type UserScopedStorageGlobal = typeof globalThis & {
+  [FALLBACK_STORAGE_GLOBAL_KEY]?: Map<string, string>;
+};
+
+const globalUserScopedStorage = globalThis as UserScopedStorageGlobal;
+
+const fallbackStorage =
+  globalUserScopedStorage[FALLBACK_STORAGE_GLOBAL_KEY] ??
+  (() => {
+    const store = new Map<string, string>();
+    globalUserScopedStorage[FALLBACK_STORAGE_GLOBAL_KEY] = store;
+    return store;
+  })();
 
 const getStorage = () => {
   if (typeof window === 'undefined') return null;

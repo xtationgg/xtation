@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import {
   clearLatestDuskBrief,
@@ -51,6 +51,24 @@ describe('dusk brief bridge', () => {
 
     expect(readLatestDuskBrief('user-42')?.title).toBe('Account brief');
     expect(readLatestDuskBrief('local')).toBeNull();
+  });
+
+  it('keeps the latest brief readable after a module/session reload', async () => {
+    setActiveUserId('user-42');
+
+    openDuskBrief({
+      title: 'Persisted session brief',
+      body: 'Survives app reload.',
+      source: 'lab',
+      tags: ['reload'],
+    });
+
+    expect(readLatestDuskBrief('user-42')?.title).toBe('Persisted session brief');
+
+    vi.resetModules();
+    const { readLatestDuskBrief: readAfterReload } = await import('../src/dusk/bridge');
+    expect(readAfterReload('user-42')?.title).toBe('Persisted session brief');
+    expect(readAfterReload('user-42')?.tags).toEqual(['reload']);
   });
 
   it('preserves stored timestamps when persisting an already stored brief again', () => {

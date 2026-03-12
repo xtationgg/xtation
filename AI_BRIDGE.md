@@ -62,7 +62,7 @@ All work should pass `npm run build` and `npx vitest run` before committing.
 ### P4: Return/Resume Flow
 - [x] Test the station continuity flow: close app, reopen, verify state restores cleanly
 - [x] Verify onboarding handoff → Play starter relay works end-to-end
-- [ ] Check that Dusk briefs persist across sessions
+- [x] Check that Dusk briefs persist across sessions
 
 ### Rules for This Queue
 - Each task is independent — skip any that conflict with active locks
@@ -86,6 +86,16 @@ All work should pass `npm run build` and `npx vitest run` before committing.
 ## Latest Codex Note
 
 - Date: 2026-03-12
+- Dusk brief persistence across sessions is now locked with an explicit reload regression test:
+  - updated:
+    - `/Users/sarynass/dyad-apps/CLient-D82pm/tests/dusk-bridge.test.ts`
+  - added coverage:
+    - persists latest brief under account scope
+    - survives module/session reload (`vi.resetModules()` + fresh import read)
+  - verification:
+    - `npm run build` passed
+    - `npx vitest run` passed
+
 - Scroll root-cause pass is now structural, not another wheel hack:
   - top-level sections were still behaving like competing full-page scroll containers
   - document/root is now the intended vertical scroll owner again
