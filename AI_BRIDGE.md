@@ -89,6 +89,9 @@ All work should pass `npm run build` and `npx vitest run` before committing.
 - Profile scene is now function-first safer in production:
   - when scene runtime errors, users now get an immediate retry control in the visible status chip (not dev-only)
   - reload behavior is now centralized through one scene-reload handler used by both the production error chip and the dev HUD control
+  - follow-up hardening:
+    - fixed a live runtime crash in Profile (`useCallback` import missing)
+    - scene connect now waits for a non-zero iframe viewport before handshake to reduce zero-size startup instability
   - updated:
     - `/Users/sarynass/dyad-apps/CLient-D82pm/components/Views/ProfileLobbyScene.tsx`
   - verification:

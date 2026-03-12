@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { AlertCircle, Box, Loader2, RefreshCw } from 'lucide-react';
 import type { XtationTheme } from '../../src/theme/ThemeProvider';
 import { createSceneApiClient, type SceneApiCapabilities, type SceneApiEventMessage, type SceneApiResponseMessage } from '../../src/scene/sceneApiClient';
@@ -253,6 +253,25 @@ const resolveCueCameraMotion = (
     speed: orbitSpeed ?? 0.5,
   };
 };
+
+const waitForIframeViewport = (frame: HTMLIFrameElement, timeoutMs = 3000) =>
+  new Promise<void>((resolve) => {
+    const start = typeof performance !== 'undefined' ? performance.now() : Date.now();
+    const inspect = () => {
+      const rect = frame.getBoundingClientRect();
+      const now = typeof performance !== 'undefined' ? performance.now() : Date.now();
+      if (rect.width > 24 && rect.height > 24) {
+        resolve();
+        return;
+      }
+      if (now - start >= timeoutMs) {
+        resolve();
+        return;
+      }
+      window.requestAnimationFrame(inspect);
+    };
+    inspect();
+  });
 
 const applySceneLightRig = async (
   bridge: SceneBridgeLike,
@@ -1353,7 +1372,12 @@ export const ProfileLobbyScene: React.FC<ProfileLobbySceneProps> = ({
                 presentationMode: 'profile',
               },
             });
-            void connectScene();
+            const frame = iframeRef.current;
+            if (!frame) return;
+            void (async () => {
+              await waitForIframeViewport(frame);
+              await connectScene();
+            })();
           }}
         />
       </div>

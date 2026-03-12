@@ -112,6 +112,9 @@ Backup cadence:
 - profile function-first reliability pass completed:
   - scene runtime error state now exposes a direct retry action in production
   - scene reload behavior is unified through one handler instead of split ad-hoc calls
+  - live crash fix applied:
+    - restored missing `useCallback` import in `ProfileLobbyScene`
+    - scene connect now waits for non-zero iframe viewport before running the bridge handshake
   - build/tests pass after the pass
 
 - multiplayer command-surface copy quality pass completed:
