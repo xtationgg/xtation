@@ -86,6 +86,19 @@ All work should pass `npm run build` and `npx vitest run` before committing.
 ## Latest Codex Note
 
 - Date: 2026-03-12
+- Restore snapshot hydration boundary hardened:
+  - `readXtationStationRestoreRecoverySnapshot(...)` now normalizes/validates nested restore payloads instead of trusting raw parsed JSON.
+  - Station export normalization is centralized and reused by both import parsing and restore recovery reads.
+  - Malformed restore payloads now safely return `null` instead of leaking partial invalid structures into Settings/Admin flows.
+  - Updated:
+    - `/Users/sarynass/dyad-apps/CLient-D82pm/src/backup/station.ts`
+  - New regression coverage:
+    - `/Users/sarynass/dyad-apps/CLient-D82pm/tests/station-restore-recovery-normalization.test.ts`
+  - Verification:
+    - `npm run build` passed
+    - `npx vitest run` passed (`229/229`)
+
+- Date: 2026-03-12
 - Stability hardening pass for auth/onboarding continuity hydration:
   - Signed-in onboarding reads are now normalized (same rigor as guest path), so malformed scoped payloads fall back safely instead of leaking invalid shapes into runtime:
     - `/Users/sarynass/dyad-apps/CLient-D82pm/src/onboarding/storage.ts`
