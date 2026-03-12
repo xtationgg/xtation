@@ -9,6 +9,7 @@ import { readStationActivity } from '../../src/station/stationActivity';
 import { buildStationContinuityContext } from '../../src/station/continuityContext';
 import { useXtationSettings } from '../../src/settings/SettingsProvider';
 import { resolveGuestStationEntryState } from '../../src/welcome/guestContinuity';
+import { routeWheelToContainer } from '../../src/ui/wheelScroll';
 
 interface WelcomeProps {
   onEnterLocalMode: () => void;
@@ -104,7 +105,7 @@ export const Welcome: React.FC<WelcomeProps> = ({ onEnterLocalMode, onResumeGuid
       : null;
 
   return (
-    <div ref={shellRef} className="xt-welcome-shell">
+    <div ref={shellRef} className="xt-welcome-shell" onWheel={routeWheelToContainer}>
       <div className="xt-welcome-backdrop" />
 
       <div className="xt-welcome-frame">

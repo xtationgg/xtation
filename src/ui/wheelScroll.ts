@@ -69,7 +69,14 @@ export function findNearestScrollableAncestor(
   return fallback ?? (isVerticallyScrollable(container) ? container : null);
 }
 
-function handleWheelEvent(container: HTMLElement, event: Pick<WheelEvent, 'target' | 'deltaX' | 'deltaY' | 'preventDefault' | 'ctrlKey' | 'metaKey'>) {
+function handleWheelEvent(
+  container: HTMLElement,
+  event: Pick<
+    WheelEvent,
+    'target' | 'deltaX' | 'deltaY' | 'preventDefault' | 'ctrlKey' | 'metaKey' | 'defaultPrevented'
+  >
+) {
+  if (event.defaultPrevented) return;
   if (event.ctrlKey || event.metaKey) return;
   if (Math.abs(event.deltaY) <= Math.abs(event.deltaX)) return;
   const target = event.target instanceof Element ? event.target : null;
@@ -89,7 +96,7 @@ export function routeWheelToContainer(event: React.WheelEvent<HTMLElement>) {
     event.currentTarget,
     ((event as unknown as { nativeEvent?: WheelEvent }).nativeEvent ?? event) as Pick<
       WheelEvent,
-      'target' | 'deltaX' | 'deltaY' | 'preventDefault' | 'ctrlKey' | 'metaKey'
+      'target' | 'deltaX' | 'deltaY' | 'preventDefault' | 'ctrlKey' | 'metaKey' | 'defaultPrevented'
     >
   );
 }

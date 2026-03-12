@@ -99,6 +99,7 @@ import {
   resolveVisibleStationActivityEntry,
 } from './src/station/transitionSummary';
 import { PLAY_NAVIGATION_EVENT, type PlayNavigationPayload } from './src/play/bridge';
+import { routeWheelToContainer } from './src/ui/wheelScroll';
 
 const loadLab = () => import('./components/Views/Lab');
 const loadAdmin = () => import('./components/Views/Admin');
@@ -1362,6 +1363,7 @@ const App: React.FC = () => {
   return (
     <div 
         ref={shellRootRef}
+        onWheel={routeWheelToContainer}
         className="xt-shell-root w-full min-h-[100dvh] md:h-screen lg:h-full flex flex-col overflow-hidden text-[var(--ui-text)] font-mono bg-cover bg-center transition-all duration-200 ease-out relative"
         style={getBackgroundStyle()}
     >
