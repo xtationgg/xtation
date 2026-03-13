@@ -142,7 +142,7 @@ export const Inventory: React.FC = () => {
     const items = useMemo((): UnifiedItem[] => {
         const out: UnifiedItem[] = [];
         for (const c of ALL_CATS) {
-            for (const r of allAtt[c]) {
+            for (const r of (allAtt[c] || [])) {
                 out.push({
                     id: r.id, source: 'cloud', category: c,
                     name: r.title || 'Image',
