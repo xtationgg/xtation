@@ -5863,6 +5863,8 @@
   background: var(--inv-bg);
   color: var(--inv-text-primary);
   font-family: inherit;
+  align-items: center;
+  padding: 36px 60px;
 }
 
 /* ── Category tab bar ──────────────────────────────────────────────────── */
@@ -5875,6 +5877,8 @@
   padding: 0;
   background: var(--inv-topbar-bg);
   border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  width: 100%;
+  max-width: 1280px;
 }
 .xt-inv-topbar-btn {
   display: flex;
@@ -5919,7 +5923,10 @@
 
 /* ── Main layout — 50/50 split, outer padding creates the breathing room */
 .xt-inv-main {
-  flex: 1;
+  flex: none;
+  width: 100%;
+  max-width: 1280px;
+  height: clamp(460px, 62vh, 580px);
   display: flex;
   flex-direction: row-reverse;
   overflow: hidden;
@@ -5937,7 +5944,6 @@
   overflow: hidden;
   padding: 0;
   animation: xt-welcome-fade-up 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) 0.1s both;
-  zoom: 0.65;
 }
 .xt-inv-grid-head {
   display: flex;
@@ -6430,6 +6436,8 @@
   background: var(--inv-bar-bg);
   font-family: var(--font-mono, ui-monospace, monospace);
   animation: xt-welcome-fade-up 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) 0.3s both;
+  width: 100%;
+  max-width: 1280px;
 }
 .xt-inv-bar-item {
   display: flex;
