@@ -128,9 +128,9 @@ export const Welcome: React.FC<WelcomeProps> = ({ onEnterLocalMode, onResumeGuid
                 Dusk-ready station
               </div>
               <h1 className="xt-welcome-title">
-                Build your system once.
+                Build your <span className="xt-welcome-title-accent">system</span> once.
                 <br />
-                Run your life through it every day.
+                Run your <span className="xt-welcome-title-accent">life</span> through it every day.
               </h1>
               <p className="xt-welcome-detail">
                 XTATION combines action rooms, growth tracking, systems design, people ops, resources, and Dusk into one station.
@@ -150,15 +150,12 @@ export const Welcome: React.FC<WelcomeProps> = ({ onEnterLocalMode, onResumeGuid
               ))}
             </div>
 
-            <div className="xt-welcome-panel">
-              <div className="xt-welcome-panel-eyebrow">Operating Principles</div>
-              <div className="mt-5 grid gap-3 sm:grid-cols-2">
-                {operatingSignals.map((signal) => (
-                  <div key={signal} className="xt-welcome-signal">
-                    {signal}
-                  </div>
-                ))}
-              </div>
+            <div className="xt-welcome-signals-row">
+              {operatingSignals.map((signal) => (
+                <div key={signal} className="xt-welcome-signal-chip">
+                  {signal}
+                </div>
+              ))}
             </div>
           </section>
 
