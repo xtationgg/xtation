@@ -80,7 +80,7 @@ export interface RewardConfig {
 }
 
 // Inventory Types
-export type InventoryCategory = 'OUTFIT' | 'GEAR' | 'VEHICLE' | 'TOOLS';
+export type InventoryCategory = 'APPAREL' | 'EQUIPMENT' | 'TOOLS' | 'LIBRARY' | 'CONSUMABLES' | 'VALUABLES' | 'MISC';
 
 export interface InventoryItem {
   id: string;

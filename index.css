@@ -7008,6 +7008,90 @@
 }
 /* active state is set via inline style (impColor) */
 
+/* ── Tier pills ──────────────────────────────────────────────────────── */
+.xt-inv-tier-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.xt-inv-tier-btn {
+  padding: 3px 8px;
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  border: 1px solid rgba(255,255,255,0.08);
+  background: rgba(255,255,255,0.02);
+  color: var(--inv-text-muted);
+  cursor: pointer;
+  border-radius: 4px;
+  font-family: inherit;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  transition: color 130ms, border-color 130ms, background 130ms;
+}
+.xt-inv-tier-btn:hover { color: var(--inv-text-secondary); border-color: rgba(255,255,255,0.14); }
+.xt-inv-tier-label { font-weight: 400; text-transform: none; font-size: 8px; opacity: 0.7; }
+
+/* ── Quantity row ─────────────────────────────────────────────────────── */
+.xt-inv-qty-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 4px;
+}
+.xt-inv-qty-btn {
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  border: 1px solid rgba(255,255,255,0.1);
+  background: rgba(255,255,255,0.04);
+  color: var(--inv-text-secondary);
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.12s, border-color 0.12s;
+}
+.xt-inv-qty-btn:hover { background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.18); }
+.xt-inv-qty-val {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--inv-text-primary);
+  min-width: 28px;
+  text-align: center;
+}
+
+/* ── External link field ─────────────────────────────────────────────── */
+.xt-inv-link-input {
+  width: 100%;
+  padding: 5px 8px;
+  border-radius: 6px;
+  border: 1px solid rgba(255,255,255,0.08);
+  background: rgba(255,255,255,0.03);
+  color: var(--inv-text-primary);
+  font-size: 11px;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.15s;
+}
+.xt-inv-link-input:focus { border-color: var(--inv-accent-blue, var(--app-accent)); }
+.xt-inv-link-input::placeholder { color: var(--inv-text-muted); opacity: 0.4; }
+.xt-inv-link-open {
+  display: inline-block;
+  margin-top: 4px;
+  font-size: 9px;
+  letter-spacing: 0.06em;
+  color: var(--inv-accent-blue, var(--app-accent));
+  text-decoration: none;
+  opacity: 0.7;
+  transition: opacity 0.12s;
+}
+.xt-inv-link-open:hover { opacity: 1; }
+
 /* ── Linked project tags ─────────────────────────────────────────────── */
 .xt-inv-project-tags {
   display: flex;

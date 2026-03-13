@@ -2,8 +2,9 @@
 import React, { useEffect, useMemo, useRef, useState, useCallback } from 'react';
 import { InventoryCategory } from '../../types';
 import {
-    Plus, Trash2, Upload, Box, Car, Wrench, Shirt, Cpu, Loader2, X,
+    Plus, Trash2, Upload, Box, Wrench, Shirt, Cpu, Loader2, X,
     Send, Archive, RotateCcw, FolderOpen,
+    BookOpen, Coffee, Gem,
 } from 'lucide-react';
 import { playClickSound, playHoverSound, playSuccessSound, playErrorSound } from '../../utils/SoundEffects';
 import { useAuth } from '../../src/auth/AuthProvider';
@@ -33,6 +34,10 @@ type UnifiedItem = {
     name: string;
     thumbUrl?: string;
     importance?: 'low' | 'medium' | 'high' | 'critical';
+    tier?: import('../XP/xpTypes').InventoryTier;
+    subtype?: string;
+    quantity?: number;
+    externalLink?: string;
     mediaUrl?: string;
     details?: string;
     selfTreeBranch?: SelfTreeBranch;
@@ -46,14 +51,21 @@ type UnifiedItem = {
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-const ALL_CATS: InventoryCategory[] = ['OUTFIT', 'GEAR', 'VEHICLE', 'TOOLS'];
+const ALL_CATS: InventoryCategory[] = ['APPAREL', 'EQUIPMENT', 'TOOLS', 'LIBRARY', 'CONSUMABLES', 'VALUABLES', 'MISC'];
 const GRID_COLS = 4;
 const EMPTY_SLOTS = 16;
 
 const catIcons: Record<InventoryCategory, React.FC<{ size?: number; className?: string }>> = {
-    OUTFIT: Shirt, GEAR: Cpu, VEHICLE: Car, TOOLS: Wrench,
+    APPAREL: Shirt, EQUIPMENT: Cpu, TOOLS: Wrench,
+    LIBRARY: BookOpen, CONSUMABLES: Coffee, VALUABLES: Gem, MISC: Box,
 };
 const catKey = (c: InventoryCategory) => c.toLowerCase() as Lowercase<InventoryCategory>;
+
+const TIER_LABELS: Record<number, string> = { 1: 'Common', 2: 'Uncommon', 3: 'Rare', 4: 'Epic', 5: 'Legendary' };
+const TIER_COLORS: Record<number, string> = {
+    1: '#9ca3af', 2: '#34d399', 3: '#60a5fa', 4: '#c084fc', 5: '#f59e0b',
+};
+const LIBRARY_SUBTYPES = ['book', 'pdf', 'article', 'course', 'research', 'dataset', 'note'];
 
 const impColor = (i?: string) => {
     switch (i) {
@@ -96,8 +108,8 @@ export const Inventory: React.FC = () => {
     const pe = useOptionalPresentationEvents();
 
     // ── Core state
-    const [activeCat, setActiveCat]     = useState<InventoryCategory>('OUTFIT');
-    const [allAtt, setAllAtt]           = useState<Record<InventoryCategory, InventoryAttachment[]>>({ OUTFIT: [], GEAR: [], VEHICLE: [], TOOLS: [] });
+    const [activeCat, setActiveCat]     = useState<InventoryCategory>('APPAREL');
+    const [allAtt, setAllAtt]           = useState<Record<InventoryCategory, InventoryAttachment[]>>({ APPAREL: [], EQUIPMENT: [], TOOLS: [], LIBRARY: [], CONSUMABLES: [], VALUABLES: [], MISC: [] });
     const [loading, setLoading]         = useState(false);
     const [uploading, setUploading]     = useState(false);
     const [error, setError]             = useState('');
@@ -147,6 +159,10 @@ export const Inventory: React.FC = () => {
                     id: `l-${s.id}`, source: 'ledger', category: c,
                     name: s.name,
                     importance: s.importance,
+                    tier: s.tier,
+                    subtype: s.subtype,
+                    quantity: s.quantity,
+                    externalLink: s.externalLink,
                     details: s.details,
                     selfTreeBranch: s.selfTreeBranch,
                     linkedProjectIds: s.linkedProjectIds,
@@ -158,7 +174,7 @@ export const Inventory: React.FC = () => {
         }
         for (const cap of caps) {
             out.push({
-                id: `c-${cap.id}`, source: 'capability', category: 'GEAR',
+                id: `c-${cap.id}`, source: 'capability', category: 'EQUIPMENT',
                 name: cap.title, details: cap.description,
                 capabilityItem: cap,
             });
@@ -182,8 +198,8 @@ export const Inventory: React.FC = () => {
     const selected = useMemo(() => items.find(i => i.id === selectedId) || null, [items, selectedId]);
 
     const counts = useMemo(() => {
-        const c: Record<InventoryCategory, number> = { OUTFIT: 0, GEAR: 0, VEHICLE: 0, TOOLS: 0 };
-        for (const i of items) if (!i.archivedAt) c[i.category]++;
+        const c: Record<InventoryCategory, number> = { APPAREL: 0, EQUIPMENT: 0, TOOLS: 0, LIBRARY: 0, CONSUMABLES: 0, VALUABLES: 0, MISC: 0 };
+        for (const i of items) if (!i.archivedAt && i.category in c) c[i.category]++;
         return c;
     }, [items]);
 
@@ -240,7 +256,7 @@ export const Inventory: React.FC = () => {
     };
 
     const fetchAll = useCallback(async () => {
-        if (!uid) { setAllAtt({ OUTFIT: [], GEAR: [], VEHICLE: [], TOOLS: [] }); return; }
+        if (!uid) { setAllAtt({ APPAREL: [], EQUIPMENT: [], TOOLS: [], LIBRARY: [], CONSUMABLES: [], VALUABLES: [], MISC: [] }); return; }
         setLoading(true); setError('');
         try {
             const res = await Promise.all(ALL_CATS.map(async c => {
@@ -250,7 +266,7 @@ export const Inventory: React.FC = () => {
                 if (error) throw error;
                 return { c, rows: await Promise.all(((data || []) as UserFileRow[]).map(async r => ({ ...r, thumbUrl: await resolveUrl(r.thumb_path) }))) };
             }));
-            const next: Record<InventoryCategory, InventoryAttachment[]> = { OUTFIT: [], GEAR: [], VEHICLE: [], TOOLS: [] };
+            const next: Record<InventoryCategory, InventoryAttachment[]> = { APPAREL: [], EQUIPMENT: [], TOOLS: [], LIBRARY: [], CONSUMABLES: [], VALUABLES: [], MISC: [] };
             for (const r of res) next[r.c] = r.rows;
             setAllAtt(next);
         } catch { setError('Failed to load'); } finally { setLoading(false); }
@@ -504,7 +520,7 @@ export const Inventory: React.FC = () => {
                     </div>
 
                     {/* Capability loadout strip — GEAR only */}
-                    {activeCat === 'GEAR' && (
+                    {activeCat === 'EQUIPMENT' && (
                         <div className={`xt-inv-loadout-bar xt-inv-loadout-bar--${loadoutSummary.state}`}>
                             <span className="xt-inv-loadout-state">{loadoutSummary.state.toUpperCase()}</span>
                             {loadoutAssignments.map(a => (
@@ -730,6 +746,73 @@ export const Inventory: React.FC = () => {
                                     </div>
                                 )}
 
+                                {/* Tier — ledger only */}
+                                {selected.source === 'ledger' && selected.ledgerSlot && (
+                                    <div className="xt-inv-section">
+                                        <span className="xt-inv-section-label">TIER</span>
+                                        <div className="xt-inv-tier-pills">
+                                            {([1, 2, 3, 4, 5] as const).map(t => (
+                                                <button key={t}
+                                                    className={`xt-inv-tier-btn${selected.tier === t ? ' is-active' : ''}`}
+                                                    style={selected.tier === t ? { borderColor: TIER_COLORS[t], color: TIER_COLORS[t], background: `${TIER_COLORS[t]}18` } : {}}
+                                                    onClick={() => updateLedger(selected.ledgerSlot!.id, { tier: t })}>
+                                                    T{t} <span className="xt-inv-tier-label">{TIER_LABELS[t]}</span>
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Subtype — LIBRARY items only */}
+                                {selected.source === 'ledger' && selected.category === 'LIBRARY' && selected.ledgerSlot && (
+                                    <div className="xt-inv-section">
+                                        <span className="xt-inv-section-label">SUBTYPE</span>
+                                        <div className="xt-inv-tier-pills">
+                                            {LIBRARY_SUBTYPES.map(st => (
+                                                <button key={st}
+                                                    className={`xt-inv-tier-btn${selected.subtype === st ? ' is-active' : ''}`}
+                                                    style={selected.subtype === st ? { borderColor: '#60a5fa', color: '#60a5fa', background: '#60a5fa18' } : {}}
+                                                    onClick={() => updateLedger(selected.ledgerSlot!.id, { subtype: st })}>
+                                                    {st}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Quantity — CONSUMABLES only */}
+                                {selected.source === 'ledger' && selected.category === 'CONSUMABLES' && selected.ledgerSlot && (
+                                    <div className="xt-inv-section">
+                                        <span className="xt-inv-section-label">QUANTITY</span>
+                                        <div className="xt-inv-qty-row">
+                                            <button className="xt-inv-qty-btn"
+                                                onClick={() => updateLedger(selected.ledgerSlot!.id, { quantity: Math.max(0, (selected.quantity || 0) - 1) })}>−</button>
+                                            <span className="xt-inv-qty-val">{selected.quantity ?? 0}</span>
+                                            <button className="xt-inv-qty-btn"
+                                                onClick={() => updateLedger(selected.ledgerSlot!.id, { quantity: (selected.quantity || 0) + 1 })}>+</button>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* External link — TOOLS + LIBRARY */}
+                                {selected.source === 'ledger' && (selected.category === 'TOOLS' || selected.category === 'LIBRARY') && selected.ledgerSlot && (
+                                    <div className="xt-inv-section">
+                                        <span className="xt-inv-section-label">LINK</span>
+                                        <input
+                                            type="url"
+                                            className="xt-inv-link-input"
+                                            value={selected.externalLink || ''}
+                                            placeholder="https://…"
+                                            onChange={e => updateLedger(selected.ledgerSlot!.id, { externalLink: e.target.value || undefined })}
+                                        />
+                                        {selected.externalLink && (
+                                            <a href={selected.externalLink} target="_blank" rel="noreferrer" className="xt-inv-link-open">
+                                                open ↗
+                                            </a>
+                                        )}
+                                    </div>
+                                )}
+
                                 {/* Self Tree branch tagger — ledger only */}
                                 {selected.source === 'ledger' && (
                                     <div className="xt-inv-section">
@@ -816,6 +899,18 @@ export const Inventory: React.FC = () => {
                                         <span className="xt-inv-stat-label">Type</span>
                                         <span className="xt-inv-stat-val">{selected.category}</span>
                                     </div>
+                                    {selected.tier && (
+                                        <div className="xt-inv-stat">
+                                            <span className="xt-inv-stat-label">Tier</span>
+                                            <span className="xt-inv-stat-val" style={{ color: TIER_COLORS[selected.tier] }}>T{selected.tier} {TIER_LABELS[selected.tier]}</span>
+                                        </div>
+                                    )}
+                                    {selected.subtype && (
+                                        <div className="xt-inv-stat">
+                                            <span className="xt-inv-stat-label">Subtype</span>
+                                            <span className="xt-inv-stat-val">{selected.subtype}</span>
+                                        </div>
+                                    )}
                                     {selected.createdAt && (
                                         <div className="xt-inv-stat">
                                             <span className="xt-inv-stat-label">Added</span>

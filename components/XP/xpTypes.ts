@@ -288,7 +288,12 @@ export interface MomentumState {
 }
 
 // ─── Phase 8: Inventory Data Model ────────────────────────────────────────────
-export type InventoryCategory = 'OUTFIT' | 'GEAR' | 'VEHICLE' | 'TOOLS';
+export type InventoryCategory = 'APPAREL' | 'EQUIPMENT' | 'TOOLS' | 'LIBRARY' | 'CONSUMABLES' | 'VALUABLES' | 'MISC';
+
+/** 1=Common  2=Uncommon  3=Rare  4=Epic  5=Legendary */
+export type InventoryTier = 1 | 2 | 3 | 4 | 5;
+
+export type InventorySourceType = 'uploaded' | 'link' | 'external';
 
 export interface InventorySlot {
   id: string;
@@ -296,6 +301,16 @@ export interface InventorySlot {
   name: string;
   details?: string;
   importance?: 'low' | 'medium' | 'high' | 'critical';
+  /** Rarity/value tier (1=Common → 5=Legendary). */
+  tier?: InventoryTier;
+  /** Subtype — e.g. for LIBRARY: 'book' | 'pdf' | 'article' | 'course' | 'research' | 'dataset' | 'note' */
+  subtype?: string;
+  /** For consumable or stackable items. */
+  quantity?: number;
+  /** External URL for TOOLS or LIBRARY items (site, product page, resource link). */
+  externalLink?: string;
+  /** How the media/file was attached. */
+  sourceType?: InventorySourceType;
   /** Reference to a Supabase user_files row (optional). */
   fileId?: string;
   /** Self Tree branch this item belongs to — connects inventory to identity system. */
