@@ -10449,10 +10449,17 @@
 html,
 body {
   height: 100%;
+  margin: 0;
+  padding: 0;
   background-color: var(--dc-bg) !important;
   background-image: var(--ui-bg-overlay) !important;
   color: var(--dc-text) !important;
   letter-spacing: var(--ui-body-letter-spacing);
+  overflow: hidden;
+}
+
+#root {
+  height: 100%;
   overflow: hidden;
 }
 
@@ -10471,7 +10478,8 @@ body::before {
 #root {
   position: relative;
   z-index: 1;
-  min-height: 100dvh;
+  height: 100dvh;
+  overflow: hidden;
   background-color: var(--dc-bg);
   background-image: var(--ui-bg-overlay);
   color: var(--dc-text);
@@ -10502,10 +10510,10 @@ body::before {
   #root {
     max-width: none;
     width: calc(100% / var(--xt-ui-scale));
-    min-height: calc(100dvh / var(--xt-ui-scale));
+    height: calc(100dvh / var(--xt-ui-scale));
     transform: scale(var(--xt-ui-scale));
     transform-origin: top left;
-    overflow: visible;
+    overflow: hidden;
   }
 }
 
