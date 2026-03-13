@@ -273,8 +273,8 @@ export const Inventory: React.FC = () => {
                                     <div className="xt-inv-preview-img"
                                         style={{ perspective: '900px' }}
                                         onPointerDown={pDown} onPointerMove={pMove} onPointerUp={pUp} onPointerLeave={pUp}>
-                                        <div style={{ transform: `rotateY(${rotation}deg)`, transformStyle: 'preserve-3d', transition: dragRef.current.dragging ? 'none' : 'transform 0.2s ease-out', width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                            <img src={selected.mediaUrl} alt="" />
+                                        <div style={{ transform: `rotateY(${rotation}deg)`, transformStyle: 'preserve-3d', transition: dragRef.current.dragging ? 'none' : 'transform 0.2s ease-out', width: '100%', height: '100%' }}>
+                                            <img src={selected.mediaUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
                                         </div>
                                     </div>
                                 ) : (
