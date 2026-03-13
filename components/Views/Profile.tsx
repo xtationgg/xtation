@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react';
-import { Camera, Edit2, Check, X, Upload, Box, User, Activity, Award, BarChart2, Sword, Zap, Link2, FileText, Shield, ChevronLeft } from 'lucide-react';
+import { Camera, Edit2, Check, X, Upload, Box, User, Activity, Award, BarChart2, Sword, Zap, Link2, FileText, Shield, ChevronLeft, GitBranch } from 'lucide-react';
 import { ProfilePanel } from '../UI/ProfilePanel';
 import { Hint } from '../UI/Hint';
 import { RewardVisual } from '../UI/RewardVisual';
@@ -8,6 +8,7 @@ import { ASSETS } from '../../constants';
 import { playClickSound, playSuccessSound, playHoverSound } from '../../utils/SoundEffects';
 import { readFileAsDataUrl } from '../../utils/fileUtils';
 import { useXP } from '../XP/xpStore';
+import type { SelfTreeBranch } from '../XP/xpTypes';
 import { LogCalendar } from '../XP/LogCalendar';
 import { DayTimeline } from '../XP/DayTimeline';
 import { Activity as ProfileActivity } from './Activity';
@@ -234,7 +235,7 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
     return { HEAD: null, UPPER: null, LOWER: null, FEET: null, ACCESSORY_1: null, ACCESSORY_2: null };
   });
   const objectUrlRef = useRef<string | null>(null);
-  const { stats: xpStats, legacyXP, tasks, selectors, dateKey, startSession, stopSession } = useXP();
+  const { stats: xpStats, legacyXP, tasks, selectors, dateKey, startSession, stopSession, inventorySlots, projects: xpProjects } = useXP();
   const { settings } = useXtationSettings();
   const { theme } = useTheme();
   const adminConsole = useOptionalAdminConsole();
@@ -401,7 +402,7 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
     activeSession ? 'active' : completedToday > 0 ? 'productive' : 'idle';
 
   // ── Lobby state ────────────────────────────────────────────────────────
-  type LobbyPanelKey = 'identity' | 'stats' | 'loadout' | 'skills' | 'titles' | 'links' | 'notes' | 'privacy';
+  type LobbyPanelKey = 'identity' | 'stats' | 'loadout' | 'skills' | 'titles' | 'links' | 'notes' | 'privacy' | 'selftree';
   const [lobbyOpenPanel, setLobbyOpenPanel] = useState<LobbyPanelKey | null>(null);
   const [lobbyNotes, setLobbyNotes] = useState(() => {
     try { return localStorage.getItem('xtation_profile_notes_v1') || ''; } catch { return ''; }
@@ -1629,6 +1630,67 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
             })}
           </div>
         );
+      case 'selftree': {
+        const BRANCHES: { branch: SelfTreeBranch; color: string; icon: string; desc: string }[] = [
+          { branch: 'Knowledge',     color: '#60a5fa', icon: '📚', desc: 'Learning, research, and skill depth' },
+          { branch: 'Creation',      color: '#c084fc', icon: '✦',  desc: 'Building, designing, and making' },
+          { branch: 'Systems',       color: '#34d399', icon: '⚙',  desc: 'Structure, code, and automation' },
+          { branch: 'Communication', color: '#fb923c', icon: '◎',  desc: 'Writing, outreach, and presence' },
+          { branch: 'Physical',      color: '#f87171', icon: '◈',  desc: 'Health, energy, and movement' },
+          { branch: 'Inner',         color: '#facc15', icon: '◉',  desc: 'Mindset, reflection, and clarity' },
+        ];
+
+        const activeTasks = tasks.filter(t => t.status !== 'dropped' && !t.archivedAt);
+        const activeProjects = xpProjects.filter(p => p.status !== 'Archived');
+        const activeSlots = inventorySlots.filter(s => !s.archivedAt);
+
+        const getBranchScore = (branch: SelfTreeBranch) => {
+          const taskCount = activeTasks.filter(t => t.selfTreePrimary === branch || t.selfTreeSecondary === branch).length;
+          const projectCount = activeProjects.filter(p => p.selfTreePrimary === branch || p.selfTreeSecondary === branch).length;
+          const itemCount = activeSlots.filter(s => s.selfTreeBranch === branch).length;
+          return { taskCount, projectCount, itemCount, total: taskCount + projectCount * 2 + itemCount };
+        };
+
+        const scores = BRANCHES.map(b => ({ ...b, ...getBranchScore(b.branch) }));
+        const maxScore = Math.max(...scores.map(s => s.total), 1);
+
+        return (
+          <div className="space-y-[6px]">
+            <div className="text-[9px] uppercase tracking-[1.5px] text-[var(--app-muted)] mb-[10px]">Identity map across 6 growth dimensions</div>
+            {scores.map(({ branch, color, icon, desc, taskCount, projectCount, itemCount, total }) => {
+              const pct = Math.round((total / maxScore) * 100);
+              const hasAny = total > 0;
+              return (
+                <div key={branch} className="xt-selftree-row">
+                  <div className="xt-selftree-branch-header">
+                    <div className="flex items-center gap-[7px]">
+                      <span className="xt-selftree-icon" style={{ color }}>{icon}</span>
+                      <div>
+                        <div className="text-[12px] font-semibold text-[var(--app-text)]">{branch}</div>
+                        <div className="text-[10px] text-[var(--app-muted)] leading-[1.3]">{desc}</div>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-[5px] shrink-0">
+                      {taskCount > 0 && <span className="xt-selftree-count-pill" style={{ background: `color-mix(in_srgb,${color}_15%,transparent)`, color }}>{taskCount}q</span>}
+                      {projectCount > 0 && <span className="xt-selftree-count-pill" style={{ background: `color-mix(in_srgb,${color}_15%,transparent)`, color }}>{projectCount}p</span>}
+                      {itemCount > 0 && <span className="xt-selftree-count-pill" style={{ background: `color-mix(in_srgb,${color}_15%,transparent)`, color }}>{itemCount}i</span>}
+                    </div>
+                  </div>
+                  <div className="xt-selftree-bar-track">
+                    <div
+                      className="xt-selftree-bar-fill transition-[width] duration-[1200ms]"
+                      style={{ width: hasAny ? `${Math.max(pct, 4)}%` : '0%', background: color }}
+                    />
+                  </div>
+                </div>
+              );
+            })}
+            <div className="xt-selftree-legend">
+              <span>q = quests</span><span>p = projects</span><span>i = inventory items</span>
+            </div>
+          </div>
+        );
+      }
     }
   };
 
@@ -1637,14 +1699,15 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
       case 'PROFILE': {
         type BtnDef = { key: LobbyPanelKey; label: string; icon: React.ReactNode };
         const allBtns: BtnDef[] = [
-          { key: 'identity', label: 'identity', icon: <User size={16} /> },
-          { key: 'stats',    label: 'stats',    icon: <BarChart2 size={16} /> },
-          { key: 'loadout',  label: 'loadout',  icon: <Sword size={16} /> },
-          { key: 'skills',   label: 'skills',   icon: <Zap size={16} /> },
-          { key: 'titles',   label: 'titles',   icon: <Award size={16} /> },
-          { key: 'links',    label: 'links',    icon: <Link2 size={16} /> },
-          { key: 'notes',    label: 'notes',    icon: <FileText size={16} /> },
-          { key: 'privacy',  label: 'privacy',  icon: <Shield size={16} /> },
+          { key: 'identity', label: 'identity',  icon: <User size={16} /> },
+          { key: 'stats',    label: 'stats',     icon: <BarChart2 size={16} /> },
+          { key: 'loadout',  label: 'loadout',   icon: <Sword size={16} /> },
+          { key: 'selftree', label: 'self tree', icon: <GitBranch size={16} /> },
+          { key: 'skills',   label: 'skills',    icon: <Zap size={16} /> },
+          { key: 'titles',   label: 'titles',    icon: <Award size={16} /> },
+          { key: 'links',    label: 'links',     icon: <Link2 size={16} /> },
+          { key: 'notes',    label: 'notes',     icon: <FileText size={16} /> },
+          { key: 'privacy',  label: 'privacy',   icon: <Shield size={16} /> },
         ];
 
         const DockBtn = ({ btn }: { btn: BtnDef }) => {
@@ -2212,7 +2275,7 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
 
                     {/* ── Panel overlay ── */}
                     <div className="absolute inset-0 z-[5] pointer-events-none overflow-hidden">
-                      {(['identity', 'stats', 'loadout', 'skills', 'titles', 'links', 'notes', 'privacy'] as LobbyPanelKey[]).map(key => (
+                      {(['identity', 'stats', 'loadout', 'selftree', 'skills', 'titles', 'links', 'notes', 'privacy'] as LobbyPanelKey[]).map(key => (
                         <div
                           key={key}
                           className="xt-profile-lobby-panel absolute inset-0 overflow-y-auto xt-scroll"

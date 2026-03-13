@@ -10,6 +10,7 @@ import {
   LayoutGrid,
   Link2,
   Megaphone,
+  Package,
   Pause,
   Pin,
   PlayCircle,
@@ -266,7 +267,7 @@ const parseDateTimeLocalValue = (value: string) => {
 };
 
 export const Lab: React.FC = () => {
-  const { selectors, dateKey, now, tasks, projects, addTask } = useXP();
+  const { selectors, dateKey, now, tasks, projects, addTask, inventorySlots, updateInventorySlot } = useXP();
   const { settings } = useXtationSettings();
   const {
     assistantProjects,
@@ -551,6 +552,10 @@ export const Lab: React.FC = () => {
     () => tasks.filter((task) => selectedProject?.linkedQuestIds.includes(task.id)),
     [tasks, selectedProject]
   );
+  const selectedProjectInventorySlots = useMemo(
+    () => inventorySlots.filter((slot) => selectedProject?.linkedInventorySlotIds?.includes(slot.id) && !slot.archivedAt),
+    [inventorySlots, selectedProject]
+  );
 
   const handleCreateNote = () => {
     const id = addNote({
@@ -717,6 +722,23 @@ export const Lab: React.FC = () => {
       linkedProjectIds: shouldLink
         ? Array.from(new Set([...automation.linkedProjectIds, projectId]))
         : automation.linkedProjectIds.filter((id) => id !== projectId),
+    });
+  };
+
+  const syncProjectInventoryLink = (projectId: string, slotId: string, shouldLink: boolean) => {
+    const project = assistantProjects.find((item) => item.id === projectId);
+    const slot = inventorySlots.find((item) => item.id === slotId);
+    if (!project || !slot) return;
+
+    updateAssistantProject(projectId, {
+      linkedInventorySlotIds: shouldLink
+        ? Array.from(new Set([...(project.linkedInventorySlotIds || []), slotId]))
+        : (project.linkedInventorySlotIds || []).filter((id) => id !== slotId),
+    });
+    updateInventorySlot(slotId, {
+      linkedProjectIds: shouldLink
+        ? Array.from(new Set([...(slot.linkedProjectIds || []), projectId]))
+        : (slot.linkedProjectIds || []).filter((id) => id !== projectId),
     });
   };
 
@@ -1779,7 +1801,7 @@ export const Lab: React.FC = () => {
                     </div>
                   </div>
 
-                  <div className="grid gap-4 lg:grid-cols-3">
+                  <div className="grid gap-4 lg:grid-cols-4">
                     <div className={`${detailPanel} p-4`}>
                       <div className="text-[10px] uppercase tracking-[0.18em] text-[var(--app-muted)]">Notes In Context</div>
                       <div className="mt-3 flex flex-col gap-2">
@@ -1819,6 +1841,52 @@ export const Lab: React.FC = () => {
                           ))
                         ) : (
                           <div className="text-sm text-[var(--app-muted)]">No automation links yet.</div>
+                        )}
+                      </div>
+                    </div>
+                    <div className={`${detailPanel} p-4`}>
+                      <div className="flex items-center justify-between">
+                        <div className="text-[10px] uppercase tracking-[0.18em] text-[var(--app-muted)]">Gear / Inventory</div>
+                        <Package size={12} className="text-[var(--app-muted)] opacity-60" />
+                      </div>
+                      <div className="mt-3 flex flex-col gap-2">
+                        {selectedProjectInventorySlots.length ? (
+                          selectedProjectInventorySlots.map((slot) => (
+                            <div key={slot.id} className="xt-lab-gear-slot-chip">
+                              <span className="xt-lab-gear-slot-cat">{slot.category}</span>
+                              <span className="text-[12px] text-[var(--app-text)] truncate flex-1">{slot.name}</span>
+                              <button
+                                type="button"
+                                title="Unlink"
+                                onClick={() => syncProjectInventoryLink(selectedProject.id, slot.id, false)}
+                                className="xt-lab-gear-unlink-btn"
+                              >
+                                ×
+                              </button>
+                            </div>
+                          ))
+                        ) : (
+                          <div className="text-sm text-[var(--app-muted)]">No gear linked yet.</div>
+                        )}
+                        {inventorySlots.filter(s => !s.archivedAt && !selectedProject.linkedInventorySlotIds?.includes(s.id)).length > 0 && (
+                          <div className="mt-2">
+                            <div className="text-[9px] uppercase tracking-[1.2px] text-[var(--app-muted)] mb-[6px]">Link item</div>
+                            <div className="flex flex-col gap-[4px] max-h-[120px] overflow-y-auto xt-scroll">
+                              {inventorySlots
+                                .filter(s => !s.archivedAt && !selectedProject.linkedInventorySlotIds?.includes(s.id))
+                                .map(slot => (
+                                  <button
+                                    key={slot.id}
+                                    type="button"
+                                    onClick={() => syncProjectInventoryLink(selectedProject.id, slot.id, true)}
+                                    className="xt-lab-gear-add-btn"
+                                  >
+                                    <Plus size={10} />
+                                    <span className="truncate">{slot.name}</span>
+                                  </button>
+                                ))}
+                            </div>
+                          </div>
                         )}
                       </div>
                     </div>

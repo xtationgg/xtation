@@ -28,6 +28,7 @@ export interface LabAssistantProject {
   linkedQuestIds: string[];
   linkedNoteIds: string[];
   linkedAutomationIds: string[];
+  linkedInventorySlotIds?: string[];
   updatedAt: number;
   createdAt: number;
 }
