@@ -525,9 +525,10 @@ export const Lab: React.FC = () => {
   const knowledgeHotspots = useMemo(
     () =>
       notes
+        .filter(Boolean)
         .map((note) => ({
           note,
-          score: note.linkedQuestIds.length + note.linkedProjectIds.length + note.tags.length + (note.pinned ? 1 : 0),
+          score: (note.linkedQuestIds?.length ?? 0) + (note.linkedProjectIds?.length ?? 0) + (note.tags?.length ?? 0) + (note.pinned ? 1 : 0),
         }))
         .sort((a, b) => b.score - a.score)
         .slice(0, 3),
@@ -660,7 +661,7 @@ export const Lab: React.FC = () => {
 
   const handleCreateQuestFromNote = (note: LabNote) => {
     const questId = addTask({
-      title: note.title.trim() || 'Lab quest',
+      title: (note?.title ?? '').trim() || 'Lab quest',
       details: note.content,
       priority: 'normal',
       status: 'todo',
@@ -2838,7 +2839,7 @@ export const Lab: React.FC = () => {
                 </div>
               </div>
               <div className="mt-4 flex max-h-[420px] flex-col gap-3 overflow-y-auto pr-1">
-                {mediaQueue.map((item) => (
+                {mediaQueue.filter(Boolean).map((item) => (
                   <button
                     key={item.id}
                     type="button"

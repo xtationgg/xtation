@@ -2,7 +2,8 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { RewardConfig } from '../../types';
 import { HexPanel } from '../UI/HextechUI';
-import { Settings as SettingsIcon, Activity, Upload, CheckCircle, ChevronDown, Monitor, Shield, Cpu, DatabaseBackup, HardDriveDownload } from 'lucide-react';
+import { Hint } from '../UI/Hint';
+import { Settings as SettingsIcon, Activity, Upload, CheckCircle, Monitor, Shield, DatabaseBackup, HardDriveDownload, Volume2, Gamepad2, Bell, Trophy } from 'lucide-react';
 import { AuthDrawer } from '../UI/AuthDrawer';
 import { playClickSound, playPanelOpenSound, playHoverSound } from '../../utils/SoundEffects';
 import { readFileAsDataUrl } from '../../utils/fileUtils';
@@ -95,6 +96,7 @@ export const Settings: React.FC<SettingsProps> = ({
     setAudioMixLevel,
     setPerformanceMode,
     setDevHudEnabled,
+    setInterfaceHintMode,
     setFocusMode,
     setDefaultQuestVisibility,
     setPresenceMode,
@@ -112,10 +114,8 @@ export const Settings: React.FC<SettingsProps> = ({
   const { device, user: userSettings, notifications, privacy, features } = settings;
   const userSettingsLocked = !activeUserId;
     
-  const [isProtocolExpanded, setIsProtocolExpanded] = useState(false);
-  const [isDisplayExpanded, setIsDisplayExpanded] = useState(false);
-  const [isPrivacyExpanded, setIsPrivacyExpanded] = useState(false);
-  const [isOperationsExpanded, setIsOperationsExpanded] = useState(true);
+  type SettingsCategory = 'display' | 'audio' | 'gameplay' | 'privacy' | 'notifications' | 'rewards' | 'station';
+  const [activeCategory, setActiveCategory] = useState<SettingsCategory>('display');
   const [handoffRecoverySnapshot, setHandoffRecoverySnapshot] = useState<GuestStationRecoverySnapshot | null>(null);
   const [restoreRecoverySnapshot, setRestoreRecoverySnapshot] = useState<XtationStationRestoreRecoverySnapshot | null>(null);
   const [stationActivity, setStationActivity] = useState<StationActivityEntry[]>([]);
@@ -288,15 +288,6 @@ export const Settings: React.FC<SettingsProps> = ({
         } finally {
             e.target.value = '';
         }
-    };
-
-    const toggleProtocol = () => {
-        if (!isProtocolExpanded) {
-            playPanelOpenSound();
-        } else {
-            playClickSound();
-        }
-        setIsProtocolExpanded(!isProtocolExpanded);
     };
 
     const optionButtonClass = (selected: boolean, disabled = false) =>
@@ -548,303 +539,59 @@ export const Settings: React.FC<SettingsProps> = ({
         setImportError(null);
     };
 
-    return (
-        <div className="xt-settings-shell min-h-full p-8 custom-scrollbar">
-            <div className="xt-settings-hero mb-8 flex items-center justify-between gap-4 pb-4">
-                <div className="flex items-center gap-4">
-                    <div className="xt-settings-hero-icon p-4">
-                        <SettingsIcon size={32} className="text-[var(--app-text)]" />
-                    </div>
-                    <div>
-                        <h1 className="text-4xl font-black text-[var(--app-text)] uppercase tracking-tighter">System Configuration</h1>
-                        <p className="text-[var(--app-muted)] font-mono tracking-widest text-xs">CUSTOMIZE REWARD PROTOCOLS</p>
-                    </div>
-                </div>
-                <div className="text-right">
-                    <div className="text-[10px] text-[var(--app-muted)] uppercase font-bold tracking-widest">Current Profile XP</div>
-                    <div className="text-3xl font-black text-[var(--app-accent)] font-mono">{currentXP} XP</div>
-                </div>
-            </div>
-
-            <div className="grid grid-cols-1 gap-6">
-                <HexPanel className={panelClassName}>
-                    <div className="p-6 border-b border-[var(--app-border)]">
-                        <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
-                            <div>
-                                <h2 className="text-xl font-bold text-[var(--app-text)] uppercase tracking-widest flex items-center gap-2">
-                                    <DatabaseBackup className="text-[var(--app-accent)]" />
-                                    Platform Status
-                                </h2>
-                                <p className="mt-2 text-[11px] text-[var(--app-muted)] uppercase tracking-[0.16em]">
-                                    Current station identity, rollout lane, and account operating state.
-                                </p>
+    const renderCategoryContent = (category: SettingsCategory) => {
+        switch (category) {
+            case 'display':
+                return (
+                    <div className="space-y-6">
+                        <div className="xt-settings-section-title">Display</div>
+                        <div className="space-y-5">
+                            <div className="flex items-center justify-between gap-3">
+                                <span className="text-[10px] uppercase tracking-[0.2em] text-[var(--app-muted)]">Theme</span>
+                                <span className="text-[10px] uppercase tracking-[0.2em] text-[var(--app-muted)]">Current: {activeThemeLabel}</span>
                             </div>
-                            <div className="flex flex-wrap gap-2">
-                                <span className="xt-settings-chip">
-                                    {currentStation.kind.replace('-', ' ')}
-                                </span>
-                                <span className="xt-settings-chip">
-                                    {currentStation.releaseChannel}
-                                </span>
-                                <span className="xt-settings-chip xt-settings-chip--accent">
-                                    {currentStation.plan}
-                                    {currentStation.plan === 'trial' && stationTrialDays !== null ? ` • ${stationTrialDays}d` : ''}
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-                    <div className="p-6 grid grid-cols-1 xl:grid-cols-4 gap-4">
-                        <div className={`${sectionCard} p-4`}>
-                            <div className="text-[10px] uppercase tracking-[0.2em] text-[var(--app-accent)]">{stationIdentity.modeLabel}</div>
-                            <div className="mt-2 text-sm font-semibold text-[var(--app-text)]">{stationIdentity.title}</div>
-                            <div className="mt-2 text-[10px] uppercase tracking-[0.16em] text-[var(--app-muted)]">
-                                {stationIdentity.workspaceLabel}
-                            </div>
-                            <div className="mt-3 flex flex-wrap gap-2">
-                                {stationIdentity.chips.map((chip) => (
-                                    <span key={chip} className="xt-settings-chip">
-                                        {chip}
-                                    </span>
-                                ))}
-                            </div>
-                        </div>
-                        <div className={`${sectionCard} p-4`}>
-                            <div className="text-[10px] uppercase tracking-[0.2em] text-[var(--app-muted)]">Station</div>
-                            <div className="mt-2 text-sm font-semibold text-[var(--app-text)]">{currentStation.label}</div>
-                            <div className="mt-2 text-[10px] uppercase tracking-[0.16em] text-[var(--app-muted)]">
-                                {currentStation.email || 'No cloud account linked'}
-                            </div>
-                        </div>
-                        <div className={`${sectionCard} p-4`}>
-                            <div className="text-[10px] uppercase tracking-[0.2em] text-[var(--app-muted)]">Rollout</div>
-                            <div className="mt-2 text-sm font-semibold text-[var(--app-text)]">
-                                {currentStation.betaCohort || 'No beta cohort'}
-                            </div>
-                            <div className="mt-2 text-[10px] uppercase tracking-[0.16em] text-[var(--app-muted)]">
-                                Last seen {new Date(currentStation.lastSeenAt).toLocaleString()}
-                            </div>
-                        </div>
-                        <div className={`${sectionCard} p-4`}>
-                            <div className="text-[10px] uppercase tracking-[0.2em] text-[var(--app-muted)]">Operator Access</div>
-                            <div className="mt-2 text-sm font-semibold text-[var(--app-text)]">{operatorAccess.label}</div>
-                            <div className="mt-2 text-[10px] uppercase tracking-[0.16em] text-[var(--app-muted)]">
-                                {operatorAccess.allowed ? operatorAccess.roles.join(' • ') : 'No operator privileges'}
-                            </div>
-                        </div>
-                        <div className={`${sectionCard} p-4 xl:col-span-4`}>
-                            <div className="flex flex-wrap items-start justify-between gap-3">
-                                <div>
-                                    <div className="text-[10px] uppercase tracking-[0.2em] text-[var(--app-muted)]">Platform Profile Sync</div>
-                                    <div className="mt-2 text-sm font-semibold text-[var(--app-text)]">
-                                        {platformCloudEnabled ? platformSyncStatus.replace('_', ' ') : 'local fallback'}
-                                    </div>
-                                </div>
-                                <div className="xt-settings-chip">
-                                    {platformCloudEnabled ? `Cloud updated ${platformCloudUpdatedAt ? new Date(platformCloudUpdatedAt).toLocaleString() : 'pending'}` : 'No cloud profile table'}
-                                </div>
-                            </div>
-                            <div className="mt-3 text-[10px] uppercase tracking-[0.14em] text-[var(--app-muted)]">
-                                {platformSyncMessage
-                                    ? platformSyncMessage
-                                    : platformCloudEnabled
-                                        ? 'Plan, release channel, beta cohort, rollout flags, theme, and active XTATION unlocks now sync with the signed-in account profile.'
-                                        : 'Install the Supabase platform profile table to make signed-in platform state persist beyond this device.'}
-                            </div>
-                            <div className="mt-4 rounded-[16px] border border-[var(--app-border)] bg-[var(--app-panel)] px-3 py-3">
-                                <div className="text-[10px] uppercase tracking-[0.16em] text-[var(--app-accent)]">Continuity Readout</div>
-                                <div className="mt-2 text-sm leading-6 text-[var(--app-muted)]">{stationIdentity.detail}</div>
-                            </div>
-                            <div className="mt-4 rounded-[16px] border border-[var(--app-border)] bg-[var(--app-panel)] px-3 py-3">
-                                <div className="flex flex-wrap items-start justify-between gap-3">
-                                    <div>
-                                        <div className="text-[10px] uppercase tracking-[0.16em] text-[var(--app-accent)]">Starter Loop Status</div>
-                                        <div className="mt-2 text-sm font-semibold text-[var(--app-text)]">
-                                            {starterFlowSummary ? starterFlowSummary.title : 'No starter loop milestone yet'}
-                                        </div>
-                                    </div>
-                                    <div className="flex flex-wrap gap-2">
-                                        {starterFlowSummary ? (
-                                            <>
-                                                <span className="xt-settings-chip xt-settings-chip--accent">
-                                                    {starterFlowSummary.statusLabel}
-                                                </span>
-                                                {starterFlowSummary.workspaceLabel ? (
-                                                    <span className="xt-settings-chip">
-                                                        {starterFlowSummary.workspaceLabel}
-                                                    </span>
-                                                ) : null}
-                                            </>
-                                        ) : (
-                                            <span className="xt-settings-chip">Awaiting first routed action</span>
-                                        )}
-                                    </div>
-                                </div>
-                                <div className="mt-2 text-[10px] uppercase tracking-[0.14em] text-[var(--app-muted)]">
-                                    {starterFlowSummary
-                                        ? starterFlowSummary.detail
-                                        : 'The first starter route, checkpoint, and confirmed action will be surfaced here once the opening loop becomes real work.'}
-                                </div>
-                                {starterFlowSummary ? (
-                                    <div className="mt-3 flex flex-wrap items-center gap-2">
-                                        <span className="xt-settings-chip">
-                                            {new Date(starterFlowSummary.createdAt).toLocaleString()}
-                                        </span>
-                                        {starterFlowSummary.chips.map((chip) => (
-                                            <span key={`starter-flow-${chip}`} className="xt-settings-chip">
-                                                {chip}
-                                            </span>
-                                        ))}
-                                    </div>
-                                ) : null}
-                                <div className="mt-3 text-[10px] uppercase tracking-[0.14em] text-[var(--app-muted)]">
-                                    {starterFlowSummary?.statusDetail ??
-                                        'XTATION uses the same starter loop across Play, Profile, Lab, and the station continuity surfaces.'}
-                                </div>
-                            </div>
-                            <div className="mt-4 rounded-[16px] border border-[var(--app-border)] bg-[var(--app-panel)] px-3 py-3">
-                                <div className="flex flex-wrap items-start justify-between gap-3">
-                                    <div>
-                                        <div className="text-[10px] uppercase tracking-[0.16em] text-[var(--app-accent)]">Latest Transition Outcome</div>
-                                        <div className="mt-2 text-sm font-semibold text-[var(--app-text)]">
-                                            {latestTransitionActivity ? latestTransitionActivity.title : 'No recent station transition'}
-                                        </div>
-                                    </div>
-                                    <div className="flex flex-wrap gap-2">
-                                        <span className="xt-settings-chip">
-                                            {activeUserId ? 'Account scope' : 'Local scope'}
-                                        </span>
-                                        {latestTransitionActivity?.workspaceLabel ? (
-                                            <span className="xt-settings-chip xt-settings-chip--accent">
-                                                {latestTransitionActivity.workspaceLabel}
-                                            </span>
-                                        ) : null}
-                                    </div>
-                                </div>
-                                <div className="mt-2 text-[10px] uppercase tracking-[0.14em] text-[var(--app-muted)]">
-                                    {latestTransitionActivity
-                                        ? latestTransitionActivity.detail
-                                        : 'The next account activation, import decision, or local return will be surfaced here so the active station state stays obvious.'}
-                                </div>
-                                {latestTransitionActivity ? (
-                                    <div className="mt-3 flex flex-wrap items-center gap-2">
-                                        <span className="xt-settings-chip">
-                                            {new Date(latestTransitionActivity.createdAt).toLocaleString()}
-                                        </span>
-                                        {latestTransitionActivity.chips?.slice(0, 3).map((chip) => (
-                                            <span key={`latest-transition-${chip}`} className="xt-settings-chip">
-                                                {chip}
-                                            </span>
-                                        ))}
-                                    </div>
-                                ) : null}
-                                {!activeUserId && guestEntry ? (
-                                    <>
-                                        <div className="mt-4 text-[10px] uppercase tracking-[0.16em] text-[var(--app-accent)]">Next Local Resume</div>
-                                        <div className="mt-2 text-sm font-semibold text-[var(--app-text)]">
-                                            {guestEntry.transitionDescriptor.title}
-                                        </div>
-                                        <div className="mt-2 text-[10px] uppercase tracking-[0.14em] text-[var(--app-muted)]">
-                                            {guestEntry.transitionDescriptor.detail}
-                                        </div>
-                                        <div className="mt-3 flex flex-wrap gap-2">
-                                            <span className="xt-settings-chip xt-settings-chip--accent">
-                                                {guestEntry.transitionDescriptor.workspaceLabel}
-                                            </span>
-                                            {guestEntry.transitionDescriptor.chips.map((chip) => (
-                                                <span key={`next-resume-${chip}`} className="xt-settings-chip">
-                                                    {chip}
-                                                </span>
-                                            ))}
-                                        </div>
-                                        {guidedSetupResumeActionLabel && onOpenGuidedSetup ? (
-                                            <div className="mt-3">
-                                                <button
-                                                    type="button"
-                                                    className={`${panelButton} border-[var(--app-accent)] bg-[var(--app-accent-weak)] text-[var(--app-text)] hover:border-[var(--app-accent)]`}
-                                                    onClick={() => {
-                                                        playClickSound();
-                                                        onOpenGuidedSetup();
-                                                    }}
-                                                >
-                                                    {guidedSetupResumeActionLabel}
-                                                </button>
-                                            </div>
-                                        ) : null}
-                                    </>
-                                ) : null}
-                            </div>
-                            <div className="mt-4 rounded-[16px] border border-[var(--app-border)] bg-[var(--app-panel)] px-3 py-3">
+                            <ThemeSwitcher />
+                            <div className="space-y-2">
                                 <div className="flex items-center justify-between gap-3">
-                                    <div className="text-[10px] uppercase tracking-[0.16em] text-[var(--app-accent)]">Recent Station Activity</div>
-                                    <div className="text-[9px] uppercase tracking-[0.16em] text-[var(--app-muted)]">
-                                        {activeUserId ? 'Account scope' : 'Local scope'}
-                                    </div>
+                                    <span className="text-[10px] uppercase tracking-[0.2em] text-[var(--app-muted)]">Accent</span>
+                                    <span className="text-[10px] uppercase tracking-[0.2em] text-[var(--app-muted)]">{activeAccentLabel}</span>
                                 </div>
-                                {visibleRecentStationActivity.length ? (
-                                    <div className="mt-3 grid gap-2">
-                                        {visibleRecentStationActivity.map((entry) => (
-                                            <div
-                                                key={entry.id}
-                                                className="rounded-[12px] border border-[color-mix(in_srgb,var(--app-border)_78%,transparent)] bg-[color-mix(in_srgb,var(--app-panel-2)_76%,#050505)] px-3 py-3"
+                                <div className="flex flex-wrap gap-2">
+                                    {accentOptions.map((option) => {
+                                        const selected = option.value === accent;
+                                        return (
+                                            <button
+                                                key={option.value}
+                                                type="button"
+                                                onClick={() => setAccent(option.value)}
+                                                className={`ui-pressable rounded-[var(--app-radius-sm)] border px-2.5 py-1.5 text-[10px] font-semibold uppercase tracking-[0.18em] ${
+                                                    selected
+                                                        ? 'border-[var(--app-accent)] bg-[var(--app-accent-weak)] text-[var(--app-text)]'
+                                                        : 'border-[var(--app-border)] bg-[var(--app-panel-2)] text-[var(--app-muted)] hover:border-[var(--app-accent)] hover:text-[var(--app-text)]'
+                                                }`}
+                                                aria-pressed={selected}
                                             >
-                                                <div className="flex flex-wrap items-center justify-between gap-2">
-                                                    <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--app-text)]">
-                                                        {entry.title}
-                                                    </div>
-                                                    <div className="text-[9px] uppercase tracking-[0.16em] text-[var(--app-muted)]">
-                                                        {new Date(entry.createdAt).toLocaleString()}
-                                                    </div>
-                                                </div>
-                                                <div className="mt-2 text-[10px] uppercase tracking-[0.14em] text-[var(--app-muted)]">
-                                                    {entry.detail}
-                                                </div>
-                                                <div className="mt-2 flex flex-wrap gap-2">
-                                                    {entry.workspaceLabel ? (
-                                                        <span className="xt-settings-chip">{entry.workspaceLabel}</span>
-                                                    ) : null}
-                                                    {entry.chips?.slice(0, 3).map((chip) => (
-                                                        <span key={`${entry.id}-${chip}`} className="xt-settings-chip">
-                                                            {chip}
-                                                        </span>
-                                                    ))}
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                ) : (
-                                    <div className="mt-3 text-[10px] uppercase tracking-[0.14em] text-[var(--app-muted)]">
-                                        No station activity recorded yet for this scope on this device.
-                                    </div>
-                                )}
+                                                {option.label}
+                                            </button>
+                                        );
+                                    })}
+                                </div>
                             </div>
                         </div>
-                    </div>
-                </HexPanel>
-
-                <HexPanel className={panelClassName}>
-                    <div className="p-6 border-b border-[var(--app-border)]">
-                        <div className="flex items-center justify-between gap-3">
-                            <h2 className="text-xl font-bold text-[var(--app-text)] uppercase tracking-widest">Theme System</h2>
-                            <div className="text-[10px] uppercase tracking-[0.2em] text-[var(--app-muted)]">Current: {activeThemeLabel}</div>
-                        </div>
-                        <p className="mt-2 text-[11px] text-[var(--app-muted)] uppercase tracking-[0.16em]">Global theme applies instantly across all views.</p>
-                    </div>
-                    <div className="p-6 space-y-5">
-                        <ThemeSwitcher />
                         <div className="space-y-2">
                             <div className="flex items-center justify-between gap-3">
-                                <span className="text-[10px] uppercase tracking-[0.2em] text-[var(--app-muted)]">Accent</span>
-                                <span className="text-[10px] uppercase tracking-[0.2em] text-[var(--app-muted)]">{activeAccentLabel}</span>
+                                <span className="text-[10px] uppercase tracking-[0.2em] text-[var(--app-muted)]">Resolution Mode</span>
+                                <span className="text-[10px] uppercase tracking-[0.2em] text-[var(--app-muted)]">{activeResolutionLabel}</span>
                             </div>
                             <div className="flex flex-wrap gap-2">
-                                {accentOptions.map((option) => {
-                                    const selected = option.value === accent;
+                                {resolutionOptions.map((option) => {
+                                    const selected = resolution === option.value;
                                     return (
                                         <button
                                             key={option.value}
                                             type="button"
-                                            onClick={() => setAccent(option.value)}
-                                            className={`ui-pressable rounded-[var(--app-radius-sm)] border px-2.5 py-1.5 text-[10px] font-semibold uppercase tracking-[0.18em] ${
+                                            onClick={() => setResolution(option.value)}
+                                            className={`ui-pressable rounded-[var(--app-radius-sm)] border px-2.5 py-1.5 text-[10px] font-semibold uppercase tracking-[0.16em] ${
                                                 selected
                                                     ? 'border-[var(--app-accent)] bg-[var(--app-accent-weak)] text-[var(--app-text)]'
                                                     : 'border-[var(--app-border)] bg-[var(--app-panel-2)] text-[var(--app-muted)] hover:border-[var(--app-accent)] hover:text-[var(--app-text)]'
@@ -856,53 +603,559 @@ export const Settings: React.FC<SettingsProps> = ({
                                     );
                                 })}
                             </div>
+                            <Hint>Changes global workspace scale to keep layouts readable on different screen sizes.</Hint>
+                        </div>
+                        <div className="space-y-2">
+                            <div className="flex items-center justify-between gap-3">
+                                <span className="text-[10px] uppercase tracking-[0.2em] text-[var(--app-muted)]">UI Density</span>
+                                <span className="text-[10px] uppercase tracking-[0.2em] text-[var(--app-muted)]">{device.density}</span>
+                            </div>
+                            <div className="flex flex-wrap gap-2">
+                                {(['compact', 'comfortable', 'spacious'] as const).map((option) => {
+                                    const selected = device.density === option;
+                                    return (
+                                        <button
+                                            key={option}
+                                            type="button"
+                                            onClick={() => setDensity(option)}
+                                            className={optionButtonClass(selected)}
+                                            aria-pressed={selected}
+                                        >
+                                            {option}
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                            <Hint>Compact tightens spacing throughout the interface. Spacious adds more breathing room.</Hint>
+                        </div>
+                        <div className="space-y-2">
+                            <div className="flex items-center justify-between gap-3">
+                                <div>
+                                    <div className="text-[10px] uppercase tracking-[0.2em] text-[var(--app-muted)]">Reduce Motion</div>
+                                    <Hint>Disables transitions and animations system-wide.</Hint>
+                                </div>
+                                <button
+                                    type="button"
+                                    onClick={() => setMotionReduced(device.motion !== 'reduced')}
+                                    className={toggleChipClass(device.motion === 'reduced')}
+                                    aria-pressed={device.motion === 'reduced'}
+                                >
+                                    {device.motion === 'reduced' ? 'On' : 'Off'}
+                                </button>
+                            </div>
+                        </div>
+                        <div className="space-y-2">
+                            <div className="flex items-center justify-between gap-3">
+                                <span className="text-[10px] uppercase tracking-[0.2em] text-[var(--app-muted)]">Interface Hints</span>
+                                <span className="text-[10px] uppercase tracking-[0.2em] text-[var(--app-muted)]">{device.interfaceHintMode ?? 'hover'}</span>
+                            </div>
+                            <div className="flex flex-wrap gap-2">
+                                {([
+                                    { value: 'off',    label: 'Off' },
+                                    { value: 'hover',  label: 'Hover' },
+                                    { value: 'always', label: 'Always' },
+                                ] as const).map((option) => {
+                                    const selected = (device.interfaceHintMode ?? 'hover') === option.value;
+                                    return (
+                                        <button
+                                            key={option.value}
+                                            type="button"
+                                            onClick={() => setInterfaceHintMode(option.value)}
+                                            className={optionButtonClass(selected)}
+                                            aria-pressed={selected}
+                                        >
+                                            {option.label}
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                            <Hint>Off hides all hints. Hover shows a ⓘ icon — tooltip on hover. Always shows inline text (current behaviour).</Hint>
                         </div>
                     </div>
-                </HexPanel>
+                );
 
-                <HexPanel className={panelClassName}>
-                    <div 
-                        onClick={toggleProtocol}
-                        onMouseEnter={playHoverSound}
-                        className="flex items-center justify-between p-6 cursor-pointer hover:bg-[color-mix(in_srgb,var(--app-text)_5%,transparent)] transition-colors group"
-                    >
-                         <h2 className="text-xl font-bold text-[var(--app-text)] uppercase tracking-widest flex items-center gap-2 group-hover:text-[var(--app-accent)] transition-colors">
-                            <Activity className="text-[var(--app-accent)]" />
-                            XP Reward Protocol
-                         </h2>
-                         <div className="flex items-center gap-4">
-                            <div className="flex items-center gap-2">
-                                <div className="w-2 h-2 bg-[var(--app-accent)] animate-pulse"></div>
-                                <div className="text-xs text-[var(--app-muted)] font-mono group-hover:text-[var(--app-text)] transition-colors">LIVE SYNC ACTIVE</div>
+            case 'audio':
+                return (
+                    <div className="space-y-6">
+                        <div className="xt-settings-section-title">Audio</div>
+                        <div className="space-y-3">
+                            <div className="flex items-center justify-between gap-3">
+                                <span className="text-[10px] uppercase tracking-[0.2em] text-[var(--app-muted)]">Audio Protocol</span>
+                                <span className="text-[10px] uppercase tracking-[0.2em] text-[var(--app-muted)]">{device.audioVolume}%</span>
                             </div>
-                            <div className={`transition-transform duration-300 ${isProtocolExpanded ? 'rotate-180' : ''}`}>
-                                <ChevronDown className="text-[var(--app-muted)] group-hover:text-[var(--app-text)]" />
+                            <div className="flex items-center justify-between gap-3 border border-[var(--app-border)] bg-[var(--app-panel-2)] px-3 py-2 rounded-[var(--app-radius-sm)]">
+                                <span className="text-[10px] uppercase tracking-[0.18em] text-[var(--app-text)]">System Audio</span>
+                                <button
+                                    type="button"
+                                    onClick={() => setAudioEnabled(!device.audioEnabled)}
+                                    className={toggleChipClass(device.audioEnabled)}
+                                    aria-pressed={device.audioEnabled}
+                                >
+                                    {device.audioEnabled ? 'On' : 'Off'}
+                                </button>
                             </div>
-                         </div>
+                            <label className="flex items-center gap-4 border border-[var(--app-border)] bg-[var(--app-panel-2)] px-3 py-3 rounded-[var(--app-radius-sm)]">
+                                <span className="text-[10px] uppercase tracking-[0.18em] text-[var(--app-text)] whitespace-nowrap">Volume</span>
+                                <input
+                                    type="range"
+                                    min={0}
+                                    max={100}
+                                    step={5}
+                                    value={device.audioVolume}
+                                    onChange={(event) => setAudioVolume(Number(event.target.value))}
+                                    className="flex-1 accent-[var(--app-accent)]"
+                                />
+                            </label>
+                            <div className="rounded-[var(--app-radius-sm)] border border-[var(--app-border)] bg-[var(--app-panel-2)] px-3 py-3">
+                                <div className="flex items-start justify-between gap-3">
+                                    <div>
+                                        <div className="text-[10px] uppercase tracking-[0.18em] text-[var(--app-text)]">Active Sound Pack</div>
+                                        <div className="mt-1 text-sm text-[var(--app-text)]">{activeSoundPackLabel}</div>
+                                        <div className="mt-1 text-[11px] leading-5 text-[var(--app-muted)]">
+                                            {activeSoundSkin
+                                                ? getCreativeSkinRuntimeLabel(activeSoundSkin)
+                                                : 'Using the currently selected published sound route.'}
+                                        </div>
+                                    </div>
+                                    <div className={`${toggleChipClass(device.audioEnabled)} pointer-events-none`}>
+                                        {device.audioEnabled ? 'Live' : 'Muted'}
+                                    </div>
+                                </div>
+                                {publishedSoundSkins.length ? (
+                                    <div className="mt-3 flex flex-wrap gap-2">
+                                        {publishedSoundSkins.map((pack) => {
+                                            const selected = settings.unlocks.activeSoundPackId === pack.soundPackId;
+                                            return (
+                                                <button
+                                                    key={pack.id}
+                                                    type="button"
+                                                    onClick={() => pack.soundPackId && setActiveSoundPackId(pack.soundPackId)}
+                                                    className={selected ? optionButtonClass(true) : optionButtonClass(false)}
+                                                    aria-pressed={selected}
+                                                >
+                                                    {pack.name}
+                                                </button>
+                                            );
+                                        })}
+                                    </div>
+                                ) : null}
+                            </div>
+                            <div className="rounded-[var(--app-radius-sm)] border border-[var(--app-border)] bg-[var(--app-panel-2)] px-3 py-3">
+                                <div className="flex items-start justify-between gap-3">
+                                    <div>
+                                        <div className="text-[10px] uppercase tracking-[0.18em] text-[var(--app-text)]">Active Skin Runtime</div>
+                                        <div className="mt-1 text-sm text-[var(--app-text)]">
+                                            {activeRuntimeSkin ? activeRuntimeSkin.name : 'System runtime'}
+                                        </div>
+                                        <div className="mt-1 text-[11px] leading-5 text-[var(--app-muted)]">
+                                            {activeRuntimeSkin
+                                                ? getCreativeSkinRuntimeLabel(activeRuntimeSkin)
+                                                : 'No published skin package is currently bound to the active route.'}
+                                        </div>
+                                    </div>
+                                    <div className={`${toggleChipClass(!!activeRuntimeSkin)} pointer-events-none`}>
+                                        {activeRuntimeSkin ? 'Linked' : 'Open'}
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="rounded-[var(--app-radius-sm)] border border-[var(--app-border)] bg-[var(--app-panel-2)] px-3 py-3">
+                                <div className="flex items-center justify-between gap-3">
+                                    <span className="text-[10px] uppercase tracking-[0.18em] text-[var(--app-text)]">Mix Groups</span>
+                                    <span className="text-[10px] uppercase tracking-[0.18em] text-[var(--app-muted)]">Runtime balance</span>
+                                </div>
+                                <div className="mt-3 flex flex-col gap-3">
+                                    {XTATION_AUDIO_MIX_GROUPS.map((group) => (
+                                        <label
+                                            key={group}
+                                            className="flex items-center gap-3 rounded-[12px] border border-[var(--app-border)] bg-[color-mix(in_srgb,var(--app-panel)_70%,transparent)] px-3 py-2"
+                                        >
+                                            <span className="min-w-[92px] text-[10px] uppercase tracking-[0.16em] text-[var(--app-muted)]">
+                                                {XTATION_AUDIO_MIX_LABELS[group]}
+                                            </span>
+                                            <input
+                                                type="range"
+                                                min={0}
+                                                max={100}
+                                                step={5}
+                                                value={device.audioMixLevels[group]}
+                                                onChange={(event) => setAudioMixLevel(group, Number(event.target.value))}
+                                                className="flex-1 accent-[var(--app-accent)]"
+                                            />
+                                            <span className="min-w-[34px] text-right text-[10px] uppercase tracking-[0.16em] text-[var(--app-muted)]">
+                                                {device.audioMixLevels[group]}%
+                                            </span>
+                                        </label>
+                                    ))}
+                                </div>
+                            </div>
+                            <div className="rounded-[var(--app-radius-sm)] border border-[var(--app-border)] bg-[var(--app-panel-2)] px-3 py-3">
+                                <div className="flex items-center justify-between gap-3">
+                                    <span className="text-[10px] uppercase tracking-[0.18em] text-[var(--app-text)]">Preview Cues</span>
+                                    <span className="text-[10px] uppercase tracking-[0.18em] text-[var(--app-muted)]">
+                                        {settings.unlocks.activeSoundPackId ?? 'default pack'}
+                                    </span>
+                                </div>
+                                <div className="mt-3 flex flex-wrap gap-2">
+                                    {audioPreviewEvents.map((cue) => (
+                                        <button
+                                            key={cue.eventName}
+                                            type="button"
+                                            onClick={() => previewAudioCue(cue.eventName)}
+                                            className={panelButton}
+                                        >
+                                            {cue.label}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
                     </div>
+                );
 
-                    {isProtocolExpanded && (
-                        <div className="px-6 pb-6 space-y-4 animate-fade-in border-t border-[var(--app-border)] pt-4">
+            case 'gameplay':
+                return (
+                    <div className="space-y-6">
+                        <div className="xt-settings-section-title">Gameplay</div>
+                        <div className="space-y-2">
+                            <div className="flex items-center justify-between gap-3">
+                                <span className="text-[10px] uppercase tracking-[0.2em] text-[var(--app-muted)]">Focus Mode</span>
+                                <span className="text-[10px] uppercase tracking-[0.2em] text-[var(--app-muted)]">{userSettings.focusMode}</span>
+                            </div>
+                            <div className="flex flex-wrap gap-2">
+                                {(['normal', 'reduced', 'deep'] as const).map((option) => {
+                                    const selected = userSettings.focusMode === option;
+                                    return (
+                                        <button
+                                            key={option}
+                                            type="button"
+                                            onClick={() => setFocusMode(option)}
+                                            disabled={userSettingsLocked}
+                                            className={optionButtonClass(selected, userSettingsLocked)}
+                                            aria-pressed={selected}
+                                        >
+                                            {option}
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                            <p className="text-[10px] text-[var(--app-muted)] uppercase tracking-[0.14em]">
+                                Focus mode is a native engine behavior, not an AI-only feature.
+                            </p>
+                        </div>
+                        <div className="space-y-3">
+                            <div>
+                                <div className="text-[10px] uppercase tracking-[0.2em] text-[var(--app-muted)]">Workspace Modules</div>
+                                <div className="text-[10px] uppercase tracking-[0.14em] text-[var(--app-muted)] mt-1">
+                                    Choose which major station surfaces stay visible in this workspace.
+                                </div>
+                            </div>
+                            {([
+                                ['multiplayerEnabled', 'Multiplayer'],
+                                ['labEnabled', 'Lab'],
+                                ['storeEnabled', 'Store'],
+                            ] as const).map(([key, label]) => (
+                                <div key={key} className="flex items-center justify-between gap-3 border border-[var(--app-border)] bg-[var(--app-panel-2)] px-3 py-2 rounded-[var(--app-radius-sm)]">
+                                    <span className="text-[10px] uppercase tracking-[0.18em] text-[var(--app-text)]">{label}</span>
+                                    <button
+                                        type="button"
+                                        onClick={() => setFeatureEnabled(key, !features[key])}
+                                        disabled={userSettingsLocked}
+                                        className={toggleChipClass(features[key], userSettingsLocked)}
+                                        aria-pressed={features[key]}
+                                    >
+                                        {features[key] ? 'Enabled' : 'Disabled'}
+                                    </button>
+                                </div>
+                            ))}
+                            {operatorAccess.allowed ? (
+                                <div className="flex flex-wrap gap-2 pt-1">
+                                    <button
+                                        type="button"
+                                        onClick={() => setExperimentalFlag('labsV2', !features.experimentalFlags.labsV2)}
+                                        disabled={userSettingsLocked}
+                                        className={toggleChipClass(!!features.experimentalFlags.labsV2, userSettingsLocked)}
+                                        aria-pressed={!!features.experimentalFlags.labsV2}
+                                    >
+                                        Labs V2 {features.experimentalFlags.labsV2 ? 'On' : 'Off'}
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setExperimentalFlag('storeEntitlements', !features.experimentalFlags.storeEntitlements)}
+                                        disabled={userSettingsLocked}
+                                        className={toggleChipClass(!!features.experimentalFlags.storeEntitlements, userSettingsLocked)}
+                                        aria-pressed={!!features.experimentalFlags.storeEntitlements}
+                                    >
+                                        Store Entitlements {features.experimentalFlags.storeEntitlements ? 'On' : 'Off'}
+                                    </button>
+                                </div>
+                            ) : null}
+                        </div>
+                        <div className="space-y-2">
+                            <div className="flex items-center justify-between gap-3">
+                                <span className="text-[10px] uppercase tracking-[0.2em] text-[var(--app-muted)]">Performance Mode</span>
+                                <span className="text-[10px] uppercase tracking-[0.2em] text-[var(--app-muted)]">{device.performanceMode}</span>
+                            </div>
+                            <div className="flex flex-wrap gap-2">
+                                {(['quality', 'balanced', 'performance'] as const).map((option) => {
+                                    const selected = device.performanceMode === option;
+                                    return (
+                                        <button
+                                            key={option}
+                                            type="button"
+                                            onClick={() => setPerformanceMode(option)}
+                                            className={optionButtonClass(selected)}
+                                            aria-pressed={selected}
+                                        >
+                                            {option}
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                            {operatorAccess.allowed ? (
+                                <div className="flex items-center justify-between gap-3 border border-[var(--app-border)] bg-[var(--app-panel-2)] px-3 py-2 rounded-[var(--app-radius-sm)]">
+                                    <span className="text-[10px] uppercase tracking-[0.18em] text-[var(--app-text)]">Developer HUD</span>
+                                    <button
+                                        type="button"
+                                        onClick={() => setDevHudEnabled(!device.devHudEnabled)}
+                                        className={toggleChipClass(device.devHudEnabled)}
+                                        aria-pressed={device.devHudEnabled}
+                                    >
+                                        {device.devHudEnabled ? 'On' : 'Off'}
+                                    </button>
+                                </div>
+                            ) : null}
+                        </div>
+                    </div>
+                );
+
+            case 'privacy':
+                return (
+                    <div className="space-y-6">
+                        <div className="xt-settings-section-title">Privacy</div>
+                        <div className="space-y-2">
+                            <div className="flex items-center justify-between gap-3">
+                                <span className="text-[10px] uppercase tracking-[0.2em] text-[var(--app-muted)]">Default Task Visibility</span>
+                                <span className="text-[10px] uppercase tracking-[0.2em] text-[var(--app-muted)]">{userSettings.defaultQuestVisibility}</span>
+                            </div>
+                            <div className="flex flex-wrap gap-2">
+                                {(['private', 'circles', 'community'] as const).map((option) => {
+                                    const selected = userSettings.defaultQuestVisibility === option;
+                                    return (
+                                        <button
+                                            key={option}
+                                            type="button"
+                                            onClick={() => setDefaultQuestVisibility(option)}
+                                            disabled={userSettingsLocked}
+                                            className={optionButtonClass(selected, userSettingsLocked)}
+                                            aria-pressed={selected}
+                                        >
+                                            {option}
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                            <p className="text-[10px] text-[var(--app-muted)] uppercase tracking-[0.14em]">
+                                {!activeUserId
+                                    ? 'Sign in to save privacy preferences.'
+                                    : 'New tasks will default to this visibility level.'}
+                            </p>
+                        </div>
+                        <div className="space-y-2">
+                            <div className="flex items-center justify-between gap-3">
+                                <div>
+                                    <div className="text-[10px] uppercase tracking-[0.2em] text-[var(--app-muted)]">Multiplayer Presence</div>
+                                    <div className="text-[10px] uppercase tracking-[0.14em] text-[var(--app-muted)] mt-0.5">
+                                        Whether others can see you as online in the squad view.
+                                    </div>
+                                </div>
+                                <div className="flex gap-2 shrink-0">
+                                    {(['active', 'hidden'] as const).map((option) => {
+                                        const selected = userSettings.presenceMode === option;
+                                        return (
+                                            <button
+                                                key={option}
+                                                type="button"
+                                                onClick={() => setPresenceMode(option)}
+                                                disabled={userSettingsLocked}
+                                                className={optionButtonClass(selected, userSettingsLocked)}
+                                                aria-pressed={selected}
+                                            >
+                                                {option}
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                        </div>
+                        <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+                            <div className="space-y-2">
+                                <div className="flex items-center justify-between gap-3">
+                                    <span className="text-[10px] uppercase tracking-[0.2em] text-[var(--app-muted)]">Profile Detail Level</span>
+                                    <span className="text-[10px] uppercase tracking-[0.2em] text-[var(--app-muted)]">{privacy.profileDetailLevel}</span>
+                                </div>
+                                <div className="flex flex-wrap gap-2">
+                                    {(['basic', 'details'] as const).map((option) => {
+                                        const selected = privacy.profileDetailLevel === option;
+                                        return (
+                                            <button
+                                                key={option}
+                                                type="button"
+                                                onClick={() => setPrivacySetting('profileDetailLevel', option)}
+                                                disabled={userSettingsLocked}
+                                                className={optionButtonClass(selected, userSettingsLocked)}
+                                                aria-pressed={selected}
+                                            >
+                                                {option}
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                                <p className="text-[10px] text-[var(--app-muted)] uppercase tracking-[0.14em]">
+                                    Controls how much of your player card is visible to others.
+                                </p>
+                            </div>
+                            <div className="space-y-2">
+                                <div className="flex items-center justify-between gap-3">
+                                    <span className="text-[10px] uppercase tracking-[0.2em] text-[var(--app-muted)]">Location Sharing</span>
+                                    <span className="text-[10px] uppercase tracking-[0.2em] text-[var(--app-muted)]">{privacy.locationMode}</span>
+                                </div>
+                                <div className="flex flex-wrap gap-2">
+                                    {(['off', 'city', 'live'] as const).map((option) => {
+                                        const selected = privacy.locationMode === option;
+                                        return (
+                                            <button
+                                                key={option}
+                                                type="button"
+                                                onClick={() => setPrivacySetting('locationMode', option)}
+                                                disabled={userSettingsLocked}
+                                                className={optionButtonClass(selected, userSettingsLocked)}
+                                                aria-pressed={selected}
+                                            >
+                                                {option}
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                                <p className="text-[10px] text-[var(--app-muted)] uppercase tracking-[0.14em]">
+                                    Defines whether multiplayer can expose city-level or live location data.
+                                </p>
+                            </div>
+                            <div className="space-y-2">
+                                <div className="flex items-center justify-between gap-3">
+                                    <span className="text-[10px] uppercase tracking-[0.2em] text-[var(--app-muted)]">Pin Visibility</span>
+                                    <span className="text-[10px] uppercase tracking-[0.2em] text-[var(--app-muted)]">{privacy.pinVisibility}</span>
+                                </div>
+                                <div className="flex flex-wrap gap-2">
+                                    {(['none', 'close', 'specific'] as const).map((option) => {
+                                        const selected = privacy.pinVisibility === option;
+                                        return (
+                                            <button
+                                                key={option}
+                                                type="button"
+                                                onClick={() => setPrivacySetting('pinVisibility', option)}
+                                                disabled={userSettingsLocked}
+                                                className={optionButtonClass(selected, userSettingsLocked)}
+                                                aria-pressed={selected}
+                                            >
+                                                {option}
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                <button
+                                    type="button"
+                                    onClick={() => setPrivacySetting('rankVisibility', !privacy.rankVisibility)}
+                                    disabled={userSettingsLocked}
+                                    className={toggleChipClass(privacy.rankVisibility, userSettingsLocked)}
+                                    aria-pressed={privacy.rankVisibility}
+                                >
+                                    Rank {privacy.rankVisibility ? 'Visible' : 'Hidden'}
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setPrivacySetting('appearsInRank', !privacy.appearsInRank)}
+                                    disabled={userSettingsLocked}
+                                    className={toggleChipClass(privacy.appearsInRank, userSettingsLocked)}
+                                    aria-pressed={privacy.appearsInRank}
+                                >
+                                    Ranked Feed {privacy.appearsInRank ? 'On' : 'Off'}
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setPrivacySetting('closeCircle', !privacy.closeCircle)}
+                                    disabled={userSettingsLocked}
+                                    className={toggleChipClass(privacy.closeCircle, userSettingsLocked)}
+                                    aria-pressed={privacy.closeCircle}
+                                >
+                                    Close Circle {privacy.closeCircle ? 'On' : 'Off'}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                );
+
+            case 'notifications':
+                return (
+                    <div className="space-y-6">
+                        <div className="xt-settings-section-title">Alerts</div>
+                        <div className="space-y-3">
+                            <div>
+                                <div className="text-[10px] uppercase tracking-[0.2em] text-[var(--app-muted)]">Notifications</div>
+                                <div className="text-[10px] uppercase tracking-[0.14em] text-[var(--app-muted)] mt-1">
+                                    Control which engine events surface as alerts.
+                                </div>
+                            </div>
+                            {([
+                                ['scheduledQuestReminders', 'Scheduled Quests'],
+                                ['focusSessionAlerts', 'Focus Sessions'],
+                                ['rewardAlerts', 'Rewards'],
+                                ['multiplayerAlerts', 'Multiplayer'],
+                                ['labAlerts', 'Lab'],
+                            ] as const).map(([key, label]) => (
+                                <div key={key} className="flex items-center justify-between gap-3 border border-[var(--app-border)] bg-[var(--app-panel-2)] px-3 py-2 rounded-[var(--app-radius-sm)]">
+                                    <span className="text-[10px] uppercase tracking-[0.18em] text-[var(--app-text)]">{label}</span>
+                                    <button
+                                        type="button"
+                                        onClick={() => setNotification(key, !notifications[key])}
+                                        disabled={userSettingsLocked}
+                                        className={toggleChipClass(notifications[key], userSettingsLocked)}
+                                        aria-pressed={notifications[key]}
+                                    >
+                                        {notifications[key] ? 'On' : 'Off'}
+                                    </button>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                );
+
+            case 'rewards':
+                return (
+                    <div className="space-y-6">
+                        <div className="xt-settings-section-title">Rewards</div>
+                        <div className="flex items-center gap-2">
+                            <div className="w-2 h-2 bg-[var(--app-accent)] animate-pulse"></div>
+                            <div className="text-xs text-[var(--app-muted)] font-mono">LIVE SYNC ACTIVE</div>
+                        </div>
+                        <div className="space-y-4">
                             {rewardConfigs.map((config) => {
                                 const isAchieved = currentXP >= config.threshold;
                                 const progressPercent = Math.min(100, Math.max(0, (currentXP / config.threshold) * 100));
-
                                 return (
-                                    <div 
-                                        key={config.level} 
+                                    <div
+                                        key={config.level}
                                         className={`
                                             grid grid-cols-1 md:grid-cols-12 gap-4 items-start p-4 border transition-colors group relative overflow-hidden
                                             ${isAchieved ? 'border-[var(--app-accent)] bg-[color-mix(in_srgb,var(--app-accent)_5%,transparent)]' : 'border-[var(--app-border)] bg-[var(--app-panel)] hover:border-[var(--app-muted)]'}
                                         `}
                                     >
-                                        {/* Achieved Watermark */}
                                         {isAchieved && (
                                             <div className="absolute top-0 right-0 p-2 opacity-20 pointer-events-none">
                                                 <CheckCircle size={64} className="text-[var(--app-accent)]" />
                                             </div>
                                         )}
-                                        
-                                        {/* Level Label */}
                                         <div className="md:col-span-1 text-center pt-2 relative z-10">
                                             <div className="text-[10px] text-[var(--app-muted)] uppercase font-bold mb-1">Level</div>
                                             <div className={`text-2xl font-black ${isAchieved ? 'text-[var(--app-accent)]' : 'text-[var(--app-text)]'}`}>
@@ -914,23 +1167,18 @@ export const Settings: React.FC<SettingsProps> = ({
                                                 <div className="mt-1 text-[8px] font-bold text-[var(--app-muted)] border border-[var(--app-border)] px-1 inline-block">LOCKED</div>
                                             )}
                                         </div>
-
-                                        {/* Threshold Input & Progress */}
                                         <div className="md:col-span-2 relative z-10">
                                             <label className="text-[10px] text-[var(--app-muted)] uppercase font-bold block mb-1">XP Threshold</label>
                                             <div className="relative mb-2">
-                                                <input 
-                                                    type="number" 
+                                                <input
+                                                    type="number"
                                                     value={config.threshold}
                                                     onChange={(e) => handleThresholdChange(config.level, e.target.value)}
                                                     className={`w-full bg-[var(--app-bg)] border p-2 text-[var(--app-text)] font-mono outline-none transition-colors ${isAchieved ? 'border-[var(--app-accent)] text-[var(--app-accent)]' : 'border-[var(--app-border)] focus:border-[var(--app-accent)]'}`}
                                                 />
                                                 <div className="absolute right-2 top-2 text-[var(--app-muted)] text-xs font-bold">XP</div>
                                             </div>
-                                            
-                                            {/* Progress Bar */}
                                             <div className="w-full h-20 bg-[var(--app-panel-2)] border border-[var(--app-border)] relative overflow-hidden rounded-sm">
-                                                {/* Visual preview */}
                                                 <div className="absolute inset-0 opacity-80">
                                                     {(() => {
                                                         const visualUrl = config.customVisualUrl?.startsWith('idb:')
@@ -939,14 +1187,14 @@ export const Settings: React.FC<SettingsProps> = ({
                                                         if (visualUrl) {
                                                             if (config.customVisualType === 'video') {
                                                                 return (
-                                                                    <video 
+                                                                    <video
                                                                         key={visualUrl}
-                                                                        src={visualUrl} 
+                                                                        src={visualUrl}
                                                                         className="w-full h-full object-cover"
-                                                                        autoPlay 
-                                                                        loop 
-                                                                        muted 
-                                                                        playsInline 
+                                                                        autoPlay
+                                                                        loop
+                                                                        muted
+                                                                        playsInline
                                                                     />
                                                                 );
                                                             }
@@ -959,10 +1207,9 @@ export const Settings: React.FC<SettingsProps> = ({
                                                         );
                                                     })()}
                                                 </div>
-                                                {/* Progress bar overlay at bottom */}
                                                 <div className="absolute bottom-0 left-0 right-0 h-2 bg-[color-mix(in_srgb,var(--app-bg)_40%,transparent)] border-t border-[var(--app-border)]">
-                                                    <div 
-                                                        className={`h-full transition-all duration-500 ${isAchieved ? 'bg-[var(--app-accent)]' : 'bg-[var(--app-muted)]'}`} 
+                                                    <div
+                                                        className={`h-full transition-all duration-500 ${isAchieved ? 'bg-[var(--app-accent)]' : 'bg-[var(--app-muted)]'}`}
                                                         style={{ width: `${progressPercent}%` }}
                                                     ></div>
                                                 </div>
@@ -973,17 +1220,15 @@ export const Settings: React.FC<SettingsProps> = ({
                                                 <span>{Math.floor(progressPercent)}%</span>
                                             </div>
                                         </div>
-
-                                        {/* Animation Selector & Upload */}
                                         <div className="md:col-span-6 relative z-10 flex flex-col gap-2">
                                             <div className="flex items-center justify-between">
                                                 <label className="text-[10px] text-[var(--app-muted)] uppercase font-bold">Visual Effect</label>
                                                 <label className="cursor-pointer flex items-center gap-1 text-[8px] uppercase text-[var(--app-accent)] hover:text-[var(--app-text)] transition-colors border border-[var(--app-border)] px-2 py-0.5 hover:border-[var(--app-accent)]">
                                                     <Upload size={8} /> Upload Visual
-                                                    <input 
-                                                        type="file" 
+                                                    <input
+                                                        type="file"
                                                         accept="image/gif,image/png,image/jpeg,video/mp4,video/webm"
-                                                        className="hidden" 
+                                                        className="hidden"
                                                         onChange={(e) => handleFileUpload(config.level, 'visual', e)}
                                                     />
                                                 </label>
@@ -995,803 +1240,404 @@ export const Settings: React.FC<SettingsProps> = ({
                                             )}
                                         </div>
                                     </div>
-                                )
+                                );
                             })}
                         </div>
-                    )}
-                </HexPanel>
-
-                {/* Display Settings */}
-                <HexPanel className={panelClassName}>
-                    <div
-                        onClick={() => {
-                            if (!isDisplayExpanded) playPanelOpenSound(); else playClickSound();
-                            setIsDisplayExpanded(!isDisplayExpanded);
-                        }}
-                        onMouseEnter={playHoverSound}
-                        className="flex items-center justify-between p-6 cursor-pointer hover:bg-[color-mix(in_srgb,var(--app-text)_5%,transparent)] transition-colors group"
-                    >
-                        <h2 className="text-xl font-bold text-[var(--app-text)] uppercase tracking-widest flex items-center gap-2 group-hover:text-[var(--app-accent)] transition-colors">
-                            <Monitor className="text-[var(--app-accent)]" />
-                            Display
-                        </h2>
-                        <div className={`transition-transform duration-300 ${isDisplayExpanded ? 'rotate-180' : ''}`}>
-                            <ChevronDown className="text-[var(--app-muted)] group-hover:text-[var(--app-text)]" />
-                        </div>
                     </div>
+                );
 
-                    {isDisplayExpanded && (
-                        <div className="px-6 pb-6 space-y-6 animate-fade-in border-t border-[var(--app-border)] pt-5">
-                            {/* Resolution Mode */}
-                            <div className="space-y-2">
-                                <div className="flex items-center justify-between gap-3">
-                                    <span className="text-[10px] uppercase tracking-[0.2em] text-[var(--app-muted)]">Resolution Mode</span>
-                                    <span className="text-[10px] uppercase tracking-[0.2em] text-[var(--app-muted)]">{activeResolutionLabel}</span>
-                                </div>
-                                <div className="flex flex-wrap gap-2">
-                                    {resolutionOptions.map((option) => {
-                                        const selected = resolution === option.value;
-                                        return (
-                                            <button
-                                                key={option.value}
-                                                type="button"
-                                                onClick={() => setResolution(option.value)}
-                                                className={`ui-pressable rounded-[var(--app-radius-sm)] border px-2.5 py-1.5 text-[10px] font-semibold uppercase tracking-[0.16em] ${
-                                                    selected
-                                                        ? 'border-[var(--app-accent)] bg-[var(--app-accent-weak)] text-[var(--app-text)]'
-                                                        : 'border-[var(--app-border)] bg-[var(--app-panel-2)] text-[var(--app-muted)] hover:border-[var(--app-accent)] hover:text-[var(--app-text)]'
-                                                }`}
-                                                aria-pressed={selected}
-                                            >
-                                                {option.label}
-                                            </button>
-                                        );
-                                    })}
-                                </div>
-                                <p className="text-[10px] text-[var(--app-muted)] uppercase tracking-[0.14em]">
-                                    Changes global workspace scale to keep layouts readable on different screen sizes.
-                                </p>
+            case 'station':
+                return (
+                    <div className="space-y-6">
+                        <div className="xt-settings-section-title">Station</div>
+                        <div>
+                            <div className="flex flex-wrap gap-2 mb-4">
+                                <span className="xt-settings-chip">{currentStation.kind.replace('-', ' ')}</span>
+                                <span className="xt-settings-chip">{currentStation.releaseChannel}</span>
+                                <span className="xt-settings-chip xt-settings-chip--accent">
+                                    {currentStation.plan}{currentStation.plan === 'trial' && stationTrialDays !== null ? ` • ${stationTrialDays}d` : ''}
+                                </span>
                             </div>
-
-                            {/* Density */}
-                            <div className="space-y-2">
-                                <div className="flex items-center justify-between gap-3">
-                                    <span className="text-[10px] uppercase tracking-[0.2em] text-[var(--app-muted)]">UI Density</span>
-                                    <span className="text-[10px] uppercase tracking-[0.2em] text-[var(--app-muted)]">{device.density}</span>
-                                </div>
-                                <div className="flex flex-wrap gap-2">
-                                    {(['compact', 'comfortable', 'spacious'] as const).map((option) => {
-                                        const selected = device.density === option;
-                                        return (
-                                            <button
-                                                key={option}
-                                                type="button"
-                                                onClick={() => setDensity(option)}
-                                                className={optionButtonClass(selected)}
-                                                aria-pressed={selected}
-                                            >
-                                                {option}
-                                            </button>
-                                        );
-                                    })}
-                                </div>
-                                <p className="text-[10px] text-[var(--app-muted)] uppercase tracking-[0.14em]">
-                                    Compact tightens spacing throughout the interface.
-                                </p>
-                            </div>
-
-                            {/* Reduce Motion */}
-                            <div className="space-y-2">
-                                <div className="flex items-center justify-between gap-3">
-                                    <div>
-                                        <div className="text-[10px] uppercase tracking-[0.2em] text-[var(--app-muted)]">Reduce Motion</div>
-                                        <div className="text-[10px] uppercase tracking-[0.14em] text-[var(--app-muted)] mt-0.5">
-                                            Disables transitions and animations system-wide.
-                                        </div>
-                                    </div>
-                                    <button
-                                        type="button"
-                                        onClick={() => setMotionReduced(device.motion !== 'reduced')}
-                                        className={toggleChipClass(device.motion === 'reduced')}
-                                        aria-pressed={device.motion === 'reduced'}
-                                    >
-                                        {device.motion === 'reduced' ? 'On' : 'Off'}
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    )}
-                </HexPanel>
-
-                {/* Privacy Settings */}
-                <HexPanel className={panelClassName}>
-                    <div
-                        onClick={() => {
-                            if (!isPrivacyExpanded) playPanelOpenSound(); else playClickSound();
-                            setIsPrivacyExpanded(!isPrivacyExpanded);
-                        }}
-                        onMouseEnter={playHoverSound}
-                        className="flex items-center justify-between p-6 cursor-pointer hover:bg-[color-mix(in_srgb,var(--app-text)_5%,transparent)] transition-colors group"
-                    >
-                        <h2 className="text-xl font-bold text-[var(--app-text)] uppercase tracking-widest flex items-center gap-2 group-hover:text-[var(--app-accent)] transition-colors">
-                            <Shield className="text-[var(--app-accent)]" />
-                            Privacy
-                        </h2>
-                        <div className={`transition-transform duration-300 ${isPrivacyExpanded ? 'rotate-180' : ''}`}>
-                            <ChevronDown className="text-[var(--app-muted)] group-hover:text-[var(--app-text)]" />
-                        </div>
-                    </div>
-
-                    {isPrivacyExpanded && (
-                        <div className="px-6 pb-6 space-y-6 animate-fade-in border-t border-[var(--app-border)] pt-5">
-                            {/* Default task visibility */}
-                            <div className="space-y-2">
-                                <div className="flex items-center justify-between gap-3">
-                                    <span className="text-[10px] uppercase tracking-[0.2em] text-[var(--app-muted)]">Default Task Visibility</span>
-                                    <span className="text-[10px] uppercase tracking-[0.2em] text-[var(--app-muted)]">{userSettings.defaultQuestVisibility}</span>
-                                </div>
-                                <div className="flex flex-wrap gap-2">
-                                    {(['private', 'circles', 'community'] as const).map((option) => {
-                                        const selected = userSettings.defaultQuestVisibility === option;
-                                        return (
-                                            <button
-                                                key={option}
-                                                type="button"
-                                                onClick={() => setDefaultQuestVisibility(option)}
-                                                disabled={userSettingsLocked}
-                                                className={optionButtonClass(selected, userSettingsLocked)}
-                                                aria-pressed={selected}
-                                            >
-                                                {option}
-                                            </button>
-                                        );
-                                    })}
-                                </div>
-                                <p className="text-[10px] text-[var(--app-muted)] uppercase tracking-[0.14em]">
-                                    {!activeUserId
-                                        ? 'Sign in to save privacy preferences.'
-                                        : 'New tasks will default to this visibility level.'}
-                                </p>
-                            </div>
-
-                            {/* Multiplayer presence */}
-                            <div className="space-y-2">
-                                <div className="flex items-center justify-between gap-3">
-                                    <div>
-                                        <div className="text-[10px] uppercase tracking-[0.2em] text-[var(--app-muted)]">Multiplayer Presence</div>
-                                        <div className="text-[10px] uppercase tracking-[0.14em] text-[var(--app-muted)] mt-0.5">
-                                            Whether others can see you as online in the squad view.
-                                        </div>
-                                    </div>
-                                    <div className="flex gap-2 shrink-0">
-                                        {(['active', 'hidden'] as const).map((option) => {
-                                            const selected = userSettings.presenceMode === option;
-                                            return (
-                                                <button
-                                                    key={option}
-                                                    type="button"
-                                                    onClick={() => setPresenceMode(option)}
-                                                    disabled={userSettingsLocked}
-                                                    className={optionButtonClass(selected, userSettingsLocked)}
-                                                    aria-pressed={selected}
-                                                >
-                                                    {option}
-                                                </button>
-                                            );
-                                        })}
+                            <div className="grid grid-cols-1 xl:grid-cols-4 gap-4">
+                                <div className={`${sectionCard} p-4`}>
+                                    <div className="text-[10px] uppercase tracking-[0.2em] text-[var(--app-accent)]">{stationIdentity.modeLabel}</div>
+                                    <div className="mt-2 text-sm font-semibold text-[var(--app-text)]">{stationIdentity.title}</div>
+                                    <div className="mt-2 text-[10px] uppercase tracking-[0.16em] text-[var(--app-muted)]">{stationIdentity.workspaceLabel}</div>
+                                    <div className="mt-3 flex flex-wrap gap-2">
+                                        {stationIdentity.chips.map((chip) => (
+                                            <span key={chip} className="xt-settings-chip">{chip}</span>
+                                        ))}
                                     </div>
                                 </div>
-                            </div>
-
-                            <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-                                <div className="space-y-2">
-                                    <div className="flex items-center justify-between gap-3">
-                                        <span className="text-[10px] uppercase tracking-[0.2em] text-[var(--app-muted)]">Profile Detail Level</span>
-                                        <span className="text-[10px] uppercase tracking-[0.2em] text-[var(--app-muted)]">{privacy.profileDetailLevel}</span>
-                                    </div>
-                                    <div className="flex flex-wrap gap-2">
-                                        {(['basic', 'details'] as const).map((option) => {
-                                            const selected = privacy.profileDetailLevel === option;
-                                            return (
-                                                <button
-                                                    key={option}
-                                                    type="button"
-                                                    onClick={() => setPrivacySetting('profileDetailLevel', option)}
-                                                    disabled={userSettingsLocked}
-                                                    className={optionButtonClass(selected, userSettingsLocked)}
-                                                    aria-pressed={selected}
-                                                >
-                                                    {option}
-                                                </button>
-                                            );
-                                        })}
-                                    </div>
-                                    <p className="text-[10px] text-[var(--app-muted)] uppercase tracking-[0.14em]">
-                                        Controls how much of your player card is visible to others.
-                                    </p>
+                                <div className={`${sectionCard} p-4`}>
+                                    <div className="text-[10px] uppercase tracking-[0.2em] text-[var(--app-muted)]">Station</div>
+                                    <div className="mt-2 text-sm font-semibold text-[var(--app-text)]">{currentStation.label}</div>
+                                    <div className="mt-2 text-[10px] uppercase tracking-[0.16em] text-[var(--app-muted)]">{currentStation.email || 'No cloud account linked'}</div>
                                 </div>
-
-                                <div className="space-y-2">
-                                    <div className="flex items-center justify-between gap-3">
-                                        <span className="text-[10px] uppercase tracking-[0.2em] text-[var(--app-muted)]">Location Sharing</span>
-                                        <span className="text-[10px] uppercase tracking-[0.2em] text-[var(--app-muted)]">{privacy.locationMode}</span>
-                                    </div>
-                                    <div className="flex flex-wrap gap-2">
-                                        {(['off', 'city', 'live'] as const).map((option) => {
-                                            const selected = privacy.locationMode === option;
-                                            return (
-                                                <button
-                                                    key={option}
-                                                    type="button"
-                                                    onClick={() => setPrivacySetting('locationMode', option)}
-                                                    disabled={userSettingsLocked}
-                                                    className={optionButtonClass(selected, userSettingsLocked)}
-                                                    aria-pressed={selected}
-                                                >
-                                                    {option}
-                                                </button>
-                                            );
-                                        })}
-                                    </div>
-                                    <p className="text-[10px] text-[var(--app-muted)] uppercase tracking-[0.14em]">
-                                        Defines whether multiplayer can expose city-level or live location data.
-                                    </p>
+                                <div className={`${sectionCard} p-4`}>
+                                    <div className="text-[10px] uppercase tracking-[0.2em] text-[var(--app-muted)]">Rollout</div>
+                                    <div className="mt-2 text-sm font-semibold text-[var(--app-text)]">{currentStation.betaCohort || 'No beta cohort'}</div>
+                                    <div className="mt-2 text-[10px] uppercase tracking-[0.16em] text-[var(--app-muted)]">Last seen {new Date(currentStation.lastSeenAt).toLocaleString()}</div>
                                 </div>
-
-                                <div className="space-y-2">
-                                    <div className="flex items-center justify-between gap-3">
-                                        <span className="text-[10px] uppercase tracking-[0.2em] text-[var(--app-muted)]">Pin Visibility</span>
-                                        <span className="text-[10px] uppercase tracking-[0.2em] text-[var(--app-muted)]">{privacy.pinVisibility}</span>
-                                    </div>
-                                    <div className="flex flex-wrap gap-2">
-                                        {(['none', 'close', 'specific'] as const).map((option) => {
-                                            const selected = privacy.pinVisibility === option;
-                                            return (
-                                                <button
-                                                    key={option}
-                                                    type="button"
-                                                    onClick={() => setPrivacySetting('pinVisibility', option)}
-                                                    disabled={userSettingsLocked}
-                                                    className={optionButtonClass(selected, userSettingsLocked)}
-                                                    aria-pressed={selected}
-                                                >
-                                                    {option}
-                                                </button>
-                                            );
-                                        })}
+                                <div className={`${sectionCard} p-4`}>
+                                    <div className="text-[10px] uppercase tracking-[0.2em] text-[var(--app-muted)]">Operator Access</div>
+                                    <div className="mt-2 text-sm font-semibold text-[var(--app-text)]">{operatorAccess.label}</div>
+                                    <div className="mt-2 text-[10px] uppercase tracking-[0.16em] text-[var(--app-muted)]">
+                                        {operatorAccess.allowed ? operatorAccess.roles.join(' • ') : 'No operator privileges'}
                                     </div>
                                 </div>
-
-                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                                    <button
-                                        type="button"
-                                        onClick={() => setPrivacySetting('rankVisibility', !privacy.rankVisibility)}
-                                        disabled={userSettingsLocked}
-                                        className={toggleChipClass(privacy.rankVisibility, userSettingsLocked)}
-                                        aria-pressed={privacy.rankVisibility}
-                                    >
-                                        Rank {privacy.rankVisibility ? 'Visible' : 'Hidden'}
-                                    </button>
-                                    <button
-                                        type="button"
-                                        onClick={() => setPrivacySetting('appearsInRank', !privacy.appearsInRank)}
-                                        disabled={userSettingsLocked}
-                                        className={toggleChipClass(privacy.appearsInRank, userSettingsLocked)}
-                                        aria-pressed={privacy.appearsInRank}
-                                    >
-                                        Ranked Feed {privacy.appearsInRank ? 'On' : 'Off'}
-                                    </button>
-                                    <button
-                                        type="button"
-                                        onClick={() => setPrivacySetting('closeCircle', !privacy.closeCircle)}
-                                        disabled={userSettingsLocked}
-                                        className={toggleChipClass(privacy.closeCircle, userSettingsLocked)}
-                                        aria-pressed={privacy.closeCircle}
-                                    >
-                                        Close Circle {privacy.closeCircle ? 'On' : 'Off'}
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    )}
-                </HexPanel>
-
-                <HexPanel className={panelClassName}>
-                    <div
-                        onClick={() => {
-                            if (!isOperationsExpanded) playPanelOpenSound(); else playClickSound();
-                            setIsOperationsExpanded(!isOperationsExpanded);
-                        }}
-                        onMouseEnter={playHoverSound}
-                        className="flex items-center justify-between p-6 cursor-pointer hover:bg-[color-mix(in_srgb,var(--app-text)_5%,transparent)] transition-colors group"
-                    >
-                        <h2 className="text-xl font-bold text-[var(--app-text)] uppercase tracking-widest flex items-center gap-2 group-hover:text-[var(--app-accent)] transition-colors">
-                            <Cpu className="text-[var(--app-accent)]" />
-                            Operations
-                        </h2>
-                        <div className={`transition-transform duration-300 ${isOperationsExpanded ? 'rotate-180' : ''}`}>
-                            <ChevronDown className="text-[var(--app-muted)] group-hover:text-[var(--app-text)]" />
-                        </div>
-                    </div>
-
-                    {isOperationsExpanded && (
-                        <div className="px-6 pb-6 space-y-6 animate-fade-in border-t border-[var(--app-border)] pt-5">
-                            <div className="space-y-2">
-                                <div className="flex items-center justify-between gap-3">
-                                    <span className="text-[10px] uppercase tracking-[0.2em] text-[var(--app-muted)]">Focus Mode</span>
-                                    <span className="text-[10px] uppercase tracking-[0.2em] text-[var(--app-muted)]">{userSettings.focusMode}</span>
-                                </div>
-                                <div className="flex flex-wrap gap-2">
-                                    {(['normal', 'reduced', 'deep'] as const).map((option) => {
-                                        const selected = userSettings.focusMode === option;
-                                        return (
-                                            <button
-                                                key={option}
-                                                type="button"
-                                                onClick={() => setFocusMode(option)}
-                                                disabled={userSettingsLocked}
-                                                className={optionButtonClass(selected, userSettingsLocked)}
-                                                aria-pressed={selected}
-                                            >
-                                                {option}
-                                            </button>
-                                        );
-                                    })}
-                                </div>
-                                <p className="text-[10px] text-[var(--app-muted)] uppercase tracking-[0.14em]">
-                                    Focus mode is a native engine behavior, not an AI-only feature.
-                                </p>
-                            </div>
-
-                            <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-                                <div className="space-y-3">
-                                    <div>
-                                        <div className="text-[10px] uppercase tracking-[0.2em] text-[var(--app-muted)]">Notifications</div>
-                                        <div className="text-[10px] uppercase tracking-[0.14em] text-[var(--app-muted)] mt-1">
-                                            Control which engine events surface as alerts.
-                                        </div>
-                                    </div>
-                                    {([
-                                        ['scheduledQuestReminders', 'Scheduled Quests'],
-                                        ['focusSessionAlerts', 'Focus Sessions'],
-                                        ['rewardAlerts', 'Rewards'],
-                                        ['multiplayerAlerts', 'Multiplayer'],
-                                        ['labAlerts', 'Lab'],
-                                    ] as const).map(([key, label]) => (
-                                        <div key={key} className="flex items-center justify-between gap-3 border border-[var(--app-border)] bg-[var(--app-panel-2)] px-3 py-2 rounded-[var(--app-radius-sm)]">
-                                            <span className="text-[10px] uppercase tracking-[0.18em] text-[var(--app-text)]">{label}</span>
-                                            <button
-                                                type="button"
-                                                onClick={() => setNotification(key, !notifications[key])}
-                                                disabled={userSettingsLocked}
-                                                className={toggleChipClass(notifications[key], userSettingsLocked)}
-                                                aria-pressed={notifications[key]}
-                                            >
-                                                {notifications[key] ? 'On' : 'Off'}
-                                            </button>
-                                        </div>
-                                    ))}
-                                </div>
-
-                                <div className="space-y-3">
+                                <div className={`${sectionCard} p-4 xl:col-span-4`}>
+                                    <div className="flex flex-wrap items-start justify-between gap-3">
                                         <div>
-                                            <div className="text-[10px] uppercase tracking-[0.2em] text-[var(--app-muted)]">Workspace Modules</div>
-                                            <div className="text-[10px] uppercase tracking-[0.14em] text-[var(--app-muted)] mt-1">
-                                            Choose which major station surfaces stay visible in this workspace.
+                                            <div className="text-[10px] uppercase tracking-[0.2em] text-[var(--app-muted)]">Platform Profile Sync</div>
+                                            <div className="mt-2 text-sm font-semibold text-[var(--app-text)]">
+                                                {platformCloudEnabled ? platformSyncStatus.replace('_', ' ') : 'local fallback'}
                                             </div>
                                         </div>
-                                    {([
-                                        ['multiplayerEnabled', 'Multiplayer'],
-                                        ['labEnabled', 'Lab'],
-                                        ['storeEnabled', 'Store'],
-                                    ] as const).map(([key, label]) => (
-                                        <div key={key} className="flex items-center justify-between gap-3 border border-[var(--app-border)] bg-[var(--app-panel-2)] px-3 py-2 rounded-[var(--app-radius-sm)]">
-                                            <span className="text-[10px] uppercase tracking-[0.18em] text-[var(--app-text)]">{label}</span>
-                                            <button
-                                                type="button"
-                                                onClick={() => setFeatureEnabled(key, !features[key])}
-                                                disabled={userSettingsLocked}
-                                                className={toggleChipClass(features[key], userSettingsLocked)}
-                                                aria-pressed={features[key]}
-                                            >
-                                                {features[key] ? 'Enabled' : 'Disabled'}
-                                            </button>
+                                        <div className="xt-settings-chip">
+                                            {platformCloudEnabled ? `Cloud updated ${platformCloudUpdatedAt ? new Date(platformCloudUpdatedAt).toLocaleString() : 'pending'}` : 'No cloud profile table'}
                                         </div>
-                                    ))}
-                                    {operatorAccess.allowed ? (
-                                        <div className="flex flex-wrap gap-2 pt-1">
-                                            <button
-                                                type="button"
-                                                onClick={() => setExperimentalFlag('labsV2', !features.experimentalFlags.labsV2)}
-                                                disabled={userSettingsLocked}
-                                                className={toggleChipClass(!!features.experimentalFlags.labsV2, userSettingsLocked)}
-                                                aria-pressed={!!features.experimentalFlags.labsV2}
-                                            >
-                                                Labs V2 {features.experimentalFlags.labsV2 ? 'On' : 'Off'}
-                                            </button>
-                                            <button
-                                                type="button"
-                                                onClick={() => setExperimentalFlag('storeEntitlements', !features.experimentalFlags.storeEntitlements)}
-                                                disabled={userSettingsLocked}
-                                                className={toggleChipClass(!!features.experimentalFlags.storeEntitlements, userSettingsLocked)}
-                                                aria-pressed={!!features.experimentalFlags.storeEntitlements}
-                                            >
-                                                Store Entitlements {features.experimentalFlags.storeEntitlements ? 'On' : 'Off'}
-                                            </button>
+                                    </div>
+                                    <div className="mt-3 text-[10px] uppercase tracking-[0.14em] text-[var(--app-muted)]">
+                                        {platformSyncMessage
+                                            ? platformSyncMessage
+                                            : platformCloudEnabled
+                                                ? 'Plan, release channel, beta cohort, rollout flags, theme, and active XTATION unlocks now sync with the signed-in account profile.'
+                                                : 'Install the Supabase platform profile table to make signed-in platform state persist beyond this device.'}
+                                    </div>
+                                    <div className="mt-4 rounded-[16px] border border-[var(--app-border)] bg-[var(--app-panel)] px-3 py-3">
+                                        <div className="text-[10px] uppercase tracking-[0.16em] text-[var(--app-accent)]">Continuity Readout</div>
+                                        <div className="mt-2 text-sm leading-6 text-[var(--app-muted)]">{stationIdentity.detail}</div>
+                                    </div>
+                                    <div className="mt-4 rounded-[16px] border border-[var(--app-border)] bg-[var(--app-panel)] px-3 py-3">
+                                        <div className="flex flex-wrap items-start justify-between gap-3">
+                                            <div>
+                                                <div className="text-[10px] uppercase tracking-[0.16em] text-[var(--app-accent)]">Starter Loop Status</div>
+                                                <div className="mt-2 text-sm font-semibold text-[var(--app-text)]">
+                                                    {starterFlowSummary ? starterFlowSummary.title : 'No starter loop milestone yet'}
+                                                </div>
+                                            </div>
+                                            <div className="flex flex-wrap gap-2">
+                                                {starterFlowSummary ? (
+                                                    <>
+                                                        <span className="xt-settings-chip xt-settings-chip--accent">{starterFlowSummary.statusLabel}</span>
+                                                        {starterFlowSummary.workspaceLabel ? (
+                                                            <span className="xt-settings-chip">{starterFlowSummary.workspaceLabel}</span>
+                                                        ) : null}
+                                                    </>
+                                                ) : (
+                                                    <span className="xt-settings-chip">Awaiting first routed action</span>
+                                                )}
+                                            </div>
                                         </div>
-                                    ) : null}
+                                        <div className="mt-2 text-[10px] uppercase tracking-[0.14em] text-[var(--app-muted)]">
+                                            {starterFlowSummary
+                                                ? starterFlowSummary.detail
+                                                : 'The first starter route, checkpoint, and confirmed action will be surfaced here once the opening loop becomes real work.'}
+                                        </div>
+                                        {starterFlowSummary ? (
+                                            <div className="mt-3 flex flex-wrap items-center gap-2">
+                                                <span className="xt-settings-chip">{new Date(starterFlowSummary.createdAt).toLocaleString()}</span>
+                                                {starterFlowSummary.chips.map((chip) => (
+                                                    <span key={`starter-flow-${chip}`} className="xt-settings-chip">{chip}</span>
+                                                ))}
+                                            </div>
+                                        ) : null}
+                                        <div className="mt-3 text-[10px] uppercase tracking-[0.14em] text-[var(--app-muted)]">
+                                            {starterFlowSummary?.statusDetail ?? 'XTATION uses the same starter loop across Play, Profile, Lab, and the station continuity surfaces.'}
+                                        </div>
+                                    </div>
+                                    <div className="mt-4 rounded-[16px] border border-[var(--app-border)] bg-[var(--app-panel)] px-3 py-3">
+                                        <div className="flex flex-wrap items-start justify-between gap-3">
+                                            <div>
+                                                <div className="text-[10px] uppercase tracking-[0.16em] text-[var(--app-accent)]">Latest Transition Outcome</div>
+                                                <div className="mt-2 text-sm font-semibold text-[var(--app-text)]">
+                                                    {latestTransitionActivity ? latestTransitionActivity.title : 'No recent station transition'}
+                                                </div>
+                                            </div>
+                                            <div className="flex flex-wrap gap-2">
+                                                <span className="xt-settings-chip">{activeUserId ? 'Account scope' : 'Local scope'}</span>
+                                                {latestTransitionActivity?.workspaceLabel ? (
+                                                    <span className="xt-settings-chip xt-settings-chip--accent">{latestTransitionActivity.workspaceLabel}</span>
+                                                ) : null}
+                                            </div>
+                                        </div>
+                                        <div className="mt-2 text-[10px] uppercase tracking-[0.14em] text-[var(--app-muted)]">
+                                            {latestTransitionActivity
+                                                ? latestTransitionActivity.detail
+                                                : 'The next account activation, import decision, or local return will be surfaced here so the active station state stays obvious.'}
+                                        </div>
+                                        {latestTransitionActivity ? (
+                                            <div className="mt-3 flex flex-wrap items-center gap-2">
+                                                <span className="xt-settings-chip">{new Date(latestTransitionActivity.createdAt).toLocaleString()}</span>
+                                                {latestTransitionActivity.chips?.slice(0, 3).map((chip) => (
+                                                    <span key={`latest-transition-${chip}`} className="xt-settings-chip">{chip}</span>
+                                                ))}
+                                            </div>
+                                        ) : null}
+                                        {!activeUserId && guestEntry ? (
+                                            <>
+                                                <div className="mt-4 text-[10px] uppercase tracking-[0.16em] text-[var(--app-accent)]">Next Local Resume</div>
+                                                <div className="mt-2 text-sm font-semibold text-[var(--app-text)]">{guestEntry.transitionDescriptor.title}</div>
+                                                <div className="mt-2 text-[10px] uppercase tracking-[0.14em] text-[var(--app-muted)]">{guestEntry.transitionDescriptor.detail}</div>
+                                                <div className="mt-3 flex flex-wrap gap-2">
+                                                    <span className="xt-settings-chip xt-settings-chip--accent">{guestEntry.transitionDescriptor.workspaceLabel}</span>
+                                                    {guestEntry.transitionDescriptor.chips.map((chip) => (
+                                                        <span key={`next-resume-${chip}`} className="xt-settings-chip">{chip}</span>
+                                                    ))}
+                                                </div>
+                                                {guidedSetupResumeActionLabel && onOpenGuidedSetup ? (
+                                                    <div className="mt-3">
+                                                        <button
+                                                            type="button"
+                                                            className={`${panelButton} border-[var(--app-accent)] bg-[var(--app-accent-weak)] text-[var(--app-text)] hover:border-[var(--app-accent)]`}
+                                                            onClick={() => { playClickSound(); onOpenGuidedSetup(); }}
+                                                        >
+                                                            {guidedSetupResumeActionLabel}
+                                                        </button>
+                                                    </div>
+                                                ) : null}
+                                            </>
+                                        ) : null}
+                                    </div>
+                                    <div className="mt-4 rounded-[16px] border border-[var(--app-border)] bg-[var(--app-panel)] px-3 py-3">
+                                        <div className="flex items-center justify-between gap-3">
+                                            <div className="text-[10px] uppercase tracking-[0.16em] text-[var(--app-accent)]">Recent Station Activity</div>
+                                            <div className="text-[9px] uppercase tracking-[0.16em] text-[var(--app-muted)]">{activeUserId ? 'Account scope' : 'Local scope'}</div>
+                                        </div>
+                                        {visibleRecentStationActivity.length ? (
+                                            <div className="mt-3 grid gap-2">
+                                                {visibleRecentStationActivity.map((entry) => (
+                                                    <div
+                                                        key={entry.id}
+                                                        className="rounded-[12px] border border-[color-mix(in_srgb,var(--app-border)_78%,transparent)] bg-[color-mix(in_srgb,var(--app-panel-2)_76%,#050505)] px-3 py-3"
+                                                    >
+                                                        <div className="flex flex-wrap items-center justify-between gap-2">
+                                                            <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--app-text)]">{entry.title}</div>
+                                                            <div className="text-[9px] uppercase tracking-[0.16em] text-[var(--app-muted)]">{new Date(entry.createdAt).toLocaleString()}</div>
+                                                        </div>
+                                                        <div className="mt-2 text-[10px] uppercase tracking-[0.14em] text-[var(--app-muted)]">{entry.detail}</div>
+                                                        <div className="mt-2 flex flex-wrap gap-2">
+                                                            {entry.workspaceLabel ? (<span className="xt-settings-chip">{entry.workspaceLabel}</span>) : null}
+                                                            {entry.chips?.slice(0, 3).map((chip) => (
+                                                                <span key={`${entry.id}-${chip}`} className="xt-settings-chip">{chip}</span>
+                                                            ))}
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        ) : (
+                                            <div className="mt-3 text-[10px] uppercase tracking-[0.14em] text-[var(--app-muted)]">
+                                                No station activity recorded yet for this scope on this device.
+                                            </div>
+                                        )}
+                                    </div>
                                 </div>
                             </div>
-
-                            <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-                                <div className="space-y-3">
-                                    <div className="flex items-center justify-between gap-3">
-                                        <span className="text-[10px] uppercase tracking-[0.2em] text-[var(--app-muted)]">Audio Protocol</span>
-                                        <span className="text-[10px] uppercase tracking-[0.2em] text-[var(--app-muted)]">{device.audioVolume}%</span>
+                        </div>
+                        <div className="space-y-3 border border-[var(--app-border)] bg-[var(--app-panel-2)] px-4 py-4 rounded-[var(--app-radius-md)]">
+                            <div className="flex items-center justify-between gap-3">
+                                <div>
+                                    <div className="text-[10px] uppercase tracking-[0.2em] text-[var(--app-muted)]">Station Continuity</div>
+                                    <div className="mt-1 text-[10px] uppercase tracking-[0.14em] text-[var(--app-muted)]">
+                                        Export, restore, and review local safeguard snapshots for this station.
                                     </div>
-                                    <div className="flex items-center justify-between gap-3 border border-[var(--app-border)] bg-[var(--app-panel-2)] px-3 py-2 rounded-[var(--app-radius-sm)]">
-                                        <span className="text-[10px] uppercase tracking-[0.18em] text-[var(--app-text)]">System Audio</span>
+                                </div>
+                                <DatabaseBackup size={16} className="text-[var(--app-accent)]" />
+                            </div>
+                            {handoffRecoverySnapshot && importedLocalSummary && preservedAccountSummary ? (
+                                <>
+                                    <div className="grid gap-3 lg:grid-cols-2">
+                                        <div className="rounded-[16px] border border-[var(--app-border)] bg-[var(--app-panel)] px-3 py-3">
+                                            <div className="flex items-center gap-2 text-[10px] uppercase tracking-[0.16em] text-[var(--app-accent)]">
+                                                <HardDriveDownload size={12} />
+                                                Imported Local Station
+                                            </div>
+                                            <div className="mt-3 text-sm leading-6 text-[var(--app-muted)]">
+                                                {importedLocalSummary.tasks} quests, {importedLocalSummary.sessions} sessions, {importedLocalSummary.activeDays} active days
+                                            </div>
+                                        </div>
+                                        <div className="rounded-[16px] border border-[var(--app-border)] bg-[var(--app-panel)] px-3 py-3">
+                                            <div className="flex items-center gap-2 text-[10px] uppercase tracking-[0.16em] text-[var(--app-accent)]">
+                                                <DatabaseBackup size={12} />
+                                                Preserved Account Snapshot
+                                            </div>
+                                            <div className="mt-3 text-sm leading-6 text-[var(--app-muted)]">
+                                                {preservedAccountSummary.tasks} quests, {preservedAccountSummary.sessions} sessions, {preservedAccountSummary.activeDays} active days
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {handoffRecoverySnapshot.guestContext ? (
+                                        <div className="rounded-[16px] border border-[var(--app-border)] bg-[var(--app-panel)] px-3 py-3">
+                                            <div className="flex items-center gap-2 text-[10px] uppercase tracking-[0.16em] text-[var(--app-accent)]">
+                                                <Activity size={12} />
+                                                Imported Working Context
+                                            </div>
+                                            <div className="mt-3 grid gap-2 text-sm leading-6 text-[var(--app-muted)] sm:grid-cols-3">
+                                                <div>
+                                                    <div className="text-[9px] uppercase tracking-[0.16em] text-[var(--app-muted)]">Guest workspace</div>
+                                                    <div className="mt-1 text-[var(--app-text)]">{handoffRecoverySnapshot.guestContext.lastView || 'LOBBY'}</div>
+                                                </div>
+                                                <div>
+                                                    <div className="text-[9px] uppercase tracking-[0.16em] text-[var(--app-muted)]">Imported into</div>
+                                                    <div className="mt-1 text-[var(--app-text)]">{handoffRecoverySnapshot.guestContext.importedView || 'LOBBY'}</div>
+                                                </div>
+                                                <div>
+                                                    <div className="text-[9px] uppercase tracking-[0.16em] text-[var(--app-muted)]">Starter relay</div>
+                                                    <div className="mt-1 text-[var(--app-text)]">{handoffRecoverySnapshot.guestContext.onboardingHandoff?.title || 'None'}</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ) : null}
+                                    <div className="flex flex-wrap items-center justify-between gap-3">
+                                        <div className="text-[10px] uppercase tracking-[0.14em] text-[var(--app-muted)]">
+                                            Handoff snapshot created {new Date(handoffRecoverySnapshot.createdAt).toLocaleString()}
+                                        </div>
                                         <button
                                             type="button"
-                                            onClick={() => setAudioEnabled(!device.audioEnabled)}
-                                            className={toggleChipClass(device.audioEnabled)}
-                                            aria-pressed={device.audioEnabled}
+                                            onClick={() => {
+                                                if (!activeUserId) return;
+                                                playClickSound();
+                                                clearGuestStationRecoverySnapshot(activeUserId);
+                                                setHandoffRecoverySnapshot(null);
+                                            }}
+                                            className="ui-pressable rounded-[var(--app-radius-sm)] border border-[var(--app-border)] px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.18em] text-[var(--app-muted)] transition-colors hover:border-[var(--app-accent)] hover:text-[var(--app-text)]"
                                         >
-                                            {device.audioEnabled ? 'On' : 'Off'}
+                                            Clear Handoff Snapshot
                                         </button>
                                     </div>
-                                    <label className="flex items-center gap-4 border border-[var(--app-border)] bg-[var(--app-panel-2)] px-3 py-3 rounded-[var(--app-radius-sm)]">
-                                        <span className="text-[10px] uppercase tracking-[0.18em] text-[var(--app-text)] whitespace-nowrap">Volume</span>
-                                        <input
-                                            type="range"
-                                            min={0}
-                                            max={100}
-                                            step={5}
-                                            value={device.audioVolume}
-                                            onChange={(event) => setAudioVolume(Number(event.target.value))}
-                                            className="flex-1 accent-[var(--app-accent)]"
-                                        />
-                                    </label>
-                                    <div className="rounded-[var(--app-radius-sm)] border border-[var(--app-border)] bg-[var(--app-panel-2)] px-3 py-3">
-                                        <div className="flex items-start justify-between gap-3">
-                                            <div>
-                                                <div className="text-[10px] uppercase tracking-[0.18em] text-[var(--app-text)]">Active Sound Pack</div>
-                                                <div className="mt-1 text-sm text-[var(--app-text)]">{activeSoundPackLabel}</div>
-                                                <div className="mt-1 text-[11px] leading-5 text-[var(--app-muted)]">
-                                                    {activeSoundSkin
-                                                        ? getCreativeSkinRuntimeLabel(activeSoundSkin)
-                                                        : 'Using the currently selected published sound route.'}
-                                                </div>
+                                </>
+                            ) : null}
+                            {restoreRecoverySnapshot && restoreCurrentSummary && restoreImportedSummary ? (
+                                <>
+                                    <div className="grid gap-3 lg:grid-cols-2">
+                                        <div className="rounded-[16px] border border-[var(--app-border)] bg-[var(--app-panel)] px-3 py-3">
+                                            <div className="flex items-center gap-2 text-[10px] uppercase tracking-[0.16em] text-[var(--app-accent)]">
+                                                <DatabaseBackup size={12} />
+                                                Pre-Restore Snapshot
                                             </div>
-                                            <div className={`${toggleChipClass(device.audioEnabled)} pointer-events-none`}>
-                                                {device.audioEnabled ? 'Live' : 'Muted'}
-                                            </div>
-                                        </div>
-                                        {publishedSoundSkins.length ? (
-                                            <div className="mt-3 flex flex-wrap gap-2">
-                                                {publishedSoundSkins.map((pack) => {
-                                                    const selected = settings.unlocks.activeSoundPackId === pack.soundPackId;
-                                                    return (
-                                                        <button
-                                                            key={pack.id}
-                                                            type="button"
-                                                            onClick={() => pack.soundPackId && setActiveSoundPackId(pack.soundPackId)}
-                                                            className={selected ? optionButtonClass(true) : optionButtonClass(false)}
-                                                            aria-pressed={selected}
-                                                        >
-                                                            {pack.name}
-                                                        </button>
-                                                    );
-                                                })}
-                                            </div>
-                                        ) : null}
-                                    </div>
-                                    <div className="rounded-[var(--app-radius-sm)] border border-[var(--app-border)] bg-[var(--app-panel-2)] px-3 py-3">
-                                        <div className="flex items-start justify-between gap-3">
-                                            <div>
-                                                <div className="text-[10px] uppercase tracking-[0.18em] text-[var(--app-text)]">Active Skin Runtime</div>
-                                                <div className="mt-1 text-sm text-[var(--app-text)]">
-                                                    {activeRuntimeSkin ? activeRuntimeSkin.name : 'System runtime'}
-                                                </div>
-                                                <div className="mt-1 text-[11px] leading-5 text-[var(--app-muted)]">
-                                                    {activeRuntimeSkin
-                                                        ? getCreativeSkinRuntimeLabel(activeRuntimeSkin)
-                                                        : 'No published skin package is currently bound to the active route.'}
-                                                </div>
-                                            </div>
-                                            <div className={`${toggleChipClass(!!activeRuntimeSkin)} pointer-events-none`}>
-                                                {activeRuntimeSkin ? 'Linked' : 'Open'}
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div className="rounded-[var(--app-radius-sm)] border border-[var(--app-border)] bg-[var(--app-panel-2)] px-3 py-3">
-                                        <div className="flex items-center justify-between gap-3">
-                                            <span className="text-[10px] uppercase tracking-[0.18em] text-[var(--app-text)]">Mix Groups</span>
-                                            <span className="text-[10px] uppercase tracking-[0.18em] text-[var(--app-muted)]">Runtime balance</span>
-                                        </div>
-                                        <div className="mt-3 flex flex-col gap-3">
-                                            {XTATION_AUDIO_MIX_GROUPS.map((group) => (
-                                                <label
-                                                    key={group}
-                                                    className="flex items-center gap-3 rounded-[12px] border border-[var(--app-border)] bg-[color-mix(in_srgb,var(--app-panel)_70%,transparent)] px-3 py-2"
-                                                >
-                                                    <span className="min-w-[92px] text-[10px] uppercase tracking-[0.16em] text-[var(--app-muted)]">
-                                                        {XTATION_AUDIO_MIX_LABELS[group]}
-                                                    </span>
-                                                    <input
-                                                        type="range"
-                                                        min={0}
-                                                        max={100}
-                                                        step={5}
-                                                        value={device.audioMixLevels[group]}
-                                                        onChange={(event) => setAudioMixLevel(group, Number(event.target.value))}
-                                                        className="flex-1 accent-[var(--app-accent)]"
-                                                    />
-                                                    <span className="min-w-[34px] text-right text-[10px] uppercase tracking-[0.16em] text-[var(--app-muted)]">
-                                                        {device.audioMixLevels[group]}%
-                                                    </span>
-                                                </label>
-                                            ))}
-                                        </div>
-                                    </div>
-                                    <div className="rounded-[var(--app-radius-sm)] border border-[var(--app-border)] bg-[var(--app-panel-2)] px-3 py-3">
-                                        <div className="flex items-center justify-between gap-3">
-                                            <span className="text-[10px] uppercase tracking-[0.18em] text-[var(--app-text)]">Preview Cues</span>
-                                            <span className="text-[10px] uppercase tracking-[0.18em] text-[var(--app-muted)]">
-                                                {settings.unlocks.activeSoundPackId ?? 'default pack'}
-                                            </span>
-                                        </div>
-                                        <div className="mt-3 flex flex-wrap gap-2">
-                                            {audioPreviewEvents.map((cue) => (
-                                                <button
-                                                    key={cue.eventName}
-                                                    type="button"
-                                                    onClick={() => previewAudioCue(cue.eventName)}
-                                                    className={panelButton}
-                                                >
-                                                    {cue.label}
-                                                </button>
-                                            ))}
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div className="space-y-3">
-                                    <div className="flex items-center justify-between gap-3">
-                                        <span className="text-[10px] uppercase tracking-[0.2em] text-[var(--app-muted)]">Performance Mode</span>
-                                        <span className="text-[10px] uppercase tracking-[0.2em] text-[var(--app-muted)]">{device.performanceMode}</span>
-                                    </div>
-                                    <div className="flex flex-wrap gap-2">
-                                        {(['quality', 'balanced', 'performance'] as const).map((option) => {
-                                            const selected = device.performanceMode === option;
-                                            return (
-                                                <button
-                                                    key={option}
-                                                    type="button"
-                                                    onClick={() => setPerformanceMode(option)}
-                                                    className={optionButtonClass(selected)}
-                                                    aria-pressed={selected}
-                                                >
-                                                    {option}
-                                                </button>
-                                            );
-                                        })}
-                                    </div>
-                                    {operatorAccess.allowed ? (
-                                        <div className="flex items-center justify-between gap-3 border border-[var(--app-border)] bg-[var(--app-panel-2)] px-3 py-2 rounded-[var(--app-radius-sm)]">
-                                            <span className="text-[10px] uppercase tracking-[0.18em] text-[var(--app-text)]">Developer HUD</span>
-                                            <button
-                                                type="button"
-                                                onClick={() => setDevHudEnabled(!device.devHudEnabled)}
-                                                className={toggleChipClass(device.devHudEnabled)}
-                                                aria-pressed={device.devHudEnabled}
-                                            >
-                                                {device.devHudEnabled ? 'On' : 'Off'}
-                                            </button>
-                                        </div>
-                                    ) : null}
-                                </div>
-                            </div>
-
-                            <div className="space-y-3 border border-[var(--app-border)] bg-[var(--app-panel-2)] px-4 py-4 rounded-[var(--app-radius-md)]">
-                                <div className="flex items-center justify-between gap-3">
-                                    <div>
-                                        <div className="text-[10px] uppercase tracking-[0.2em] text-[var(--app-muted)]">Station Continuity</div>
-                                        <div className="mt-1 text-[10px] uppercase tracking-[0.14em] text-[var(--app-muted)]">
-                                            Export, restore, and review local safeguard snapshots for this station.
-                                        </div>
-                                    </div>
-                                    <DatabaseBackup size={16} className="text-[var(--app-accent)]" />
-                                </div>
-
-                                {handoffRecoverySnapshot && importedLocalSummary && preservedAccountSummary ? (
-                                    <>
-                                        <div className="grid gap-3 lg:grid-cols-2">
-                                            <div className="rounded-[16px] border border-[var(--app-border)] bg-[var(--app-panel)] px-3 py-3">
-                                                <div className="flex items-center gap-2 text-[10px] uppercase tracking-[0.16em] text-[var(--app-accent)]">
-                                                    <HardDriveDownload size={12} />
-                                                    Imported Local Station
-                                                </div>
-                                                <div className="mt-3 text-sm leading-6 text-[var(--app-muted)]">
-                                                    {importedLocalSummary.tasks} quests, {importedLocalSummary.sessions} sessions, {importedLocalSummary.activeDays} active days
-                                                </div>
-                                            </div>
-                                            <div className="rounded-[16px] border border-[var(--app-border)] bg-[var(--app-panel)] px-3 py-3">
-                                                <div className="flex items-center gap-2 text-[10px] uppercase tracking-[0.16em] text-[var(--app-accent)]">
-                                                    <DatabaseBackup size={12} />
-                                                    Preserved Account Snapshot
-                                                </div>
-                                                <div className="mt-3 text-sm leading-6 text-[var(--app-muted)]">
-                                                    {preservedAccountSummary.tasks} quests, {preservedAccountSummary.sessions} sessions, {preservedAccountSummary.activeDays} active days
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        {handoffRecoverySnapshot.guestContext ? (
-                                            <div className="rounded-[16px] border border-[var(--app-border)] bg-[var(--app-panel)] px-3 py-3">
-                                                <div className="flex items-center gap-2 text-[10px] uppercase tracking-[0.16em] text-[var(--app-accent)]">
-                                                    <Activity size={12} />
-                                                    Imported Working Context
-                                                </div>
-                                                <div className="mt-3 grid gap-2 text-sm leading-6 text-[var(--app-muted)] sm:grid-cols-3">
-                                                    <div>
-                                                        <div className="text-[9px] uppercase tracking-[0.16em] text-[var(--app-muted)]">Guest workspace</div>
-                                                        <div className="mt-1 text-[var(--app-text)]">
-                                                            {handoffRecoverySnapshot.guestContext.lastView || 'LOBBY'}
-                                                        </div>
-                                                    </div>
-                                                    <div>
-                                                        <div className="text-[9px] uppercase tracking-[0.16em] text-[var(--app-muted)]">Imported into</div>
-                                                        <div className="mt-1 text-[var(--app-text)]">
-                                                            {handoffRecoverySnapshot.guestContext.importedView || 'LOBBY'}
-                                                        </div>
-                                                    </div>
-                                                    <div>
-                                                        <div className="text-[9px] uppercase tracking-[0.16em] text-[var(--app-muted)]">Starter relay</div>
-                                                        <div className="mt-1 text-[var(--app-text)]">
-                                                            {handoffRecoverySnapshot.guestContext.onboardingHandoff?.title || 'None'}
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        ) : null}
-
-                                        <div className="flex flex-wrap items-center justify-between gap-3">
-                                            <div className="text-[10px] uppercase tracking-[0.14em] text-[var(--app-muted)]">
-                                                Handoff snapshot created {new Date(handoffRecoverySnapshot.createdAt).toLocaleString()}
-                                            </div>
-                                            <button
-                                                type="button"
-                                                onClick={() => {
-                                                    if (!activeUserId) return;
-                                                    playClickSound();
-                                                    clearGuestStationRecoverySnapshot(activeUserId);
-                                                    setHandoffRecoverySnapshot(null);
-                                                }}
-                                                className="ui-pressable rounded-[var(--app-radius-sm)] border border-[var(--app-border)] px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.18em] text-[var(--app-muted)] transition-colors hover:border-[var(--app-accent)] hover:text-[var(--app-text)]"
-                                            >
-                                                Clear Handoff Snapshot
-                                            </button>
-                                        </div>
-                                    </>
-                                ) : null}
-
-                                {restoreRecoverySnapshot && restoreCurrentSummary && restoreImportedSummary ? (
-                                    <>
-                                        <div className="grid gap-3 lg:grid-cols-2">
-                                            <div className="rounded-[16px] border border-[var(--app-border)] bg-[var(--app-panel)] px-3 py-3">
-                                                <div className="flex items-center gap-2 text-[10px] uppercase tracking-[0.16em] text-[var(--app-accent)]">
-                                                    <DatabaseBackup size={12} />
-                                                    Pre-Restore Snapshot
-                                                </div>
                                             <div className="mt-3 text-sm leading-6 text-[var(--app-muted)]">
                                                 {restoreCurrentSummary.tasks} quests, {restoreCurrentSummary.sessions} sessions, {restoreCurrentSummary.activeDays} active days
                                             </div>
-                                            <div className="mt-2 text-[10px] uppercase tracking-[0.14em] text-[var(--app-muted)]">
-                                                Workspace: {restoreCurrentView || 'LOBBY'}
-                                            </div>
+                                            <div className="mt-2 text-[10px] uppercase tracking-[0.14em] text-[var(--app-muted)]">Workspace: {restoreCurrentView || 'LOBBY'}</div>
                                         </div>
                                         <div className="rounded-[16px] border border-[var(--app-border)] bg-[var(--app-panel)] px-3 py-3">
                                             <div className="flex items-center gap-2 text-[10px] uppercase tracking-[0.16em] text-[var(--app-accent)]">
                                                 <HardDriveDownload size={12} />
                                                 Imported Station
-                                                </div>
-                                                <div className="mt-3 text-sm leading-6 text-[var(--app-muted)]">
-                                                    {restoreImportedSummary.tasks} quests, {restoreImportedSummary.sessions} sessions, {restoreImportedSummary.activeDays} active days
-                                                </div>
-                                                <div className="mt-2 text-[10px] uppercase tracking-[0.14em] text-[var(--app-muted)]">
-                                                    Workspace: {restoreImportedView || 'unchanged'}
-                                                </div>
                                             </div>
+                                            <div className="mt-3 text-sm leading-6 text-[var(--app-muted)]">
+                                                {restoreImportedSummary.tasks} quests, {restoreImportedSummary.sessions} sessions, {restoreImportedSummary.activeDays} active days
+                                            </div>
+                                            <div className="mt-2 text-[10px] uppercase tracking-[0.14em] text-[var(--app-muted)]">Workspace: {restoreImportedView || 'unchanged'}</div>
                                         </div>
-
-                                        <div className="flex flex-wrap items-center justify-between gap-3">
-                                            <div className="text-[10px] uppercase tracking-[0.14em] text-[var(--app-muted)]">
-                                                Restore safeguard created {new Date(restoreRecoverySnapshot.createdAt).toLocaleString()}
-                                            </div>
-                                            <div className="flex flex-wrap gap-2">
-                                                <button
-                                                    type="button"
-                                                    onClick={() => {
-                                                        void handleExportRestoreSnapshot();
-                                                    }}
-                                                    className="ui-pressable rounded-[var(--app-radius-sm)] border border-[var(--app-border)] px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.18em] text-[var(--app-muted)] transition-colors hover:border-[var(--app-accent)] hover:text-[var(--app-text)]"
-                                                >
-                                                    Export Restore Snapshot
-                                                </button>
-                                                <button
-                                                    type="button"
-                                                    onClick={() => {
-                                                        playClickSound();
-                                                        clearXtationStationRestoreRecoverySnapshot(activeUserId);
-                                                        setRestoreRecoverySnapshot(null);
-                                                    }}
-                                                    className="ui-pressable rounded-[var(--app-radius-sm)] border border-[var(--app-border)] px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.18em] text-[var(--app-muted)] transition-colors hover:border-[var(--app-accent)] hover:text-[var(--app-text)]"
-                                                >
-                                                    Clear Restore Snapshot
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </>
-                                ) : null}
-
-                                {!activeUserId && !restoreRecoverySnapshot ? (
-                                    <div className="text-[10px] uppercase tracking-[0.14em] text-[var(--app-muted)]">
-                                        Local station mode can export and restore full station files. Sign in if you also want account handoff recovery tracking.
                                     </div>
-                                ) : null}
-
-                                <div className="flex flex-wrap gap-2">
-                                    <input
-                                        ref={stationImportInputRef}
-                                        type="file"
-                                        accept="application/json,.json"
-                                        className="hidden"
-                                        onChange={(event) => {
-                                            void handleImportFile(event);
-                                        }}
-                                    />
+                                    <div className="flex flex-wrap items-center justify-between gap-3">
+                                        <div className="text-[10px] uppercase tracking-[0.14em] text-[var(--app-muted)]">
+                                            Restore safeguard created {new Date(restoreRecoverySnapshot.createdAt).toLocaleString()}
+                                        </div>
+                                        <div className="flex flex-wrap gap-2">
+                                            <button
+                                                type="button"
+                                                onClick={() => { void handleExportRestoreSnapshot(); }}
+                                                className="ui-pressable rounded-[var(--app-radius-sm)] border border-[var(--app-border)] px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.18em] text-[var(--app-muted)] transition-colors hover:border-[var(--app-accent)] hover:text-[var(--app-text)]"
+                                            >
+                                                Export Restore Snapshot
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    playClickSound();
+                                                    clearXtationStationRestoreRecoverySnapshot(activeUserId);
+                                                    setRestoreRecoverySnapshot(null);
+                                                }}
+                                                className="ui-pressable rounded-[var(--app-radius-sm)] border border-[var(--app-border)] px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.18em] text-[var(--app-muted)] transition-colors hover:border-[var(--app-accent)] hover:text-[var(--app-text)]"
+                                            >
+                                                Clear Restore Snapshot
+                                            </button>
+                                        </div>
+                                    </div>
+                                </>
+                            ) : null}
+                            {!activeUserId && !restoreRecoverySnapshot ? (
+                                <div className="text-[10px] uppercase tracking-[0.14em] text-[var(--app-muted)]">
+                                    Local station mode can export and restore full station files. Sign in if you also want account handoff recovery tracking.
+                                </div>
+                            ) : null}
+                            <div className="flex flex-wrap gap-2">
+                                <input
+                                    ref={stationImportInputRef}
+                                    type="file"
+                                    accept="application/json,.json"
+                                    className="hidden"
+                                    onChange={(event) => { void handleImportFile(event); }}
+                                />
+                                <button
+                                    type="button"
+                                    onClick={() => { void handleExportStation(); }}
+                                    className="ui-pressable rounded-[var(--app-radius-sm)] border border-[var(--app-accent)] bg-[var(--app-accent-weak)] px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.18em] text-[var(--app-text)]"
+                                >
+                                    Export Current Station
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => { playClickSound(); stationImportInputRef.current?.click(); }}
+                                    className="ui-pressable rounded-[var(--app-radius-sm)] border border-[var(--app-border)] px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.18em] text-[var(--app-muted)] transition-colors hover:border-[var(--app-accent)] hover:text-[var(--app-text)]"
+                                >
+                                    Import Station File
+                                </button>
+                                {handoffRecoverySnapshot ? (
                                     <button
                                         type="button"
-                                        onClick={() => {
-                                            void handleExportStation();
-                                        }}
-                                        className="ui-pressable rounded-[var(--app-radius-sm)] border border-[var(--app-accent)] bg-[var(--app-accent-weak)] px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.18em] text-[var(--app-text)]"
-                                    >
-                                        Export Current Station
-                                    </button>
-                                    <button
-                                        type="button"
-                                        onClick={() => {
-                                            playClickSound();
-                                            stationImportInputRef.current?.click();
-                                        }}
+                                        onClick={() => { void handleExportRecoverySnapshot(); }}
                                         className="ui-pressable rounded-[var(--app-radius-sm)] border border-[var(--app-border)] px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.18em] text-[var(--app-muted)] transition-colors hover:border-[var(--app-accent)] hover:text-[var(--app-text)]"
                                     >
-                                        Import Station File
+                                        Export Recovery Snapshot
                                     </button>
-                                    {handoffRecoverySnapshot ? (
-                                        <button
-                                            type="button"
-                                            onClick={() => {
-                                                void handleExportRecoverySnapshot();
-                                            }}
-                                            className="ui-pressable rounded-[var(--app-radius-sm)] border border-[var(--app-border)] px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.18em] text-[var(--app-muted)] transition-colors hover:border-[var(--app-accent)] hover:text-[var(--app-text)]"
-                                        >
-                                            Export Recovery Snapshot
-                                        </button>
-                                    ) : null}
-                                </div>
-                                {importError ? (
-                                    <div className="rounded-[14px] border border-[color-mix(in_srgb,var(--app-accent)_30%,transparent)] bg-[color-mix(in_srgb,var(--app-accent)_10%,transparent)] px-3 py-3 text-[11px] leading-6 text-[var(--app-muted)]">
-                                        {importError}
-                                    </div>
                                 ) : null}
                             </div>
+                            {importError ? (
+                                <div className="rounded-[14px] border border-[color-mix(in_srgb,var(--app-accent)_30%,transparent)] bg-[color-mix(in_srgb,var(--app-accent)_10%,transparent)] px-3 py-3 text-[11px] leading-6 text-[var(--app-muted)]">
+                                    {importError}
+                                </div>
+                            ) : null}
                         </div>
-                    )}
-                </HexPanel>
+                    </div>
+                );
 
+            default:
+                return null;
+        }
+    };
+
+    return (
+        <div className="xt-settings-shell min-h-full custom-scrollbar">
+            <div className="xt-settings-layout">
+                <nav className="xt-settings-sidebar">
+                    {([
+                        { key: 'display' as SettingsCategory, label: 'Display', icon: <Monitor size={15} /> },
+                        { key: 'audio' as SettingsCategory, label: 'Audio', icon: <Volume2 size={15} /> },
+                        { key: 'gameplay' as SettingsCategory, label: 'Gameplay', icon: <Gamepad2 size={15} /> },
+                        { key: 'privacy' as SettingsCategory, label: 'Privacy', icon: <Shield size={15} /> },
+                        { key: 'notifications' as SettingsCategory, label: 'Alerts', icon: <Bell size={15} /> },
+                        { key: 'rewards' as SettingsCategory, label: 'Rewards', icon: <Trophy size={15} /> },
+                        { key: 'station' as SettingsCategory, label: 'Station', icon: <DatabaseBackup size={15} /> },
+                    ]).map((cat) => (
+                        <button
+                            key={cat.key}
+                            type="button"
+                            onClick={() => { playClickSound(); setActiveCategory(cat.key); }}
+                            data-active={activeCategory === cat.key}
+                            className="xt-settings-nav-btn"
+                        >
+                            <span className="xt-settings-nav-icon">{cat.icon}</span>
+                            <span className="xt-settings-nav-label">{cat.label}</span>
+                        </button>
+                    ))}
+                </nav>
+                <div className="xt-settings-content custom-scrollbar">
+                    {renderCategoryContent(activeCategory)}
+                </div>
             </div>
 
             <AuthDrawer

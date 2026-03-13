@@ -1334,7 +1334,7 @@ const App: React.FC = () => {
     <div 
         ref={shellRootRef}
         onWheel={routeWheelToContainer}
-        className="xt-shell-root w-full min-h-[100dvh] md:h-screen lg:h-full flex flex-col overflow-hidden text-[var(--ui-text)] font-mono bg-cover bg-center transition-all duration-200 ease-out relative"
+        className="xt-shell-root w-full h-[100dvh] flex flex-col overflow-hidden text-[var(--ui-text)] font-mono bg-cover bg-center transition-all duration-200 ease-out relative"
         style={getBackgroundStyle()}
     >
       <ScheduledTaskPrompt />
@@ -1366,18 +1366,8 @@ const App: React.FC = () => {
       />
 
       {stationTransitionNotice ? (
-        <div
-          className={
-            isProfileTransitionCompact
-              ? 'xt-shell-transition-wrap xt-shell-transition-wrap--scene'
-              : 'px-3 pb-0 pt-3 md:px-4'
-          }
-        >
-          <div
-            className={`xt-shell-transition-note ${
-              stationTransitionNotice.tone === 'accent' ? 'xt-shell-transition-note--accent' : ''
-            } ${isProfileTransitionCompact ? 'xt-shell-transition-note--compact xt-shell-transition-note--scene' : ''}`}
-          >
+        <div className={isProfileTransitionCompact ? 'xt-shell-transition-wrap xt-shell-transition-wrap--scene' : 'px-3 pb-0 pt-3 md:px-4'}>
+          <div className={`xt-shell-transition-note xt-shell-transition-note--compact ${stationTransitionNotice.tone === 'accent' ? 'xt-shell-transition-note--accent' : ''} ${isProfileTransitionCompact ? 'xt-shell-transition-note--scene' : ''}`}>
             <div className="xt-shell-transition-note__meta">
               <span className="xt-shell-transition-note__eyebrow">Station Transition</span>
               {stationTransitionNotice.workspaceLabel ? (
@@ -1386,56 +1376,7 @@ const App: React.FC = () => {
             </div>
             <div className="xt-shell-transition-note__body">
               <div className="xt-shell-transition-note__title">{stationTransitionNotice.title}</div>
-              {!isProfileTransitionCompact ? (
-                <div className="xt-shell-transition-note__detail">{stationTransitionNotice.detail}</div>
-              ) : null}
             </div>
-            {!isProfileTransitionCompact ? (
-              <div className="xt-shell-transition-note__identity">
-                <div className="xt-shell-transition-note__identity-kicker">{stationIdentitySummary.modeLabel}</div>
-                {showTransitionIdentityTitle ? (
-                  <div className="xt-shell-transition-note__identity-title">{stationIdentitySummary.title}</div>
-                ) : null}
-                {showTransitionIdentityDetail ? (
-                  <div className="xt-shell-transition-note__identity-detail">
-                    {stationIdentitySummary.detail}
-                  </div>
-                ) : null}
-              </div>
-            ) : null}
-            {stationTransitionNotice.chips?.length && !isProfileTransitionCompact ? (
-              <div className="xt-shell-transition-note__chips">
-                {stationTransitionNotice.chips.map((chip) => (
-                  <span key={chip} className="xt-shell-transition-note__chip">
-                    {chip}
-                  </span>
-                ))}
-              </div>
-            ) : null}
-            {visibleTransitionHistory.length && !isProfileTransitionCompact ? (
-              <div className="xt-shell-transition-note__history">
-                <div className="xt-shell-transition-note__history-head">Recent continuity</div>
-                <div className="xt-shell-transition-note__history-list">
-                  {visibleTransitionHistory.map((entry) => (
-                    <div key={entry.id} className="xt-shell-transition-note__history-row">
-                      <div>
-                        <div className="xt-shell-transition-note__history-title">{entry.title}</div>
-                        <div className="xt-shell-transition-note__history-detail">
-                          {entry.workspaceLabel ? `${entry.workspaceLabel} • ` : ''}
-                          {entry.detail}
-                        </div>
-                      </div>
-                      <div className="xt-shell-transition-note__history-time">
-                        {new Date(entry.createdAt).toLocaleTimeString([], {
-                          hour: '2-digit',
-                          minute: '2-digit',
-                        })}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ) : null}
             <div className="xt-shell-transition-note__actions">
               {canLaunchGuidedSetupFromTransition ? (
                 <button
@@ -1457,21 +1398,6 @@ const App: React.FC = () => {
                   }}
                 >
                   Open {formatWorkspaceLabel(stationTransitionNotice.targetView)}
-                </button>
-              ) : null}
-              {currentView !== ClientView.SETTINGS &&
-              !isProfileTransitionCompact &&
-              !isOnboardingOpen ? (
-                <button
-                  type="button"
-                  className="xt-shell-transition-note__action"
-                  onClick={() => {
-                    setCurrentView(ClientView.SETTINGS);
-                    clearStationTransitionNotice();
-                    setStationTransitionNotice(null);
-                  }}
-                >
-                  Review Settings
                 </button>
               ) : null}
               <button
@@ -1657,10 +1583,6 @@ const App: React.FC = () => {
             </Suspense>
         </div>
       </div>
-
-      <Suspense fallback={null}>
-        <LazyChatDock key={`chat-${userScopeRenderKey}`} />
-      </Suspense>
 
       {/* Dusk relay overlay */}
       <TerminalErrorBoundary key={`${userScopeRenderKey}-${isAssistantOpen ? 'assistant-open' : 'assistant-closed'}`}>

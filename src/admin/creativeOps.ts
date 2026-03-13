@@ -435,6 +435,19 @@ export const DEFAULT_CREATIVE_SKIN_PACKS: CreativeSkinPack[] = [
     sceneProfile: 'ops',
     avatarProfile: 'ops',
   },
+  {
+    id: 'skin-control',
+    name: 'CONTROL',
+    description: 'The Oldest House. Brutalist atmosphere with concrete textures, CRT scan lines, angular chamfers, Hiss-red breathing glows, and glitch effects.',
+    theme: 'control',
+    accent: 'crimson',
+    soundPackId: 'soundpack-void-command',
+    status: 'published',
+    motionProfile: 'sharp',
+    screenProfile: 'ops',
+    sceneProfile: 'ops',
+    avatarProfile: 'ops',
+  },
 ];
 
 export const DEFAULT_CREATIVE_SOUND_ASSETS: CreativeSoundAsset[] = [

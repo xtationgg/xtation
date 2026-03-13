@@ -245,6 +245,9 @@ export const DayTimeOrb: React.FC<DayTimeOrbProps> = ({ showLiveLabel = false, c
             const isPast = index < metrics.passedHours;
             const isCurrent = index === metrics.passedHours && metrics.passedHours < 24;
 
+            if (isPast || isCurrent) classNames.push('seg-past');
+            else classNames.push('seg-future');
+
             const opacity = isCurrent ? (0.38 + metrics.partialHour * 0.62).toFixed(3) : '1';
 
             return (

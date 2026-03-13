@@ -1,0 +1,46 @@
+{
+  "id": "control",
+  "name": "CONTROL",
+  "version": "2.0.0",
+  "description": "Brutalist government-facility UI. Black, flat, clinical. Zero radius, zero glow. Red section headers, white-fill selection inversion.",
+  "author": "XTATION",
+  "cssScope": "[data-theme='control']",
+  "themeValue": "control",
+  "accentColor": "#d6453e",
+  "accentName": "crimson",
+  "fontPrimary": "Inter",
+  "fontMono": "IBM Plex Mono",
+  "motionProfile": "sharp",
+  "designTokens": {
+    "bg": "#000000",
+    "panel": "#0a0a0c",
+    "panel2": "#111114",
+    "border": "#1a1a1e",
+    "text": "#e8e4dc",
+    "muted": "#666660",
+    "accent": "#d6453e",
+    "radius": "0px",
+    "shadow": "none",
+    "glow": "none"
+  },
+  "keyPatterns": {
+    "activeSelection": "background:#e8e4dc; color:#000000",
+    "sectionHeader": "color:#d6453e; font-weight:800; letter-spacing:0.18em; text-transform:uppercase",
+    "buttonPrimary": "background:#e8e4dc; color:#000000; border-radius:0",
+    "buttonSecondary": "background:transparent; border:1px solid rgba(255,255,255,0.15); border-radius:0"
+  },
+  "references": {
+    "game": "CONTROL (2019) by Remedy Entertainment",
+    "screenshotFolder": "~/Desktop/workspace/media/designs/control-game-ui/",
+    "cssFile": "index.css (search [data-theme='control'])",
+    "themeProvider": "src/theme/ThemeProvider.tsx",
+    "catalogEntry": "src/store/catalog.ts"
+  },
+  "futureSkinsToCreate": [
+    "cyberpunk — neon cyan/magenta on near-black, scanline texture, angled chamfers",
+    "fallout — amber phosphor monochrome, pip-boy terminal aesthetic",
+    "halo — clean military blues, UNSC geometric shapes",
+    "dead-space — dark engineering, orange accent, industrial grid lines",
+    "hollow-knight — hand-drawn feel, dark greens and golds"
+  ]
+}

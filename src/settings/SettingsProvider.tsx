@@ -21,6 +21,8 @@ export type FocusModeOption = 'normal' | 'reduced' | 'deep';
 export type PresenceModeOption = 'active' | 'hidden';
 export type DefaultQuestVisibility = 'private' | 'circles' | 'community';
 
+export type InterfaceHintMode = 'off' | 'hover' | 'always';
+
 export interface XtationDeviceSettings {
   density: DensityOption;
   motion: 'normal' | 'reduced';
@@ -29,6 +31,7 @@ export interface XtationDeviceSettings {
   audioMixLevels: XtationAudioMixLevels;
   performanceMode: 'quality' | 'balanced' | 'performance';
   devHudEnabled: boolean;
+  interfaceHintMode: InterfaceHintMode;
 }
 
 export interface XtationUserSettings {
@@ -86,6 +89,7 @@ const defaultDeviceSettings: XtationDeviceSettings = {
   audioMixLevels: defaultXtationAudioMixLevels(),
   performanceMode: 'balanced',
   devHudEnabled: false,
+  interfaceHintMode: 'hover',
 };
 
 const defaultUserSettings: XtationUserSettings = {
@@ -164,6 +168,7 @@ const applyDeviceSettingsToDom = (device: XtationDeviceSettings) => {
   } else {
     delete document.documentElement.dataset.motion;
   }
+  document.documentElement.dataset.hintMode = device.interfaceHintMode ?? 'hover';
 };
 
 const readDeviceSettings = (): XtationDeviceSettings => {
@@ -189,6 +194,9 @@ const readDeviceSettings = (): XtationDeviceSettings => {
         base.performanceMode = parsed.performanceMode;
       }
       if (typeof parsed.devHudEnabled === 'boolean') base.devHudEnabled = parsed.devHudEnabled;
+      if (parsed.interfaceHintMode === 'off' || parsed.interfaceHintMode === 'hover' || parsed.interfaceHintMode === 'always') {
+        base.interfaceHintMode = parsed.interfaceHintMode;
+      }
     }
   } catch {
     // Ignore malformed device settings and fall back to defaults / legacy values.
@@ -303,6 +311,7 @@ interface XtationSettingsContextValue {
   setAudioMixLevel: (group: keyof XtationAudioMixLevels, volume: number) => void;
   setPerformanceMode: (mode: XtationDeviceSettings['performanceMode']) => void;
   setDevHudEnabled: (enabled: boolean) => void;
+  setInterfaceHintMode: (mode: InterfaceHintMode) => void;
   setFocusMode: (mode: FocusModeOption) => void;
   setDefaultQuestVisibility: (visibility: DefaultQuestVisibility) => void;
   setPresenceMode: (mode: PresenceModeOption) => void;
@@ -379,6 +388,8 @@ export const XtationSettingsProvider: React.FC<{ children: React.ReactNode }> = 
       setPerformanceMode: (mode) => setSettings((prev) => ({ ...prev, device: { ...prev.device, performanceMode: mode } })),
       setDevHudEnabled: (enabled) =>
         setSettings((prev) => ({ ...prev, device: { ...prev.device, devHudEnabled: enabled } })),
+      setInterfaceHintMode: (mode) =>
+        setSettings((prev) => ({ ...prev, device: { ...prev.device, interfaceHintMode: mode } })),
       setFocusMode: (mode) => setSettings((prev) => ({ ...prev, user: { ...prev.user, focusMode: mode } })),
       setDefaultQuestVisibility: (visibility) =>
         setSettings((prev) => ({ ...prev, user: { ...prev.user, defaultQuestVisibility: visibility } })),

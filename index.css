@@ -2,7 +2,148 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ── Interface Hint System ─────────────────────────────────────────────────── */
+/* Controlled by data-hint-mode on <html>: 'off' | 'hover' | 'always'          */
+
+/* off: hide everything hint-related */
+[data-hint-mode='off'] .xt-hint-trigger,
+[data-hint-mode='off'] .xt-hint-inline { display: none !important; }
+
+/* hover: show trigger icon only, hide inline text */
+[data-hint-mode='hover'] .xt-hint-inline { display: none !important; }
+[data-hint-mode='hover'] .xt-hint-trigger { display: inline-flex; }
+
+/* always: show inline text, hide trigger icon */
+[data-hint-mode='always'] .xt-hint-trigger { display: none !important; }
+[data-hint-mode='always'] .xt-hint-inline { display: block; }
+
+/* Trigger icon — the ⓘ that replaces the description paragraph */
+.xt-hint-trigger {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 1px solid color-mix(in srgb, var(--app-accent) 35%, transparent);
+  color: var(--app-muted);
+  font-size: 11px;
+  font-style: normal;
+  line-height: 1;
+  cursor: default;
+  user-select: none;
+  flex-shrink: 0;
+  transition: border-color 0.12s ease, color 0.12s ease;
+  margin-top: 3px;
+}
+.xt-hint-trigger:hover,
+.xt-hint-trigger:focus-visible {
+  border-color: var(--app-accent);
+  color: var(--app-accent);
+  outline: none;
+}
+
+/* Tooltip bubble */
+.xt-hint-bubble {
+  position: absolute;
+  z-index: 9999;
+  width: max-content;
+  max-width: 240px;
+  padding: 8px 11px;
+  background: var(--app-panel);
+  border: 1px solid var(--app-border);
+  border-left: 2px solid var(--app-accent);
+  border-radius: var(--app-radius-sm, 4px);
+  color: var(--app-text);
+  font-size: 11px;
+  font-weight: 400;
+  line-height: 1.6;
+  letter-spacing: 0.01em;
+  text-align: left;
+  white-space: normal;
+  pointer-events: none;
+  visibility: hidden;
+  opacity: 0;
+  transition: opacity 0.14s ease, visibility 0.14s ease;
+}
+
+/* Placement: top (default) */
+.xt-hint-trigger--top .xt-hint-bubble {
+  bottom: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+}
+.xt-hint-trigger--top .xt-hint-bubble::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 5px solid transparent;
+  border-top-color: var(--app-border);
+}
+
+/* Placement: bottom */
+.xt-hint-trigger--bottom .xt-hint-bubble {
+  top: calc(100% + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+}
+.xt-hint-trigger--bottom .xt-hint-bubble::after {
+  content: '';
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 5px solid transparent;
+  border-bottom-color: var(--app-border);
+}
+
+/* Reveal on hover / focus */
+.xt-hint-trigger:hover .xt-hint-bubble,
+.xt-hint-trigger:focus-visible .xt-hint-bubble {
+  visibility: visible;
+  opacity: 1;
+}
+
+/* CONTROL skin: flat, zero-radius, red left border, no shadow */
+[data-theme='control'] .xt-hint-trigger {
+  border-color: #333338;
+  border-radius: 0;
+}
+[data-theme='control'] .xt-hint-trigger:hover,
+[data-theme='control'] .xt-hint-trigger:focus-visible {
+  border-color: #d6453e;
+  color: #d6453e;
+}
+[data-theme='control'] .xt-hint-bubble {
+  background: #000000;
+  border: 1px solid #222226;
+  border-left: 2px solid #d6453e;
+  border-radius: 0;
+  box-shadow: none;
+}
+[data-theme='control'] .xt-hint-trigger--top .xt-hint-bubble::after {
+  border-top-color: #222226;
+}
+[data-theme='control'] .xt-hint-trigger--bottom .xt-hint-bubble::after {
+  border-bottom-color: #222226;
+}
+
+/* Inline hint text style (always mode) */
+.xt-hint-inline {
+  display: block;
+  font-size: 10px;
+  line-height: 1.55;
+  color: var(--app-muted);
+  margin-top: 4px;
+}
+
+/* ── End Hint System ────────────────────────────────────────────────────────── */
+
 /* Xtation global theme tokens (single source of truth) */
+/* XTATION BLACK — CONTROL-inspired. True black canvas, red signal, warm white text. */
 
 :root {
   /* Base scale tokens */
@@ -18,56 +159,53 @@
   --ui-space-6: 24px;
   --xt-ui-scale: 1;
 
-  /* Canonical theme tokens (default = Dusk) */
-  --app-bg: #0e1014;
-  --app-panel: #1f162d;
-  --app-panel-2: #2a1f3d;
-  --app-border: #4a3a5f;
-  --app-text: #f1ebff;
-  --app-muted: #b6abc7;
-  --app-accent: #573778;
-  --app-accent-weak: color-mix(in srgb, var(--app-accent) 18%, transparent);
-  --app-focus-ring: color-mix(in srgb, var(--app-accent) 38%, transparent);
-  --app-danger: #e55d65;
+  /* ── XTATION BLACK palette (default) ── */
+  --app-bg: #000000;
+  --app-panel: #0a0a0c;
+  --app-panel-2: #111114;
+  --app-border: #1a1a1e;
+  --app-text: #e8e4dc;
+  --app-muted: #666660;
+  --app-accent: #d6453e;
+  --app-accent-weak: color-mix(in srgb, var(--app-accent) 12%, transparent);
+  --app-focus-ring: color-mix(in srgb, var(--app-accent) 32%, transparent);
+  --app-danger: #d6453e;
 
   /* Quest / task state semantic colors */
-  --state-active: #e3b34a;
+  --state-active: #d6453e;
   --state-done: #43d39e;
-  --state-todo: #8f88ab;
-  --state-todo-text: #cdc7e8;
+  --state-todo: #4a4a48;
+  --state-todo-text: #8a8880;
   --state-scheduled: #5f9dff;
   --state-scheduled-text: #8db8ff;
-  --state-failed: #ff5a6a;
-  --state-failed-text: #ff7d88;
+  --state-failed: #d6453e;
+  --state-failed-text: #e8685f;
 
-  --app-radius-sm: 8px;
-  --app-radius-md: 12px;
-  --app-radius-lg: 18px;
+  --app-radius-sm: 0px;
+  --app-radius-md: 0px;
+  --app-radius-lg: 2px;
   --app-cut-sm: 0px;
   --app-cut-md: 0px;
   --app-cut-lg: 0px;
 
   --app-stroke: 1px;
-  --app-shadow-soft: 0 10px 24px rgba(0, 0, 0, 0.34), inset 0 1px 0 rgba(255, 255, 255, 0.03);
-  --app-shadow-strong: 0 18px 44px rgba(0, 0, 0, 0.5);
-  --app-glow-accent: 0 0 0 1px color-mix(in srgb, var(--app-accent) 28%, transparent),
-    0 0 16px color-mix(in srgb, var(--app-accent) 24%, transparent);
-  --app-glow-strength: 0.06;
-  --app-hover-glow-base: 6%;
-  --app-noise-opacity: 0.02;
-  --app-glass-opacity: 0.02;
+  --app-shadow-soft: none;
+  --app-shadow-strong: none;
+  --app-glow-accent: none;
+  --app-glow-strength: 0;
+  --app-hover-glow-base: 0%;
+  --app-noise-opacity: 0;
+  --app-glass-opacity: 0;
   --app-blur: 0px;
-  --app-panel-rgb: 31 22 45;
-  --app-panel-2-rgb: 42 31 61;
-  --app-bg-overlay:
-    radial-gradient(120% 100% at 12% 0%, rgba(87, 55, 120, 0.18), transparent 58%),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.012), transparent 46%);
+  --app-panel-rgb: 10 10 12;
+  --app-panel-2-rgb: 17 17 20;
+  --app-bg-overlay: none;
 
-  --app-motion-fast: 120ms;
-  --app-motion-med: 180ms;
-  --app-motion-slow: 240ms;
-  --app-ease: cubic-bezier(0.24, 0.9, 0.26, 1);
-  --app-hover-lift-y: -1px;
+  --app-motion-fast: 80ms;
+  --app-motion-med: 140ms;
+  --app-motion-slow: 200ms;
+  --app-ease: cubic-bezier(0.16, 1, 0.3, 1);
+  --app-hover-lift-y: 0px;
   --app-hover-scale: 1;
   --app-body-letter-spacing: 0.01em;
 
@@ -127,6 +265,2341 @@
   --dc-danger: var(--app-danger);
 }
 
+/* ═══════════════════════════════════════════════════════════════════
+   XTATION BLACK — Primary theme. CONTROL-inspired.
+   True black canvas. One accent: red. White = active. Gray = inactive.
+   ═══════════════════════════════════════════════════════════════════ */
+/* ═══════════════════════════════════════════════════════════════════
+   XTATION BLACK — Clean flat base theme
+   ═══════════════════════════════════════════════════════════════════ */
+[data-theme='xtation'] {
+  --app-bg: #000000;
+  --app-panel: #0a0a0c;
+  --app-panel-2: #111114;
+  --app-border: #1a1a1e;
+  --app-text: #e8e4dc;
+  --app-muted: #666660;
+  --app-accent: #d6453e;
+  --app-accent-weak: color-mix(in srgb, var(--app-accent) 12%, transparent);
+  --app-focus-ring: color-mix(in srgb, var(--app-accent) 32%, transparent);
+  --app-danger: #d6453e;
+
+  --state-active: #d6453e;
+  --state-done: #43d39e;
+  --state-todo: #4a4a48;
+  --state-todo-text: #8a8880;
+  --state-failed: #d6453e;
+  --state-failed-text: #e8685f;
+
+  --app-radius-sm: 0px;
+  --app-radius-md: 0px;
+  --app-radius-lg: 2px;
+  --app-cut-sm: 0px;
+  --app-cut-md: 0px;
+  --app-cut-lg: 0px;
+
+  --app-stroke: 1px;
+  --app-shadow-soft: none;
+  --app-shadow-strong: none;
+  --app-glow-accent: none;
+  --app-glow-strength: 0;
+  --app-hover-glow-base: 0%;
+  --app-noise-opacity: 0;
+  --app-glass-opacity: 0;
+  --app-blur: 0px;
+  --app-panel-rgb: 10 10 12;
+  --app-panel-2-rgb: 17 17 20;
+  --app-bg-overlay: none;
+
+  --app-motion-fast: 80ms;
+  --app-motion-med: 140ms;
+  --app-motion-slow: 200ms;
+  --app-ease: cubic-bezier(0.16, 1, 0.3, 1);
+  --app-hover-lift-y: 0px;
+  --app-hover-scale: 1;
+  --app-body-letter-spacing: 0.02em;
+
+  --app-clip-all: none;
+  --app-clip-right: none;
+  --app-clip-left: none;
+  --app-clip-card: none;
+  --app-clip-pill: none;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   CONTROL — Flat, clinical, government-issue UI.
+   Pure black. Zero shadows. Zero effects. Sharp rectangles.
+   Red accent on section headers only. White-on-select inversion.
+   Matches the actual CONTROL game menu UI 1:1.
+   ═══════════════════════════════════════════════════════════════════ */
+[data-theme='control'] {
+  --app-bg: #000000;
+  --app-panel: #0a0a0c;
+  --app-panel-2: #111114;
+  --app-border: #1a1a1e;
+  --app-text: #e8e4dc;
+  --app-muted: #666660;
+  --app-accent: #d6453e;
+  --app-accent-weak: color-mix(in srgb, var(--app-accent) 12%, transparent);
+  --app-focus-ring: color-mix(in srgb, var(--app-accent) 32%, transparent);
+  --app-danger: #d6453e;
+
+  --state-active: #d6453e;
+  --state-done: #43d39e;
+  --state-todo: #4a4a48;
+  --state-todo-text: #8a8880;
+  --state-failed: #d6453e;
+  --state-failed-text: #e8685f;
+
+  --app-radius-sm: 0px;
+  --app-radius-md: 0px;
+  --app-radius-lg: 0px;
+  --app-cut-sm: 0px;
+  --app-cut-md: 0px;
+  --app-cut-lg: 0px;
+
+  --app-stroke: 1px;
+  --app-shadow-soft: none;
+  --app-shadow-strong: none;
+  --app-glow-accent: none;
+  --app-glow-strength: 0;
+  --app-hover-glow-base: 0%;
+  --app-noise-opacity: 0;
+  --app-glass-opacity: 0;
+  --app-blur: 0px;
+  --app-panel-rgb: 10 10 12;
+  --app-panel-2-rgb: 17 17 20;
+  --app-bg-overlay: none;
+
+  --app-motion-fast: 80ms;
+  --app-motion-med: 140ms;
+  --app-motion-slow: 200ms;
+  --app-ease: cubic-bezier(0.16, 1, 0.3, 1);
+  --app-hover-lift-y: 0px;
+  --app-hover-scale: 1;
+  --app-body-letter-spacing: 0.02em;
+
+  --app-clip-all: none;
+  --app-clip-right: none;
+  --app-clip-left: none;
+  --app-clip-card: none;
+  --app-clip-pill: none;
+}
+
+/* ── CONTROL: Lock accent to red — defeat any [data-accent='amber/crimson/etc'] override ── */
+/* Two-attribute specificity beats the single [data-accent='…'] rules that come later */
+[data-theme='control'][data-accent],
+[data-theme='control'][data-accent='amber'],
+[data-theme='control'][data-accent='crimson'],
+[data-theme='control'][data-accent='gold'],
+[data-theme='control'][data-accent='blue'],
+[data-theme='control'][data-accent='purple'] {
+  --app-accent: #d6453e;
+  --app-accent-weak: color-mix(in srgb, #d6453e 12%, transparent);
+  --app-focus-ring: color-mix(in srgb, #d6453e 32%, transparent);
+}
+
+/* ── CONTROL: Root font override — Inter replaces Space Mono everywhere ── */
+[data-theme='control'] body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif !important;
+}
+
+/* Override Tailwind's font-mono utility — CONTROL uses clean sans-serif */
+[data-theme='control'] .font-mono {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif !important;
+}
+
+/* Restore monospace for actual code elements */
+[data-theme='control'] code.font-mono,
+[data-theme='control'] pre.font-mono,
+[data-theme='control'] kbd.font-mono {
+  font-family: 'IBM Plex Mono', ui-monospace, 'Courier New', monospace !important;
+}
+
+/* ── CONTROL: Flat panels — no texture, no shadow ── */
+[data-theme='control'] .ui-panel-surface {
+  background: var(--app-panel);
+  border: 1px solid var(--app-border);
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  border-radius: 0;
+}
+
+[data-theme='control'] .ui-glow {
+  box-shadow: none !important;
+  filter: none !important;
+  animation: none !important;
+}
+
+/* ── CONTROL: Pressable interactions ── */
+[data-theme='control'] .ui-pressable:hover {
+  border-color: rgba(255, 255, 255, 0.12);
+  background-color: rgba(255, 255, 255, 0.03);
+}
+
+[data-theme='control'] .ui-pressable:active {
+  transform: none;
+}
+
+[data-theme='control'] *:focus-visible {
+  outline: 1px solid var(--app-accent);
+  outline-offset: -1px;
+}
+
+/* ── CONTROL: Sharp corners everywhere — no radius, no clip-path ── */
+[data-theme='control'] .rounded-full {
+  border-radius: 0 !important;
+}
+
+[data-theme='control'] .rounded-xl,
+[data-theme='control'] .rounded-2xl,
+[data-theme='control'] .rounded-3xl {
+  border-radius: 0 !important;
+  clip-path: none !important;
+  -webkit-clip-path: none !important;
+}
+
+[data-theme='control'] .rounded-lg {
+  border-radius: 0 !important;
+  clip-path: none !important;
+  -webkit-clip-path: none !important;
+}
+
+[data-theme='control'] .rounded-md,
+[data-theme='control'] .rounded {
+  border-radius: 0 !important;
+  clip-path: none !important;
+  -webkit-clip-path: none !important;
+}
+
+[data-theme='control'] .rounded-sm {
+  border-radius: 0 !important;
+}
+
+/* ── CONTROL: Topbar — pure black, no accent bar ── */
+[data-theme='control'] .xt-topbar {
+  background: #000000 !important;
+  border-bottom: 1px solid #1a1a1e !important;
+  box-shadow: none !important;
+}
+
+[data-theme='control'] .xt-topbar::before {
+  display: none !important;
+}
+
+/* ── CONTROL: Nav tabs — clean sans-serif, white-bg active tab ── */
+[data-theme='control'] .xt-nav-tabs {
+  gap: 0;
+  padding-inline: 0;
+}
+
+[data-theme='control'] .xt-nav-tab {
+  border: none !important;
+  border-right: none !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  min-height: 40px;
+  height: auto !important;
+  box-shadow: none !important;
+  text-shadow: none !important;
+  padding: 0 16px;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+[data-theme='control'] .xt-nav-tab .xt-nav-active-bg,
+[data-theme='control'] .xt-nav-tab .xt-nav-active-indicators,
+[data-theme='control'] .xt-nav-tab .xt-nav-hover-line,
+[data-theme='control'] .xt-nav-tab .xt-nav-caret {
+  display: none !important;
+}
+
+[data-theme='control'] .xt-nav-tab[data-active='false'] {
+  color: #666660 !important;
+}
+
+[data-theme='control'] .xt-nav-tab[data-active='false']:hover {
+  color: #e8e4dc !important;
+  background: transparent !important;
+  border: none !important;
+}
+
+/* Active tab: white background, black text — CONTROL's signature selection */
+[data-theme='control'] .xt-nav-tab[data-active='true'] {
+  color: #000000 !important;
+  background: #e8e4dc !important;
+  border: none !important;
+  box-shadow: none !important;
+  outline: none !important;
+  border-radius: 0 !important;
+  clip-path: none !important;
+  -webkit-clip-path: none !important;
+  animation: none !important;
+}
+
+/* ── CONTROL: Scrollbar ── */
+[data-theme='control'] ::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+
+[data-theme='control'] ::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+[data-theme='control'] ::-webkit-scrollbar-thumb {
+  background: #1a1a1e;
+  border-radius: 0;
+}
+
+[data-theme='control'] ::-webkit-scrollbar-thumb:hover {
+  background: #333;
+}
+
+/* ── CONTROL: Selection ── */
+[data-theme='control'] ::selection {
+  background: rgba(214, 69, 62, 0.25);
+  color: #e8e4dc;
+}
+
+/* ── CONTROL: No body overlays — zero noise, zero scan lines ── */
+[data-theme='control'] body::before {
+  display: none !important;
+}
+
+[data-theme='control'] body::after {
+  display: none !important;
+}
+
+/* ── CONTROL: Kill gradients ── */
+[data-theme='control'] .bg-gradient-to-b {
+  background-image: none !important;
+  background: transparent !important;
+}
+
+/* ── CONTROL: Form elements — sans-serif, dark, flat ── */
+[data-theme='control'] input,
+[data-theme='control'] select,
+[data-theme='control'] textarea {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+  font-size: 11px;
+  letter-spacing: 0.02em;
+  background: #0a0a0c;
+  color: #e8e4dc;
+  border: 1px solid #1a1a1e;
+  border-radius: 0 !important;
+  padding: 8px 10px;
+}
+
+[data-theme='control'] input:focus,
+[data-theme='control'] select:focus,
+[data-theme='control'] textarea:focus {
+  border-color: #d6453e;
+  box-shadow: none;
+}
+
+[data-theme='control'] input::placeholder,
+[data-theme='control'] textarea::placeholder {
+  color: #666660;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+[data-theme='control'] select {
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23666660'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  padding-right: 28px;
+}
+
+/* ── CONTROL: Shape overrides — all flat, no clip-path ── */
+[data-theme='control'] .ui-shape-all,
+[data-theme='control'] .chamfer-all {
+  --cut: 0px;
+  border-radius: 0 !important;
+  clip-path: none !important;
+  -webkit-clip-path: none !important;
+}
+
+[data-theme='control'] .ui-shape-right,
+[data-theme='control'] .chamfer-right {
+  --cut: 0px;
+  border-radius: 0 !important;
+  clip-path: none !important;
+  -webkit-clip-path: none !important;
+}
+
+[data-theme='control'] .ui-shape-left,
+[data-theme='control'] .chamfer-left {
+  --cut: 0px;
+  border-radius: 0 !important;
+  clip-path: none !important;
+  -webkit-clip-path: none !important;
+}
+
+[data-theme='control'] .ui-shape-card,
+[data-theme='control'] .chamfer-card {
+  --cut: 0px;
+  border-radius: 0 !important;
+  clip-path: none !important;
+  -webkit-clip-path: none !important;
+}
+
+[data-theme='control'] .ui-shape-pill {
+  --cut: 0px;
+  border-radius: 0 !important;
+  clip-path: none !important;
+  -webkit-clip-path: none !important;
+}
+
+/* ── CONTROL: Buttons — sans-serif, flat ── */
+[data-theme='control'] button {
+  border-radius: 0 !important;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+}
+
+[data-theme='control'] .ui-pressable {
+  transition:
+    border-color 80ms ease,
+    background-color 80ms ease,
+    color 80ms ease;
+}
+
+/* ── CONTROL: Modals — flat, no texture ── */
+[data-theme='control'] [role='dialog'][aria-modal='true'] {
+  border-radius: 0 !important;
+  border: 1px solid #1a1a1e !important;
+  background: #0a0a0c !important;
+  box-shadow: none !important;
+}
+
+[data-theme='control'] [role='dialog'][aria-modal='true'] button {
+  border-radius: 0 !important;
+}
+
+[data-theme='control'] [role='dialog'] [data-confirm-primary='true'] {
+  background: color-mix(in srgb, #d6453e 14%, #0a0a0c) !important;
+  border-color: color-mix(in srgb, #d6453e 45%, transparent) !important;
+  color: #d6453e !important;
+}
+
+[data-theme='control'] [role='dialog'] [data-confirm-primary='true']:hover {
+  border-color: #d6453e !important;
+  background: color-mix(in srgb, #d6453e 22%, #0a0a0c) !important;
+}
+
+/* ── CONTROL: SideDrawer — flat ── */
+[data-theme='control'] aside.ui-panel-surface {
+  clip-path: none !important;
+  -webkit-clip-path: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+
+/* ── CONTROL: Command Palette — flat, clean ── */
+[data-theme='control'] .xt-command-shell {
+  border-radius: 0 !important;
+  border: 1px solid #1a1a1e !important;
+  background: #000000 !important;
+  box-shadow: none !important;
+}
+
+[data-theme='control'] .xt-command-header {
+  border-bottom: 1px solid #1a1a1e;
+}
+
+[data-theme='control'] .xt-command-footer {
+  border-top: 1px solid #1a1a1e;
+  background: #0a0a0c;
+}
+
+/* Active command item: white bg + black text — CONTROL's selection inversion */
+[data-theme='control'] .xt-command-item.is-active {
+  background: #e8e4dc !important;
+  color: #000000 !important;
+}
+
+[data-theme='control'] .xt-command-dot {
+  background: #d6453e !important;
+}
+
+[data-theme='control'] .xt-command-key {
+  border: 1px solid #1a1a1e;
+  background: #0a0a0c;
+}
+
+/* ── CONTROL: OrbButton — flat, static ── */
+[data-theme='control'] .orb-button__icon {
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  border-color: #1a1a1e;
+  background: #000000;
+  animation: none !important;
+}
+
+[data-theme='control'] .orb-button:hover .orb-button__icon {
+  box-shadow: none !important;
+  filter: none !important;
+  border-color: #d6453e;
+}
+
+/* ── CONTROL: StatPill — flat, no glow ── */
+[data-theme='control'] .ui-shape-all.ui-glow,
+[data-theme='control'] .ui-shape-card.ui-glow {
+  box-shadow: none !important;
+  animation: none !important;
+}
+
+/* ── CONTROL: Toggle — flat ── */
+[data-theme='control'] button[aria-pressed] {
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+
+/* ── CONTROL: Progress bars ── */
+[data-theme='control'] progress,
+[data-theme='control'] [role='progressbar'] {
+  border-radius: 0 !important;
+  background: #111114;
+}
+
+[data-theme='control'] progress::-webkit-progress-bar {
+  background: #111114;
+  border-radius: 0;
+}
+
+[data-theme='control'] progress::-webkit-progress-value {
+  background: #d6453e;
+  border-radius: 0;
+}
+
+/* ── CONTROL: Tooltips — flat, thin border ── */
+[data-theme='control'] [role='tooltip'] {
+  border-radius: 0 !important;
+  background: #0a0a0c !important;
+  border: 1px solid #1a1a1e !important;
+  color: #e8e4dc !important;
+  box-shadow: none !important;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+  font-size: 11px;
+  letter-spacing: 0.02em;
+}
+
+/* ── CONTROL: Dropdowns, popovers, menus — flat ── */
+[data-theme='control'] [data-radix-popper-content-wrapper] > *,
+[data-theme='control'] .popover-content,
+[data-theme='control'] [role='listbox'],
+[data-theme='control'] [role='menu'] {
+  border-radius: 0 !important;
+  border: 1px solid #1a1a1e !important;
+  background: #0a0a0c !important;
+  box-shadow: none !important;
+}
+
+/* ── CONTROL: DateTimePicker / portal panels ── */
+[data-theme='control'] [data-portal-ignore-outside-click='true'] {
+  border-radius: 0 !important;
+  border: 1px solid #1a1a1e !important;
+  box-shadow: none !important;
+}
+
+/* ── CONTROL: Card surfaces ── */
+[data-theme='control'] .bg-\[var\(--app-panel\)\],
+[data-theme='control'] .bg-\[var\(--app-panel-2\)\] {
+  box-shadow: none !important;
+  border-radius: 0 !important;
+}
+
+/* ── CONTROL: Badges / chips ── */
+[data-theme='control'] .inline-flex.items-center.gap-1,
+[data-theme='control'] .xt-debrief-chip {
+  border-radius: 0 !important;
+}
+
+[data-theme='control'] .inline-flex.items-center.gap-2.rounded-\[var\(--ui-radius-lg\)\] {
+  border-radius: 0 !important;
+}
+
+/* ── CONTROL: Backdrop ── */
+[data-theme='control'] .bg-black\/60 {
+  background: rgba(0, 0, 0, 0.75) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+/* ── CONTROL: Links — accent red ── */
+[data-theme='control'] a:not([class]) {
+  color: #d6453e;
+  text-decoration: none;
+}
+
+[data-theme='control'] a:not([class]):hover {
+  color: #e8685f;
+}
+
+/* ── CONTROL: Typography — sans-serif, clean, uppercase headings ── */
+[data-theme='control'] h1 {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+[data-theme='control'] h2 {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+[data-theme='control'] h3 {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+/* Section headers in panels: red, matching CONTROL's "WEAPON FORMS", "MATERIALS", etc. */
+[data-theme='control'] .ui-panel-surface h3 {
+  color: #d6453e;
+}
+
+/* ── CONTROL: Disabled states ── */
+[data-theme='control'] button:disabled,
+[data-theme='control'] input:disabled,
+[data-theme='control'] select:disabled,
+[data-theme='control'] textarea:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+  border-color: #111114 !important;
+}
+
+/* ── CONTROL: Checkbox & radio ── */
+[data-theme='control'] input[type='checkbox'],
+[data-theme='control'] input[type='radio'] {
+  accent-color: #d6453e;
+  border-radius: 0 !important;
+}
+
+/* ── CONTROL: Dividers ── */
+[data-theme='control'] hr {
+  border-color: #1a1a1e;
+}
+
+/* ── CONTROL: Tables — sans-serif headers ── */
+[data-theme='control'] table {
+  border-collapse: collapse;
+}
+
+[data-theme='control'] th {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+  font-size: 9px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: #666660;
+  border-bottom: 1px solid #1a1a1e;
+  padding: 8px 12px;
+}
+
+[data-theme='control'] td {
+  font-size: 11px;
+  color: #e8e4dc;
+  border-bottom: 1px solid #111114;
+  padding: 8px 12px;
+}
+
+[data-theme='control'] tr:hover td {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+/* ── CONTROL: Code blocks — monospace stays for code only ── */
+[data-theme='control'] code,
+[data-theme='control'] pre {
+  font-family: 'IBM Plex Mono', ui-monospace, monospace;
+  background: #0a0a0c;
+  border: 1px solid #1a1a1e;
+  border-radius: 0 !important;
+  color: #e8e4dc;
+}
+
+/* ── CONTROL: Focus-visible — clean accent outline, no glitch ── */
+[data-theme='control'] *:focus-visible {
+  outline: 1px solid #d6453e;
+  outline-offset: -1px;
+  animation: none !important;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   CONTROL — Section-specific overrides
+   Every section styled to match the actual CONTROL game aesthetic:
+   Red uppercase labels, white-fill selection, sharp geometry, flat.
+   ═══════════════════════════════════════════════════════════════════ */
+
+/* ────────────────────────────────────────────────────────────────
+   TOPBAR — Taller, bigger tabs, stronger active state
+   ──────────────────────────────────────────────────────────────── */
+[data-theme='control'] .xt-topbar {
+  height: 52px !important;
+  min-height: 52px !important;
+  background: #000000 !important;
+  border-bottom: 1px solid rgba(255,255,255,0.08) !important;
+}
+
+[data-theme='control'] .xt-nav-tab {
+  font-size: 10px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.12em !important;
+  text-transform: uppercase !important;
+  padding: 0 18px !important;
+  height: 52px !important;
+  font-family: 'Inter', -apple-system, sans-serif !important;
+  color: rgba(232,228,220,0.45) !important;
+  border-bottom: 2px solid transparent !important;
+  transition: color 100ms ease, background 100ms ease !important;
+}
+
+[data-theme='control'] .xt-nav-tab[data-active='false']:hover {
+  color: #e8e4dc !important;
+  background: rgba(255,255,255,0.04) !important;
+}
+
+[data-theme='control'] .xt-nav-tab[data-active='true'] {
+  color: #000000 !important;
+  background: #e8e4dc !important;
+  font-weight: 800 !important;
+  border-bottom: 2px solid transparent !important;
+}
+
+/* ────────────────────────────────────────────────────────────────
+   PLAY / OPS ROOM — The CONTROL game's mission interface feel
+   ──────────────────────────────────────────────────────────────── */
+[data-theme='control'] .xt-ops-room {
+  background: #000000 !important;
+}
+
+[data-theme='control'] .xt-ops-grid-env {
+  background: none !important;
+  display: none !important;
+}
+
+/* Left rack sidebar — like CONTROL's mission list panel */
+[data-theme='control'] .xt-ops-rack {
+  background: #000000 !important;
+  border-right: 1px solid rgba(255,255,255,0.08) !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+
+/* Rack header — matches CONTROL's "BOARD COUNTERMEASURES" style */
+[data-theme='control'] .xt-ops-rack-header {
+  border-bottom: 1px solid rgba(255,255,255,0.08) !important;
+  padding: 16px !important;
+  background: #000000 !important;
+}
+
+[data-theme='control'] .xt-ops-rack-label {
+  font-family: 'Inter', -apple-system, sans-serif !important;
+  font-size: 10px !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.18em !important;
+  text-transform: uppercase !important;
+  color: #d6453e !important;
+}
+
+/* Vitals strip — small stat row */
+[data-theme='control'] .xt-ops-vitals {
+  border-bottom: 1px solid rgba(255,255,255,0.06) !important;
+  background: #050505 !important;
+  padding: 8px 16px !important;
+}
+
+[data-theme='control'] .xt-ops-vital-val {
+  font-family: 'Inter', -apple-system, sans-serif !important;
+  font-size: 16px !important;
+  font-weight: 700 !important;
+  color: #e8e4dc !important;
+}
+
+[data-theme='control'] .xt-ops-vital-unit {
+  font-family: 'Inter', -apple-system, sans-serif !important;
+  font-size: 8px !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.14em !important;
+  text-transform: uppercase !important;
+  color: rgba(232,228,220,0.4) !important;
+}
+
+/* Quest briefings — CONTROL's mission list rows */
+[data-theme='control'] .xt-ops-briefing {
+  background: transparent !important;
+  border: none !important;
+  border-bottom: 1px solid rgba(255,255,255,0.06) !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  padding: 12px 16px !important;
+  cursor: pointer;
+  transition: background 80ms ease !important;
+}
+
+[data-theme='control'] .xt-ops-briefing:hover {
+  background: rgba(255,255,255,0.04) !important;
+}
+
+/* Active/selected mission — CONTROL's white inversion */
+[data-theme='control'] .xt-ops-briefing--active,
+[data-theme='control'] .xt-ops-briefing--live {
+  background: #e8e4dc !important;
+  border-bottom: 1px solid rgba(255,255,255,0.06) !important;
+}
+
+[data-theme='control'] .xt-ops-briefing--active .xt-ops-briefing-title,
+[data-theme='control'] .xt-ops-briefing--live .xt-ops-briefing-title {
+  color: #000000 !important;
+}
+
+[data-theme='control'] .xt-ops-briefing--active .xt-ops-briefing-meta,
+[data-theme='control'] .xt-ops-briefing--live .xt-ops-briefing-meta {
+  color: rgba(0,0,0,0.5) !important;
+}
+
+[data-theme='control'] .xt-ops-briefing-title {
+  font-family: 'Inter', -apple-system, sans-serif !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.01em !important;
+  color: #e8e4dc !important;
+  line-height: 1.3 !important;
+}
+
+[data-theme='control'] .xt-ops-briefing-meta {
+  font-family: 'Inter', -apple-system, sans-serif !important;
+  font-size: 10px !important;
+  font-weight: 500 !important;
+  letter-spacing: 0.06em !important;
+  text-transform: uppercase !important;
+  color: rgba(232,228,220,0.4) !important;
+  margin-top: 4px !important;
+}
+
+[data-theme='control'] .xt-ops-briefing-edge {
+  display: none !important;
+}
+
+/* Empty rack state */
+[data-theme='control'] .xt-ops-rack-empty {
+  padding: 32px 16px !important;
+  text-align: center;
+}
+
+[data-theme='control'] .xt-ops-rack-empty-btn {
+  border-radius: 0 !important;
+  border: 1px solid rgba(255,255,255,0.15) !important;
+  background: transparent !important;
+  color: #e8e4dc !important;
+  font-family: 'Inter', -apple-system, sans-serif !important;
+  font-size: 10px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.14em !important;
+  text-transform: uppercase !important;
+  padding: 10px 16px !important;
+  width: 100% !important;
+  transition: background 80ms ease !important;
+}
+
+[data-theme='control'] .xt-ops-rack-empty-btn:hover {
+  background: rgba(255,255,255,0.06) !important;
+}
+
+/* Right command panel */
+[data-theme='control'] .xt-ops-command {
+  background: #000000 !important;
+  border-radius: 0 !important;
+}
+
+/* Empty state — right panel no selection */
+[data-theme='control'] .xt-ops-empty {
+  background: #000000 !important;
+}
+
+[data-theme='control'] .xt-ops-empty-title {
+  font-family: 'Inter', -apple-system, sans-serif !important;
+  font-size: 20px !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.1em !important;
+  text-transform: uppercase !important;
+  color: #e8e4dc !important;
+}
+
+[data-theme='control'] .xt-ops-empty-desc {
+  font-family: 'Inter', -apple-system, sans-serif !important;
+  font-size: 12px !important;
+  color: rgba(232,228,220,0.45) !important;
+  letter-spacing: 0.04em !important;
+  line-height: 1.6 !important;
+}
+
+/* Action buttons in Play — CONTROL's rectangular action style */
+[data-theme='control'] .xt-play-action {
+  border-radius: 0 !important;
+  font-family: 'Inter', -apple-system, sans-serif !important;
+  font-size: 10px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.14em !important;
+  text-transform: uppercase !important;
+  border: 1px solid rgba(255,255,255,0.15) !important;
+  background: transparent !important;
+  color: #e8e4dc !important;
+  box-shadow: none !important;
+  transition: background 80ms ease !important;
+}
+
+[data-theme='control'] .xt-play-action:hover {
+  background: rgba(255,255,255,0.06) !important;
+}
+
+[data-theme='control'] .xt-play-action[data-tone='accent'] {
+  background: #e8e4dc !important;
+  color: #000000 !important;
+  border-color: #e8e4dc !important;
+}
+
+[data-theme='control'] .xt-play-action[data-tone='accent']:hover {
+  background: rgba(232,228,220,0.88) !important;
+}
+
+/* Quest title in command panel */
+[data-theme='control'] .xt-ops-quest-title {
+  font-family: 'Inter', -apple-system, sans-serif !important;
+  font-size: 22px !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.08em !important;
+  text-transform: uppercase !important;
+  color: #e8e4dc !important;
+  line-height: 1.2 !important;
+}
+
+/* Panel headers in command area — CONTROL's "STEPS", "INTEL" etc. */
+[data-theme='control'] .xt-ops-panel-label {
+  font-family: 'Inter', -apple-system, sans-serif !important;
+  font-size: 9px !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.18em !important;
+  text-transform: uppercase !important;
+  color: #d6453e !important;
+}
+
+[data-theme='control'] .xt-ops-panel {
+  background: #050505 !important;
+  border: 1px solid rgba(255,255,255,0.07) !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+
+[data-theme='control'] .xt-ops-panel-head {
+  border-bottom: 1px solid rgba(255,255,255,0.07) !important;
+  padding: 10px 14px !important;
+}
+
+/* Steps */
+[data-theme='control'] .xt-ops-step {
+  border-bottom: 1px solid rgba(255,255,255,0.05) !important;
+  border-radius: 0 !important;
+}
+
+[data-theme='control'] .xt-ops-step-text {
+  font-family: 'Inter', -apple-system, sans-serif !important;
+  font-size: 12px !important;
+  color: #e8e4dc !important;
+}
+
+[data-theme='control'] .xt-ops-step--done .xt-ops-step-text {
+  color: rgba(232,228,220,0.38) !important;
+  text-decoration: line-through !important;
+}
+
+/* Intel rows */
+[data-theme='control'] .xt-ops-intel-key {
+  font-family: 'Inter', -apple-system, sans-serif !important;
+  font-size: 9px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.14em !important;
+  text-transform: uppercase !important;
+  color: rgba(232,228,220,0.4) !important;
+}
+
+[data-theme='control'] .xt-ops-intel-val {
+  font-family: 'Inter', -apple-system, sans-serif !important;
+  font-size: 12px !important;
+  color: #e8e4dc !important;
+}
+
+/* Stats strip */
+[data-theme='control'] .xt-play-summary-label {
+  font-family: 'Inter', -apple-system, sans-serif !important;
+  font-size: 8px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.16em !important;
+  text-transform: uppercase !important;
+  color: rgba(232,228,220,0.4) !important;
+}
+
+[data-theme='control'] .xt-play-summary-value {
+  font-family: 'Inter', -apple-system, sans-serif !important;
+  font-size: 18px !important;
+  font-weight: 700 !important;
+  color: #e8e4dc !important;
+}
+
+/* Timer */
+[data-theme='control'] .xt-ops-timer {
+  font-family: 'Inter', -apple-system, sans-serif !important;
+  font-weight: 700 !important;
+  color: #e8e4dc !important;
+  letter-spacing: 0.02em !important;
+}
+
+[data-theme='control'] .xt-ops-timer-status {
+  font-family: 'Inter', -apple-system, sans-serif !important;
+  font-size: 9px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.18em !important;
+  text-transform: uppercase !important;
+  color: rgba(232,228,220,0.4) !important;
+}
+
+/* Tags */
+[data-theme='control'] .xt-ops-tag {
+  border-radius: 0 !important;
+  font-family: 'Inter', -apple-system, sans-serif !important;
+  font-size: 9px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.12em !important;
+  text-transform: uppercase !important;
+  border: 1px solid rgba(255,255,255,0.12) !important;
+  background: transparent !important;
+  color: rgba(232,228,220,0.55) !important;
+  padding: 3px 8px !important;
+}
+
+[data-theme='control'] .xt-ops-tag--accent {
+  border-color: #d6453e !important;
+  color: #d6453e !important;
+}
+
+/* ────────────────────────────────────────────────────────────────
+   STORE — CONTROL collectibles/catalog feel
+   ──────────────────────────────────────────────────────────────── */
+[data-theme='control'] .xt-store-shell {
+  background: #000000 !important;
+}
+
+[data-theme='control'] .xt-store-hero {
+  background: #050505 !important;
+  border-bottom: 1px solid rgba(255,255,255,0.07) !important;
+  border-radius: 0 !important;
+}
+
+[data-theme='control'] .xt-store-stat {
+  border-right: 1px solid rgba(255,255,255,0.06) !important;
+}
+
+[data-theme='control'] .xt-store-bar {
+  background: #050505 !important;
+  border-bottom: 1px solid rgba(255,255,255,0.07) !important;
+  border-radius: 0 !important;
+}
+
+[data-theme='control'] .xt-store-input {
+  background: transparent !important;
+  border: none !important;
+  font-family: 'Inter', -apple-system, sans-serif !important;
+  font-size: 12px !important;
+  color: #e8e4dc !important;
+}
+
+[data-theme='control'] .xt-store-chip {
+  border-radius: 0 !important;
+  font-family: 'Inter', -apple-system, sans-serif !important;
+  font-size: 9px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.12em !important;
+  text-transform: uppercase !important;
+}
+
+/* Store item cards — like CONTROL's collectible tiles */
+[data-theme='control'] .xt-store-item {
+  background: #050505 !important;
+  border: 1px solid rgba(255,255,255,0.07) !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  transition: border-color 100ms ease !important;
+}
+
+[data-theme='control'] .xt-store-item:hover {
+  border-color: rgba(255,255,255,0.18) !important;
+  background: #0a0a0c !important;
+}
+
+/* ────────────────────────────────────────────────────────────────
+   SETTINGS — CONTROL options menu feel
+   ──────────────────────────────────────────────────────────────── */
+[data-theme='control'] .xt-settings-shell {
+  background: #000000 !important;
+}
+
+[data-theme='control'] .xt-settings-hero {
+  border-bottom: 1px solid rgba(255,255,255,0.07) !important;
+  background: #000000 !important;
+  border-radius: 0 !important;
+}
+
+[data-theme='control'] .xt-settings-shell h2 {
+  font-family: 'Inter', -apple-system, sans-serif !important;
+  font-size: 9px !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.18em !important;
+  text-transform: uppercase !important;
+  color: #d6453e !important;
+}
+
+[data-theme='control'] .xt-settings-card {
+  background: #050505 !important;
+  border: 1px solid rgba(255,255,255,0.07) !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+
+[data-theme='control'] .xt-settings-chip {
+  border-radius: 0 !important;
+  font-family: 'Inter', -apple-system, sans-serif !important;
+  font-size: 9px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.12em !important;
+  text-transform: uppercase !important;
+}
+
+[data-theme='control'] .xt-settings-chip--accent {
+  background: #e8e4dc !important;
+  color: #000000 !important;
+  border-color: #e8e4dc !important;
+}
+
+[data-theme='control'] .xt-settings-panel {
+  border-radius: 0 !important;
+  border: 1px solid rgba(255,255,255,0.07) !important;
+  background: #050505 !important;
+  box-shadow: none !important;
+}
+
+/* Settings section headers — CONTROL's "GAMEPLAY", "AUDIO" tab feel */
+[data-theme='control'] .xt-settings-shell .text-xl {
+  font-family: 'Inter', -apple-system, sans-serif !important;
+  font-size: 18px !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.08em !important;
+  text-transform: uppercase !important;
+  color: #e8e4dc !important;
+}
+
+/* ────────────────────────────────────────────────────────────────
+   GLOBAL TYPOGRAPHY — Heavier, cleaner, more CONTROL-like
+   ──────────────────────────────────────────────────────────────── */
+
+/* Any label/eyebrow text pattern */
+[data-theme='control'] [class*='eyebrow'],
+[data-theme='control'] [class*='label'],
+[data-theme='control'] [class*='heading'] {
+  font-family: 'Inter', -apple-system, sans-serif !important;
+}
+
+/* Uppercase tracking labels everywhere */
+[data-theme='control'] .text-\[9px\],
+[data-theme='control'] .text-\[10px\],
+[data-theme='control'] .text-\[11px\] {
+  font-family: 'Inter', -apple-system, sans-serif !important;
+}
+
+/* All headings in the app */
+[data-theme='control'] h1 {
+  font-size: clamp(20px, 3vw, 32px) !important;
+  font-weight: 900 !important;
+  letter-spacing: 0.1em !important;
+}
+
+[data-theme='control'] h2 {
+  font-size: clamp(14px, 2vw, 20px) !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.08em !important;
+}
+
+[data-theme='control'] h3 {
+  font-size: clamp(10px, 1.5vw, 14px) !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.12em !important;
+}
+
+/* ────────────────────────────────────────────────────────────────
+   PANEL SURFACES — More character, cleaner separation
+   ──────────────────────────────────────────────────────────────── */
+[data-theme='control'] .ui-panel-surface {
+  background: #050505 !important;
+  border: 1px solid rgba(255,255,255,0.07) !important;
+  box-shadow: none !important;
+  border-radius: 0 !important;
+}
+
+/* Debrief chips / tags */
+[data-theme='control'] .xt-debrief-chip {
+  background: transparent !important;
+  border: 1px solid rgba(255,255,255,0.12) !important;
+  color: rgba(232,228,220,0.6) !important;
+  font-family: 'Inter', -apple-system, sans-serif !important;
+  font-size: 9px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.12em !important;
+  text-transform: uppercase !important;
+  border-radius: 0 !important;
+  padding: 3px 8px !important;
+}
+
+/* ────────────────────────────────────────────────────────────────
+   COMMAND PALETTE — CONTROL's rebind/search overlay feel
+   ──────────────────────────────────────────────────────────────── */
+[data-theme='control'] .xt-command-shell {
+  border: 1px solid rgba(255,255,255,0.12) !important;
+  background: #050505 !important;
+}
+
+[data-theme='control'] .xt-command-item {
+  font-family: 'Inter', -apple-system, sans-serif !important;
+  font-size: 13px !important;
+  border-radius: 0 !important;
+  border-bottom: 1px solid rgba(255,255,255,0.04) !important;
+}
+
+[data-theme='control'] .xt-command-item.is-active {
+  background: #e8e4dc !important;
+  color: #000000 !important;
+}
+
+/* ────────────────────────────────────────────────────────────────
+   INNER SECTION TABS — Profile / Settings sub-nav
+   The white-inversion active state must apply everywhere
+   ──────────────────────────────────────────────────────────────── */
+
+/* Any data-active='true' element that is NOT the main topbar nav tab
+   gets CONTROL's signature white background + black text inversion */
+[data-theme='control'] [data-active='true']:not(.xt-nav-tab) {
+  background: #e8e4dc !important;
+  color: #000000 !important;
+  border-color: #e8e4dc !important;
+  box-shadow: none !important;
+}
+
+/* Keep child text black too */
+[data-theme='control'] [data-active='true']:not(.xt-nav-tab) * {
+  color: #000000 !important;
+}
+
+/* Inactive inner tabs */
+[data-theme='control'] [data-active='false']:not(.xt-nav-tab) {
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+/* Nav rule (animated underline bar) — CONTROL has none */
+[data-theme='control'] .xt-nav-rule {
+  display: none !important;
+}
+
+/* Nav dot indicators — CONTROL has none */
+[data-theme='control'] .xt-nav-dot {
+  display: none !important;
+}
+
+/* ────────────────────────────────────────────────────────────────
+   PROFILE SECTION
+   ──────────────────────────────────────────────────────────────── */
+
+/* Profile deck card */
+[data-theme='control'] [class*='profile-deck'],
+[data-theme='control'] [class*='profile-card'] {
+  background: rgba(0,0,0,0.75) !important;
+  border: 1px solid rgba(255,255,255,0.12) !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+
+/* Profile sub-nav bar */
+[data-theme='control'] [class*='profile-nav'],
+[data-theme='control'] [class*='profile-tabs'] {
+  background: #000000 !important;
+  border-bottom: 1px solid rgba(255,255,255,0.08) !important;
+}
+
+/* Stat/XP values */
+[data-theme='control'] [class*='xp'],
+[data-theme='control'] [class*='level'] {
+  font-family: 'Inter', -apple-system, sans-serif !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.05em !important;
+}
+
+/* ────────────────────────────────────────────────────────────────
+   GLOBAL: Kill any remaining glow/shadow on interactive elements
+   ──────────────────────────────────────────────────────────────── */
+
+/* Any element with accent bg + glow in arbitrary Tailwind class */
+[data-theme='control'] [class*='shadow-'] {
+  box-shadow: none !important;
+  filter: none !important;
+}
+
+/* Kill the blurred background overlays some panels use */
+[data-theme='control'] [class*='backdrop-blur'] {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+/* ════════════════════════════════════════════════════════════════
+   END XTATION BLACK Global Component Overhaul
+   ════════════════════════════════════════════════════════════════ */
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   CONTROL — DEEP UI OVERHAUL II
+   Every remaining element brought to spec: flat, sharp, clinical, government.
+   Zero purple. Zero rounded. Zero glow. Pure CONTROL game aesthetic.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ────────────────────────────────────────────────────────────────────────
+   PROFILE 3D SCENE — Kill all overlay effects for pure black backdrop
+   ──────────────────────────────────────────────────────────────────────── */
+[data-theme='control'] .stage-bg-breathe {
+  display: none !important;
+}
+[data-theme='control'] .stage-active-pulse {
+  display: none !important;
+}
+/* Kill scan-lines, breathe, vignette layers (children 2-5 of stage-bg) */
+[data-theme='control'] .xt-profile-stage-bg > div:nth-child(2),
+[data-theme='control'] .xt-profile-stage-bg > div:nth-child(3),
+[data-theme='control'] .xt-profile-stage-bg > div:nth-child(4),
+[data-theme='control'] .xt-profile-stage-bg > div:nth-child(5) {
+  display: none !important;
+}
+/* child[6] = "absolute inset-0" which contains the scene shell AND the overlay layer.
+   DON'T hide the whole child — only hide the overlay div (2nd child) inside it.
+   Structure: child[6] > [0]=xt-profile-scene-shell, [1]=overlay with bloom/line */
+[data-theme='control'] .xt-profile-stage-bg > div:nth-child(6) > div:nth-child(2) {
+  display: none !important;
+}
+/* The stage base: solid black */
+[data-theme='control'] .xt-profile-stage-bg {
+  background: #000000 !important;
+}
+/* Keep the dotPulse style tag alive but kill the animation */
+[data-theme='control'] .xt-profile-stage-wrapper {
+  animation: none !important;
+}
+
+/* ── Kill all scene overlay effects — filter, blur, glow, spotlight ──────── */
+/* The iframe filter warms/saturates the entire 3D scene — kill it */
+[data-theme='control'] .xt-profile-scene-iframe {
+  filter: none !important;
+}
+/* Kill every overlay div layered on top of the scene */
+[data-theme='control'] .xt-profile-scene-spotlight,
+[data-theme='control'] .xt-profile-scene-silhouette-glow,
+[data-theme='control'] .xt-profile-scene-focus-frame,
+[data-theme='control'] .xt-profile-scene-focus-core,
+[data-theme='control'] .xt-profile-scene-floor-glow {
+  display: none !important;
+}
+/* Kill the color bloom floating div above the character (blur(28px) at top-[20%]) */
+[data-theme='control'] .xt-profile-stage-wrapper > div[class*="absolute"][class*="top-"],
+[data-theme='control'] .xt-profile-stage-wrapper > div[style*="blur"],
+[data-theme='control'] [class*="profile-scene"] > div[style*="blur"] {
+  display: none !important;
+}
+/* Kill the vertical line overlay */
+[data-theme='control'] .xt-profile-stage-wrapper > div[class*="w-px"] {
+  display: none !important;
+}
+/* Compact portrait background — no reddish tint */
+[data-theme='control'] .xt-profile-compact-portrait {
+  background: #0a0a0c !important;
+}
+
+/* ────────────────────────────────────────────────────────────────────────
+   DAY-TIME ORB — Purple → CONTROL Red/Dark
+   ──────────────────────────────────────────────────────────────────────── */
+
+/* Base circle ring (dark neutral, not purple navy) */
+[data-theme='control'] .day-time-orb-svg > circle:first-child {
+  fill: #0a0a0c;
+}
+/* Future segments: very dark flat panel */
+[data-theme='control'] .day-time-orb-segment.seg-future {
+  fill: #1a1a1e;
+}
+/* Past / current segments: CONTROL red */
+[data-theme='control'] .day-time-orb-segment.seg-past {
+  fill: #d6453e;
+}
+/* Hover effects: red glow instead of purple */
+[data-theme='control'] .day-time-orb-segment.seg-hovered {
+  filter: brightness(1.6) drop-shadow(0 0 6px rgba(214,69,62,0.8)) !important;
+}
+[data-theme='control'] .day-time-orb-segment.seg-neighbor-1 {
+  filter: brightness(1.25) drop-shadow(0 0 3px rgba(214,69,62,0.4)) !important;
+}
+/* Kill purple glow circle */
+[data-theme='control'] .day-time-orb-glow {
+  display: none !important;
+}
+/* Core center: dim red instead of purple gradient */
+[data-theme='control'] .day-time-orb-core circle {
+  fill: rgba(214,69,62,0.25) !important;
+}
+/* Inner ring guide: subtle red */
+[data-theme='control'] .day-time-orb-svg circle:nth-of-type(2) {
+  stroke: rgba(214,69,62,0.18) !important;
+}
+/* Kill core pulse animation */
+[data-theme='control'] .day-time-orb-core {
+  animation: none !important;
+}
+/* Time text: Inter, clean */
+[data-theme='control'] .day-time-orb-time {
+  font-family: 'Inter', -apple-system, sans-serif !important;
+  font-size: 13px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.08em !important;
+  text-transform: uppercase !important;
+  color: #e8e4dc !important;
+}
+[data-theme='control'] .day-time-orb-live {
+  font-family: 'Inter', -apple-system, sans-serif !important;
+  font-size: 9px !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.2em !important;
+  text-transform: uppercase !important;
+  color: #d6453e !important;
+}
+/* Tooltip: flat CONTROL style */
+[data-theme='control'] .day-time-orb-tooltip {
+  background: #050505 !important;
+  border: 1px solid rgba(255,255,255,0.12) !important;
+  border-radius: 0 !important;
+  color: #e8e4dc !important;
+  font-family: 'Inter', -apple-system, sans-serif !important;
+  font-size: 10px !important;
+  letter-spacing: 0.08em !important;
+  backdrop-filter: none !important;
+}
+
+/* ────────────────────────────────────────────────────────────────────────
+   LOG TAB — Calendar and day timeline
+   ──────────────────────────────────────────────────────────────────────── */
+[data-theme='control'] .xt-log-shell,
+[data-theme='control'] [class*='log-shell'],
+[data-theme='control'] [class*='log-calendar'] {
+  background: #000000 !important;
+}
+/* Day/W/M/Y filter row */
+[data-theme='control'] [class*='calendar-sub'],
+[data-theme='control'] [class*='timeline-sub'] {
+  border-bottom: 1px solid rgba(255,255,255,0.07) !important;
+  background: #000000 !important;
+}
+
+/* ────────────────────────────────────────────────────────────────────────
+   AUTH / LOGIN MODAL — Pure black, no purple panels
+   ──────────────────────────────────────────────────────────────────────── */
+[data-theme='control'] .auth-modal-shell {
+  background: #000000 !important;
+  border: 1px solid rgba(255,255,255,0.1) !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+/* Left form panel */
+[data-theme='control'] .auth-skel-left,
+[data-theme='control'] .auth-modal-form {
+  background: #000000 !important;
+  border-radius: 0 !important;
+  border-right: 1px solid rgba(255,255,255,0.08) !important;
+}
+/* Canvas/background skeleton */
+[data-theme='control'] .auth-skel-canvas {
+  background: #000000 !important;
+  border-radius: 0 !important;
+}
+/* Right panel sections */
+[data-theme='control'] .auth-skel-top,
+[data-theme='control'] .auth-skel-card {
+  border-radius: 0 !important;
+  background: #050505 !important;
+}
+/* Center divider */
+[data-theme='control'] .auth-center-divider {
+  background: rgba(255,255,255,0.08) !important;
+  width: 1px !important;
+}
+/* Station brief card */
+[data-theme='control'] .auth-station-brief {
+  background: #050505 !important;
+  border: 1px solid rgba(255,255,255,0.1) !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+}
+/* Kill star/rail decorative elements */
+[data-theme='control'] .auth-skel-stars::before,
+[data-theme='control'] .auth-skel-stars::after {
+  display: none !important;
+}
+[data-theme='control'] .auth-skel-rail,
+[data-theme='control'] .auth-skel-rail-alert,
+[data-theme='control'] .auth-skel-rail-pattern {
+  background: transparent !important;
+  display: none !important;
+}
+/* Auth form buttons */
+[data-theme='control'] .auth-modal-form button,
+[data-theme='control'] .auth-modal-form [role='button'] {
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+/* Google OAuth button */
+[data-theme='control'] .auth-modal-form button[class*='google'],
+[data-theme='control'] .auth-modal-form button[class*='oauth'] {
+  background: #050505 !important;
+  border: 1px solid rgba(255,255,255,0.15) !important;
+  color: #e8e4dc !important;
+  border-radius: 0 !important;
+}
+/* Close button */
+[data-theme='control'] .auth-modal-close {
+  background: transparent !important;
+  border: 1px solid rgba(255,255,255,0.12) !important;
+  border-radius: 0 !important;
+  color: #666660 !important;
+}
+[data-theme='control'] .auth-modal-close:hover {
+  border-color: #d6453e !important;
+  color: #d6453e !important;
+}
+/* Station brief chips */
+[data-theme='control'] .auth-station-brief-chip {
+  border-radius: 0 !important;
+  background: transparent !important;
+}
+[data-theme='control'] .auth-station-brief-chip--accent {
+  background: transparent !important;
+  border-color: rgba(214,69,62,0.45) !important;
+  color: #d6453e !important;
+}
+/* Auth station brief icon */
+[data-theme='control'] .auth-station-brief-status-icon {
+  border-radius: 0 !important;
+}
+/* Eyebrow text */
+[data-theme='control'] .auth-station-brief-eyebrow,
+[data-theme='control'] .auth-station-brief-rule-head {
+  color: #d6453e !important;
+  letter-spacing: 0.2em !important;
+}
+/* Kill backdrop blur in auth shell context */
+[data-theme='control'] .auth-drawer-panel {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  background: transparent !important;
+  border-radius: 0 !important;
+}
+/* Kill the portrait glow */
+[data-theme='control'] .auth-skel-portrait-glow {
+  display: none !important;
+}
+
+/* ────────────────────────────────────────────────────────────────────────
+   TOPBAR — Right side: DUSK button, pills, icons
+   ──────────────────────────────────────────────────────────────────────── */
+/* Kill DUSK pulse animation */
+[data-theme='control'] .xt-topbar-dusk-pulse,
+[data-theme='control'] [class*='dusk-pulse'] {
+  animation: none !important;
+}
+/* DUSK assistant toggle button */
+[data-theme='control'] .xt-topbar-dusk {
+  background: #050505 !important;
+  border: 1px solid rgba(255,255,255,0.12) !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  font-family: 'Inter', -apple-system, sans-serif !important;
+  font-size: 9px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.14em !important;
+  text-transform: uppercase !important;
+  color: rgba(232,228,220,0.6) !important;
+}
+[data-theme='control'] .xt-topbar-dusk:hover {
+  border-color: rgba(255,255,255,0.25) !important;
+  color: #e8e4dc !important;
+}
+/* Kill the live dot glow */
+[data-theme='control'] .xt-topbar-live-dot {
+  animation: none !important;
+  box-shadow: none !important;
+}
+/* Kill idle pulse dots */
+[data-theme='control'] .xt-topbar-idle-dot {
+  animation: none !important;
+  opacity: 0.3 !important;
+}
+/* Info pills in topbar (LOCAL • PLAY, TRIAL, etc.) */
+[data-theme='control'] .xt-topbar-pill {
+  border-radius: 0 !important;
+  background: transparent !important;
+  border: none !important;
+  font-family: 'Inter', -apple-system, sans-serif !important;
+  font-size: 9px !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.1em !important;
+  text-transform: uppercase !important;
+  color: rgba(232,228,220,0.5) !important;
+}
+/* Topbar keycap (⌘K, EXIT) */
+[data-theme='control'] .xt-topbar-keycap {
+  border-radius: 0 !important;
+  background: transparent !important;
+  border: 1px solid rgba(255,255,255,0.1) !important;
+  font-family: 'Inter', -apple-system, sans-serif !important;
+  font-size: 9px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.12em !important;
+  box-shadow: none !important;
+  color: rgba(232,228,220,0.55) !important;
+}
+[data-theme='control'] .xt-topbar-keycap:hover {
+  border-color: rgba(255,255,255,0.25) !important;
+  color: #e8e4dc !important;
+}
+/* Icon buttons (bell, gear) */
+[data-theme='control'] .xt-topbar-icon {
+  background: transparent !important;
+  border-radius: 0 !important;
+  color: rgba(232,228,220,0.5) !important;
+}
+[data-theme='control'] .xt-topbar-icon:hover {
+  color: #e8e4dc !important;
+  background: rgba(255,255,255,0.04) !important;
+}
+/* Topbar divider */
+[data-theme='control'] .xt-topbar-divider {
+  background: rgba(255,255,255,0.08) !important;
+}
+/* Topbar summary text */
+[data-theme='control'] .xt-topbar-summary {
+  font-family: 'Inter', -apple-system, sans-serif !important;
+  font-size: 9px !important;
+  letter-spacing: 0.08em !important;
+  color: rgba(232,228,220,0.45) !important;
+}
+/* Topbar status */
+[data-theme='control'] .xt-topbar-status {
+  font-family: 'Inter', -apple-system, sans-serif !important;
+  font-size: 9px !important;
+}
+/* User avatar: square for CONTROL */
+[data-theme='control'] .xt-topbar-avatar {
+  border-radius: 0 !important;
+  border: 1px solid rgba(255,255,255,0.15) !important;
+}
+
+/* ────────────────────────────────────────────────────────────────────────
+   SETTINGS — Denser, more game-menu feel
+   ──────────────────────────────────────────────────────────────────────── */
+/* Settings hero area — tighter */
+[data-theme='control'] .xt-settings-hero {
+  padding: 20px 24px !important;
+}
+/* Settings page title — massive, imposing */
+[data-theme='control'] .xt-settings-shell h1 {
+  font-size: clamp(24px, 3.5vw, 42px) !important;
+  font-weight: 900 !important;
+  letter-spacing: 0.06em !important;
+  text-transform: uppercase !important;
+  line-height: 1 !important;
+}
+/* Settings section rows — game menu rows with hover-right inversion */
+[data-theme='control'] .xt-settings-row {
+  border-bottom: 1px solid rgba(255,255,255,0.05) !important;
+  padding: 12px 16px !important;
+  transition: background 80ms ease !important;
+}
+[data-theme='control'] .xt-settings-row:hover {
+  background: rgba(255,255,255,0.03) !important;
+}
+/* Status section cards — denser */
+[data-theme='control'] [class*='status-card'],
+[data-theme='control'] [class*='platform-card'] {
+  background: #050505 !important;
+  border: 1px solid rgba(255,255,255,0.07) !important;
+  border-radius: 0 !important;
+}
+/* Section label eyebrows — red uppercase */
+[data-theme='control'] .xt-settings-shell .text-\[9px\],
+[data-theme='control'] .xt-settings-shell .text-\[10px\] {
+  font-family: 'Inter', -apple-system, sans-serif !important;
+  color: rgba(232,228,220,0.4) !important;
+}
+/* Kill the settings card gap/padding inflation */
+[data-theme='control'] .xt-settings-card {
+  padding: 14px 16px !important;
+}
+/* Filter chips in settings (LOCAL STATION / INTERNAL / TRIAL) */
+[data-theme='control'] .xt-settings-shell [class*='filter-chip'],
+[data-theme='control'] .xt-settings-shell [class*='tab-chip'] {
+  border-radius: 0 !important;
+  font-family: 'Inter', -apple-system, sans-serif !important;
+  font-size: 9px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.14em !important;
+  text-transform: uppercase !important;
+  border: 1px solid rgba(255,255,255,0.1) !important;
+  background: transparent !important;
+  color: rgba(232,228,220,0.5) !important;
+  padding: 5px 10px !important;
+}
+
+/* ────────────────────────────────────────────────────────────────────────
+   STORE — More visual, less article wall-of-text
+   ──────────────────────────────────────────────────────────────────────── */
+/* Store item cards: tighter, less padding */
+[data-theme='control'] .xt-store-item {
+  padding: 12px 14px !important;
+}
+/* Item title: bigger, bolder */
+[data-theme='control'] .xt-store-item [class*='item-name'],
+[data-theme='control'] .xt-store-item [class*='item-title'],
+[data-theme='control'] .xt-store-item h3,
+[data-theme='control'] .xt-store-item h4 {
+  font-size: 13px !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.06em !important;
+  text-transform: uppercase !important;
+  margin-bottom: 4px !important;
+}
+/* Kill the paragraph description — reduce cognitive load */
+[data-theme='control'] .xt-store-item > p,
+[data-theme='control'] .xt-store-item [class*='description'] {
+  display: none !important;
+}
+/* Restore description as a max-2-line summary */
+[data-theme='control'] .xt-store-item [class*='item-desc'],
+[data-theme='control'] .xt-store-item [class*='item-summary'] {
+  display: -webkit-box !important;
+  -webkit-line-clamp: 2 !important;
+  -webkit-box-orient: vertical !important;
+  overflow: hidden !important;
+  font-size: 10px !important;
+  color: rgba(232,228,220,0.45) !important;
+  letter-spacing: 0.02em !important;
+}
+/* Price badges: sharp, prominent */
+[data-theme='control'] .xt-store-item [class*='price'],
+[data-theme='control'] .xt-store-item [class*='cost'] {
+  font-family: 'Inter', -apple-system, sans-serif !important;
+  font-size: 11px !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.08em !important;
+  color: #e8e4dc !important;
+}
+/* NEW badge */
+[data-theme='control'] .xt-store-item [class*='badge-new'],
+[data-theme='control'] .xt-store-item [class*='badge-hot'] {
+  background: #d6453e !important;
+  color: #000000 !important;
+  border-radius: 0 !important;
+  font-size: 8px !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.16em !important;
+  padding: 2px 5px !important;
+}
+/* Store filter bar */
+[data-theme='control'] .xt-store-bar {
+  padding: 8px 16px !important;
+}
+/* Category chips */
+[data-theme='control'] .xt-store-chip[data-active='true'],
+[data-theme='control'] .xt-store-chip[class*='active'] {
+  background: #e8e4dc !important;
+  color: #000000 !important;
+}
+/* Store hero: compact */
+[data-theme='control'] .xt-store-hero {
+  padding: 16px 20px !important;
+}
+
+/* ────────────────────────────────────────────────────────────────────────
+   HEALTH TAB — Minimal, function-focused
+   ──────────────────────────────────────────────────────────────────────── */
+[data-theme='control'] [class*='health-section'],
+[data-theme='control'] [class*='health-card'] {
+  background: #050505 !important;
+  border: 1px solid rgba(255,255,255,0.07) !important;
+  border-radius: 0 !important;
+}
+/* Health section title */
+[data-theme='control'] [class*='health-title'],
+[data-theme='control'] [class*='health-label'] {
+  font-family: 'Inter', -apple-system, sans-serif !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.14em !important;
+  text-transform: uppercase !important;
+  color: #d6453e !important;
+  font-size: 9px !important;
+}
+/* Timer buttons: tighter, flat */
+[data-theme='control'] [class*='timer-btn'],
+[data-theme='control'] [class*='health-timer'] {
+  border-radius: 0 !important;
+  font-family: 'Inter', -apple-system, sans-serif !important;
+  font-weight: 700 !important;
+}
+/* model-viewer web component: flat border */
+[data-theme='control'] model-viewer {
+  border: 1px solid rgba(255,255,255,0.08) !important;
+  border-radius: 0 !important;
+}
+
+/* ────────────────────────────────────────────────────────────────────────
+   INVENTORY — Cleaner grid, remove verbose labels
+   ──────────────────────────────────────────────────────────────────────── */
+[data-theme='control'] [class*='inventory-shell'],
+[data-theme='control'] [class*='inventory-grid'] {
+  background: #000000 !important;
+}
+/* Kill the "inventory_system_v2.0" and similar verbose text labels */
+[data-theme='control'] [class*='inventory-system-label'],
+[data-theme='control'] [class*='inv-version'],
+[data-theme='control'] [class*='inv-meta-desc'] {
+  display: none !important;
+}
+/* Inventory slot cards */
+[data-theme='control'] [class*='inventory-slot'],
+[data-theme='control'] [class*='inv-card'] {
+  background: #050505 !important;
+  border: 1px solid rgba(255,255,255,0.07) !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+[data-theme='control'] [class*='inventory-slot']:hover,
+[data-theme='control'] [class*='inv-card']:hover {
+  border-color: rgba(255,255,255,0.2) !important;
+}
+/* Category label tabs in inventory */
+[data-theme='control'] [class*='inv-category'] {
+  font-family: 'Inter', -apple-system, sans-serif !important;
+  font-size: 9px !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.16em !important;
+  text-transform: uppercase !important;
+}
+
+/* ────────────────────────────────────────────────────────────────────────
+   LAB — Reduce article-style prose walls
+   ──────────────────────────────────────────────────────────────────────── */
+/* Hide the long description paragraph under the Lab title */
+[data-theme='control'] .xt-shell-section-a > p:first-of-type {
+  display: none !important;
+}
+/* Lab module pill cards — more compact */
+[data-theme='control'] .xt-lab-section-pill {
+  background: #050505 !important;
+  border: 1px solid rgba(255,255,255,0.07) !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  padding: 10px 14px !important;
+  transition: border-color 80ms ease !important;
+}
+[data-theme='control'] .xt-lab-section-pill:hover {
+  border-color: rgba(255,255,255,0.2) !important;
+  background: #0a0a0c !important;
+}
+/* Active lab pill: white inversion */
+[data-theme='control'] .xt-lab-section-pill[class*='accent'] {
+  background: #e8e4dc !important;
+  color: #000000 !important;
+  border-color: #e8e4dc !important;
+}
+/* Lab action buttons: smaller, flatter */
+[data-theme='control'] .xt-lab-action {
+  background: transparent !important;
+  border: 1px solid rgba(255,255,255,0.12) !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  font-size: 9px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.14em !important;
+  text-transform: uppercase !important;
+  padding: 6px 12px !important;
+}
+[data-theme='control'] .xt-lab-action:hover {
+  border-color: rgba(255,255,255,0.25) !important;
+  background: rgba(255,255,255,0.03) !important;
+}
+
+/* ────────────────────────────────────────────────────────────────────────
+   GLOBAL BUTTON CLEANUP — Solid flat, no outlines or gradients
+   ──────────────────────────────────────────────────────────────────────── */
+/* Kill all gradient backgrounds on buttons */
+[data-theme='control'] button[class*='gradient'],
+[data-theme='control'] button[class*='linear-gradient'],
+[data-theme='control'] button[class*='radial-gradient'] {
+  background-image: none !important;
+}
+/* Solid accent buttons: white fill + black text (the CONTROL way) */
+[data-theme='control'] button[class*='primary']:not(.xt-nav-tab),
+[data-theme='control'] button[class*='btn-primary']:not(.xt-nav-tab) {
+  background: #e8e4dc !important;
+  color: #000000 !important;
+  border: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+/* Secondary / ghost buttons: flat dark */
+[data-theme='control'] button[class*='secondary'],
+[data-theme='control'] button[class*='ghost'],
+[data-theme='control'] button[class*='outline'] {
+  background: transparent !important;
+  border: 1px solid rgba(255,255,255,0.15) !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  color: #e8e4dc !important;
+}
+/* Kill any remaining border-radius on all interactive chips */
+[data-theme='control'] [class*='chip'],
+[data-theme='control'] [class*='badge'],
+[data-theme='control'] [class*='tag'],
+[data-theme='control'] [class*='pill'] {
+  border-radius: 0 !important;
+}
+
+/* ────────────────────────────────────────────────────────────────────────
+   GLOBAL SPACING — Denser, more game-like, less website-like
+   ──────────────────────────────────────────────────────────────────────── */
+/* Reduce excessive padding in panel-surface elements */
+[data-theme='control'] .ui-panel-surface {
+  padding: 0 !important;
+}
+/* Tighter section gaps in main views */
+[data-theme='control'] .xt-shell-stage {
+  gap: 0 !important;
+}
+/* Remove rounded corners from ANY element in CONTROL */
+[data-theme='control'] [class*='rounded'] {
+  border-radius: 0 !important;
+}
+/* Kill all remaining border-radius utilities not yet covered */
+[data-theme='control'] .rounded-\[20px\],
+[data-theme='control'] .rounded-\[12px\],
+[data-theme='control'] .rounded-\[8px\],
+[data-theme='control'] .rounded-\[6px\],
+[data-theme='control'] .rounded-\[4px\],
+[data-theme='control'] .rounded-\[2px\] {
+  border-radius: 0 !important;
+}
+
+/* ────────────────────────────────────────────────────────────────────────
+   PROFILE LEFT PANEL — Functional suggestions applied
+   ──────────────────────────────────────────────────────────────────────── */
+/* Make the profile deck card look like a CONTROL mission dossier card */
+[data-theme='control'] .xt-profile-deck {
+  background: rgba(0,0,0,0.85) !important;
+  border: 1px solid rgba(255,255,255,0.12) !important;
+  border-radius: 0 !important;
+}
+/* Profile name: large, bold, uppercase */
+[data-theme='control'] .xt-profile-deck [class*='display-name'],
+[data-theme='control'] .xt-profile-deck h2,
+[data-theme='control'] .xt-profile-deck h3 {
+  font-family: 'Inter', -apple-system, sans-serif !important;
+  font-size: 14px !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.06em !important;
+  text-transform: uppercase !important;
+  color: #e8e4dc !important;
+}
+/* "PROFILE DECK" eyebrow */
+[data-theme='control'] .xt-profile-deck [class*='eyebrow'],
+[data-theme='control'] .xt-profile-deck [class*='deck-label'] {
+  font-size: 8px !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.22em !important;
+  text-transform: uppercase !important;
+  color: #d6453e !important;
+}
+/* Deck button */
+[data-theme='control'] .xt-profile-deck button {
+  border-radius: 0 !important;
+  font-family: 'Inter', -apple-system, sans-serif !important;
+  font-size: 9px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.14em !important;
+  text-transform: uppercase !important;
+}
+
+/* ── CONTROL: Kill browser default 'outset' button borders globally ──────── */
+/* Webkit/Chromium renders buttons with `border: 2px outset ButtonFace` by
+   default. This overrides that across every button in the CONTROL skin. */
+[data-theme='control'] button {
+  -webkit-appearance: none !important;
+  appearance: none !important;
+  border-style: solid !important;
+}
+
+/* ── CONTROL: TopBar icon buttons — kill all remnant browser borders ───── */
+[data-theme='control'] .xt-topbar-icon {
+  border: none !important;
+  background: transparent !important;
+  outline: none !important;
+  padding: 6px !important;
+  color: rgba(232, 228, 220, 0.55) !important;
+  border-radius: 0 !important;
+}
+[data-theme='control'] .xt-topbar-icon:hover {
+  color: #e8e4dc !important;
+  background: rgba(255,255,255,0.04) !important;
+}
+
+/* ── CONTROL: Profile sub-nav tabs — flat borders, no outset ────────────── */
+[data-theme='control'] .xt-profile-subnav button,
+[data-theme='control'] [class*='profile-sub'] button,
+[data-theme='control'] [class*='subnav'] button {
+  border-style: solid !important;
+  border-radius: 0 !important;
+  -webkit-appearance: none !important;
+  appearance: none !important;
+}
+
+/* Target the specific profile sub-nav tab pattern (px-3 py-1.5 border) */
+[data-theme='control'] button.border {
+  -webkit-appearance: none !important;
+  appearance: none !important;
+  border-style: solid !important;
+  border-radius: 0 !important;
+}
+/* Inactive sub-tabs */
+[data-theme='control'] button.border:not([data-active='true']):not([aria-selected='true']) {
+  background: transparent !important;
+  border-color: rgba(255,255,255,0.12) !important;
+  color: rgba(232,228,220,0.5) !important;
+}
+/* Active sub-tab — CONTROL white inversion */
+[data-theme='control'] button.border[data-active='true'],
+[data-theme='control'] button.border[aria-selected='true'] {
+  background: #e8e4dc !important;
+  border-color: #e8e4dc !important;
+  color: #000000 !important;
+}
+
+/* ── CONTROL: Day/Week/Month log view switchers ─────────────────────────── */
+[data-theme='control'] button.rounded-md,
+[data-theme='control'] button.rounded-lg {
+  -webkit-appearance: none !important;
+  appearance: none !important;
+  border-style: solid !important;
+  border-radius: 0 !important;
+}
+
+/* ── CONTROL: DUSK button — tight, flat, no glow ───────────────────────── */
+[data-theme='control'] .xt-topbar-dusk {
+  background: #0a0a0c !important;
+  border: 1px solid rgba(255,255,255,0.1) !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  color: #e8e4dc !important;
+  animation: none !important;
+}
+[data-theme='control'] .xt-topbar-dusk:hover {
+  background: rgba(255,255,255,0.05) !important;
+  border-color: rgba(255,255,255,0.2) !important;
+  box-shadow: none !important;
+}
+[data-theme='control'] .xt-topbar-dusk * {
+  animation: none !important;
+}
+
+/* ── CONTROL: keycap/pill topbar elements — flat ───────────────────────── */
+[data-theme='control'] .xt-topbar-keycap {
+  border-radius: 0 !important;
+  border-style: solid !important;
+  -webkit-appearance: none !important;
+  appearance: none !important;
+  background: transparent !important;
+  border-color: rgba(255,255,255,0.1) !important;
+  color: rgba(232,228,220,0.6) !important;
+  font-family: 'Inter', sans-serif !important;
+  font-size: 9px !important;
+  letter-spacing: 0.1em !important;
+}
+[data-theme='control'] .xt-topbar-btn {
+  border-radius: 0 !important;
+  border-style: solid !important;
+  -webkit-appearance: none !important;
+  appearance: none !important;
+}
+
+/* ── CONTROL: Topbar pill badges (LOCAL, TRIAL, etc) ───────────────────── */
+[data-theme='control'] .xt-topbar-pill {
+  border-radius: 0 !important;
+  background: transparent !important;
+  border: none !important;
+  font-family: 'Inter', sans-serif !important;
+  font-size: 9px !important;
+  letter-spacing: 0.12em !important;
+  text-transform: uppercase !important;
+  color: rgba(232,228,220,0.45) !important;
+  gap: 3px !important;
+  padding: 0 !important;
+}
+
+/* ── CONTROL: Avatar / user level pill ─────────────────────────────────── */
+[data-theme='control'] .xt-topbar-avatar,
+[data-theme='control'] [class*='topbar-level'],
+[data-theme='control'] [class*='topbar-xp'] {
+  border-radius: 0 !important;
+  font-family: 'Inter', sans-serif !important;
+}
+
+/* ── CONTROL: Inventory — hide verbose system label ────────────────────── */
+/* "INVENTORY_SYSTEM_V2.0" span inside .xt-inventory-header */
+[data-theme='control'] .xt-inventory-header .font-mono.tracking-widest,
+[data-theme='control'] .xt-inventory-header [class*='font-mono'][class*='tracking-widest'],
+[data-theme='control'] [class*='inventory-system'],
+[data-theme='control'] .xt-inventory-system-label {
+  display: none !important;
+}
+
+/* ── CONTROL: Inventory slot empty add button ───────────────────────────── */
+[data-theme='control'] [class*='add-slot'],
+[data-theme='control'] [class*='slot-add'] {
+  border-radius: 0 !important;
+  border-style: solid !important;
+}
+
+/* ── CONTROL: Store hero section — tighten prose ────────────────────────── */
+[data-theme='control'] .xt-store-hero p,
+[data-theme='control'] .xt-store-hero > p {
+  display: none !important;
+}
+[data-theme='control'] .xt-store-shell p:first-of-type {
+  display: none !important;
+}
+
+/* ── CONTROL: Auth modal — full flat black treatment ────────────────────── */
+/* 1. The form card: bg-[#1f162d] hardcoded purple → override to flat black */
+[data-theme='control'] .auth-modal-form {
+  background: #000000 !important;
+  border-radius: 0 !important;
+  border: 1px solid #1a1a1e !important;
+}
+/* Escape Tailwind arbitrary value class */
+[data-theme='control'] .bg-\[\#1f162d\] {
+  background: #000000 !important;
+  border-radius: 0 !important;
+}
+/* 2. Left skeleton panel */
+[data-theme='control'] .auth-skel-left {
+  background: #000000 !important;
+  border-radius: 0 !important;
+  border: 1px solid #1a1a1e !important;
+}
+/* 3. Right skeleton panels — flatten them */
+[data-theme='control'] .auth-modal-shell .absolute.left-\[51\.5\%\],
+[data-theme='control'] .auth-modal-shell .absolute.left-\[52\.8\%\] {
+  background: #0a0a0c !important;
+  border-radius: 0 !important;
+  border: 1px solid #1a1a1e !important;
+}
+/* 4. Close button — kill purple tint */
+[data-theme='control'] .auth-modal-close {
+  background: #0a0a0c !important;
+  border: 1px solid #1a1a1e !important;
+  border-radius: 0 !important;
+  color: rgba(232,228,220,0.7) !important;
+}
+[data-theme='control'] .auth-modal-close:hover {
+  background: rgba(255,255,255,0.06) !important;
+  border-color: #1a1a1e !important;
+}
+/* 5. EyeOrb — hide decorative animated orb in CONTROL skin */
+[data-theme='control'] .auth-mini-orb {
+  opacity: 0.12 !important;
+  filter: grayscale(1) !important;
+}
+/* 6. Auth card title — kill golden #f8c74c text, use CONTROL red */
+[data-theme='control'] .text-\[\#f8c74c\] {
+  color: #d6453e !important;
+}
+/* 7. Auth inputs */
+[data-theme='control'] .xt-auth-input {
+  background: #0a0a0c !important;
+  border-radius: 0 !important;
+  border: 1px solid #1a1a1e !important;
+  color: #e8e4dc !important;
+}
+[data-theme='control'] .xt-auth-input:focus {
+  border-color: #d6453e !important;
+  outline: none !important;
+  box-shadow: none !important;
+}
+/* 8. Auth buttons */
+[data-theme='control'] .xt-auth-btn,
+[data-theme='control'] .h-9.rounded-\[8px\] {
+  border-radius: 0 !important;
+}
+/* 9. Continuity panel — strip verbose prose, keep header + chips only */
+[data-theme='control'] .xt-auth-continuity {
+  background: #0a0a0c !important;
+  border: 1px solid #1a1a1e !important;
+  border-radius: 0 !important;
+  padding: 8px 10px !important;
+}
+/* Hide prose detail text and bullet list — keep title + chips */
+[data-theme='control'] .xt-auth-continuity__detail {
+  display: none !important;
+}
+[data-theme='control'] .xt-auth-continuity__list {
+  display: none !important;
+}
+[data-theme='control'] .xt-auth-continuity__eyebrow {
+  font-size: 8px !important;
+  letter-spacing: 0.15em !important;
+  color: rgba(232,228,220,0.4) !important;
+  text-transform: uppercase !important;
+}
+[data-theme='control'] .xt-auth-continuity__title {
+  font-size: 10px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.1em !important;
+  text-transform: uppercase !important;
+  color: #e8e4dc !important;
+  margin-bottom: 6px !important;
+}
+[data-theme='control'] .xt-auth-continuity__chip {
+  background: #111114 !important;
+  border-radius: 0 !important;
+  color: rgba(232,228,220,0.6) !important;
+  font-size: 8px !important;
+  padding: 2px 6px !important;
+}
+[data-theme='control'] .xt-auth-continuity__chip--accent {
+  background: color-mix(in srgb, #d6453e 12%, #111114) !important;
+  color: #d6453e !important;
+}
+/* Hide verbose right-side continuity prose */
+[data-theme='control'] .xt-auth-continuity__entry-detail,
+[data-theme='control'] [class*='continuity-body'],
+[data-theme='control'] [class*='continuity-prose'] {
+  display: none !important;
+}
+/* 10. Hide the right-side illustration panel overlay */
+[data-theme='control'] .auth-skel-top.auth-skel-card {
+  display: none !important;
+}
+/* 11. Auth center divider */
+[data-theme='control'] .auth-center-divider {
+  background: #1a1a1e !important;
+}
+/* 12. All rounded corners in the modal → 0 */
+[data-theme='control'] .auth-modal-shell * {
+  border-radius: 0 !important;
+}
+/* 13. StationContinuityPanel right side — flat black, hide verbose prose */
+[data-theme='control'] .auth-station-brief {
+  background: #000000 !important;
+  border-radius: 0 !important;
+  border: 1px solid #1a1a1e !important;
+}
+[data-theme='control'] .auth-station-brief-detail {
+  display: none !important;
+}
+[data-theme='control'] .auth-station-brief-eyebrow {
+  color: #d6453e !important;
+  font-size: 8px !important;
+  letter-spacing: 0.18em !important;
+  text-transform: uppercase !important;
+  font-weight: 800 !important;
+}
+[data-theme='control'] .auth-station-brief-title {
+  font-size: 13px !important;
+  font-weight: 700 !important;
+  letter-spacing: 0.04em !important;
+  text-transform: uppercase !important;
+  color: #e8e4dc !important;
+}
+[data-theme='control'] .auth-station-brief-chip {
+  background: #111114 !important;
+  border-radius: 0 !important;
+  color: rgba(232,228,220,0.6) !important;
+  border: 1px solid #1a1a1e !important;
+}
+[data-theme='control'] .auth-station-brief-chip--accent {
+  background: color-mix(in srgb, #d6453e 12%, #111114) !important;
+  color: #d6453e !important;
+  border-color: color-mix(in srgb, #d6453e 30%, transparent) !important;
+}
+[data-theme='control'] .auth-station-brief-path-row span {
+  color: rgba(232,228,220,0.4) !important;
+}
+[data-theme='control'] .auth-station-brief-activity-detail {
+  display: none !important;
+}
+/* 14. Auth description text — compact */
+[data-theme='control'] .xt-auth-description {
+  font-size: 9px !important;
+  letter-spacing: 0.06em !important;
+  line-height: 1.5 !important;
+  color: rgba(232,228,220,0.45) !important;
+  text-transform: uppercase !important;
+}
+
+/* ── CONTROL: All remaining rounded Tailwind overrides ─────────────────── */
+[data-theme='control'] .rounded,
+[data-theme='control'] .rounded-sm,
+[data-theme='control'] .rounded-md,
+[data-theme='control'] .rounded-lg,
+[data-theme='control'] .rounded-xl,
+[data-theme='control'] .rounded-2xl,
+[data-theme='control'] .rounded-3xl,
+[data-theme='control'] .rounded-full {
+  border-radius: 0 !important;
+}
+
+/* ── CONTROL: Kill any remaining box-shadows / glows ───────────────────── */
+[data-theme='control'] [class*='shadow-'],
+[data-theme='control'] [class*='drop-shadow'] {
+  box-shadow: none !important;
+  filter: none !important;
+}
+
+/* ════════════════════════════════════════════════════════════════════════
+   END CONTROL DEEP OVERHAUL II
+   ════════════════════════════════════════════════════════════════════════ */
+
+/* ═══════════════════════════════════════════════════════════════════
+   Legacy themes (preserved, not active by default)
+   ═══════════════════════════════════════════════════════════════════ */
 [data-theme='dark_minimal_solid'],
 [data-theme='dark_minimal'] {
   --app-bg: #0d1118;
@@ -1779,111 +4252,105 @@
   border-radius: 7px;
 }
 
+/* ── Profile dock (icon-only rail) ── */
 .xt-profile-dock {
-  background: linear-gradient(180deg, rgba(11, 14, 22, 0.98), rgba(7, 9, 15, 0.98));
-  border-right: 1px solid color-mix(in srgb, var(--app-accent) 14%, rgba(255, 255, 255, 0.04));
+  background: color-mix(in srgb, var(--app-bg) 70%, var(--app-panel));
+  border-right: 1px solid var(--app-border);
   border-radius: 7px 0 0 7px;
 }
 
+/* shared base for home + nav + collapse */
 .xt-profile-dock-home,
 .xt-profile-dock-collapse,
 .xt-dock-btn {
   display: flex;
-  width: 38px;
+  width: 100%;
   align-items: center;
   justify-content: center;
-  border-radius: 6px;
-  border: 1px solid transparent;
-  background: rgba(255, 255, 255, 0.03);
-  color: rgba(255, 255, 255, 0.72);
-  transition: border-color 220ms ease-out, background 220ms ease-out, color 220ms ease-out, transform 220ms ease-out;
+  background: transparent;
+  border: none;
+  color: var(--app-muted);
+  cursor: pointer;
+  transition: color 160ms ease, background 160ms ease;
+  position: relative;
+  user-select: none;
 }
 
+/* Avatar / home button */
 .xt-profile-dock-home {
-  height: 38px;
-  margin-bottom: 6px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1.5px solid var(--app-border);
   overflow: hidden;
+  margin-bottom: 8px;
+  align-self: center;
+  flex-shrink: 0;
+  background: color-mix(in srgb, var(--app-accent) 8%, transparent);
 }
-
 .xt-profile-dock-home[data-active='true'] {
-  border-color: color-mix(in srgb, var(--app-accent) 48%, transparent);
-  background: color-mix(in srgb, var(--app-accent) 18%, rgba(255, 255, 255, 0.03));
-  color: #fff;
+  border-color: var(--app-accent);
+  color: var(--app-accent);
 }
-
 .xt-profile-dock-home-icon {
   color: currentColor;
 }
 
-.xt-profile-dock-collapse {
-  height: 34px;
-  margin-bottom: 4px;
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-}
-
-.xt-profile-dock-mark {
-  display: flex;
-  height: 38px;
-  width: 38px;
-  align-items: center;
-  justify-content: center;
-  color: rgba(255, 255, 255, 0.34);
-  transition: transform 300ms ease-out, color 220ms ease-out;
-}
-
-.xt-profile-dock-mark:hover {
-  transform: translateY(-1px);
-  color: rgba(255, 255, 255, 0.54);
-}
-
+/* Nav buttons — icon only, full-width click target */
 .xt-dock-btn {
-  height: 46px;
-  flex-direction: column;
-  gap: 3px;
-  cursor: pointer;
-  user-select: none;
+  width: 100%;
+  height: 38px;
+  flex-direction: row;
+  gap: 0;
+  padding: 0;
+}
+
+/* Active left accent bar */
+.xt-dock-btn[data-active='true']::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 22%;
+  bottom: 22%;
+  width: 2px;
+  background: var(--app-accent);
+  border-radius: 0 2px 2px 0;
 }
 
 .xt-dock-btn-icon {
-  color: var(--app-accent);
-  opacity: 0.74;
-  transition: color 220ms ease-out, opacity 220ms ease-out;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  color: var(--app-muted);
+  transition: color 160ms ease;
 }
-
+/* hide labels — icon rail only */
 .xt-dock-btn-label {
-  color: rgba(255, 255, 255, 0.68);
-  font-size: 7.5px;
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  transition: color 220ms ease-out, opacity 220ms ease-out;
+  display: none;
 }
 
-.xt-profile-dock-home:hover,
-.xt-profile-dock-collapse:hover,
-.xt-dock-btn:hover {
-  border-color: color-mix(in srgb, var(--app-accent) 34%, transparent);
-  background: rgba(255, 255, 255, 0.06);
-  color: #fff;
+.xt-dock-btn:hover .xt-dock-btn-icon {
+  color: var(--app-text);
+}
+.xt-dock-btn[data-active='true'] .xt-dock-btn-icon {
+  color: var(--app-accent);
 }
 
-.xt-dock-btn:hover .xt-dock-btn-icon,
-.xt-dock-btn:hover .xt-dock-btn-label {
-  opacity: 1;
+/* Collapse button */
+.xt-profile-dock-collapse {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  border: 1px solid var(--app-border);
+  align-self: center;
+  flex-shrink: 0;
+  color: var(--app-muted);
+  background: transparent;
 }
-
-.xt-dock-btn[data-active='true'] {
-  border-color: color-mix(in srgb, var(--app-accent) 48%, transparent);
-  background: color-mix(in srgb, var(--app-accent) 18%, rgba(255, 255, 255, 0.03));
-}
-
-.xt-dock-btn[data-active='true'] .xt-dock-btn-icon,
-.xt-dock-btn[data-active='true'] .xt-dock-btn-label {
-  color: #fff;
-  opacity: 1;
+.xt-profile-dock-collapse:hover {
+  color: var(--app-text);
+  background: color-mix(in srgb, var(--app-text) 6%, transparent);
 }
 
 .xt-profile-lobby-home {
@@ -2194,9 +4661,6 @@
   background: linear-gradient(180deg, rgba(16, 18, 24, 0.98), rgba(9, 11, 16, 0.98));
 }
 
-[data-theme='bureau'] .xt-profile-dock-mark svg {
-  stroke: color-mix(in srgb, var(--bureau-signal) 38%, rgba(255, 255, 255, 0.3)) !important;
-}
 
 [data-theme='bureau'] .xt-profile-lobby-inner > div[style*="clipPath"] {
   background: color-mix(in srgb, var(--bureau-signal) 22%, transparent) !important;
@@ -3169,6 +5633,130 @@
   color: var(--app-accent);
 }
 
+/* ── Settings game-menu layout ──────────────────────────────────────────── */
+
+.xt-settings-layout {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  min-height: calc(100vh - 140px);
+  border: 1px solid var(--app-border);
+  border-radius: var(--app-radius);
+  overflow: hidden;
+}
+
+/* Top tab bar */
+.xt-settings-sidebar {
+  display: flex;
+  flex-direction: row;
+  flex-shrink: 0;
+  background: color-mix(in srgb, var(--app-bg) 60%, var(--app-panel));
+  border-bottom: 1px solid var(--app-border);
+  padding: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.xt-settings-sidebar::-webkit-scrollbar { display: none; }
+
+.xt-settings-nav-btn {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 7px;
+  padding: 0 18px;
+  height: 46px;
+  flex-shrink: 0;
+  cursor: pointer;
+  border: none;
+  background: transparent;
+  transition: background 0.12s ease;
+  position: relative;
+  outline: none;
+}
+.xt-settings-nav-btn:hover {
+  background: color-mix(in srgb, var(--app-accent) 7%, transparent);
+}
+.xt-settings-nav-btn[data-active='true'] {
+  background: color-mix(in srgb, var(--app-accent) 10%, var(--app-panel));
+}
+/* Bottom accent bar for active tab */
+.xt-settings-nav-btn[data-active='true']::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 16%;
+  right: 16%;
+  height: 2px;
+  background: var(--app-accent);
+  border-radius: 2px 2px 0 0;
+}
+
+.xt-settings-nav-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--app-muted);
+  transition: color 0.12s ease;
+}
+.xt-settings-nav-btn:hover .xt-settings-nav-icon,
+.xt-settings-nav-btn[data-active='true'] .xt-settings-nav-icon {
+  color: var(--app-accent);
+}
+
+.xt-settings-nav-label {
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--app-muted);
+  transition: color 0.12s ease;
+  white-space: nowrap;
+}
+.xt-settings-nav-btn:hover .xt-settings-nav-label,
+.xt-settings-nav-btn[data-active='true'] .xt-settings-nav-label {
+  color: var(--app-text);
+}
+
+.xt-settings-content {
+  flex: 1;
+  padding: 28px 32px;
+  overflow-y: auto;
+  background: var(--app-panel);
+  min-width: 0;
+}
+
+.xt-settings-section-title {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  color: var(--app-muted);
+  margin-bottom: 18px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--app-border);
+}
+
+/* CONTROL overrides */
+[data-theme='control'] .xt-settings-layout { border-radius: 0; }
+[data-theme='control'] .xt-settings-sidebar {
+  background: #000;
+  border-bottom-color: #1a1a1e;
+}
+[data-theme='control'] .xt-settings-nav-btn[data-active='true'] {
+  background: #0d0d10;
+}
+[data-theme='control'] .xt-settings-nav-btn[data-active='true']::after {
+  background: #d6453e;
+}
+[data-theme='control'] .xt-settings-nav-btn[data-active='true'] .xt-settings-nav-icon,
+[data-theme='control'] .xt-settings-nav-btn[data-active='true'] .xt-settings-nav-label {
+  color: #e8e4dc;
+}
+[data-theme='control'] .xt-settings-content { background: #050507; }
+[data-theme='control'] .xt-settings-section-title { color: #d6453e; }
+
+/* ── End Settings layout ─────────────────────────────────────────────────── */
+
 /* ═══════════════════════════════════════════════════════════════════════════
    STORE COMMAND SURFACES
    ═══════════════════════════════════════════════════════════════════════════ */
@@ -3687,6 +6275,11 @@
 .xt-shell-stage {
   min-height: 100%;
   width: 100%;
+}
+/* When Profile uses h-full, lock to exact viewport — no scroll overflow */
+.xt-shell-stage.h-full {
+  min-height: 0;
+  height: 100%;
 }
 
 .xt-shell-transition-note {
@@ -4708,74 +7301,920 @@
   letter-spacing: 0.16em;
 }
 
-.xt-play-shell {
+/* ═══════════════════════════════════════════════════════════
+   OPERATIONS ROOM — Play Section (CONTROL-inspired HUD)
+   ═══════════════════════════════════════════════════════════ */
+
+/* ── Environment ── */
+.xt-ops-room {
+  position: relative;
   min-height: 100%;
   width: 100%;
-  background:
-    radial-gradient(circle at top, color-mix(in srgb, var(--app-accent) 14%, transparent), transparent 34%),
-    linear-gradient(180deg, #0a0a0b, #09090a 44%, #060607 100%);
-  padding: 20px 16px 28px;
-}
-
-.xt-play-frame {
-  margin: 0 auto;
-  display: flex;
-  width: 100%;
-  max-width: 1500px;
-  flex-direction: column;
-  gap: 24px;
-}
-
-.xt-play-command {
+  background: #000000;
   overflow: hidden;
-  border: 1px solid color-mix(in srgb, var(--app-accent) 22%, transparent);
-  background:
-    linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0)),
-    linear-gradient(180deg, rgba(11,11,12,0.96), rgba(8,8,9,0.98));
-  box-shadow: 0 28px 80px rgba(0, 0, 0, 0.42);
-  padding: 22px;
 }
 
-.xt-play-grid {
+.xt-ops-grid-env {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.xt-ops-grid-plane {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+  background-size: 60px 60px;
+  mask-image: radial-gradient(ellipse 80% 60% at 50% 40%, black 20%, transparent 70%);
+  opacity: 0.6;
+  transition: opacity 0.8s ease;
+}
+
+.xt-ops--live .xt-ops-grid-plane {
+  background-image:
+    linear-gradient(color-mix(in srgb, var(--app-accent) 10%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in srgb, var(--app-accent) 10%, transparent) 1px, transparent 1px);
+  opacity: 1;
+}
+
+.xt-ops-grid-glow {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 60% 50% at 50% 28%, color-mix(in srgb, var(--app-accent) 8%, transparent), transparent 70%);
+  opacity: 0;
+  transition: opacity 1.2s ease;
+}
+
+.xt-ops--armed .xt-ops-grid-glow {
+  opacity: 0.3;
+}
+
+.xt-ops--live .xt-ops-grid-glow {
+  opacity: 1;
+  animation: xt-ops-breathe 3.5s ease-in-out infinite;
+}
+
+@keyframes xt-ops-breathe {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
+}
+
+/* Scan-line overlay during live state */
+.xt-ops--live .xt-ops-grid-env::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0,0,0,0.03) 2px,
+    rgba(0,0,0,0.03) 4px
+  );
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* ── Layout ── */
+.xt-ops-layout {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+  max-width: 1600px;
+  margin: 0 auto;
+}
+
+@media (min-width: 900px) {
+  .xt-ops-layout {
+    flex-direction: row;
+  }
+}
+
+/* ── Mission Rack (sidebar) ── */
+.xt-ops-rack {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  border-right: 1px solid var(--app-border);
+  background: rgba(0,0,0,0.6);
+  backdrop-filter: blur(8px);
+}
+
+@media (min-width: 900px) {
+  .xt-ops-rack {
+    width: 280px;
+    min-width: 280px;
+    max-width: 280px;
+    height: 100vh;
+    position: sticky;
+    top: 0;
+  }
+}
+
+@media (min-width: 1200px) {
+  .xt-ops-rack {
+    width: 320px;
+    min-width: 320px;
+    max-width: 320px;
+  }
+}
+
+.xt-ops-rack-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 16px 12px;
+  border-bottom: 1px solid var(--app-border);
+}
+
+.xt-ops-rack-label {
+  font-size: 10px;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--app-accent) 88%, white 12%);
+}
+
+.xt-ops-rack-add {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: 1px solid color-mix(in srgb, var(--app-accent) 30%, transparent);
+  background: color-mix(in srgb, var(--app-accent) 10%, transparent);
+  color: var(--app-accent);
+  transition: background 80ms ease;
+}
+
+.xt-ops-rack-add:hover {
+  background: color-mix(in srgb, var(--app-accent) 20%, transparent);
+}
+
+/* Vitals */
+.xt-ops-vitals {
   display: grid;
-  gap: 20px;
+  grid-template-columns: repeat(4, 1fr);
+  border-bottom: 1px solid var(--app-border);
 }
 
-.xt-play-hero {
+.xt-ops-vital {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 10px 4px;
+  border-right: 1px solid var(--app-border);
+}
+
+.xt-ops-vital:last-child {
+  border-right: none;
+}
+
+.xt-ops-vital-val {
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--app-text);
+  font-variant-numeric: tabular-nums;
+}
+
+.xt-ops-vital-val--accent {
+  color: var(--app-accent);
+}
+
+.xt-ops-vital-unit {
+  font-size: 8px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--app-muted);
+  margin-top: 2px;
+}
+
+/* Queue scroll */
+.xt-ops-rack-scroll {
+  flex: 1;
+  overflow-y: auto;
+  padding: 4px 0;
+}
+
+/* Briefing card */
+.xt-ops-briefing {
+  display: flex;
+  align-items: stretch;
+  width: 100%;
+  text-align: left;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid color-mix(in srgb, var(--app-border) 50%, transparent);
+  transition: background 80ms ease;
+}
+
+.xt-ops-briefing:hover {
+  background: rgba(255,255,255,0.03);
+}
+
+.xt-ops-briefing--active {
+  background: rgba(255,255,255,0.06);
+}
+
+.xt-ops-briefing-edge {
+  width: 3px;
+  flex-shrink: 0;
+  background: transparent;
+  transition: background 80ms ease;
+}
+
+.xt-ops-briefing--active .xt-ops-briefing-edge {
+  background: var(--app-text);
+}
+
+.xt-ops-briefing--live .xt-ops-briefing-edge {
+  background: var(--app-accent);
+}
+
+.xt-ops-briefing-body {
+  padding: 10px 14px;
+  min-width: 0;
+  flex: 1;
+}
+
+.xt-ops-briefing-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--app-text);
+  line-height: 1.3;
+}
+
+.xt-ops-briefing--active .xt-ops-briefing-title {
+  color: #ffffff;
+}
+
+.xt-ops-live-dot {
+  width: 6px;
+  height: 6px;
+  flex-shrink: 0;
+  background: var(--app-accent);
+  border-radius: 50%;
+  animation: xt-ops-pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes xt-ops-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+.xt-ops-briefing-meta {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 3px;
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--app-muted);
+}
+
+.xt-ops-briefing-sep {
+  color: color-mix(in srgb, var(--app-muted) 50%, transparent);
+}
+
+.xt-ops-briefing-time {
+  color: var(--app-accent);
+}
+
+.xt-ops-rack-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 40px 16px;
+  color: var(--app-muted);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.xt-ops-rack-empty-btn {
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--app-accent);
+  background: none;
+  border: 1px solid color-mix(in srgb, var(--app-accent) 30%, transparent);
+  padding: 8px 14px;
+}
+
+.xt-ops-rack-empty-btn:hover {
+  background: color-mix(in srgb, var(--app-accent) 10%, transparent);
+}
+
+/* Rack footer */
+.xt-ops-rack-footer {
+  border-top: 1px solid var(--app-border);
+  padding: 10px 14px 14px;
+}
+
+.xt-ops-rack-footer-label {
+  font-size: 9px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--app-accent) 80%, white 20%);
+  margin-bottom: 6px;
+}
+
+.xt-ops-recent {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  padding: 3px 0;
+  font-size: 11px;
+  color: var(--app-muted);
+}
+
+.xt-ops-recent-time {
+  flex-shrink: 0;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--app-accent);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ── Command Display (main area) ── */
+.xt-ops-command {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 24px 20px 40px;
+  gap: 24px;
+  min-width: 0;
+}
+
+@media (min-width: 900px) {
+  .xt-ops-command {
+    padding: 32px 40px 48px;
+  }
+}
+
+/* Relay banner */
+.xt-ops-relay {
+  width: 100%;
+  max-width: 800px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 14px;
+  border: 1px solid color-mix(in srgb, var(--app-accent) 20%, transparent);
+  background: color-mix(in srgb, var(--app-accent) 6%, transparent);
+}
+
+.xt-ops-relay-content {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+}
+
+.xt-ops-relay-badge {
+  font-size: 9px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--app-accent);
+  flex-shrink: 0;
+}
+
+.xt-ops-relay-text {
+  font-size: 12px;
+  color: var(--app-text);
+  truncate: true;
+}
+
+.xt-ops-relay-actions {
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+/* ── HUD Ring ── */
+.xt-ops-hud {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  width: 100%;
+  max-width: 800px;
+}
+
+.xt-ops-ring-container {
+  position: relative;
+  width: 220px;
+  height: 220px;
+}
+
+@media (min-width: 900px) {
+  .xt-ops-ring-container {
+    width: 260px;
+    height: 260px;
+  }
+}
+
+.xt-ops-ring-svg {
+  width: 100%;
+  height: 100%;
+}
+
+.xt-ops-ring-svg--ghost {
+  width: 200px;
+  height: 200px;
+  margin-bottom: 16px;
+}
+
+.xt-ops-ring-progress {
+  transition: stroke-dashoffset 1s linear;
+}
+
+.xt-ops--live .xt-ops-ring-progress {
+  stroke-width: 4;
+  filter: drop-shadow(0 0 10px color-mix(in srgb, var(--app-accent) 60%, transparent));
+}
+
+.xt-ops--live .xt-ops-ring-svg circle:first-child {
+  stroke: color-mix(in srgb, var(--app-accent) 12%, transparent);
+}
+
+.xt-ops-ring-center {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.xt-ops-timer {
+  font-size: 38px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: var(--app-text);
+  font-variant-numeric: tabular-nums;
+  font-family: inherit;
+}
+
+@media (min-width: 900px) {
+  .xt-ops-timer {
+    font-size: 46px;
+  }
+}
+
+.xt-ops--live .xt-ops-timer {
+  color: #ffffff;
+  text-shadow: 0 0 20px color-mix(in srgb, var(--app-accent) 30%, transparent);
+}
+
+@media (min-width: 900px) {
+  .xt-ops--live .xt-ops-timer {
+    font-size: 52px;
+  }
+}
+
+.xt-ops-timer-status {
+  font-size: 9px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--app-muted);
+  margin-top: 4px;
+}
+
+.xt-ops--live .xt-ops-timer-status {
+  color: var(--app-accent);
+}
+
+/* Emblem — geometric station mark inside ring */
+.xt-ops-emblem {
+  margin-top: 8px;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.xt-ops-emblem-inner {
+  width: 8px;
+  height: 8px;
+  border: 1px solid var(--app-muted);
+  border-radius: 50%;
+  transition: all 0.3s ease;
+}
+
+.xt-ops-emblem--lvl2 .xt-ops-emblem-inner {
+  width: 10px;
+  height: 10px;
+  border-color: var(--app-accent);
+  border-radius: 0;
+  transform: rotate(45deg);
+}
+
+.xt-ops-emblem--lvl3 .xt-ops-emblem-inner {
+  width: 12px;
+  height: 12px;
+  border-color: var(--app-accent);
+  border-radius: 0;
+  clip-path: polygon(50% 0%, 100% 38%, 82% 100%, 18% 100%, 0% 38%);
+  background: color-mix(in srgb, var(--app-accent) 15%, transparent);
+}
+
+.xt-ops-emblem--lvl4 .xt-ops-emblem-inner {
+  width: 14px;
+  height: 14px;
+  border-color: var(--app-accent);
+  border-radius: 0;
+  clip-path: polygon(30% 0%, 70% 0%, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0% 70%, 0% 30%);
+  background: color-mix(in srgb, var(--app-accent) 20%, transparent);
+}
+
+.xt-ops-emblem--lvl5 .xt-ops-emblem-inner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--app-accent);
+  border-radius: 0;
+  clip-path: polygon(30% 0%, 70% 0%, 100% 30%, 100% 70%, 70% 100%, 30% 100%, 0% 70%, 0% 30%);
+  background: color-mix(in srgb, var(--app-accent) 30%, transparent);
+  box-shadow: 0 0 8px color-mix(in srgb, var(--app-accent) 30%, transparent);
+}
+
+/* Quest header */
+.xt-ops-quest-header {
+  text-align: center;
+}
+
+.xt-ops-quest-title {
+  font-size: clamp(20px, 3vw, 32px);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
+  color: var(--app-text);
+  line-height: 1.1;
+}
+
+.xt-ops-quest-tags {
   display: flex;
   flex-wrap: wrap;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 18px;
-  border-bottom: 1px solid color-mix(in srgb, var(--app-text) 8%, transparent);
-  padding-bottom: 16px;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 10px;
 }
 
-.xt-play-kicker,
-.xt-play-panel-eyebrow {
-  font-size: 10px;
+.xt-ops-tag {
+  padding: 4px 10px;
+  font-size: 9px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--app-text) 64%, transparent);
+  border: 1px solid color-mix(in srgb, var(--app-text) 10%, transparent);
+}
+
+.xt-ops-tag--accent {
+  border-color: color-mix(in srgb, var(--app-accent) 36%, transparent);
+  background: color-mix(in srgb, var(--app-accent) 10%, transparent);
+  color: var(--app-accent);
+}
+
+/* Controls */
+.xt-ops-controls {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+}
+
+/* Urgent */
+.xt-ops-urgent {
+  width: 100%;
+  max-width: 800px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  border: 1px solid rgba(255, 180, 122, 0.25);
+  background: rgba(255, 180, 122, 0.06);
+}
+
+.xt-ops-urgent-badge {
+  font-size: 9px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: #ffb47a;
+  flex-shrink: 0;
+}
+
+.xt-ops-urgent-text {
+  flex: 1;
+  min-width: 0;
+  font-size: 12px;
+  color: var(--app-text);
+}
+
+.xt-ops-urgent-btn {
+  font-size: 9px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: #ffb47a;
+  background: none;
+  border: 1px solid rgba(255, 180, 122, 0.3);
+  padding: 6px 12px;
+  flex-shrink: 0;
+}
+
+/* Stats strip */
+.xt-ops-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1px;
+  width: 100%;
+  max-width: 800px;
+  background: var(--app-border);
+}
+
+/* Lower panels */
+.xt-ops-panels {
+  display: grid;
+  gap: 16px;
+  width: 100%;
+  max-width: 800px;
+}
+
+@media (min-width: 700px) {
+  .xt-ops-panels {
+    grid-template-columns: 1.2fr 0.8fr;
+    gap: 1px;
+    background: var(--app-border);
+  }
+}
+
+.xt-ops-panel {
+  background: rgba(10, 10, 12, 0.8);
+  padding: 16px;
+}
+
+@media (min-width: 700px) {
+  .xt-ops-panels .xt-ops-panel {
+    background: rgba(6, 6, 8, 0.9);
+  }
+
+  .xt-ops-panels .xt-ops-panel:not(:first-child) {
+    border-top: 1px solid var(--app-border);
+  }
+}
+
+.xt-ops-panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.xt-ops-panel-label {
+  font-size: 9px;
   letter-spacing: 0.26em;
   text-transform: uppercase;
   color: color-mix(in srgb, var(--app-accent) 88%, white 12%);
 }
 
-.xt-play-title {
-  margin-top: 10px;
-  font-size: clamp(34px, 4vw, 56px);
-  line-height: 0.94;
-  letter-spacing: -0.05em;
+.xt-ops-panel-count {
+  font-size: 9px;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
+  color: var(--app-muted);
+}
+
+.xt-ops-intel {
+  display: flex;
+  flex-direction: column;
+}
+
+@media (min-width: 700px) {
+  .xt-ops-intel {
+    gap: 0;
+  }
+}
+
+/* Steps */
+.xt-ops-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-top: 10px;
+}
+
+.xt-ops-step {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  width: 100%;
+  text-align: left;
+  padding: 7px 10px;
+  border: none;
+  background: rgba(255,255,255,0.02);
+  transition: background 80ms ease;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.xt-ops-step:hover {
+  background: rgba(255,255,255,0.05);
+}
+
+.xt-ops-step--done {
+  opacity: 0.5;
+}
+
+.xt-ops-step-check {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  margin-top: 2px;
+  color: var(--app-muted);
+}
+
+.xt-ops-step--done .xt-ops-step-check {
+  color: #43d39e;
+}
+
+.xt-ops-step-text {
   color: var(--app-text);
 }
 
-.xt-play-detail {
+.xt-ops-step--done .xt-ops-step-text {
+  text-decoration: line-through;
+  color: var(--app-muted);
+}
+
+.xt-ops-steps-empty {
+  margin-top: 10px;
+  padding: 12px;
+  border: 1px dashed var(--app-border);
+  font-size: 11px;
+  color: var(--app-muted);
+}
+
+.xt-ops-notes {
   margin-top: 12px;
-  max-width: 76ch;
+  padding-top: 12px;
+  border-top: 1px solid var(--app-border);
+}
+
+.xt-ops-notes-text {
+  margin-top: 6px;
   font-size: 12px;
-  line-height: 1.7;
-  letter-spacing: 0.08em;
+  line-height: 1.6;
+  color: color-mix(in srgb, var(--app-text) 70%, transparent);
+}
+
+/* Intel rows */
+.xt-ops-intel-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 10px;
+}
+
+.xt-ops-intel-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.xt-ops-intel-icon {
+  flex-shrink: 0;
+  margin-top: 1px;
+  color: var(--app-accent);
+}
+
+.xt-ops-intel-key {
+  font-size: 9px;
+  letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: color-mix(in srgb, var(--app-text) 64%, transparent);
+  color: var(--app-muted);
+}
+
+.xt-ops-intel-val {
+  font-size: 12px;
+  color: var(--app-text);
+  margin-top: 2px;
+}
+
+.xt-ops-intel-accent {
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--app-accent);
+  margin-top: 1px;
+}
+
+/* Campaign */
+.xt-ops-campaign-title {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--app-text);
+  margin-top: 8px;
+}
+
+.xt-ops-campaign-bar {
+  height: 2px;
+  background: var(--app-border);
+  margin-top: 8px;
+}
+
+.xt-ops-campaign-fill {
+  height: 100%;
+  background: var(--app-accent);
+  transition: width 0.3s ease;
+}
+
+.xt-ops-campaign-meta {
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--app-muted);
+  margin-top: 6px;
+}
+
+/* Momentum */
+.xt-ops-momentum-val {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--app-text);
+  margin-top: 6px;
+}
+
+.xt-ops-momentum-sub {
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--app-muted);
+  margin-top: 3px;
+}
+
+/* Empty state */
+.xt-ops-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+  text-align: center;
+}
+
+.xt-ops-empty-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.xt-ops-empty-title {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--app-text);
+  letter-spacing: -0.01em;
+}
+
+.xt-ops-empty-desc {
+  font-size: 12px;
+  color: var(--app-muted);
+  max-width: 300px;
+  line-height: 1.5;
+  margin-top: 4px;
+}
+
+.xt-ops-empty-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   Legacy Play component styles (kept for shared components)
+   ═══════════════════════════════════════════════════════════ */
+
+.xt-play-panel-eyebrow {
+  font-size: 10px;
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--app-accent) 88%, white 12%);
 }
 
 .xt-play-panel {
@@ -4990,188 +8429,317 @@
   padding: 10px 12px;
 }
 
-.xt-play-debrief-shell {
-  padding: 24px;
-}
+/* ═══════════════════════════════════════════════════════════
+   DEBRIEF TAKEOVER — CONTROL-style reward screen
+   ═══════════════════════════════════════════════════════════ */
 
-.xt-play-debrief-backdrop {
-  background:
-    radial-gradient(circle at center, rgba(173, 112, 47, 0.14), transparent 42%),
-    rgba(0, 0, 0, 0.68);
-  backdrop-filter: blur(6px);
-}
-
-.xt-play-debrief-panel {
-  border: 1px solid color-mix(in srgb, var(--app-accent) 18%, var(--app-border));
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.015), rgba(255, 255, 255, 0)),
-    linear-gradient(180deg, rgba(11, 11, 12, 0.985), rgba(7, 7, 8, 0.99));
-  box-shadow: 0 34px 110px rgba(0, 0, 0, 0.52);
-  animation: xt-debrief-enter 280ms var(--app-ease, ease-out);
-}
-
-.xt-play-debrief-header {
-  position: relative;
+.xt-debrief-takeover {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  background: #000000;
   overflow: hidden;
-  border-bottom: 1px solid color-mix(in srgb, var(--app-text) 10%, transparent);
-  background:
-    linear-gradient(180deg, color-mix(in srgb, var(--app-accent) 7%, transparent), rgba(255,255,255,0)),
-    linear-gradient(180deg, rgba(255,255,255,0.015), rgba(255,255,255,0));
-  padding: 20px 20px 16px;
 }
 
-.xt-play-debrief-trophy {
-  position: relative;
-  border: 1px solid rgba(67, 211, 158, 0.22);
-  background: color-mix(in srgb, #43d39e 16%, var(--app-panel-2));
-  box-shadow: 0 0 0 1px rgba(67, 211, 158, 0.06), 0 16px 34px rgba(0, 0, 0, 0.22);
+/* ── Phase 1: Dramatic reveal ── */
+.xt-debrief-reveal {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+  background: #000000;
+  animation: xt-debrief-fade-in 600ms ease-out;
+  transition: opacity 400ms ease, transform 400ms ease;
 }
 
-.xt-play-debrief-kicker,
-.xt-play-debrief-section-label {
-  font-size: 10px;
-  font-weight: 600;
-  letter-spacing: 0.18em;
+.xt-debrief-reveal--exit {
+  opacity: 0;
+  transform: scale(1.02);
+  pointer-events: none;
+}
+
+.xt-debrief-reveal-content {
+  text-align: center;
+  animation: xt-debrief-slide-up 800ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.xt-debrief-reveal-kicker {
+  font-size: 11px;
+  letter-spacing: 0.36em;
   text-transform: uppercase;
-  color: color-mix(in srgb, var(--app-accent) 86%, white 14%);
+  color: var(--app-accent);
+  animation: xt-debrief-fade-in 600ms ease-out 200ms both;
 }
 
-.xt-play-debrief-title {
-  margin-top: 6px;
-  font-size: 18px;
+.xt-debrief-reveal-title {
+  margin-top: 16px;
+  font-size: clamp(28px, 5vw, 52px);
   font-weight: 700;
-  line-height: 1.24;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.03em;
+  text-transform: uppercase;
   color: var(--app-text);
+  line-height: 1;
+  animation: xt-debrief-fade-in 600ms ease-out 400ms both;
 }
 
-.xt-play-debrief-close,
-.xt-play-debrief-action {
-  border-color: color-mix(in srgb, var(--app-text) 10%, transparent);
-  background: color-mix(in srgb, var(--app-panel-2) 78%, #060607);
-  color: color-mix(in srgb, var(--app-text) 74%, transparent);
+.xt-debrief-reveal-xp {
+  margin-top: 20px;
+  font-size: clamp(18px, 3vw, 28px);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  color: var(--app-accent);
+  font-variant-numeric: tabular-nums;
+  animation: xt-debrief-fade-in 600ms ease-out 700ms both;
 }
 
-.xt-play-debrief-close:hover,
-.xt-play-debrief-action:hover {
-  border-color: color-mix(in srgb, var(--app-accent) 30%, transparent);
+.xt-debrief-reveal-continue {
+  position: absolute;
+  bottom: 60px;
+  font-size: 10px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--app-muted);
+  background: none;
+  border: 1px solid color-mix(in srgb, var(--app-text) 12%, transparent);
+  padding: 12px 28px;
+  animation: xt-debrief-fade-in 600ms ease-out 1200ms both;
+  transition: color 120ms ease, border-color 120ms ease;
+}
+
+.xt-debrief-reveal-continue:hover {
   color: var(--app-text);
+  border-color: color-mix(in srgb, var(--app-text) 30%, transparent);
 }
 
-.xt-play-debrief-chip {
-  border: 1px solid color-mix(in srgb, var(--app-text) 10%, transparent);
-  background: color-mix(in srgb, var(--app-panel-2) 76%, #050505);
-  color: color-mix(in srgb, var(--app-text) 62%, transparent);
+/* ── Phase 2: Detail panel ── */
+.xt-debrief-detail {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 3;
+  opacity: 0;
+  pointer-events: none;
+  background: rgba(0,0,0,0.92);
+  backdrop-filter: blur(4px);
 }
 
-.xt-play-debrief-chip--accent {
-  border-color: color-mix(in srgb, var(--app-accent) 22%, transparent);
-  background: color-mix(in srgb, var(--app-accent) 10%, var(--app-panel-2));
+.xt-debrief-detail--enter {
+  opacity: 1;
+  pointer-events: auto;
+  animation: xt-debrief-fade-in 400ms ease-out;
+}
+
+.xt-debrief-detail-inner {
+  width: 100%;
+  max-width: 520px;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--app-border);
+  background: rgba(8, 8, 10, 0.98);
+  overflow: hidden;
+  margin: 0 16px;
+}
+
+/* Header */
+.xt-debrief-detail-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 18px 18px 14px;
+  border-bottom: 1px solid var(--app-border);
+}
+
+.xt-debrief-detail-kicker {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 9px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
   color: var(--app-accent);
 }
 
-.xt-play-debrief-breakdown {
-  border: 1px solid color-mix(in srgb, var(--app-text) 10%, transparent);
-  background: color-mix(in srgb, var(--app-panel-2) 76%, #050505);
-}
-
-.xt-play-debrief-textarea {
-  border: 1px solid color-mix(in srgb, var(--app-text) 10%, transparent);
-  background: color-mix(in srgb, var(--app-panel-2) 76%, #050505);
+.xt-debrief-detail-title {
+  margin-top: 6px;
+  font-size: 16px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
   color: var(--app-text);
-  transition: border-color 220ms ease-out, background-color 220ms ease-out;
+  line-height: 1.25;
 }
 
-.xt-play-debrief-textarea::placeholder {
-  color: color-mix(in srgb, var(--app-text) 42%, transparent);
+.xt-debrief-detail-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+  background: none;
+  border: 1px solid var(--app-border);
+  color: var(--app-muted);
+  transition: color 80ms ease, border-color 80ms ease;
 }
 
-.xt-play-debrief-textarea:focus {
+.xt-debrief-detail-close:hover {
+  color: var(--app-text);
+  border-color: color-mix(in srgb, var(--app-text) 30%, transparent);
+}
+
+/* Chips */
+.xt-debrief-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 10px 18px;
+  border-bottom: 1px solid var(--app-border);
+}
+
+.xt-debrief-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  border: 1px solid color-mix(in srgb, var(--app-text) 10%, transparent);
+  color: var(--app-muted);
+}
+
+.xt-debrief-chip--accent {
+  border-color: color-mix(in srgb, var(--app-accent) 26%, transparent);
+  background: color-mix(in srgb, var(--app-accent) 8%, transparent);
+  color: var(--app-accent);
+}
+
+/* Sections */
+.xt-debrief-section {
+  padding: 14px 18px;
+  border-bottom: 1px solid var(--app-border);
+}
+
+.xt-debrief-section-label {
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--app-accent) 86%, white 14%);
+  margin-bottom: 8px;
+}
+
+.xt-debrief-section-optional {
+  font-weight: 400;
+  letter-spacing: normal;
+  text-transform: none;
+  color: var(--app-muted);
+}
+
+/* Breakdown */
+.xt-debrief-breakdown-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+}
+
+.xt-debrief-breakdown-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 6px 10px;
+  font-size: 11px;
+  color: var(--app-muted);
+  background: rgba(255,255,255,0.02);
+}
+
+.xt-debrief-breakdown-val {
+  font-weight: 600;
+  color: var(--app-text);
+}
+
+/* Textarea */
+.xt-debrief-textarea {
+  width: 100%;
+  resize: none;
+  padding: 10px 12px;
+  font-size: 12px;
+  line-height: 1.6;
+  border: 1px solid var(--app-border);
+  background: rgba(255,255,255,0.02);
+  color: var(--app-text);
+  font-family: inherit;
+}
+
+.xt-debrief-textarea::placeholder {
+  color: var(--app-muted);
+}
+
+.xt-debrief-textarea:focus {
   outline: none;
   border-color: color-mix(in srgb, var(--app-accent) 34%, transparent);
 }
 
-.xt-play-debrief-footer {
-  border-top: 1px solid color-mix(in srgb, var(--app-text) 10%, transparent);
-  padding: 14px 20px 18px;
+/* Footer */
+.xt-debrief-footer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 18px;
+  border-top: 1px solid var(--app-border);
 }
 
-.xt-play-debrief-action--lab {
-  background: color-mix(in srgb, var(--app-accent) 10%, var(--app-panel));
+.xt-debrief-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  border: 1px solid var(--app-border);
+  background: rgba(255,255,255,0.03);
+  color: var(--app-muted);
+  transition: color 80ms ease, border-color 80ms ease, background 80ms ease;
+}
+
+.xt-debrief-btn:hover {
+  color: var(--app-text);
+  border-color: color-mix(in srgb, var(--app-text) 20%, transparent);
+}
+
+.xt-debrief-btn--saved {
+  border-color: rgba(67, 211, 158, 0.3);
+  background: rgba(67, 211, 158, 0.08);
+  color: #90efc4;
+}
+
+.xt-debrief-btn--primary {
+  border-color: color-mix(in srgb, var(--app-accent) 30%, transparent);
+  background: color-mix(in srgb, var(--app-accent) 12%, transparent);
   color: var(--app-text);
 }
 
-.xt-play-debrief-action--lab[data-saved='true'] {
-  border-color: rgba(67, 211, 158, 0.32);
-  background: rgba(67, 211, 158, 0.12);
-  color: #b5f2d7;
+.xt-debrief-btn--primary:hover {
+  background: color-mix(in srgb, var(--app-accent) 20%, transparent);
 }
 
-.xt-play-debrief-action--muted {
-  color: color-mix(in srgb, var(--app-text) 52%, transparent);
+/* Animations */
+@keyframes xt-debrief-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
-.xt-play-debrief-burst {
-  pointer-events: none;
-  position: absolute;
-  right: 34px;
-  top: 44px;
-  z-index: 2;
-  height: 0;
-  width: 0;
-}
-
-.xt-play-debrief-burst__particle {
-  position: absolute;
-  left: 0;
-  top: 0;
-  width: 3px;
-  height: 22px;
-  border-radius: 999px;
-  background: linear-gradient(180deg, rgba(255, 255, 255, 0.94), color-mix(in srgb, var(--app-accent) 76%, transparent));
-  box-shadow: 0 0 16px color-mix(in srgb, var(--app-accent) 28%, transparent);
-  opacity: 0;
-  transform:
-    rotate(var(--xt-burst-angle))
-    translateY(-10px)
-    translateX(0)
-    scaleY(0.72);
-  animation: xt-debrief-burst 760ms var(--app-ease, ease-out) forwards;
-  animation-delay: var(--xt-burst-delay);
-  transform-origin: center bottom;
-}
-
-@keyframes xt-debrief-enter {
-  from {
-    opacity: 0;
-    transform: translateY(10px) scale(0.982);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
-
-@keyframes xt-debrief-burst {
-  0% {
-    opacity: 0;
-    transform:
-      rotate(var(--xt-burst-angle))
-      translateY(-10px)
-      translateX(0)
-      scaleY(0.72);
-  }
-  18% {
-    opacity: 1;
-  }
-  100% {
-    opacity: 0;
-    transform:
-      rotate(var(--xt-burst-angle))
-      translateY(calc(var(--xt-burst-distance) * -1))
-      translateX(0)
-      scaleY(1.05);
-  }
+@keyframes xt-debrief-slide-up {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 .xt-welcome-shell {
@@ -5680,18 +9248,7 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .xt-play-shell {
-    padding: 24px 24px 32px;
-  }
-
-  .xt-play-command {
-    padding: 26px;
-  }
-
-  .xt-play-grid {
-    grid-template-columns: minmax(0, 1.55fr) minmax(340px, 0.95fr);
-    align-items: start;
-  }
+  /* Operations Room responsive handled via .xt-ops-* above */
 
   .xt-mp-layout {
     grid-template-columns: 220px minmax(0, 1fr);
@@ -6747,13 +10304,12 @@
 
 html,
 body {
-  min-height: 100%;
+  height: 100%;
   background-color: var(--dc-bg) !important;
   background-image: var(--ui-bg-overlay) !important;
   color: var(--dc-text) !important;
   letter-spacing: var(--ui-body-letter-spacing);
-  overflow-x: hidden;
-  overflow-y: auto;
+  overflow: hidden;
 }
 
 body::before {

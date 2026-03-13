@@ -27,6 +27,16 @@ export interface StoreItem {
 
 export const STORE_ITEMS: StoreItem[] = [
   {
+    id: 'theme-control',
+    name: 'CONTROL',
+    category: 'Themes',
+    price: { kind: 'one-time', amount: 15, currency: 'USD' },
+    description: 'The Oldest House. Pure black, zero radius, zero shadows. Brutalist government-facility UI — flat, clinical, silent. Red section headers. White inversion on selection.',
+    highlights: ['Pure #000 black — zero effects', 'Zero border-radius on everything', 'Red (#d6453e) section headers only', 'White-bg + black-text selection inversion', 'Inter sans-serif — no decorative type'],
+    badge: 'New',
+    install: { kind: 'theme', themeId: 'theme-control', themeValue: 'control' },
+  },
+  {
     id: 'theme-void-command',
     name: 'Void Command',
     category: 'Themes',

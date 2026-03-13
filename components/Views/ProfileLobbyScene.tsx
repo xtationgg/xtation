@@ -64,6 +64,7 @@ type SceneBridgeLike = {
 const resolveEnvironmentMode = (theme: XtationTheme, stageState: ProfileLobbySceneProps['stageState']) => {
   if (theme === 'notion_light') return 'light';
   if (theme === 'bureau') return 'bureau';
+  if (theme === 'control') return 'mono';
   if (theme === 'void') return stageState === 'idle' ? 'mono' : 'glacier';
   if (stageState === 'active') return 'dusk';
   if (stageState === 'productive') return 'core';
@@ -79,6 +80,7 @@ const resolveDefaultSceneProfile = (
   theme: XtationTheme
 ): 'bureau' | 'void' | 'ops' => {
   if (theme === 'void') return 'void';
+  if (theme === 'control') return 'ops';
   return 'bureau';
 };
 
@@ -181,11 +183,12 @@ const resolveBasePortraitLightRig = ({
   }
 
   if (sceneProfile === 'ops') {
+    // CONTROL skin: cold clinical top-light, near-zero fill — brutalist flat
     return {
-      keyIntensity: stageState === 'active' ? 2.04 : 1.86,
-      fillIntensity: 0.14,
-      keyColor: '#f7f2e8',
-      fillColor: '#ba7f49',
+      keyIntensity: stageState === 'active' ? 2.2 : 2.0,
+      fillIntensity: 0.04,
+      keyColor: '#e8eaf0',
+      fillColor: '#4a4a50',
     };
   }
 

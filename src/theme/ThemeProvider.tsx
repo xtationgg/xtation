@@ -10,6 +10,8 @@ export const BUILTIN_THEME_PACK_PREFIX = 'builtin:';
 const THEME_DIRECTION_MIGRATION_KEY = 'xtation_theme_direction_v1';
 
 export type XtationTheme =
+  | 'xtation'
+  | 'control'
   | 'dusk'
   | 'dusk_soft'
   | 'dark_minimal_solid'
@@ -44,6 +46,8 @@ export interface XtationResolutionOption {
 export const getBuiltInThemePackId = (theme: XtationTheme) => `${BUILTIN_THEME_PACK_PREFIX}${theme}`;
 
 export const XTATION_THEME_OPTIONS: XtationThemeOption[] = [
+  { value: 'xtation', label: 'XTATION Black' },
+  { value: 'control', label: 'CONTROL' },
   { value: 'dusk', label: 'Dusk' },
   { value: 'dusk_soft', label: 'Dusk • No Outline' },
   { value: 'dark_minimal_solid', label: 'Dark Minimal + Solid' },
@@ -75,8 +79,8 @@ export const XTATION_RESOLUTION_OPTIONS: XtationResolutionOption[] = [
   { value: 'uhd_2160', label: '3840 × 2160' },
 ];
 
-const DEFAULT_THEME: XtationTheme = 'bureau';
-const DEFAULT_ACCENT: XtationAccent = 'amber';
+const DEFAULT_THEME: XtationTheme = 'xtation';
+const DEFAULT_ACCENT: XtationAccent = 'crimson';
 const DEFAULT_RESOLUTION: XtationResolutionMode = 'auto';
 const VALID_THEMES = new Set<XtationTheme>(XTATION_THEME_OPTIONS.map((option) => option.value));
 const VALID_ACCENTS = new Set<XtationAccent>(XTATION_ACCENT_OPTIONS.map((option) => option.value));
@@ -89,11 +93,13 @@ const isResolution = (value: string): value is XtationResolutionMode =>
 
 const normalizeTheme = (value: string | null): XtationTheme | null => {
   if (!value) return null;
-  if (value === 'dark_minimal_solid') return 'dusk';
+  // Migrate legacy themes to xtation
+  if (value === 'bureau') return 'xtation';
+  if (value === 'dark_minimal_solid') return 'xtation';
+  if (value === 'dark_neon') return 'xtation';
+  if (value === 'light_minimal') return 'xtation';
+  if (value === 'dark_minimal') return 'xtation';
   if (isTheme(value)) return value;
-  if (value === 'dark_neon') return 'hud_clean';
-  if (value === 'light_minimal') return 'dusk';
-  if (value === 'dark_minimal') return 'dusk';
   return null;
 };
 

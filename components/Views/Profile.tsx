@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react';
-import { Camera, Edit2, Check, X, Upload, Box, User, Activity, Award, BarChart2, Sword, Zap, Link2, FileText, Shield } from 'lucide-react';
+import { Camera, Edit2, Check, X, Upload, Box, User, Activity, Award, BarChart2, Sword, Zap, Link2, FileText, Shield, ChevronLeft } from 'lucide-react';
 import { ProfilePanel } from '../UI/ProfilePanel';
+import { Hint } from '../UI/Hint';
 import { RewardVisual } from '../UI/RewardVisual';
 import { RewardConfig, InventoryItem } from '../../types';
 import { ASSETS } from '../../constants';
@@ -1386,8 +1387,8 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
                 </div>
               ))}
             </div>
-            <div className="text-[9px] text-[var(--app-muted)] text-center mt-3">
-              Avatar pack controls this slot layout. Inventory equip wiring follows the authored shell.
+            <div className="flex justify-center mt-3">
+              <Hint placement="top">Avatar pack controls this slot layout. Inventory equip wiring follows the authored shell.</Hint>
             </div>
 
             <div className="rounded-[14px] border border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-[rgba(255,255,255,0.02)] p-3">
@@ -1396,10 +1397,12 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
                   <div className="text-[9px] uppercase tracking-[1.5px] text-[var(--app-muted)]">
                     {activeAvatarPreset?.loadoutTitle || 'System Loadout'}
                   </div>
-                  <div className="mt-1 text-[12px] text-[var(--app-text)]">
-                    {activeAvatarPresencePreset?.deckPrompt ||
-                      activeAvatarPreset?.loadoutDescription ||
-                      'Active XTATION capabilities currently shaping this station.'}
+                  <div className="mt-1">
+                    <Hint placement="top">
+                      {activeAvatarPresencePreset?.deckPrompt ||
+                        activeAvatarPreset?.loadoutDescription ||
+                        'Active XTATION capabilities currently shaping this station.'}
+                    </Hint>
                   </div>
                 </div>
                 <div className="rounded-full border border-[color-mix(in_srgb,var(--app-accent)_34%,transparent)] px-2.5 py-1 text-[9px] uppercase tracking-[1.4px] text-[var(--app-accent)]">
@@ -1427,11 +1430,15 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
                         {item ? 'equipped' : 'standby'}
                       </div>
                     </div>
-                    <div className="mt-2 text-[11px] leading-5 text-[var(--app-muted)]">
-                      {item
-                        ? item.description
-                        : `This ${slot.binding} slot is authored by the active avatar pack and will light up when a matching XTATION capability is available.`}
-                    </div>
+                    {item?.description ? (
+                      <div className="mt-2">
+                        <Hint placement="top">{item.description}</Hint>
+                      </div>
+                    ) : (
+                      <div className="mt-2">
+                        <Hint placement="top">{`This ${slot.binding} slot activates when a matching XTATION capability is available.`}</Hint>
+                      </div>
+                    )}
                     {item?.highlights.length ? (
                       <div className="mt-2 flex flex-wrap gap-1.5">
                         {item.highlights.slice(0, 3).map((highlight) => (
@@ -1647,13 +1654,11 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
               type="button"
               onClick={() => setLobbyOpenPanel(p => p === btn.key ? null : btn.key)}
               data-active={active}
+              title={btn.label}
               className="xt-dock-btn"
             >
               <span className="xt-dock-btn-icon">
                 {btn.icon}
-              </span>
-              <span className="xt-dock-btn-label">
-                {btn.label}
               </span>
             </button>
           );
@@ -1841,8 +1846,8 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
 
                   {/* ── Dock ── */}
                   <div
-                    className="xt-profile-dock shrink-0 flex flex-col items-center gap-[6px] relative z-10"
-                    style={{ width: 58, padding: '10px 5px 12px' }}
+                    className="xt-profile-dock shrink-0 flex flex-col items-center gap-[2px] relative z-10"
+                    style={{ width: 44, padding: '10px 0 10px' }}
                   >
                     {/* Home / avatar button */}
                     <button
@@ -1870,16 +1875,8 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
                       title="Collapse profile deck"
                       className="xt-profile-dock-collapse"
                     >
-                      Min
+                      <ChevronLeft size={14} />
                     </button>
-
-                    {/* Hex logo */}
-                    <div className="xt-profile-dock-mark">
-                      <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="color-mix(in_srgb,var(--app-accent)_90%,white)" strokeWidth="1.2" strokeLinejoin="round">
-                        <path d="M12 2l8.5 5v10L12 22l-8.5-5V7L12 2z"/>
-                        <path d="M12 2v7.5M12 22v-7.5M3.5 7l8.5 5M20.5 7l-8.5 5M3.5 17l8.5-5M20.5 17l-8.5-5" opacity=".6"/>
-                      </svg>
-                    </div>
                   </div>
 
                   {/* ── Main area ── */}
