@@ -2381,21 +2381,7 @@
   font-family: 'Inter', sans-serif !important;
 }
 
-/* ── CONTROL: Inventory — hide verbose system label ────────────────────── */
-/* "INVENTORY_SYSTEM_V2.0" span inside .xt-inventory-header */
-[data-theme='control'] .xt-inventory-header .font-mono.tracking-widest,
-[data-theme='control'] .xt-inventory-header [class*='font-mono'][class*='tracking-widest'],
-[data-theme='control'] [class*='inventory-system'],
-[data-theme='control'] .xt-inventory-system-label {
-  display: none !important;
-}
-
-/* ── CONTROL: Inventory slot empty add button ───────────────────────────── */
-[data-theme='control'] [class*='add-slot'],
-[data-theme='control'] [class*='slot-add'] {
-  border-radius: 0 !important;
-  border-style: solid !important;
-}
+/* ── CONTROL: Inventory — no overrides needed (new xt-inv-* classes have sharp corners by default) ── */
 
 /* ── CONTROL: Store hero section — tighten prose ────────────────────────── */
 [data-theme='control'] .xt-store-hero p,
@@ -5840,115 +5826,708 @@
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   INVENTORY COMMAND SURFACES
+   INVENTORY — GAME HUD (The Alters style)
+   Design tokens extracted from reference: inventory-target.png (1920x1080)
    ═══════════════════════════════════════════════════════════════════════════ */
 
-.xt-inventory-shell {
+.xt-inv-shell {
+  --inv-bg: #0f0e0b;
+  --inv-topbar-bg: #191714;
+  --inv-card-bg: #1e1c18;
+  --inv-card-bg-hover: #242220;
+  --inv-card-bg-selected: #252b27;
+  --inv-card-bg-empty: #141210;
+  --inv-details-bg: #141310;
+  --inv-preview-bg: #1a1e1b;
+  --inv-bar-bg: #161512;
+  --inv-grid-line: #090806;
+  --inv-card-border: #1a1916;
+  --inv-card-border-sel: #3a3e3d;
+  --inv-text-heading: #c8c6be;
+  --inv-text-primary: #c4c2ba;
+  --inv-text-secondary: #9ea49f;
+  --inv-text-muted: #5c5f5a;
+  --inv-text-label: #bebcb8;
+  --inv-text-cat: #c3bfbc;
+  --inv-accent-pink: #ab3687;
+  --inv-accent-pink-dim: rgba(171, 54, 135, 0.18);
+  --inv-accent-gold: #d8ac61;
+  --inv-imp-critical: #e8293a;
+  --inv-imp-high: #a055f5;
+  --inv-imp-medium: #e8b800;
+
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+  background: var(--inv-bg);
+  color: var(--inv-text-primary);
+  font-family: inherit;
+}
+
+/* ── Category tab bar ──────────────────────────────────────────────────── */
+.xt-inv-topbar {
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+  height: 40px;
+  min-height: 40px;
+  padding: 0;
+  background: var(--inv-topbar-bg);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+.xt-inv-topbar-btn {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 0 22px;
+  border: none;
+  border-right: 1px solid rgba(255, 255, 255, 0.03);
+  border-radius: 0;
+  background: transparent;
+  color: var(--inv-text-muted);
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  cursor: pointer;
+  position: relative;
+  transition: color 140ms ease-out, background 140ms ease-out;
+}
+.xt-inv-topbar-btn::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--inv-accent-pink);
+  transform: scaleX(0);
+  transition: transform 160ms ease-out;
+}
+.xt-inv-topbar-btn:hover {
+  color: var(--inv-text-secondary);
+  background: rgba(255, 255, 255, 0.015);
+}
+.xt-inv-topbar-btn.is-active {
+  color: var(--inv-text-primary);
+  background: rgba(171, 54, 135, 0.06);
+}
+.xt-inv-topbar-btn.is-active::after {
+  transform: scaleX(1);
+}
+
+/* ── Main layout — 50/50 split, outer padding creates the breathing room */
+.xt-inv-main {
+  flex: 1;
+  display: flex;
+  flex-direction: row-reverse;
+  overflow: hidden;
+  min-height: 0;
+  padding: 24px 28px;
+  gap: 36px;
+}
+
+/* ── Grid area (right half) ─────────────────────────────────────────── */
+.xt-inv-grid-area {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding: 0;
+  animation: xt-welcome-fade-up 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) 0.1s both;
+}
+.xt-inv-grid-head {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding: 0 0 10px 1px;
+}
+.xt-inv-grid-heading {
+  font-size: 18px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--inv-text-heading);
+  padding-bottom: 7px;
+  background-image:
+    linear-gradient(var(--inv-accent-pink), var(--inv-accent-pink)),
+    linear-gradient(rgba(255,255,255,0.06), rgba(255,255,255,0.06)),
+    linear-gradient(rgba(255,255,255,0.04), rgba(255,255,255,0.04));
+  background-size: 32px 1px, 100% 1px, 100% 1px;
+  background-position: bottom 0px left, bottom 3px left, bottom 7px left;
+  background-repeat: no-repeat;
+}
+.xt-inv-grid-sub {
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.24em;
+  color: var(--inv-text-muted);
+  font-family: var(--font-mono, ui-monospace, monospace);
+}
+.xt-inv-grid-scroll {
+  flex: 1;
+  overflow-y: auto;
+  padding-bottom: 4px;
+}
+
+/* ── Item grid — 4 cols, compact, inset by grid-area padding ─────────── */
+.xt-inv-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 2px;
+  background: var(--inv-grid-line);
+  counter-reset: inv-slot;
+}
+
+/* ── Item card — portrait orientation, icon top, name bottom ─────────── */
+.xt-inv-card {
+  position: relative;
+  aspect-ratio: 1 / 1.25;
+  border: none;
+  background: var(--inv-card-bg);
+  border-radius: 0;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  text-align: left;
+  counter-increment: inv-slot;
+  transition: background 140ms ease-out, box-shadow 140ms ease-out;
+}
+
+/* Slot number — top-left corner */
+.xt-inv-card::before {
+  content: counter(inv-slot, decimal-leading-zero);
+  position: absolute;
+  top: 5px;
+  left: 6px;
+  font-size: 7.5px;
+  font-family: var(--font-mono, ui-monospace, monospace);
+  color: rgba(255, 255, 255, 0.1);
+  letter-spacing: 0.04em;
+  line-height: 1;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.xt-inv-card:hover {
+  background: var(--inv-card-bg-hover);
+}
+
+/* Selected: left accent bar + faint pink glow */
+.xt-inv-card.is-selected {
+  background: var(--inv-card-bg-selected);
+  box-shadow:
+    inset 2px 0 0 0 var(--inv-accent-pink),
+    inset 0 0 0 1px rgba(171, 54, 135, 0.2),
+    inset 0 0 20px rgba(171, 54, 135, 0.04);
+}
+
+/* Card visual — fills top portion, centered icon/thumb */
+.xt-inv-card-visual {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  color: var(--inv-text-muted);
+  opacity: 0.4;
+  padding: 10px;
+  transition: opacity 140ms ease-out;
+}
+.xt-inv-card-visual img {
+  max-width: 70%;
+  max-height: 70%;
+  object-fit: contain;
+  opacity: 0.88;
+}
+.xt-inv-card:hover .xt-inv-card-visual { opacity: 0.7; }
+.xt-inv-card.is-selected .xt-inv-card-visual { opacity: 0.9; }
+
+/* Card text — name, bottom portion */
+.xt-inv-card-text {
+  padding: 5px 8px 0 8px;
+  flex-shrink: 0;
+}
+.xt-inv-card-name {
+  font-size: 9.5px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--inv-text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.3;
+}
+.xt-inv-card.is-selected .xt-inv-card-name {
+  color: var(--inv-text-primary);
+}
+
+/* Card footer — source badge, importance accent */
+.xt-inv-card-footer {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px 5px;
+  flex-shrink: 0;
+}
+.xt-inv-card-src {
+  font-size: 8px;
+  font-weight: 500;
+  text-transform: lowercase;
+  letter-spacing: 0.06em;
+  color: var(--inv-text-muted);
+  opacity: 0.45;
+  font-family: var(--font-mono, ui-monospace, monospace);
+}
+/* Importance: small colored pill replacing the dot */
+.xt-inv-card-imp {
+  width: 14px;
+  height: 3px;
+  border-radius: 2px;
+  flex-shrink: 0;
+  margin-left: auto;
+  margin-right: 2px;
+}
+
+/* Empty slot */
+.xt-inv-card--empty {
+  cursor: default;
+  background: var(--inv-card-bg-empty);
+}
+.xt-inv-card--empty::before {
+  opacity: 0.06; /* dimmer slot numbers on empty */
+}
+/* Subtle corner HUD marks on empty slots */
+.xt-inv-card--empty::after {
+  content: '';
+  position: absolute;
+  inset: 0;
   background:
-    radial-gradient(circle at top left, color-mix(in srgb, var(--app-accent) 7%, transparent), transparent 24%),
-    linear-gradient(180deg, rgba(8, 10, 16, 0.78), rgba(4, 5, 9, 0));
+    linear-gradient(to bottom right, rgba(255,255,255,0.025) 0px 1px, transparent 1px) top left / 6px 6px no-repeat,
+    linear-gradient(to bottom left, rgba(255,255,255,0.025) 0px 1px, transparent 1px) top right / 6px 6px no-repeat,
+    linear-gradient(to top right, rgba(255,255,255,0.025) 0px 1px, transparent 1px) bottom left / 6px 6px no-repeat,
+    linear-gradient(to top left, rgba(255,255,255,0.025) 0px 1px, transparent 1px) bottom right / 6px 6px no-repeat;
+  pointer-events: none;
+}
+.xt-inv-card--empty:hover {
+  background: #0a0906;
 }
 
-.xt-inventory-header {
-  border-bottom: 1px solid color-mix(in srgb, var(--app-accent) 12%, rgba(255, 255, 255, 0.05));
+/* Add slot (+) */
+.xt-inv-card--add {
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+}
+.xt-inv-card--add::before { display: none; }
+.xt-inv-card--add::after { display: none; }
+.xt-inv-card-plus {
+  color: var(--inv-text-muted);
+  opacity: 0.18;
+  transition: opacity 180ms ease-out, color 180ms ease-out;
+}
+.xt-inv-card--add:hover { background: #0c0a08; }
+.xt-inv-card--add:hover .xt-inv-card-plus {
+  opacity: 0.55;
+  color: var(--inv-accent-pink);
 }
 
-.xt-inventory-nav {
-  gap: 12px;
+/* Quick-add row */
+.xt-inv-add-row {
+  display: flex;
+  gap: 2px;
+  margin-top: 2px;
 }
-
-.xt-inventory-nav-btn,
-.xt-inventory-icon-btn,
-.xt-inventory-chip,
-.xt-inventory-ledger-row,
-.xt-inventory-system-item,
-.xt-inventory-preview,
-.xt-inventory-detail-card,
-.xt-inventory-system-card,
-.xt-inventory-viewer {
-  border-radius: 8px;
-}
-
-.xt-inventory-nav-btn,
-.xt-inventory-preview,
-.xt-inventory-detail-card,
-.xt-inventory-system-card,
-.xt-inventory-system-item,
-.xt-inventory-viewer,
-.xt-inventory-ledger-row {
-  border: 1px solid color-mix(in srgb, var(--app-accent) 10%, rgba(255, 255, 255, 0.06)) !important;
-  background: linear-gradient(180deg, color-mix(in srgb, var(--app-panel-2) 82%, transparent), color-mix(in srgb, var(--app-panel) 78%, transparent)) !important;
-  box-shadow: 0 20px 64px -44px rgba(0, 0, 0, 0.82);
-}
-
-.xt-inventory-nav-btn {
-  transition: border-color 220ms ease-out, color 220ms ease-out, background 220ms ease-out, transform 220ms ease-out;
-}
-
-.xt-inventory-nav-btn:hover,
-.xt-inventory-icon-btn:hover {
-  transform: translateY(-1px);
-}
-
-.xt-inventory-icon-btn {
-  border-radius: 6px;
-  border: 1px solid color-mix(in srgb, var(--app-accent) 10%, rgba(255, 255, 255, 0.06));
-  background: color-mix(in srgb, var(--app-panel-2) 78%, transparent);
-  transition: border-color 220ms ease-out, color 220ms ease-out, background 220ms ease-out, transform 220ms ease-out;
-}
-
-.xt-inventory-icon-btn:hover {
-  border-color: color-mix(in srgb, var(--app-accent) 28%, rgba(255, 255, 255, 0.08));
-  color: var(--app-accent);
-}
-
-.xt-inventory-input {
-  border-radius: 6px;
-  border: 1px solid color-mix(in srgb, var(--app-accent) 10%, rgba(255, 255, 255, 0.06));
-  background: color-mix(in srgb, var(--app-panel) 82%, transparent);
+.xt-inv-add-row input {
+  flex: 1;
+  border: 1px solid rgba(255, 255, 255, 0.035);
+  background: #060504;
+  border-radius: 0;
+  padding: 6px 10px;
+  font-size: 10px;
+  color: var(--inv-text-primary);
   outline: none;
-  transition: border-color 220ms ease-out, box-shadow 220ms ease-out;
+  font-family: var(--font-mono, ui-monospace, monospace);
+  transition: border-color 160ms ease-out;
+}
+.xt-inv-add-row input:focus {
+  border-color: rgba(171, 54, 135, 0.25);
+}
+.xt-inv-add-row input::placeholder {
+  color: var(--inv-text-muted);
+  opacity: 0.28;
+}
+.xt-inv-add-row button {
+  border: 1px solid rgba(255, 255, 255, 0.035);
+  background: #060504;
+  border-radius: 0;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--inv-text-muted);
+  cursor: pointer;
+  transition: color 140ms ease-out, background 140ms ease-out;
+}
+.xt-inv-add-row button:hover {
+  color: var(--inv-accent-pink);
+  background: rgba(171, 54, 135, 0.08);
 }
 
-.xt-inventory-input:focus {
-  border-color: color-mix(in srgb, var(--app-accent) 42%, transparent);
-  box-shadow: 0 0 0 1px color-mix(in srgb, var(--app-accent) 18%, transparent);
+/* ═══════════════════════════════════════════════════════════════════════════
+   DETAILS PANEL
+   ═══════════════════════════════════════════════════════════════════════════ */
+.xt-inv-details {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  animation: xt-welcome-fade-up 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) 0.2s both;
+  position: relative;
+  padding: 0;
+}
+.xt-inv-details-head {
+  padding: 0 0 10px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.03);
+  flex-shrink: 0;
+}
+.xt-inv-details-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+}
+.xt-inv-details-empty {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  color: var(--inv-text-muted);
+  font-size: 9.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.3em;
+  opacity: 0.28;
 }
 
-.xt-inventory-chip {
-  border: 1px solid color-mix(in srgb, var(--app-accent) 10%, rgba(255, 255, 255, 0.06));
-  background: color-mix(in srgb, var(--app-panel-2) 74%, transparent);
+/* Corner marks on the preview box — positioned via preview's own corners */
+.xt-inv-details::before { display: none; }
+.xt-inv-details::after { display: none; }
+
+/* Preview area — square box, centered, max 260px */
+.xt-inv-preview {
+  position: relative;
+  flex: 0 0 auto;
+  width: 100%;
+  max-width: 260px;
+  aspect-ratio: 1 / 1;
+  align-self: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--inv-preview-bg);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  margin: 16px auto 0;
+}
+.xt-inv-preview-img {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: grab;
+  user-select: none;
+}
+.xt-inv-preview-img:active { cursor: grabbing; }
+.xt-inv-preview-img img {
+  max-width: 80%;
+  max-height: 80%;
+  object-fit: contain;
+}
+.xt-inv-preview-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  min-height: 160px;
+  color: var(--inv-text-muted);
+  opacity: 0.18;
+}
+.xt-inv-preview-actions {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: flex;
+  gap: 4px;
+  opacity: 0;
+  transition: opacity 160ms ease-out;
+  z-index: 5;
+}
+.xt-inv-preview:hover .xt-inv-preview-actions { opacity: 1; }
+.xt-inv-preview-actions button {
+  width: 26px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 0;
+  background: rgba(0, 0, 0, 0.65);
+  color: var(--inv-text-secondary);
+  cursor: pointer;
+  transition: border-color 140ms, background 140ms, color 140ms;
+}
+.xt-inv-preview-actions button:hover {
+  border-color: rgba(255,255,255,0.15);
+  background: rgba(0, 0, 0, 0.85);
+  color: var(--inv-text-primary);
+}
+.xt-inv-preview-actions button.danger:hover {
+  border-color: #e8293a;
+  color: #e8293a;
 }
 
-.xt-inventory-textarea {
-  min-height: 112px;
-  resize: vertical;
+/* Item info section */
+.xt-inv-info {
+  padding: 14px 0;
+  flex: 1;
+}
+.xt-inv-info-name {
+  font-size: 15px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--inv-text-primary);
+  margin: 0;
+  line-height: 1.2;
+}
+.xt-inv-info-desc {
+  margin-top: 8px;
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--inv-text-secondary);
 }
 
-.xt-inventory-action {
-  border-radius: 6px;
-  border: 1px solid color-mix(in srgb, var(--app-border) 72%, transparent);
-  background: color-mix(in srgb, var(--app-panel) 84%, black 16%);
-  transition: border-color 220ms ease-out, color 220ms ease-out, background 220ms ease-out, transform 220ms ease-out;
+/* Chips */
+.xt-inv-info-chips {
+  margin-top: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.xt-inv-chip {
+  padding: 3px 8px;
+  font-size: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--inv-text-muted);
+  border: 1px solid rgba(255,255,255,0.06);
+  background: rgba(255,255,255,0.02);
+  border-radius: 0;
 }
 
-.xt-inventory-action:hover {
-  border-color: color-mix(in srgb, var(--app-accent) 28%, rgba(255, 255, 255, 0.08));
-  background: color-mix(in srgb, var(--app-panel-2) 62%, white 4%);
-  transform: translateY(-1px);
+/* Ledger actions */
+.xt-inv-info-ledger { margin-top: 12px; }
+.xt-inv-info-rename {
+  width: 100%;
+  border: 1px solid rgba(171, 54, 135, 0.3);
+  background: var(--inv-card-bg);
+  border-radius: 0;
+  padding: 5px 10px;
+  font-size: 11px;
+  color: var(--inv-text-primary);
+  outline: none;
+  font-family: var(--font-mono, ui-monospace, monospace);
+}
+.xt-inv-info-btns { display: flex; gap: 6px; }
+.xt-inv-info-btns button {
+  padding: 5px 12px;
+  font-size: 9px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 0;
+  background: rgba(255,255,255,0.02);
+  color: var(--inv-text-secondary);
+  cursor: pointer;
+  transition: border-color 140ms, background 140ms, color 140ms;
+}
+.xt-inv-info-btns button:hover {
+  border-color: rgba(255,255,255,0.12);
+  background: rgba(255,255,255,0.04);
+  color: var(--inv-text-primary);
+}
+.xt-inv-info-btns button.danger:hover {
+  border-color: #e8293a;
+  color: #e8293a;
 }
 
-.xt-inventory-attachment {
-  border-radius: 8px;
-  border: 1px solid color-mix(in srgb, var(--app-border) 72%, transparent);
-  background: color-mix(in srgb, var(--app-panel) 82%, black 18%);
-  transition: border-color 220ms ease-out, background 220ms ease-out, transform 220ms ease-out;
+/* Stats strip */
+.xt-inv-stats {
+  display: flex;
+  align-items: flex-end;
+  gap: 28px;
+  border-top: 1px solid rgba(255, 255, 255, 0.04);
+  margin-top: auto;
+  flex-shrink: 0;
+  padding: 12px 0;
+}
+.xt-inv-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 3px;
+}
+.xt-inv-stat--right {
+  margin-left: auto;
+  display: flex;
+  flex-direction: row;
+  gap: 28px;
+  align-items: flex-end;
+}
+.xt-inv-stat-label {
+  font-size: 9px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--inv-text-muted);
+  font-family: var(--font-mono, ui-monospace, monospace);
+}
+.xt-inv-stat-val {
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--inv-text-secondary);
+  display: flex;
+  align-items: center;
+  gap: 5px;
 }
 
-.xt-inventory-attachment:hover {
-  border-color: color-mix(in srgb, var(--app-accent) 22%, rgba(255, 255, 255, 0.08));
-  background: color-mix(in srgb, var(--app-panel-2) 62%, white 4%);
-  transform: translateY(-1px);
+/* ═══════════════════════════════════════════════════════════════════════════
+   BOTTOM STATUS BAR
+   ═══════════════════════════════════════════════════════════════════════════ */
+.xt-inv-bar {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  padding: 0 18px;
+  height: 48px;
+  min-height: 48px;
+  border-top: 1px solid rgba(255,255,255,0.04);
+  background: var(--inv-bar-bg);
+  font-family: var(--font-mono, ui-monospace, monospace);
+  animation: xt-welcome-fade-up 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) 0.3s both;
+}
+.xt-inv-bar-item {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 0 10px;
+}
+.xt-inv-bar-top {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--inv-text-muted);
+}
+.xt-inv-bar-num {
+  font-size: 11px;
+  font-weight: 700;
+  color: #8e9090;
+  letter-spacing: 0.06em;
+}
+.xt-inv-bar-label {
+  font-size: 8.5px;
+  text-transform: lowercase;
+  letter-spacing: 0.05em;
+  color: #5a5c5a;
+  margin-top: 2px;
+}
+.xt-inv-bar-sep {
+  width: 1px;
+  height: 24px;
+  background: rgba(255, 255, 255, 0.05);
+  margin: 0 4px;
+}
+.xt-inv-bar-grow { flex: 1; }
+.xt-inv-bar-sync {
+  font-size: 8.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  color: var(--inv-accent-pink);
+  opacity: 0.55;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   VIEWER MODAL
+   ═══════════════════════════════════════════════════════════════════════════ */
+.xt-inv-viewer {
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 0;
+  background: var(--inv-bg);
+  max-width: 900px;
+  width: 100%;
+  overflow: hidden;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.9);
+}
+.xt-inv-viewer-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--inv-text-primary);
+}
+.xt-inv-viewer-top button {
+  background: none;
+  border: none;
+  color: var(--inv-text-muted);
+  cursor: pointer;
+  padding: 4px;
+}
+.xt-inv-viewer-top button:hover { color: var(--inv-text-primary); }
+.xt-inv-viewer-img {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  min-height: 300px;
+  background: rgba(0, 0, 0, 0.4);
+}
+.xt-inv-viewer-img img {
+  max-width: 100%;
+  max-height: 70vh;
+  object-fit: contain;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   REDUCED MOTION
+   ═══════════════════════════════════════════════════════════════════════════ */
+@media (prefers-reduced-motion: reduce) {
+  .xt-inv-topbar,
+  .xt-inv-grid-area,
+  .xt-inv-details,
+  .xt-inv-bar {
+    animation: none !important;
+  }
 }
 
 /* DUSK COMMAND SURFACES */
@@ -6280,6 +6859,12 @@
 .xt-shell-stage.h-full {
   min-height: 0;
   height: 100%;
+}
+/* Inventory needs the stage locked to viewport so its flex layout works */
+.xt-shell-stage:has(.xt-inv-shell) {
+  min-height: 0;
+  height: 100%;
+  overflow: hidden;
 }
 
 .xt-shell-transition-note {

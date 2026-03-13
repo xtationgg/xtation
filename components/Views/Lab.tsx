@@ -1549,12 +1549,12 @@ export const Lab: React.FC = () => {
                 <div className="text-[10px] uppercase tracking-[0.22em] text-[var(--app-muted)]">Top Quest Pressure</div>
                 <div className="mt-4 flex flex-col gap-3">
                   {topTasks.length ? (
-                    topTasks.map(({ task, minutes }) => (
+                    topTasks.map(({ taskId, title, minutes }) => (
                       <div
-                        key={task.id}
+                        key={taskId}
                         className="rounded-[18px] border border-[var(--app-border)] bg-[color-mix(in_srgb,var(--app-panel-2)_72%,transparent)] px-4 py-3"
                       >
-                        <div className="text-sm font-medium text-[var(--app-text)]">{task.title}</div>
+                        <div className="text-sm font-medium text-[var(--app-text)]">{title}</div>
                         <div className="mt-1 text-[11px] text-[var(--app-muted)]">{minutes} min tracked today</div>
                       </div>
                     ))
