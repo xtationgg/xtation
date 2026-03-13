@@ -235,7 +235,7 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
     return { HEAD: null, UPPER: null, LOWER: null, FEET: null, ACCESSORY_1: null, ACCESSORY_2: null };
   });
   const objectUrlRef = useRef<string | null>(null);
-  const { stats: xpStats, legacyXP, tasks, selectors, dateKey, startSession, stopSession, inventorySlots, projects: xpProjects } = useXP();
+  const { stats: xpStats, legacyXP, tasks, selectors, dateKey, startSession, stopSession, inventorySlots, projects: xpProjects, selfTreeNodes, addSelfTreeNode, deleteSelfTreeNode } = useXP();
   const { settings } = useXtationSettings();
   const { theme } = useTheme();
   const adminConsole = useOptionalAdminConsole();
@@ -404,6 +404,7 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
   // ── Lobby state ────────────────────────────────────────────────────────
   type LobbyPanelKey = 'identity' | 'stats' | 'loadout' | 'skills' | 'titles' | 'links' | 'notes' | 'privacy' | 'selftree';
   const [lobbyOpenPanel, setLobbyOpenPanel] = useState<LobbyPanelKey | null>(null);
+  const [selfTreeNewNode, setSelfTreeNewNode] = useState<{ branch: SelfTreeBranch; text: string } | null>(null);
   const [lobbyNotes, setLobbyNotes] = useState(() => {
     try { return localStorage.getItem('xtation_profile_notes_v1') || ''; } catch { return ''; }
   });
@@ -1660,6 +1661,8 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
             {scores.map(({ branch, color, icon, desc, taskCount, projectCount, itemCount, total }) => {
               const pct = Math.round((total / maxScore) * 100);
               const hasAny = total > 0;
+              const branchNodes = selfTreeNodes.filter(n => n.rootBranch === branch);
+              const isAdding = selfTreeNewNode?.branch === branch;
               return (
                 <div key={branch} className="xt-selftree-row">
                   <div className="xt-selftree-branch-header">
@@ -1682,6 +1685,56 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
                       style={{ width: hasAny ? `${Math.max(pct, 4)}%` : '0%', background: color }}
                     />
                   </div>
+                  {/* Nodes */}
+                  {(branchNodes.length > 0 || isAdding) && (
+                    <div className="xt-selftree-nodes">
+                      {branchNodes.map(node => (
+                        <div key={node.id} className="xt-selftree-node" style={{ borderColor: `color-mix(in_srgb,${color}_20%,transparent)` }}>
+                          <span className="xt-selftree-node-dot" style={{ background: color }} />
+                          <span className="xt-selftree-node-title">{node.title}</span>
+                          <button
+                            type="button"
+                            onClick={() => deleteSelfTreeNode(node.id)}
+                            className="xt-selftree-node-del"
+                            aria-label="Remove node"
+                          >×</button>
+                        </div>
+                      ))}
+                      {isAdding && (
+                        <div className="xt-selftree-add-row">
+                          <input
+                            autoFocus
+                            type="text"
+                            value={selfTreeNewNode.text}
+                            onChange={e => setSelfTreeNewNode({ branch, text: e.target.value })}
+                            onKeyDown={e => {
+                              if (e.key === 'Enter' && selfTreeNewNode.text.trim()) {
+                                addSelfTreeNode({ rootBranch: branch, title: selfTreeNewNode.text.trim() });
+                                setSelfTreeNewNode(null);
+                              } else if (e.key === 'Escape') {
+                                setSelfTreeNewNode(null);
+                              }
+                            }}
+                            placeholder="Node title… (Enter to save)"
+                            className="xt-selftree-add-input"
+                            style={{ borderColor: `color-mix(in_srgb,${color}_35%,transparent)` }}
+                          />
+                          <button type="button" onClick={() => setSelfTreeNewNode(null)} className="xt-selftree-node-del">×</button>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                  {/* Add node button */}
+                  {!isAdding && (
+                    <button
+                      type="button"
+                      onClick={() => setSelfTreeNewNode({ branch, text: '' })}
+                      className="xt-selftree-add-btn"
+                      style={{ color: `color-mix(in_srgb,${color}_70%,var(--app-muted))` }}
+                    >
+                      + add node
+                    </button>
+                  )}
                 </div>
               );
             })}

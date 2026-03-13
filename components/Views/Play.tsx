@@ -237,6 +237,8 @@ export const Play: React.FC<PlayProps> = ({
     milestones,
     stats,
     selectors,
+    completions,
+    sessions,
     addTask,
     updateTask,
     completeTask,
@@ -348,6 +350,32 @@ export const Play: React.FC<PlayProps> = ({
   const daySummary = selectors.getDaySummary(dateKey, now);
   const momentum = selectors.getMomentum();
   const recentActivity = selectors.getDayActivityGrouped(dateKey, now).slice(0, 4);
+
+  const BRANCH_COLORS: Record<string, string> = {
+    Knowledge: '#60a5fa', Creation: '#c084fc', Systems: '#34d399',
+    Communication: '#fb923c', Physical: '#f87171', Inner: '#facc15',
+  };
+
+  const weekDots = useMemo(() => {
+    const base = new Date(dateKey + 'T12:00:00');
+    const dow = base.getDay();
+    const mondayOffset = dow === 0 ? -6 : 1 - dow;
+    const monday = new Date(base);
+    monday.setDate(base.getDate() + mondayOffset);
+    const completionDays = new Set(completions.map(c => c.dateKey));
+    const sessionDays = new Set(sessions.filter(s => s.status === 'completed').map(s => s.endAt ? new Date(s.endAt).toISOString().slice(0, 10) : ''));
+    return Array.from({ length: 7 }, (_, i) => {
+      const d = new Date(monday);
+      d.setDate(monday.getDate() + i);
+      const dk = d.toISOString().slice(0, 10);
+      return {
+        dk,
+        active: completionDays.has(dk) || sessionDays.has(dk),
+        isToday: dk === dateKey,
+        label: ['M', 'T', 'W', 'T', 'F', 'S', 'S'][i],
+      };
+    });
+  }, [completions, sessions, dateKey]);
   const topTasks = selectors.getTopTasksForDay(dateKey, 4, now);
   const latestBriefQuest = useMemo(
     () => (latestBrief?.linkedQuestIds?.length ? tasks.find((task) => task.id === latestBrief.linkedQuestIds[0]) ?? null : null),
@@ -657,6 +685,13 @@ export const Play: React.FC<PlayProps> = ({
                         <span className="truncate">{task.title}</span>
                       </div>
                       <div className="xt-ops-briefing-meta">
+                        {task.selfTreePrimary ? (
+                          <span
+                            className="xt-ops-branch-dot"
+                            style={{ background: BRANCH_COLORS[task.selfTreePrimary] }}
+                            title={task.selfTreePrimary}
+                          />
+                        ) : null}
                         <span>{PRIORITY_LABELS[task.priority]}</span>
                         <span className="xt-ops-briefing-sep">·</span>
                         <span>L{task.level ?? 1}</span>
@@ -956,6 +991,30 @@ export const Play: React.FC<PlayProps> = ({
                     <div className="xt-ops-momentum-sub">
                       Lvl {stats.playerLevel} · {stats.totalEarnedXP} XP
                     </div>
+                    {/* Weekly dots — Mon through Sun */}
+                    <div className="xt-ops-week-dots">
+                      {weekDots.map(({ dk, active, isToday, label }) => (
+                        <div key={dk} className="xt-ops-week-dot-col">
+                          <div className={`xt-ops-week-pip ${active ? 'xt-ops-week-pip--active' : ''} ${isToday ? 'xt-ops-week-pip--today' : ''}`} />
+                          <span className={`xt-ops-week-label ${isToday ? 'xt-ops-week-label--today' : ''}`}>{label}</span>
+                        </div>
+                      ))}
+                    </div>
+                    {/* Weekly bonus threshold */}
+                    {momentum.weeklyActiveDays > 0 && (
+                      <div className="xt-ops-week-bonus">
+                        {[3, 5, 7].map(threshold => (
+                          <span
+                            key={threshold}
+                            className={`xt-ops-week-bonus-pip ${momentum.weeklyActiveDays >= threshold ? 'xt-ops-week-bonus-pip--reached' : ''}`}
+                            title={`${threshold}-day bonus`}
+                          >
+                            {threshold}d
+                          </span>
+                        ))}
+                        <span className="xt-ops-week-bonus-label">{momentum.weeklyActiveDays}/7 active</span>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
