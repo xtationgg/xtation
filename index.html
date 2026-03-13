@@ -131,5 +131,15 @@
   <body>
     <div id="root"></div>
   <script type="module" src="/index.tsx"></script>
+  <script>
+    // Design Mode — dev only. Ctrl+Shift+D to toggle.
+    if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
+      const s = document.createElement('script');
+      s.src = '/design-mode.js';
+      s.defer = true;
+      // Starts hidden — Ctrl+Shift+D to toggle on
+      document.head.appendChild(s);
+    }
+  </script>
 </body>
 </html>
