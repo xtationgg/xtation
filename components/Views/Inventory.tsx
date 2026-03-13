@@ -1,17 +1,28 @@
 
 import React, { useEffect, useMemo, useRef, useState, useCallback } from 'react';
 import { InventoryCategory } from '../../types';
-import { Plus, Trash2, Upload, Box, Car, Wrench, Shirt, Cpu, Loader2, X } from 'lucide-react';
+import {
+    Plus, Trash2, Upload, Box, Car, Wrench, Shirt, Cpu, Loader2, X,
+    Send, Archive, RotateCcw, FolderOpen,
+} from 'lucide-react';
 import { playClickSound, playHoverSound, playSuccessSound, playErrorSound } from '../../utils/SoundEffects';
 import { useAuth } from '../../src/auth/AuthProvider';
 import { supabase } from '../../src/lib/supabaseClient';
 import type { UserFileRow } from '../../src/lib/attachments/types';
 import { useXP } from '../XP/xpStore';
-import type { InventorySlot } from '../XP/xpTypes';
+import type { InventorySlot, SelfTreeBranch } from '../XP/xpTypes';
 import { useXtationSettings } from '../../src/settings/SettingsProvider';
 import { useTheme } from '../../src/theme/ThemeProvider';
-import { getActiveCapabilityItems, InventoryCapabilityItem } from '../../src/inventory/models';
-// DevOverlay replaced by universal design-mode.js (Ctrl+Shift+D)
+import {
+    getActiveCapabilityItems,
+    assignCapabilityItemsToLoadoutSlots,
+    summarizeCapabilityLoadoutAssignments,
+} from '../../src/inventory/models';
+import type { InventoryCapabilityItem, InventoryCapabilityLoadoutSlot } from '../../src/inventory/models';
+import { useOptionalPresentationEvents } from '../../src/presentation/PresentationEventsProvider';
+import { openDuskBrief } from '../../src/dusk/bridge';
+
+// ─── Types ────────────────────────────────────────────────────────────────────
 
 type InventoryAttachment = UserFileRow & { thumbUrl: string | null };
 
@@ -24,14 +35,20 @@ type UnifiedItem = {
     importance?: 'low' | 'medium' | 'high' | 'critical';
     mediaUrl?: string;
     details?: string;
+    selfTreeBranch?: SelfTreeBranch;
+    linkedProjectIds?: string[];
+    archivedAt?: number;
     cloudRow?: InventoryAttachment;
     ledgerSlot?: InventorySlot;
     capabilityItem?: InventoryCapabilityItem;
+    createdAt?: number;
 };
 
+// ─── Constants ────────────────────────────────────────────────────────────────
+
 const ALL_CATS: InventoryCategory[] = ['OUTFIT', 'GEAR', 'VEHICLE', 'TOOLS'];
-const GRID_COLS = 3;
-const EMPTY_SLOTS = 15;
+const GRID_COLS = 4;
+const EMPTY_SLOTS = 16;
 
 const catIcons: Record<InventoryCategory, React.FC<{ size?: number; className?: string }>> = {
     OUTFIT: Shirt, GEAR: Cpu, VEHICLE: Car, TOOLS: Wrench,
@@ -39,75 +56,185 @@ const catIcons: Record<InventoryCategory, React.FC<{ size?: number; className?: 
 const catKey = (c: InventoryCategory) => c.toLowerCase() as Lowercase<InventoryCategory>;
 
 const impColor = (i?: string) => {
-    switch (i) { case 'critical': return '#FF2A3A'; case 'high': return '#a855f7'; case 'medium': return '#ffd000'; default: return '#f4f4f5'; }
+    switch (i) {
+        case 'critical': return '#e8293a';
+        case 'high': return '#a055f5';
+        case 'medium': return '#e8b800';
+        default: return '#c4c2ba';
+    }
 };
 
+const SELF_TREE_BRANCHES: { value: SelfTreeBranch; label: string; color: string }[] = [
+    { value: 'Knowledge',      label: 'Knowledge',  color: '#3b82f6' },
+    { value: 'Creation',       label: 'Creation',   color: '#f59e0b' },
+    { value: 'Systems',        label: 'Systems',    color: '#10b981' },
+    { value: 'Communication',  label: 'Comms',      color: '#8b5cf6' },
+    { value: 'Physical',       label: 'Physical',   color: '#ef4444' },
+    { value: 'Inner',          label: 'Inner',      color: '#6b7280' },
+];
+
+const CAP_KIND_LABEL: Record<string, string> = {
+    theme: 'SKIN', sound: 'AUDIO', widget: 'WIDGET', module: 'MODULE',
+};
+
+// Capability loadout slots — maps to InventoryCapabilityKind
+const DEFAULT_LOADOUT_SLOTS: InventoryCapabilityLoadoutSlot[] = [
+    { id: 'theme',  label: 'Theme',  icon: '◈', equipped: false, binding: 'theme'  },
+    { id: 'sound',  label: 'Sound',  icon: '◉', equipped: false, binding: 'sound'  },
+    { id: 'widget', label: 'Widget', icon: '◫', equipped: false, binding: 'widget' },
+    { id: 'module', label: 'Module', icon: '◧', equipped: false, binding: 'module' },
+];
+
+// ─── Component ────────────────────────────────────────────────────────────────
+
 export const Inventory: React.FC = () => {
-    const { inventorySlots, addInventorySlot, updateInventorySlot, deleteInventorySlot } = useXP();
+    const { inventorySlots, addInventorySlot, updateInventorySlot, deleteInventorySlot, projects } = useXP();
     const { user } = useAuth();
     const { settings } = useXtationSettings();
     const { theme } = useTheme();
     const uid = user?.id || null;
+    const pe = useOptionalPresentationEvents();
 
-    const [activeCat, setActiveCat] = useState<InventoryCategory>('OUTFIT');
-    const [allAtt, setAllAtt] = useState<Record<InventoryCategory, InventoryAttachment[]>>({ OUTFIT: [], GEAR: [], VEHICLE: [], TOOLS: [] });
-    const [loading, setLoading] = useState(false);
-    const [uploading, setUploading] = useState(false);
-    const [error, setError] = useState('');
-    const [selectedId, setSelectedId] = useState<string | null>(null);
-    const [rotation, setRotation] = useState(0);
-    const [editingId, setEditingId] = useState<string | null>(null);
-    const [editingName, setEditingName] = useState('');
+    // ── Core state
+    const [activeCat, setActiveCat]     = useState<InventoryCategory>('OUTFIT');
+    const [allAtt, setAllAtt]           = useState<Record<InventoryCategory, InventoryAttachment[]>>({ OUTFIT: [], GEAR: [], VEHICLE: [], TOOLS: [] });
+    const [loading, setLoading]         = useState(false);
+    const [uploading, setUploading]     = useState(false);
+    const [error, setError]             = useState('');
+    const [selectedId, setSelectedId]   = useState<string | null>(null);
+    const [rotation, setRotation]       = useState(0);
     const [newItemName, setNewItemName] = useState('');
-    const [viewerLoading, setViewerLoading] = useState(false);
-    const [viewer, setViewer] = useState<{ item: InventoryAttachment; url: string | null; mime: string | null } | null>(null);
+    const [viewer, setViewer]           = useState<{ item: InventoryAttachment; url: string | null } | null>(null);
+    const [uploadCtx, setUploadCtx]     = useState<{ cat: InventoryCategory; replaceId?: string } | null>(null);
 
-    const fileRef = useRef<HTMLInputElement>(null);
-    const resetRef = useRef<number | null>(null);
-    const dragRef = useRef({ dragging: false, startX: 0, startR: 0 });
-    const [uploadCtx, setUploadCtx] = useState<{ cat: InventoryCategory; replaceId?: string } | null>(null);
+    // ── Grid controls
+    const [searchQuery, setSearchQuery]     = useState('');
+    const [showArchived, setShowArchived]   = useState(false);
 
+    // ── Details panel editing state
+    const [confirmDelete, setConfirmDelete]     = useState<string | null>(null);
+    const [editingName, setEditingName]         = useState<string | null>(null);
+    const [editingDetails, setEditingDetails]   = useState<string | null>(null);
+    const [showProjectPicker, setShowProjectPicker] = useState(false);
+
+    const fileRef   = useRef<HTMLInputElement>(null);
+    const resetRef  = useRef<number | null>(null);
+    const dragRef   = useRef({ dragging: false, startX: 0, startR: 0 });
+
+    // ── Capability loadout (GEAR panel)
     const caps = useMemo(() => getActiveCapabilityItems(settings, theme), [settings, theme]);
+    const loadoutAssignments = useMemo(() => assignCapabilityItemsToLoadoutSlots(DEFAULT_LOADOUT_SLOTS, caps), [caps]);
+    const loadoutSummary     = useMemo(() => summarizeCapabilityLoadoutAssignments(loadoutAssignments), [loadoutAssignments]);
 
-    // Unified items
+    // ── Unified item list
     const items = useMemo((): UnifiedItem[] => {
         const out: UnifiedItem[] = [];
         for (const c of ALL_CATS) {
-            for (const r of allAtt[c]) out.push({ id: r.id, source: 'cloud', category: c, name: r.title || 'Image', thumbUrl: r.thumbUrl || undefined, importance: (r.meta as Record<string, unknown> | undefined)?.importance as UnifiedItem['importance'], mediaUrl: r.thumbUrl || '', details: r.notes || undefined, cloudRow: r });
-            for (const s of inventorySlots.filter(s => s.category === c)) out.push({ id: `l-${s.id}`, source: 'ledger', category: c, name: s.name, importance: s.importance, details: s.details, ledgerSlot: s });
+            for (const r of allAtt[c]) {
+                out.push({
+                    id: r.id, source: 'cloud', category: c,
+                    name: r.title || 'Image',
+                    thumbUrl: r.thumbUrl || undefined,
+                    importance: (r.meta as Record<string, unknown> | undefined)?.importance as UnifiedItem['importance'],
+                    mediaUrl: r.thumbUrl || '',
+                    details: r.notes || undefined,
+                    cloudRow: r,
+                    createdAt: r.created_at ? new Date(r.created_at as string).getTime() : undefined,
+                });
+            }
+            for (const s of inventorySlots.filter(s => s.category === c)) {
+                out.push({
+                    id: `l-${s.id}`, source: 'ledger', category: c,
+                    name: s.name,
+                    importance: s.importance,
+                    details: s.details,
+                    selfTreeBranch: s.selfTreeBranch,
+                    linkedProjectIds: s.linkedProjectIds,
+                    archivedAt: s.archivedAt,
+                    ledgerSlot: s,
+                    createdAt: s.createdAt,
+                });
+            }
         }
-        for (const cap of caps) out.push({ id: `c-${cap.id}`, source: 'capability', category: 'GEAR', name: cap.title, details: cap.description, capabilityItem: cap });
+        for (const cap of caps) {
+            out.push({
+                id: `c-${cap.id}`, source: 'capability', category: 'GEAR',
+                name: cap.title, details: cap.description,
+                capabilityItem: cap,
+            });
+        }
         return out;
     }, [allAtt, inventorySlots, caps]);
 
-    const activeItems = useMemo(() => items.filter(i => i.category === activeCat), [items, activeCat]);
+    const activeItems = useMemo(() => {
+        let result = items.filter(i => i.category === activeCat);
+        if (!showArchived) result = result.filter(i => !i.archivedAt);
+        if (searchQuery.trim()) {
+            const q = searchQuery.toLowerCase();
+            result = result.filter(i =>
+                i.name.toLowerCase().includes(q) ||
+                i.details?.toLowerCase().includes(q)
+            );
+        }
+        return result;
+    }, [items, activeCat, showArchived, searchQuery]);
+
     const selected = useMemo(() => items.find(i => i.id === selectedId) || null, [items, selectedId]);
+
     const counts = useMemo(() => {
         const c: Record<InventoryCategory, number> = { OUTFIT: 0, GEAR: 0, VEHICLE: 0, TOOLS: 0 };
-        for (const i of items) c[i.category]++;
+        for (const i of items) if (!i.archivedAt) c[i.category]++;
         return c;
     }, [items]);
 
-    // Supabase
+    const archivedCount = useMemo(
+        () => items.filter(i => i.category === activeCat && i.archivedAt && i.source === 'ledger').length,
+        [items, activeCat]
+    );
+
+    const activeProjects = useMemo(
+        () => projects.filter(p => p.status === 'Active' || p.status === 'Draft'),
+        [projects]
+    );
+
+    // ── Supabase helpers ──────────────────────────────────────────────────────
+
     const resolveUrl = async (p: string) => {
         const { data, error } = await supabase.storage.from('thumbs').createSignedUrl(p, 3600);
         if (!error && data?.signedUrl) return data.signedUrl;
         const { data: pub } = supabase.storage.from('thumbs').getPublicUrl(p);
         return pub?.publicUrl || null;
     };
-    const mkUuid = () => typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function' ? crypto.randomUUID() : 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => { const r = Math.random() * 16 | 0; return (c === 'x' ? r : (r & 0x3) | 0x8).toString(16); });
+
+    const mkUuid = () =>
+        typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function'
+            ? crypto.randomUUID()
+            : 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+                const r = Math.random() * 16 | 0;
+                return (c === 'x' ? r : (r & 0x3) | 0x8).toString(16);
+            });
+
     const toPng = async (f: File): Promise<Blob> => {
         if ((f.type || '').toLowerCase() === 'image/png') return f;
-        const img = await createImageBitmap(f); const cv = document.createElement('canvas'); cv.width = img.width; cv.height = img.height;
-        const ctx = cv.getContext('2d'); if (!ctx) throw new Error('no ctx'); ctx.drawImage(img, 0, 0);
+        const img = await createImageBitmap(f);
+        const cv = document.createElement('canvas');
+        cv.width = img.width; cv.height = img.height;
+        const ctx = cv.getContext('2d');
+        if (!ctx) throw new Error('no ctx');
+        ctx.drawImage(img, 0, 0);
         return new Promise<Blob>((res, rej) => { cv.toBlob(b => b ? res(b) : rej(new Error('fail')), 'image/png'); });
     };
+
     const upload = async (f: File, oid: string): Promise<InventoryAttachment> => {
-        if (!uid) throw new Error('AUTH'); const blob = await toPng(f); const id = mkUuid();
+        if (!uid) throw new Error('AUTH');
+        const blob = await toPng(f);
+        const id = mkUuid();
         const path = `${uid}/inventory/${oid}/${id}.png`;
         const { error: e1 } = await supabase.storage.from('thumbs').upload(path, blob, { upsert: false, contentType: 'image/png' });
         if (e1) throw e1;
-        const { data: ins, error: e2 } = await supabase.from('user_files').insert({ user_id: uid, owner_type: 'inventory', owner_id: oid, kind: 'image', thumb_path: path, mime: 'image/png', size_bytes: blob.size }).select('*').single();
+        const { data: ins, error: e2 } = await supabase.from('user_files')
+            .insert({ user_id: uid, owner_type: 'inventory', owner_id: oid, kind: 'image', thumb_path: path, mime: 'image/png', size_bytes: blob.size })
+            .select('*').single();
         if (e2 || !ins) { await supabase.storage.from('thumbs').remove([path]); throw e2 || new Error('insert fail'); }
         return { ...(ins as UserFileRow), thumbUrl: await resolveUrl(path) };
     };
@@ -117,7 +244,9 @@ export const Inventory: React.FC = () => {
         setLoading(true); setError('');
         try {
             const res = await Promise.all(ALL_CATS.map(async c => {
-                const { data, error } = await supabase.from('user_files').select('*').eq('user_id', uid).eq('owner_type', 'inventory').eq('owner_id', catKey(c)).order('created_at', { ascending: false });
+                const { data, error } = await supabase.from('user_files').select('*')
+                    .eq('user_id', uid).eq('owner_type', 'inventory').eq('owner_id', catKey(c))
+                    .order('created_at', { ascending: false });
                 if (error) throw error;
                 return { c, rows: await Promise.all(((data || []) as UserFileRow[]).map(async r => ({ ...r, thumbUrl: await resolveUrl(r.thumb_path) }))) };
             }));
@@ -126,48 +255,174 @@ export const Inventory: React.FC = () => {
             setAllAtt(next);
         } catch { setError('Failed to load'); } finally { setLoading(false); }
     }, [uid]);
+
     useEffect(() => { fetchAll(); }, [fetchAll]);
 
-    // Upload handler
+    // ── Upload / delete cloud ─────────────────────────────────────────────────
+
     const handleFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
-        const f = e.target.files?.[0]; if (!f || !uploadCtx) return;
+        const f = e.target.files?.[0];
+        if (!f || !uploadCtx) return;
         try {
             if (!(f.type || '').toLowerCase().startsWith('image/')) throw new Error('Images only');
-            if (!uid) throw new Error('Sign in'); setUploading(true);
+            if (!uid) throw new Error('Sign in');
+            setUploading(true);
             const up = await upload(f, catKey(uploadCtx.cat));
             if (uploadCtx.replaceId) {
                 const old = allAtt[uploadCtx.cat].find(r => r.id === uploadCtx.replaceId);
-                if (old) { await supabase.from('user_files').delete().eq('id', old.id).eq('user_id', uid); if (old.thumb_path) await supabase.storage.from('thumbs').remove([old.thumb_path]); }
+                if (old) {
+                    await supabase.from('user_files').delete().eq('id', old.id).eq('user_id', uid);
+                    if (old.thumb_path) await supabase.storage.from('thumbs').remove([old.thumb_path]);
+                }
             }
-            playSuccessSound(); await fetchAll(); setSelectedId(up.id);
-        } catch (err) { setError(err instanceof Error ? err.message : 'Upload failed'); playErrorSound(); }
-        finally { setUploading(false); setUploadCtx(null); if (fileRef.current) fileRef.current.value = ''; }
+            pe?.emitEvent('inventory.upload.completed', { source: 'user', metadata: { category: uploadCtx.cat } });
+            playSuccessSound();
+            await fetchAll();
+            setSelectedId(up.id);
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'Upload failed');
+            playErrorSound();
+        } finally {
+            setUploading(false);
+            setUploadCtx(null);
+            if (fileRef.current) fileRef.current.value = '';
+        }
     };
 
-    const removeCloud = async (row: InventoryAttachment, e?: React.MouseEvent) => {
-        e?.stopPropagation();
+    const removeCloud = async (row: InventoryAttachment) => {
         try {
             if (!uid) throw new Error('Sign in');
             await supabase.from('user_files').delete().eq('id', row.id).eq('user_id', uid);
             if (row.thumb_path) await supabase.storage.from('thumbs').remove([row.thumb_path]);
             setAllAtt(prev => { const n = { ...prev }; for (const c of ALL_CATS) n[c] = n[c].filter(r => r.id !== row.id); return n; });
             if (selectedId === row.id) setSelectedId(null);
+            setConfirmDelete(null);
+            pe?.emitEvent('inventory.item.deleted', { source: 'user', metadata: { itemSource: 'cloud' } });
             playSuccessSound();
         } catch { setError('Delete failed'); playErrorSound(); }
     };
 
-    // Ledger
-    const addLedger = () => { const n = newItemName.trim(); if (!n) return; addInventorySlot({ category: activeCat, name: n }); setNewItemName(''); playSuccessSound(); };
-    const saveLedger = (id: string) => { const n = editingName.trim(); if (n) updateInventorySlot(id, { name: n }); setEditingId(null); setEditingName(''); };
+    // ── Ledger CRUD ───────────────────────────────────────────────────────────
 
-    // Rotation
-    const resetRot = () => { if (resetRef.current) clearTimeout(resetRef.current); resetRef.current = window.setTimeout(() => setRotation(0), 3000); };
+    const addLedger = () => {
+        const n = newItemName.trim();
+        if (!n) return;
+        addInventorySlot({ category: activeCat, name: n });
+        setNewItemName('');
+        playSuccessSound();
+    };
+
+    const removeLedger = (id: string) => {
+        deleteInventorySlot(id);
+        setSelectedId(null);
+        setConfirmDelete(null);
+        pe?.emitEvent('inventory.item.deleted', { source: 'user', metadata: { itemSource: 'ledger' } });
+        playClickSound();
+    };
+
+    const updateLedger = (slotId: string, patch: Partial<InventorySlot>) => {
+        updateInventorySlot(slotId, patch);
+        pe?.emitEvent('inventory.item.updated', { source: 'user', metadata: { field: Object.keys(patch)[0] } });
+    };
+
+    // ── Details panel actions ─────────────────────────────────────────────────
+
+    const saveEditingName = (item: UnifiedItem) => {
+        if (!item.ledgerSlot || editingName === null) return;
+        const n = editingName.trim();
+        if (n && n !== item.name) updateLedger(item.ledgerSlot.id, { name: n });
+        setEditingName(null);
+    };
+
+    const saveEditingDetails = (item: UnifiedItem) => {
+        if (!item.ledgerSlot || editingDetails === null) return;
+        updateLedger(item.ledgerSlot.id, { details: editingDetails || undefined });
+        setEditingDetails(null);
+    };
+
+    const setTreeBranch = (item: UnifiedItem, branch: SelfTreeBranch) => {
+        if (!item.ledgerSlot) return;
+        const next = branch === item.selfTreeBranch ? undefined : branch;
+        updateLedger(item.ledgerSlot.id, { selfTreeBranch: next });
+        if (next) pe?.emitEvent('inventory.item.tree_tagged', { source: 'user', metadata: { branch: next, category: item.category } });
+    };
+
+    const setImportance = (item: UnifiedItem, imp: InventorySlot['importance']) => {
+        if (!item.ledgerSlot) return;
+        const next = imp === item.importance ? undefined : imp;
+        updateLedger(item.ledgerSlot.id, { importance: next });
+    };
+
+    const toggleProject = (item: UnifiedItem, projectId: string) => {
+        if (!item.ledgerSlot) return;
+        const current = item.linkedProjectIds || [];
+        const next = current.includes(projectId)
+            ? current.filter(id => id !== projectId)
+            : [...current, projectId];
+        updateLedger(item.ledgerSlot.id, { linkedProjectIds: next });
+    };
+
+    const archiveItem = (item: UnifiedItem) => {
+        if (!item.ledgerSlot) return;
+        updateLedger(item.ledgerSlot.id, { archivedAt: Date.now() });
+        setSelectedId(null);
+        setConfirmDelete(null);
+        playClickSound();
+    };
+
+    const restoreItem = (item: UnifiedItem) => {
+        if (!item.ledgerSlot) return;
+        updateLedger(item.ledgerSlot.id, { archivedAt: undefined });
+        playClickSound();
+    };
+
+    const sendToDusk = (item: UnifiedItem) => {
+        const branch = item.selfTreeBranch;
+        const linkedNames = (item.linkedProjectIds || [])
+            .map(pid => projects.find(p => p.id === pid)?.title)
+            .filter(Boolean).join(', ');
+        openDuskBrief({
+            title: `Inventory: ${item.name}`,
+            body: [
+                `Category: ${item.category}`,
+                `Source: ${item.source}`,
+                branch            ? `Self Tree: ${branch}` : null,
+                item.importance   ? `Priority: ${item.importance}` : null,
+                item.details      ? `Notes: ${item.details}` : null,
+                linkedNames       ? `Linked Projects: ${linkedNames}` : null,
+            ].filter(Boolean).join('\n'),
+            source: 'inventory',
+            tags: ['inventory', item.category.toLowerCase(), ...(branch ? [branch.toLowerCase()] : [])],
+            linkedProjectIds: item.linkedProjectIds,
+        });
+        pe?.emitEvent('inventory.item.sent_to_dusk', { source: 'user', metadata: { itemId: item.id } });
+        playClickSound();
+    };
+
+    // ── 3D rotation drag on preview ───────────────────────────────────────────
+
+    const resetRot = () => {
+        if (resetRef.current) clearTimeout(resetRef.current);
+        resetRef.current = window.setTimeout(() => setRotation(0), 3000);
+    };
     useEffect(() => () => { if (resetRef.current) clearTimeout(resetRef.current); }, []);
-    const pDown = (e: React.PointerEvent<HTMLDivElement>) => { dragRef.current = { dragging: true, startX: e.clientX, startR: rotation }; (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId); };
-    const pMove = (e: React.PointerEvent<HTMLDivElement>) => { if (!dragRef.current.dragging) return; setRotation(Math.max(-60, Math.min(60, dragRef.current.startR + (e.clientX - dragRef.current.startX) * 0.2))); resetRot(); };
-    const pUp = (e: React.PointerEvent<HTMLDivElement>) => { dragRef.current.dragging = false; (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId); resetRot(); };
+    const pDown = (e: React.PointerEvent<HTMLDivElement>) => {
+        dragRef.current = { dragging: true, startX: e.clientX, startR: rotation };
+        (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+    };
+    const pMove = (e: React.PointerEvent<HTMLDivElement>) => {
+        if (!dragRef.current.dragging) return;
+        setRotation(Math.max(-60, Math.min(60, dragRef.current.startR + (e.clientX - dragRef.current.startX) * 0.2)));
+        resetRot();
+    };
+    const pUp = (e: React.PointerEvent<HTMLDivElement>) => {
+        dragRef.current.dragging = false;
+        (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId);
+        resetRot();
+    };
 
-    // Build grid
+    // ── Grid construction ─────────────────────────────────────────────────────
+
     const gridSlots = useMemo(() => {
         const filled: (UnifiedItem | null)[] = [...activeItems];
         const total = Math.max(EMPTY_SLOTS, Math.ceil((filled.length + 1) / GRID_COLS) * GRID_COLS);
@@ -177,9 +432,33 @@ export const Inventory: React.FC = () => {
 
     const Icon = catIcons[activeCat];
 
+    // ── Helpers ───────────────────────────────────────────────────────────────
+
+    const fmtDate = (ts?: number) => {
+        if (!ts) return null;
+        const d = new Date(ts);
+        return `${d.getDate().toString().padStart(2, '0')}.${(d.getMonth() + 1).toString().padStart(2, '0')}.${d.getFullYear().toString().slice(-2)}`;
+    };
+
+    const handleSelectItem = (item: UnifiedItem) => {
+        setSelectedId(item.id);
+        setRotation(0);
+        setEditingName(null);
+        setEditingDetails(null);
+        setShowProjectPicker(false);
+        setConfirmDelete(null);
+        pe?.emitEvent('inventory.item.selected', { source: 'user', metadata: { category: item.category, itemSource: item.source } });
+        playClickSound();
+    };
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // RENDER
+    // ─────────────────────────────────────────────────────────────────────────
+
     return (
         <div className="xt-inv-shell">
-            {/* ══ TOP BAR — category tabs centered ═══════════════════════ */}
+
+            {/* ══ TOP BAR — category tabs ═══════════════════════════════════ */}
             <div className="xt-inv-topbar">
                 {ALL_CATS.map(c => {
                     const CatIcon = catIcons[c];
@@ -187,24 +466,55 @@ export const Inventory: React.FC = () => {
                     return (
                         <button key={c}
                             className={`xt-inv-topbar-btn${active ? ' is-active' : ''}`}
-                            onClick={() => { setActiveCat(c); setSelectedId(null); setNewItemName(''); playClickSound(); }}
+                            onClick={() => { setActiveCat(c); setSelectedId(null); setNewItemName(''); setSearchQuery(''); setShowArchived(false); playClickSound(); }}
                             onMouseEnter={playHoverSound}>
                             <CatIcon size={14} />
                             <span>{c}</span>
+                            {counts[c] > 0 && <span className="xt-inv-topbar-count">{counts[c]}</span>}
                         </button>
                     );
                 })}
             </div>
 
-            {/* ══ MAIN LAYOUT ════════════════════════════════════════════ */}
+            {/* ══ MAIN LAYOUT ══════════════════════════════════════════════ */}
             <div className="xt-inv-main">
 
-                {/* ── Grid area ───────────────────────────────────────── */}
+                {/* ── Grid area ─────────────────────────────────────────── */}
                 <div className="xt-inv-grid-area">
+
+                    {/* Grid header — heading + search */}
                     <div className="xt-inv-grid-head">
-                        <span className="xt-inv-grid-heading">Modules</span>
-                        <span className="xt-inv-grid-sub">{activeCat}</span>
+                        <div className="xt-inv-grid-head-left">
+                            <span className="xt-inv-grid-heading">Modules</span>
+                            <span className="xt-inv-grid-sub">{activeCat}</span>
+                        </div>
+                        <div className="xt-inv-search">
+                            <input
+                                value={searchQuery}
+                                onChange={e => setSearchQuery(e.target.value)}
+                                placeholder="search…"
+                                className="xt-inv-search-input"
+                            />
+                            {searchQuery && (
+                                <button className="xt-inv-search-clear" onClick={() => setSearchQuery('')}>
+                                    <X size={9} />
+                                </button>
+                            )}
+                        </div>
                     </div>
+
+                    {/* Capability loadout strip — GEAR only */}
+                    {activeCat === 'GEAR' && (
+                        <div className={`xt-inv-loadout-bar xt-inv-loadout-bar--${loadoutSummary.state}`}>
+                            <span className="xt-inv-loadout-state">{loadoutSummary.state.toUpperCase()}</span>
+                            {loadoutAssignments.map(a => (
+                                <div key={a.slot.id} className={`xt-inv-loadout-slot${a.item ? ' is-equipped' : ''}`}>
+                                    <span className="xt-inv-loadout-slot-label">{a.slot.label}</span>
+                                    <span className="xt-inv-loadout-slot-val">{a.item ? a.item.title : '—'}</span>
+                                </div>
+                            ))}
+                        </div>
+                    )}
 
                     <div className="xt-inv-grid-scroll custom-scrollbar">
                         <div className="xt-inv-grid">
@@ -220,138 +530,323 @@ export const Inventory: React.FC = () => {
                                     );
                                 }
                                 const sel = selectedId === item.id;
+                                const branch = SELF_TREE_BRANCHES.find(b => b.value === item.selfTreeBranch);
                                 return (
                                     <button key={item.id}
-                                        className={`xt-inv-card${sel ? ' is-selected' : ''}`}
-                                        onClick={() => { setSelectedId(item.id); setRotation(0); playClickSound(); }}
+                                        className={`xt-inv-card${sel ? ' is-selected' : ''}${item.archivedAt ? ' is-archived' : ''}`}
+                                        onClick={() => handleSelectItem(item)}
                                         onMouseEnter={playHoverSound}>
-                                        {/* Card icon/thumb */}
                                         <div className="xt-inv-card-visual">
                                             {item.thumbUrl ? (
                                                 <img src={item.thumbUrl} alt="" />
+                                            ) : item.source === 'capability' && item.capabilityItem ? (
+                                                <div className="xt-inv-card-cap-badge">
+                                                    {CAP_KIND_LABEL[item.capabilityItem.kind] || item.capabilityItem.kind.toUpperCase()}
+                                                </div>
                                             ) : (
                                                 <Icon size={28} />
                                             )}
                                         </div>
-                                        {/* Card text */}
                                         <div className="xt-inv-card-text">
                                             <div className="xt-inv-card-name">{item.name}</div>
                                         </div>
-                                        {/* Bottom info */}
                                         <div className="xt-inv-card-footer">
-                                            <span className="xt-inv-card-src">{item.source}</span>
+                                            {branch ? (
+                                                <span className="xt-inv-card-branch" style={{ color: branch.color }}>{branch.label}</span>
+                                            ) : (
+                                                <span className="xt-inv-card-src">{item.source}</span>
+                                            )}
                                             {item.importance && (
                                                 <span className="xt-inv-card-imp" style={{ background: impColor(item.importance) }} />
                                             )}
                                         </div>
+                                        {item.archivedAt && <span className="xt-inv-card-archived-mark" title="Archived" />}
                                     </button>
                                 );
                             })}
                         </div>
 
-                        {/* Quick-add ledger item */}
-                        <div className="xt-inv-add-row">
-                            <input value={newItemName} onChange={e => setNewItemName(e.target.value)}
-                                onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addLedger(); } }}
-                                placeholder={`+ add ${activeCat.toLowerCase()} item`} />
-                            <button onClick={addLedger}><Plus size={14} /></button>
+                        {/* Footer: add + archive toggle */}
+                        <div className="xt-inv-grid-footer">
+                            <div className="xt-inv-add-row">
+                                <input value={newItemName}
+                                    onChange={e => setNewItemName(e.target.value)}
+                                    onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addLedger(); } }}
+                                    placeholder={`+ add ${activeCat.toLowerCase()} item`} />
+                                <button onClick={addLedger}><Plus size={14} /></button>
+                            </div>
+                            {archivedCount > 0 && (
+                                <button className="xt-inv-archive-toggle" onClick={() => setShowArchived(v => !v)}>
+                                    <Archive size={11} />
+                                    <span>{showArchived ? 'hide archived' : `${archivedCount} archived`}</span>
+                                </button>
+                            )}
                         </div>
                     </div>
                 </div>
 
-                {/* ── Details panel ───────────────────────────────────── */}
+                {/* ── Details panel ─────────────────────────────────────── */}
                 <div className="xt-inv-details">
-                    <div className="xt-inv-details-head">
-                        <span className="xt-inv-grid-heading">Details</span>
-                    </div>
-
                     {selected ? (
-                        <div className="xt-inv-details-body custom-scrollbar">
-                            {/* Preview */}
-                            <div className="xt-inv-preview">
-                                {selected.source === 'cloud' && selected.mediaUrl ? (
-                                    <div className="xt-inv-preview-img"
-                                        style={{ perspective: '900px' }}
-                                        onPointerDown={pDown} onPointerMove={pMove} onPointerUp={pUp} onPointerLeave={pUp}>
-                                        <div style={{ transform: `rotateY(${rotation}deg)`, transformStyle: 'preserve-3d', transition: dragRef.current.dragging ? 'none' : 'transform 0.2s ease-out', width: '100%', height: '100%' }}>
-                                            <img src={selected.mediaUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
-                                        </div>
-                                    </div>
+                        <>
+                            {/* Panel header — name (editable for ledger) + action buttons */}
+                            <div className="xt-inv-details-head">
+                                {selected.source === 'ledger' && selected.ledgerSlot ? (
+                                    editingName !== null ? (
+                                        <input autoFocus className="xt-inv-details-name-input"
+                                            value={editingName}
+                                            onChange={e => setEditingName(e.target.value)}
+                                            onBlur={() => saveEditingName(selected)}
+                                            onKeyDown={e => { if (e.key === 'Enter') saveEditingName(selected); if (e.key === 'Escape') setEditingName(null); }} />
+                                    ) : (
+                                        <span className="xt-inv-grid-heading is-editable"
+                                            title="Click to rename"
+                                            onClick={() => setEditingName(selected.name)}>
+                                            {selected.name}
+                                        </span>
+                                    )
                                 ) : (
-                                    <div className="xt-inv-preview-icon">
-                                        {React.createElement(catIcons[selected.category], { size: 56 })}
-                                    </div>
+                                    <span className="xt-inv-grid-heading">{selected.name}</span>
                                 )}
-                                {/* Overlay actions */}
-                                {selected.source === 'cloud' && (
-                                    <div className="xt-inv-preview-actions">
-                                        <button onClick={() => { setUploadCtx({ cat: selected.category, replaceId: selected.cloudRow?.id }); fileRef.current?.click(); playClickSound(); }} title="Replace"><Upload size={14} /></button>
-                                        <button onClick={e => selected.cloudRow && removeCloud(selected.cloudRow, e)} title="Delete" className="danger"><Trash2 size={14} /></button>
-                                    </div>
-                                )}
+
+                                <div className="xt-inv-details-head-actions">
+                                    {/* Delete / archive flow */}
+                                    {selected.source !== 'capability' && (
+                                        confirmDelete === selected.id ? (
+                                            <div className="xt-inv-confirm-delete">
+                                                <span>Delete?</span>
+                                                <button className="yes" onClick={() => {
+                                                    if (selected.cloudRow) removeCloud(selected.cloudRow);
+                                                    else if (selected.ledgerSlot) removeLedger(selected.ledgerSlot.id);
+                                                }}>Yes</button>
+                                                <button className="no" onClick={() => setConfirmDelete(null)}>No</button>
+                                            </div>
+                                        ) : (
+                                            <>
+                                                {selected.source === 'ledger' && (
+                                                    selected.archivedAt ? (
+                                                        <button className="xt-inv-head-btn" title="Restore from archive" onClick={() => restoreItem(selected)}>
+                                                            <RotateCcw size={13} />
+                                                        </button>
+                                                    ) : (
+                                                        <button className="xt-inv-head-btn" title="Archive" onClick={() => archiveItem(selected)}>
+                                                            <Archive size={13} />
+                                                        </button>
+                                                    )
+                                                )}
+                                                <button className="xt-inv-head-btn danger" title="Delete permanently" onClick={() => setConfirmDelete(selected.id)}>
+                                                    <Trash2 size={13} />
+                                                </button>
+                                            </>
+                                        )
+                                    )}
+                                    {/* Send to Dusk */}
+                                    <button className="xt-inv-head-btn dusk" title="Send context to Dusk" onClick={() => sendToDusk(selected)}>
+                                        <Send size={13} />
+                                    </button>
+                                </div>
                             </div>
 
-                            {/* Info */}
-                            <div className="xt-inv-info">
-                                <h3 className="xt-inv-info-name">{selected.name}</h3>
-                                {selected.details && <p className="xt-inv-info-desc">{selected.details}</p>}
+                            <div className="xt-inv-details-body custom-scrollbar">
 
-                                {/* Capability highlights */}
-                                {selected.capabilityItem?.highlights && selected.capabilityItem.highlights.length > 0 && (
-                                    <div className="xt-inv-info-chips">
-                                        {selected.capabilityItem.highlights.map(h => (
-                                            <span key={h} className="xt-inv-chip">{h}</span>
-                                        ))}
-                                    </div>
+                                {/* Preview image */}
+                                <div className="xt-inv-preview">
+                                    {selected.source === 'cloud' && selected.mediaUrl ? (
+                                        <div className="xt-inv-preview-img"
+                                            style={{ perspective: '900px' }}
+                                            onPointerDown={pDown} onPointerMove={pMove} onPointerUp={pUp} onPointerLeave={pUp}>
+                                            <div style={{ transform: `rotateY(${rotation}deg)`, transformStyle: 'preserve-3d', transition: dragRef.current.dragging ? 'none' : 'transform 0.2s ease-out', width: '100%', height: '100%' }}>
+                                                <img src={selected.mediaUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <div className="xt-inv-preview-icon">
+                                            {React.createElement(catIcons[selected.category], { size: 56 })}
+                                        </div>
+                                    )}
+                                    {selected.source === 'cloud' && (
+                                        <div className="xt-inv-preview-actions">
+                                            <button onClick={() => { setUploadCtx({ cat: selected.category, replaceId: selected.cloudRow?.id }); fileRef.current?.click(); playClickSound(); }} title="Replace image">
+                                                <Upload size={14} />
+                                            </button>
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* Replace image — visible action button for cloud */}
+                                {selected.source === 'cloud' && (
+                                    <button className="xt-inv-action-btn"
+                                        onClick={() => { setUploadCtx({ cat: selected.category, replaceId: selected.cloudRow?.id }); fileRef.current?.click(); playClickSound(); }}>
+                                        <Upload size={12} />
+                                        <span>Replace Image</span>
+                                    </button>
                                 )}
 
-                                {/* Ledger actions */}
-                                {selected.source === 'ledger' && selected.ledgerSlot && (
-                                    <div className="xt-inv-info-ledger">
-                                        {editingId === selected.ledgerSlot.id ? (
-                                            <input autoFocus value={editingName}
-                                                onChange={e => setEditingName(e.target.value)}
-                                                onBlur={() => saveLedger(selected.ledgerSlot!.id)}
-                                                onKeyDown={e => { if (e.key === 'Enter') saveLedger(selected.ledgerSlot!.id); if (e.key === 'Escape') setEditingId(null); }}
-                                                className="xt-inv-info-rename" />
-                                        ) : (
-                                            <div className="xt-inv-info-btns">
-                                                <button onClick={() => { setEditingId(selected.ledgerSlot!.id); setEditingName(selected.ledgerSlot!.name); }}>Rename</button>
-                                                <button className="danger" onClick={() => { deleteInventorySlot(selected.ledgerSlot!.id); playClickSound(); setSelectedId(null); }}><Trash2 size={12} /></button>
+                                {/* Capability item breakdown */}
+                                {selected.source === 'capability' && selected.capabilityItem && (
+                                    <div className="xt-inv-cap-info">
+                                        <div className="xt-inv-cap-header">
+                                            <span className="xt-inv-cap-kind-badge">{CAP_KIND_LABEL[selected.capabilityItem.kind] || selected.capabilityItem.kind.toUpperCase()}</span>
+                                            <span className="xt-inv-cap-source">{selected.capabilityItem.sourceLabel}</span>
+                                        </div>
+                                        <p className="xt-inv-cap-desc">{selected.capabilityItem.description}</p>
+                                        {selected.capabilityItem.highlights.length > 0 && (
+                                            <div className="xt-inv-info-chips">
+                                                {selected.capabilityItem.highlights.map(h => (
+                                                    <span key={h} className="xt-inv-chip">{h}</span>
+                                                ))}
                                             </div>
                                         )}
                                     </div>
                                 )}
-                            </div>
 
-                            {/* Stats strip */}
-                            <div className="xt-inv-stats">
-                                <div className="xt-inv-stat">
-                                    <span className="xt-inv-stat-label">Source</span>
-                                    <span className="xt-inv-stat-val">{selected.source}</span>
-                                </div>
-                                {selected.importance && (
-                                    <div className="xt-inv-stat">
-                                        <span className="xt-inv-stat-label">Priority</span>
-                                        <span className="xt-inv-stat-val" style={{ color: impColor(selected.importance) }}>{selected.importance}</span>
+                                {/* Notes — editable for ledger, read-only for cloud */}
+                                {selected.source !== 'capability' && (
+                                    <div className="xt-inv-section">
+                                        <span className="xt-inv-section-label">NOTES</span>
+                                        {selected.source === 'ledger' && selected.ledgerSlot ? (
+                                            editingDetails !== null ? (
+                                                <textarea autoFocus
+                                                    className="xt-inv-notes-input"
+                                                    value={editingDetails}
+                                                    onChange={e => setEditingDetails(e.target.value)}
+                                                    onBlur={() => saveEditingDetails(selected)}
+                                                    onKeyDown={e => { if (e.key === 'Escape') setEditingDetails(null); }}
+                                                    rows={3}
+                                                    placeholder="Add notes about this item…" />
+                                            ) : (
+                                                <div className="xt-inv-notes-display"
+                                                    onClick={() => setEditingDetails(selected.details || '')}>
+                                                    {selected.details
+                                                        ? <p>{selected.details}</p>
+                                                        : <span className="xt-inv-notes-placeholder">Click to add notes…</span>}
+                                                </div>
+                                            )
+                                        ) : (
+                                            <p className="xt-inv-info-desc">
+                                                {selected.details || <span className="xt-inv-notes-placeholder">No notes</span>}
+                                            </p>
+                                        )}
                                     </div>
                                 )}
-                                <div className="xt-inv-stat">
-                                    <span className="xt-inv-stat-label">Type</span>
-                                    <span className="xt-inv-stat-val">{selected.category}</span>
+
+                                {/* Self Tree branch tagger — ledger only */}
+                                {selected.source === 'ledger' && (
+                                    <div className="xt-inv-section">
+                                        <span className="xt-inv-section-label">SELF TREE</span>
+                                        <div className="xt-inv-tree-picker">
+                                            {SELF_TREE_BRANCHES.map(b => (
+                                                <button key={b.value}
+                                                    className={`xt-inv-tree-btn${selected.selfTreeBranch === b.value ? ' is-active' : ''}`}
+                                                    style={selected.selfTreeBranch === b.value ? { borderColor: b.color, color: b.color, background: `${b.color}14` } : {}}
+                                                    onClick={() => setTreeBranch(selected, b.value)}>
+                                                    {b.label}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Priority / importance — ledger only */}
+                                {selected.source === 'ledger' && (
+                                    <div className="xt-inv-section">
+                                        <span className="xt-inv-section-label">PRIORITY</span>
+                                        <div className="xt-inv-imp-pills">
+                                            {(['low', 'medium', 'high', 'critical'] as const).map(imp => (
+                                                <button key={imp}
+                                                    className={`xt-inv-imp-btn${selected.importance === imp ? ' is-active' : ''}`}
+                                                    style={selected.importance === imp ? { borderColor: impColor(imp), color: impColor(imp), background: `${impColor(imp)}14` } : {}}
+                                                    onClick={() => setImportance(selected, imp)}>
+                                                    {imp}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Linked Projects — ledger only, only shown if projects exist */}
+                                {selected.source === 'ledger' && activeProjects.length > 0 && (
+                                    <div className="xt-inv-section">
+                                        <div className="xt-inv-section-head">
+                                            <span className="xt-inv-section-label">PROJECTS</span>
+                                            <button className="xt-inv-section-toggle" onClick={() => setShowProjectPicker(v => !v)}>
+                                                <FolderOpen size={11} />
+                                            </button>
+                                        </div>
+                                        {(selected.linkedProjectIds || []).length > 0 && (
+                                            <div className="xt-inv-project-tags">
+                                                {(selected.linkedProjectIds || []).map(pid => {
+                                                    const proj = projects.find(p => p.id === pid);
+                                                    if (!proj) return null;
+                                                    return (
+                                                        <span key={pid} className="xt-inv-project-tag"
+                                                            onClick={() => toggleProject(selected, pid)}>
+                                                            {proj.title}
+                                                            <X size={9} />
+                                                        </span>
+                                                    );
+                                                })}
+                                            </div>
+                                        )}
+                                        {showProjectPicker && (
+                                            <div className="xt-inv-project-picker">
+                                                {activeProjects.map(proj => {
+                                                    const linked = (selected.linkedProjectIds || []).includes(proj.id);
+                                                    return (
+                                                        <button key={proj.id}
+                                                            className={`xt-inv-project-opt${linked ? ' is-linked' : ''}`}
+                                                            onClick={() => toggleProject(selected, proj.id)}>
+                                                            <span className="xt-inv-project-opt-name">{proj.title}</span>
+                                                            <span className="xt-inv-project-opt-type">{proj.type}</span>
+                                                        </button>
+                                                    );
+                                                })}
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+
+                                {/* Stats strip */}
+                                <div className="xt-inv-stats">
+                                    <div className="xt-inv-stat">
+                                        <span className="xt-inv-stat-label">Source</span>
+                                        <span className="xt-inv-stat-val">{selected.source}</span>
+                                    </div>
+                                    <div className="xt-inv-stat">
+                                        <span className="xt-inv-stat-label">Type</span>
+                                        <span className="xt-inv-stat-val">{selected.category}</span>
+                                    </div>
+                                    {selected.createdAt && (
+                                        <div className="xt-inv-stat">
+                                            <span className="xt-inv-stat-label">Added</span>
+                                            <span className="xt-inv-stat-val">{fmtDate(selected.createdAt)}</span>
+                                        </div>
+                                    )}
+                                    {selected.archivedAt && (
+                                        <div className="xt-inv-stat">
+                                            <span className="xt-inv-stat-label">Archived</span>
+                                            <span className="xt-inv-stat-val" style={{ color: '#e8b800' }}>{fmtDate(selected.archivedAt)}</span>
+                                        </div>
+                                    )}
                                 </div>
+
                             </div>
-                        </div>
+                        </>
                     ) : (
-                        <div className="xt-inv-details-empty">
-                            <Box size={36} />
-                            <span>Select an item</span>
-                        </div>
+                        <>
+                            <div className="xt-inv-details-head">
+                                <span className="xt-inv-grid-heading">Details</span>
+                            </div>
+                            <div className="xt-inv-details-empty">
+                                <Box size={36} />
+                                <span>Select an item</span>
+                            </div>
+                        </>
                     )}
                 </div>
             </div>
 
-            {/* ══ RESOURCE BAR ═══════════════════════════════════════════ */}
+            {/* ══ RESOURCE BAR ════════════════════════════════════════════ */}
             <div className="xt-inv-bar">
                 {ALL_CATS.map(c => {
                     const CI = catIcons[c];
@@ -368,11 +863,13 @@ export const Inventory: React.FC = () => {
                 <div className="xt-inv-bar-sep" />
                 <div className="xt-inv-bar-item">
                     <div className="xt-inv-bar-top">
-                        <span className="xt-inv-bar-num">{items.length}</span>
+                        <span className="xt-inv-bar-num">{items.filter(i => !i.archivedAt).length}</span>
                     </div>
                     <span className="xt-inv-bar-label">total</span>
                 </div>
                 <div className="xt-inv-bar-grow" />
+                {error && <span className="xt-inv-bar-error">{error}</span>}
+                {(loading || uploading) && <Loader2 size={12} className="xt-inv-bar-loader" />}
                 <span className="xt-inv-bar-sync">{uid ? 'CLOUD' : 'LOCAL'}</span>
             </div>
 
@@ -380,7 +877,8 @@ export const Inventory: React.FC = () => {
 
             {/* Viewer modal */}
             {viewer && (
-                <div className="fixed inset-0 z-[220] bg-black/80 flex items-center justify-center p-6" onMouseDown={() => setViewer(null)}>
+                <div className="fixed inset-0 z-[220] bg-black/80 flex items-center justify-center p-6"
+                    onMouseDown={() => setViewer(null)}>
                     <div className="xt-inv-viewer" onMouseDown={e => e.stopPropagation()}>
                         <div className="xt-inv-viewer-top">
                             <span>{viewer.item.title || 'Media'}</span>

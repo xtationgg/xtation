@@ -5940,7 +5940,8 @@
 }
 .xt-inv-grid-head {
   display: flex;
-  align-items: baseline;
+  align-items: center;
+  justify-content: space-between;
   gap: 10px;
   padding: 0 0 10px 1px;
 }
@@ -6515,6 +6516,576 @@
   max-height: 70vh;
   object-fit: contain;
 }
+
+/* ── Tab count badge ──────────────────────────────────────────────────── */
+.xt-inv-topbar-count {
+  font-size: 8px;
+  font-family: var(--font-mono, ui-monospace, monospace);
+  color: var(--inv-text-muted);
+  opacity: 0.55;
+  letter-spacing: 0.06em;
+  padding-left: 2px;
+}
+.xt-inv-topbar-btn.is-active .xt-inv-topbar-count {
+  color: var(--inv-accent-pink);
+  opacity: 0.8;
+}
+
+/* ── Grid head — flex layout for search ──────────────────────────────── */
+.xt-inv-grid-head {
+  display: flex !important;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 0 0 10px 1px;
+}
+.xt-inv-grid-head-left {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+/* ── Search bar ──────────────────────────────────────────────────────── */
+.xt-inv-search {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.xt-inv-search-input {
+  background: rgba(255,255,255,0.025);
+  border: 1px solid rgba(255,255,255,0.05);
+  border-radius: 0;
+  padding: 4px 24px 4px 8px;
+  font-size: 9px;
+  font-family: var(--font-mono, ui-monospace, monospace);
+  color: var(--inv-text-secondary);
+  outline: none;
+  width: 110px;
+  transition: border-color 150ms ease-out, width 200ms ease-out;
+  letter-spacing: 0.04em;
+}
+.xt-inv-search-input:focus {
+  border-color: rgba(171,54,135,0.3);
+  width: 150px;
+}
+.xt-inv-search-input::placeholder {
+  color: var(--inv-text-muted);
+  opacity: 0.35;
+}
+.xt-inv-search-clear {
+  position: absolute;
+  right: 5px;
+  background: transparent;
+  border: none;
+  color: var(--inv-text-muted);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  padding: 0;
+  opacity: 0.5;
+}
+.xt-inv-search-clear:hover { opacity: 1; }
+
+/* ── Capability loadout bar ──────────────────────────────────────────── */
+.xt-inv-loadout-bar {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  padding: 0 0 8px 0;
+  margin-bottom: 4px;
+  border-bottom: 1px solid rgba(255,255,255,0.03);
+  overflow: hidden;
+}
+.xt-inv-loadout-state {
+  font-size: 7.5px;
+  font-weight: 700;
+  font-family: var(--font-mono, ui-monospace, monospace);
+  letter-spacing: 0.18em;
+  padding: 3px 8px 3px 0;
+  margin-right: 8px;
+  border-right: 1px solid rgba(255,255,255,0.06);
+  flex-shrink: 0;
+}
+.xt-inv-loadout-bar--ready   .xt-inv-loadout-state { color: #10b981; }
+.xt-inv-loadout-bar--partial .xt-inv-loadout-state { color: #e8b800; }
+.xt-inv-loadout-bar--empty   .xt-inv-loadout-state { color: var(--inv-text-muted); }
+.xt-inv-loadout-slot {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding: 2px 10px;
+  border-right: 1px solid rgba(255,255,255,0.03);
+  min-width: 0;
+}
+.xt-inv-loadout-slot-label {
+  font-size: 7px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  color: var(--inv-text-muted);
+  opacity: 0.5;
+}
+.xt-inv-loadout-slot-val {
+  font-size: 8.5px;
+  font-family: var(--font-mono, ui-monospace, monospace);
+  color: var(--inv-text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 90px;
+}
+.xt-inv-loadout-slot.is-equipped .xt-inv-loadout-slot-val {
+  color: var(--inv-text-secondary);
+}
+
+/* ── Card: thumbnail fill fix ────────────────────────────────────────── */
+.xt-inv-card-visual:has(img) {
+  padding: 0;
+  opacity: 1;
+}
+.xt-inv-card-visual img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.9;
+}
+
+/* ── Card: capability badge ──────────────────────────────────────────── */
+.xt-inv-card-cap-badge {
+  font-size: 8px;
+  font-weight: 700;
+  font-family: var(--font-mono, ui-monospace, monospace);
+  letter-spacing: 0.18em;
+  color: var(--inv-accent-pink);
+  opacity: 0.7;
+  text-transform: uppercase;
+}
+
+/* ── Card: self tree branch label ────────────────────────────────────── */
+.xt-inv-card-branch {
+  font-size: 7.5px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-family: var(--font-mono, ui-monospace, monospace);
+  opacity: 0.75;
+}
+
+/* ── Card: archived state ────────────────────────────────────────────── */
+.xt-inv-card.is-archived {
+  opacity: 0.45;
+}
+.xt-inv-card-archived-mark {
+  position: absolute;
+  top: 4px;
+  right: 5px;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: #e8b800;
+  opacity: 0.5;
+}
+
+/* ── Grid footer ─────────────────────────────────────────────────────── */
+.xt-inv-grid-footer {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 2px;
+}
+.xt-inv-archive-toggle {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background: transparent;
+  border: none;
+  color: var(--inv-text-muted);
+  font-size: 9px;
+  font-family: var(--font-mono, ui-monospace, monospace);
+  letter-spacing: 0.08em;
+  cursor: pointer;
+  padding: 3px 2px;
+  opacity: 0.4;
+  transition: opacity 150ms ease-out;
+}
+.xt-inv-archive-toggle:hover { opacity: 0.7; }
+
+/* ── Details panel head — with action buttons ────────────────────────── */
+.xt-inv-details-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 0 0 10px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.03);
+  flex-shrink: 0;
+  min-height: 36px;
+}
+.xt-inv-grid-heading.is-editable {
+  cursor: text;
+}
+.xt-inv-grid-heading.is-editable:hover {
+  color: var(--inv-text-primary);
+}
+.xt-inv-details-name-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid rgba(171,54,135,0.35);
+  color: var(--inv-text-heading);
+  font-size: 18px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  outline: none;
+  padding: 0 0 4px 0;
+  width: 100%;
+  min-width: 0;
+}
+
+/* ── Details head action buttons ─────────────────────────────────────── */
+.xt-inv-details-head-actions {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  flex-shrink: 0;
+}
+.xt-inv-head-btn {
+  width: 26px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: 1px solid rgba(255,255,255,0.05);
+  border-radius: 0;
+  color: var(--inv-text-muted);
+  cursor: pointer;
+  transition: color 140ms ease-out, background 140ms ease-out, border-color 140ms ease-out;
+}
+.xt-inv-head-btn:hover {
+  color: var(--inv-text-secondary);
+  background: rgba(255,255,255,0.04);
+  border-color: rgba(255,255,255,0.09);
+}
+.xt-inv-head-btn.danger:hover {
+  color: #e8293a;
+  background: rgba(232,41,58,0.07);
+  border-color: rgba(232,41,58,0.2);
+}
+.xt-inv-head-btn.dusk:hover {
+  color: var(--inv-accent-pink);
+  background: var(--inv-accent-pink-dim);
+  border-color: rgba(171,54,135,0.25);
+}
+
+/* ── Inline delete confirmation ──────────────────────────────────────── */
+.xt-inv-confirm-delete {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.xt-inv-confirm-delete span {
+  font-size: 9px;
+  font-family: var(--font-mono, ui-monospace, monospace);
+  color: var(--inv-text-muted);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.xt-inv-confirm-delete button {
+  padding: 3px 8px;
+  font-size: 9px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  border-radius: 0;
+  cursor: pointer;
+  border: 1px solid rgba(255,255,255,0.07);
+  background: transparent;
+  font-family: var(--font-mono, ui-monospace, monospace);
+}
+.xt-inv-confirm-delete button.yes {
+  color: #e8293a;
+  border-color: rgba(232,41,58,0.25);
+}
+.xt-inv-confirm-delete button.yes:hover {
+  background: rgba(232,41,58,0.1);
+}
+.xt-inv-confirm-delete button.no {
+  color: var(--inv-text-muted);
+}
+.xt-inv-confirm-delete button.no:hover {
+  color: var(--inv-text-secondary);
+}
+
+/* ── Action button below preview (Replace Image) ─────────────────────── */
+.xt-inv-action-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  padding: 7px 10px;
+  margin-top: 8px;
+  background: rgba(255,255,255,0.02);
+  border: 1px solid rgba(255,255,255,0.05);
+  border-radius: 0;
+  color: var(--inv-text-muted);
+  font-size: 9.5px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  cursor: pointer;
+  transition: color 140ms ease-out, background 140ms ease-out, border-color 140ms ease-out;
+  font-family: inherit;
+}
+.xt-inv-action-btn:hover {
+  color: var(--inv-text-primary);
+  background: rgba(255,255,255,0.04);
+  border-color: rgba(255,255,255,0.1);
+}
+
+/* ── Capability item info block ──────────────────────────────────────── */
+.xt-inv-cap-info {
+  margin-top: 12px;
+  padding: 10px;
+  background: rgba(255,255,255,0.02);
+  border: 1px solid rgba(255,255,255,0.04);
+}
+.xt-inv-cap-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.xt-inv-cap-kind-badge {
+  font-size: 8px;
+  font-weight: 700;
+  font-family: var(--font-mono, ui-monospace, monospace);
+  letter-spacing: 0.2em;
+  color: var(--inv-accent-pink);
+  padding: 2px 6px;
+  border: 1px solid rgba(171,54,135,0.3);
+  background: rgba(171,54,135,0.07);
+}
+.xt-inv-cap-source {
+  font-size: 8.5px;
+  color: var(--inv-text-muted);
+  font-family: var(--font-mono, ui-monospace, monospace);
+  letter-spacing: 0.06em;
+  opacity: 0.6;
+}
+.xt-inv-cap-desc {
+  font-size: 11px;
+  line-height: 1.55;
+  color: var(--inv-text-secondary);
+  opacity: 0.8;
+  margin: 0;
+}
+
+/* ── Section containers ──────────────────────────────────────────────── */
+.xt-inv-section {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid rgba(255,255,255,0.03);
+}
+.xt-inv-section-label {
+  display: block;
+  font-size: 8px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.22em;
+  color: var(--inv-text-muted);
+  font-family: var(--font-mono, ui-monospace, monospace);
+  margin-bottom: 8px;
+  opacity: 0.55;
+}
+.xt-inv-section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+.xt-inv-section-head .xt-inv-section-label { margin-bottom: 0; }
+.xt-inv-section-toggle {
+  background: transparent;
+  border: none;
+  color: var(--inv-text-muted);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  opacity: 0.4;
+  padding: 0;
+  transition: opacity 140ms;
+}
+.xt-inv-section-toggle:hover { opacity: 0.8; }
+
+/* ── Notes editor ────────────────────────────────────────────────────── */
+.xt-inv-notes-input {
+  width: 100%;
+  background: rgba(255,255,255,0.02);
+  border: 1px solid rgba(171,54,135,0.25);
+  border-radius: 0;
+  padding: 8px 10px;
+  font-size: 11px;
+  line-height: 1.6;
+  color: var(--inv-text-primary);
+  outline: none;
+  resize: none;
+  font-family: inherit;
+  box-sizing: border-box;
+}
+.xt-inv-notes-input::placeholder { color: var(--inv-text-muted); opacity: 0.35; }
+.xt-inv-notes-display {
+  cursor: text;
+  padding: 4px 2px;
+}
+.xt-inv-notes-display p {
+  font-size: 11px;
+  line-height: 1.6;
+  color: var(--inv-text-secondary);
+  margin: 0;
+}
+.xt-inv-notes-display:hover p { color: var(--inv-text-primary); }
+.xt-inv-notes-placeholder {
+  font-size: 10px;
+  color: var(--inv-text-muted);
+  opacity: 0.3;
+  font-family: var(--font-mono, ui-monospace, monospace);
+  letter-spacing: 0.04em;
+  font-style: italic;
+}
+
+/* ── Self Tree branch picker ─────────────────────────────────────────── */
+.xt-inv-tree-picker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.xt-inv-tree-btn {
+  padding: 3px 8px;
+  font-size: 8.5px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  border: 1px solid rgba(255,255,255,0.06);
+  background: transparent;
+  color: var(--inv-text-muted);
+  cursor: pointer;
+  border-radius: 0;
+  font-family: inherit;
+  transition: color 130ms ease-out, border-color 130ms ease-out, background 130ms ease-out;
+}
+.xt-inv-tree-btn:hover {
+  color: var(--inv-text-secondary);
+  border-color: rgba(255,255,255,0.12);
+}
+/* active state is set via inline style (branch color) */
+
+/* ── Importance pill buttons ─────────────────────────────────────────── */
+.xt-inv-imp-pills {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+}
+.xt-inv-imp-btn {
+  padding: 3px 8px;
+  font-size: 8.5px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  border: 1px solid rgba(255,255,255,0.06);
+  background: transparent;
+  color: var(--inv-text-muted);
+  cursor: pointer;
+  border-radius: 0;
+  font-family: inherit;
+  transition: color 130ms ease-out, border-color 130ms ease-out, background 130ms ease-out;
+}
+.xt-inv-imp-btn:hover {
+  color: var(--inv-text-secondary);
+  border-color: rgba(255,255,255,0.12);
+}
+/* active state is set via inline style (impColor) */
+
+/* ── Linked project tags ─────────────────────────────────────────────── */
+.xt-inv-project-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-bottom: 6px;
+}
+.xt-inv-project-tag {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 7px;
+  font-size: 9px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--inv-accent-pink);
+  border: 1px solid rgba(171,54,135,0.25);
+  background: rgba(171,54,135,0.07);
+  cursor: pointer;
+  border-radius: 0;
+  transition: background 130ms;
+}
+.xt-inv-project-tag:hover { background: rgba(171,54,135,0.14); }
+
+/* ── Project picker dropdown ─────────────────────────────────────────── */
+.xt-inv-project-picker {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  background: var(--inv-grid-line);
+  border: 1px solid rgba(255,255,255,0.05);
+  margin-top: 4px;
+}
+.xt-inv-project-opt {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 7px 10px;
+  background: var(--inv-card-bg);
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  text-align: left;
+  transition: background 130ms;
+}
+.xt-inv-project-opt:hover { background: var(--inv-card-bg-hover); }
+.xt-inv-project-opt.is-linked { background: rgba(171,54,135,0.07); }
+.xt-inv-project-opt-name {
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--inv-text-primary);
+  letter-spacing: 0.04em;
+}
+.xt-inv-project-opt.is-linked .xt-inv-project-opt-name { color: var(--inv-accent-pink); }
+.xt-inv-project-opt-type {
+  font-size: 8px;
+  font-family: var(--font-mono, ui-monospace, monospace);
+  color: var(--inv-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  opacity: 0.55;
+}
+
+/* ── Bar: error + loader ─────────────────────────────────────────────── */
+.xt-inv-bar-error {
+  font-size: 8.5px;
+  color: #e8293a;
+  font-family: var(--font-mono, ui-monospace, monospace);
+  letter-spacing: 0.06em;
+  opacity: 0.8;
+}
+.xt-inv-bar-loader {
+  color: var(--inv-text-muted);
+  opacity: 0.55;
+  animation: spin 1s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
 
 /* ═══════════════════════════════════════════════════════════════════════════
    REDUCED MOTION

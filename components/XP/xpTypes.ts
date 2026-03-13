@@ -298,6 +298,12 @@ export interface InventorySlot {
   importance?: 'low' | 'medium' | 'high' | 'critical';
   /** Reference to a Supabase user_files row (optional). */
   fileId?: string;
+  /** Self Tree branch this item belongs to — connects inventory to identity system. */
+  selfTreeBranch?: SelfTreeBranch;
+  /** Lab project IDs this item is linked to — same pattern as LabNote.linkedProjectIds. */
+  linkedProjectIds?: string[];
+  /** Soft-delete timestamp. Set to archive, clear to restore, null means active. */
+  archivedAt?: number;
   createdAt: number;
   updatedAt: number;
 }

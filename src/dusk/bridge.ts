@@ -5,7 +5,7 @@ import {
   writeUserScopedJSON,
 } from '../lib/userScopedStorage';
 
-export type DuskBriefSource = 'lab' | 'play' | 'multiplayer' | 'profile' | 'settings';
+export type DuskBriefSource = 'lab' | 'play' | 'multiplayer' | 'profile' | 'settings' | 'inventory';
 
 export interface DuskBriefPayload {
   title: string;
