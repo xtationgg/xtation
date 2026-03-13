@@ -1334,7 +1334,7 @@ const App: React.FC = () => {
     <div 
         ref={shellRootRef}
         onWheel={routeWheelToContainer}
-        className="xt-shell-root w-full h-[100dvh] flex flex-col overflow-hidden text-[var(--ui-text)] font-mono bg-cover bg-center transition-all duration-200 ease-out relative"
+        className="xt-shell-root w-full h-full flex flex-col overflow-hidden text-[var(--ui-text)] font-mono bg-cover bg-center transition-all duration-200 ease-out relative"
         style={getBackgroundStyle()}
     >
       <ScheduledTaskPrompt />
