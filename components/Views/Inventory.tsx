@@ -245,6 +245,20 @@ export const Inventory: React.FC = () => {
         [projects]
     );
 
+    /** Count items per category that are linked to active projects */
+    const linkedCounts = useMemo(() => {
+        const activeIds = new Set(activeProjects.map(p => p.id));
+        const c: Record<InventoryCategory, number> = { APPAREL: 0, EQUIPMENT: 0, TOOLS: 0, LIBRARY: 0, CONSUMABLES: 0, VALUABLES: 0, MISC: 0 };
+        if (!activeIds.size) return c;
+        for (const i of items) {
+            if (i.archivedAt || !(i.category in c)) continue;
+            if (i.linkedProjectIds?.some(pid => activeIds.has(pid))) c[i.category]++;
+        }
+        return c;
+    }, [items, activeProjects]);
+
+    const totalLinked = useMemo(() => Object.values(linkedCounts).reduce((a, b) => a + b, 0), [linkedCounts]);
+
     // ── Supabase helpers ──────────────────────────────────────────────────────
 
     const resolveUrl = async (p: string) => {
@@ -335,13 +349,6 @@ export const Inventory: React.FC = () => {
             setUploading(true);
             uploadingCatRef.current = catLock;
             const up = await upload(f, catLock);
-            // Create a ledger slot linked to this cloud file
-            addInventorySlot({
-                category: uploadCtx.cat,
-                name: up.title || 'Uploaded Image',
-                fileId: up.id,
-                sourceType: 'uploaded',
-            });
             if (uploadCtx.replaceId) {
                 const old = allAtt[uploadCtx.cat].find(r => r.id === uploadCtx.replaceId);
                 if (old) {
@@ -593,7 +600,7 @@ export const Inventory: React.FC = () => {
                             onMouseEnter={playHoverSound}>
                             <CatIcon size={14} />
                             <span>{c}</span>
-                            {counts[c] > 0 && <span className="xt-inv-topbar-count">{counts[c]}</span>}
+                            {linkedCounts[c] > 0 && <span className="xt-inv-topbar-count">{linkedCounts[c]}</span>}
                         </button>
                     );
                 })}
@@ -677,13 +684,20 @@ export const Inventory: React.FC = () => {
                                             <div className="xt-inv-card-name">{item.name}</div>
                                         </div>
                                         <div className="xt-inv-card-footer">
-                                            {branch ? (
-                                                <span className="xt-inv-card-branch" style={{ color: branch.color }}>{branch.label}</span>
-                                            ) : (
-                                                <span className="xt-inv-card-src">{item.source}</span>
-                                            )}
                                             {item.importance && (
                                                 <span className="xt-inv-card-imp" style={{ background: impColor(item.importance) }} />
+                                            )}
+                                            {item.tier && (
+                                                <span className="xt-inv-card-tier-dot" style={{ background: item.tier === 'legendary' ? '#f5c842' : item.tier === 'epic' ? '#a855f7' : item.tier === 'rare' ? '#3b82f6' : '#666' }} />
+                                            )}
+                                            <span className="xt-inv-card-src-icon" title={item.source}>
+                                                {item.source === 'cloud' ? <Upload size={8} /> : item.source === 'ledger' ? <Box size={8} /> : <Cpu size={8} />}
+                                            </span>
+                                            {item.linkedProjectIds?.some(pid => activeProjects.some(p => p.id === pid)) && (
+                                                <span className="xt-inv-card-linked-mark" />
+                                            )}
+                                            {branch && (
+                                                <span className="xt-inv-card-branch" style={{ color: branch.color }}>{branch.label}</span>
                                             )}
                                         </div>
                                         {item.archivedAt && <span className="xt-inv-card-archived-mark" title="Archived" />}
@@ -934,23 +948,6 @@ export const Inventory: React.FC = () => {
                                         </div>
                                     )}
 
-                                    {/* Priority — ledger & cloud */}
-                                    {selected.source !== 'capability' && (
-                                        <div className="xt-inv-section">
-                                            <span className="xt-inv-section-label">PRIORITY</span>
-                                            <div className="xt-inv-imp-pills">
-                                                {(['low', 'medium', 'high', 'critical'] as const).map(imp => (
-                                                    <button key={imp}
-                                                        className={`xt-inv-imp-btn${selected.importance === imp ? ' is-active' : ''}`}
-                                                        style={selected.importance === imp ? { borderColor: impColor(imp), color: impColor(imp), background: `${impColor(imp)}14` } : {}}
-                                                        onClick={() => setImportance(selected, imp)}>
-                                                        {imp}
-                                                    </button>
-                                                ))}
-                                            </div>
-                                        </div>
-                                    )}
-
                                     {/* Linked Projects — ledger & cloud */}
                                     {selected.source !== 'capability' && activeProjects.length > 0 && (
                                         <div className="xt-inv-section">
@@ -990,6 +987,23 @@ export const Inventory: React.FC = () => {
                                                     })}
                                                 </div>
                                             )}
+                                        </div>
+                                    )}
+
+                                    {/* Priority — ledger & cloud */}
+                                    {selected.source !== 'capability' && (
+                                        <div className="xt-inv-section">
+                                            <span className="xt-inv-section-label">PRIORITY</span>
+                                            <div className="xt-inv-imp-pills">
+                                                {(['low', 'medium', 'high', 'critical'] as const).map(imp => (
+                                                    <button key={imp}
+                                                        className={`xt-inv-imp-btn${selected.importance === imp ? ' is-active' : ''}`}
+                                                        style={selected.importance === imp ? { borderColor: impColor(imp), color: impColor(imp), background: `${impColor(imp)}14` } : {}}
+                                                        onClick={() => setImportance(selected, imp)}>
+                                                        {imp}
+                                                    </button>
+                                                ))}
+                                            </div>
                                         </div>
                                     )}
 
@@ -1036,25 +1050,23 @@ export const Inventory: React.FC = () => {
 
             {/* ══ RESOURCE BAR ════════════════════════════════════════════ */}
             <div className="xt-inv-bar">
-                {ALL_CATS.map(c => {
-                    const CI = catIcons[c];
-                    return (
-                        <div key={c} className="xt-inv-bar-item">
-                            <div className="xt-inv-bar-top">
-                                <CI size={14} />
-                                <span className="xt-inv-bar-num">{String(counts[c]).padStart(3, '0')}</span>
-                            </div>
-                            <span className="xt-inv-bar-label">{c.toLowerCase()}</span>
-                        </div>
-                    );
-                })}
-                <div className="xt-inv-bar-sep" />
                 <div className="xt-inv-bar-item">
                     <div className="xt-inv-bar-top">
-                        <span className="xt-inv-bar-num">{items.filter(i => !i.archivedAt).length}</span>
+                        <span className="xt-inv-bar-num">{String(items.filter(i => !i.archivedAt).length).padStart(3, '0')}</span>
                     </div>
                     <span className="xt-inv-bar-label">total</span>
                 </div>
+                {totalLinked > 0 && (
+                    <>
+                        <div className="xt-inv-bar-sep" />
+                        <div className="xt-inv-bar-item">
+                            <div className="xt-inv-bar-top">
+                                <span className="xt-inv-bar-num xt-inv-bar-num--active">{String(totalLinked).padStart(3, '0')}</span>
+                            </div>
+                            <span className="xt-inv-bar-label">linked</span>
+                        </div>
+                    </>
+                )}
                 <div className="xt-inv-bar-grow" />
                 {error && <span className="xt-inv-bar-error">{error}</span>}
                 {(loading || uploading) && <Loader2 size={12} className="xt-inv-bar-loader" />}
