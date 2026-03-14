@@ -231,13 +231,26 @@ const normalizeSelfTreeNode = (node: any): SelfTreeNode => {
   };
 };
 
+const VALID_INVENTORY_CATEGORIES: readonly InventoryCategory[] = ['APPAREL', 'EQUIPMENT', 'TOOLS', 'LIBRARY', 'CONSUMABLES', 'VALUABLES', 'MISC'] as const;
+
 const normalizeInventoryCategory = (value: unknown): InventoryCategory => {
-  if (value === 'OUTFIT' || value === 'GEAR' || value === 'VEHICLE' || value === 'TOOLS') return value;
-  return 'GEAR';
+  if (typeof value === 'string' && VALID_INVENTORY_CATEGORIES.includes(value as InventoryCategory)) return value as InventoryCategory;
+  return 'MISC';
 };
 
 const normalizeInventoryImportance = (value: unknown): InventorySlot['importance'] => {
   if (value === 'low' || value === 'medium' || value === 'high' || value === 'critical') return value;
+  return undefined;
+};
+
+const normalizeInventoryTier = (value: unknown): InventorySlot['tier'] => {
+  if (typeof value === 'number' && value >= 1 && value <= 5 && Number.isInteger(value)) return value as InventorySlot['tier'];
+  return undefined;
+};
+
+const normalizeSelfTreeBranchForSlot = (value: unknown): InventorySlot['selfTreeBranch'] => {
+  const valid = ['Knowledge', 'Creation', 'Systems', 'Communication', 'Physical', 'Inner'];
+  if (typeof value === 'string' && valid.includes(value)) return value as InventorySlot['selfTreeBranch'];
   return undefined;
 };
 
@@ -246,12 +259,20 @@ const normalizeInventorySlot = (slot: any): InventorySlot => {
   return {
     id: typeof slot?.id === 'string' && slot.id
       ? slot.id
-      : `inv-${now}-${Math.random().toString(36).slice(2, 6)}`,
+      : typeof crypto !== 'undefined' && crypto.randomUUID ? `inv-${crypto.randomUUID()}` : `inv-${now}-${Math.random().toString(36).slice(2, 10)}`,
     category: normalizeInventoryCategory(slot?.category),
     name: typeof slot?.name === 'string' && slot.name.trim() ? slot.name : 'Unnamed Item',
     details: typeof slot?.details === 'string' ? slot.details : undefined,
     importance: normalizeInventoryImportance(slot?.importance),
+    tier: normalizeInventoryTier(slot?.tier),
+    subtype: typeof slot?.subtype === 'string' && slot.subtype.trim() ? slot.subtype : undefined,
+    quantity: typeof slot?.quantity === 'number' && Number.isFinite(slot.quantity) && slot.quantity > 0 ? slot.quantity : undefined,
+    externalLink: typeof slot?.externalLink === 'string' && slot.externalLink.trim() ? slot.externalLink : undefined,
+    sourceType: (slot?.sourceType === 'uploaded' || slot?.sourceType === 'link' || slot?.sourceType === 'external') ? slot.sourceType : undefined,
     fileId: typeof slot?.fileId === 'string' && slot.fileId ? slot.fileId : undefined,
+    selfTreeBranch: normalizeSelfTreeBranchForSlot(slot?.selfTreeBranch),
+    linkedProjectIds: Array.isArray(slot?.linkedProjectIds) ? slot.linkedProjectIds.filter((id: unknown) => typeof id === 'string' && id) : undefined,
+    archivedAt: typeof slot?.archivedAt === 'number' && Number.isFinite(slot.archivedAt) ? slot.archivedAt : undefined,
     createdAt: Number.isFinite(slot?.createdAt) ? slot.createdAt : now,
     updatedAt: Number.isFinite(slot?.updatedAt) ? slot.updatedAt : now,
   };

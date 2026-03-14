@@ -1,6 +1,5 @@
 
 import React, { useEffect, useMemo, useRef, useState, useCallback } from 'react';
-import { InventoryCategory } from '../../types';
 import {
     Plus, Trash2, Upload, Box, Wrench, Shirt, Cpu, Loader2, X,
     Send, Archive, RotateCcw, FolderOpen,
@@ -11,7 +10,7 @@ import { useAuth } from '../../src/auth/AuthProvider';
 import { supabase } from '../../src/lib/supabaseClient';
 import type { UserFileRow } from '../../src/lib/attachments/types';
 import { useXP } from '../XP/xpStore';
-import type { InventorySlot, SelfTreeBranch } from '../XP/xpTypes';
+import type { InventoryCategory, InventorySlot, SelfTreeBranch } from '../XP/xpTypes';
 import { useXtationSettings } from '../../src/settings/SettingsProvider';
 import { useTheme } from '../../src/theme/ThemeProvider';
 import {
@@ -105,6 +104,12 @@ export const Inventory: React.FC = () => {
     const { settings } = useXtationSettings();
     const { theme } = useTheme();
     const uid = user?.id || null;
+    /** Get fresh uid or throw — guards against stale auth during async ops */
+    const requireUid = useCallback(() => {
+        const freshUid = user?.id;
+        if (!freshUid) throw new Error('Not signed in');
+        return freshUid;
+    }, [user]);
     const pe = useOptionalPresentationEvents();
 
     // ── Core state
@@ -112,6 +117,7 @@ export const Inventory: React.FC = () => {
     const [allAtt, setAllAtt]           = useState<Record<InventoryCategory, InventoryAttachment[]>>({ APPAREL: [], EQUIPMENT: [], TOOLS: [], LIBRARY: [], CONSUMABLES: [], VALUABLES: [], MISC: [] });
     const [loading, setLoading]         = useState(false);
     const [uploading, setUploading]     = useState(false);
+    const uploadingCatRef               = useRef<string | null>(null);
     const [error, setError]             = useState('');
     const [selectedId, setSelectedId]   = useState<string | null>(null);
     const [rotation, setRotation]       = useState(0);
@@ -242,14 +248,14 @@ export const Inventory: React.FC = () => {
     };
 
     const upload = async (f: File, oid: string): Promise<InventoryAttachment> => {
-        if (!uid) throw new Error('AUTH');
+        const freshUid = requireUid();
         const blob = await toPng(f);
         const id = mkUuid();
-        const path = `${uid}/inventory/${oid}/${id}.png`;
+        const path = `${freshUid}/inventory/${oid}/${id}.png`;
         const { error: e1 } = await supabase.storage.from('thumbs').upload(path, blob, { upsert: false, contentType: 'image/png' });
         if (e1) throw e1;
         const { data: ins, error: e2 } = await supabase.from('user_files')
-            .insert({ user_id: uid, owner_type: 'inventory', owner_id: oid, kind: 'image', thumb_path: path, mime: 'image/png', size_bytes: blob.size })
+            .insert({ user_id: freshUid, owner_type: 'inventory', owner_id: oid, kind: 'image', thumb_path: path, mime: 'image/png', size_bytes: blob.size })
             .select('*').single();
         if (e2 || !ins) { await supabase.storage.from('thumbs').remove([path]); throw e2 || new Error('insert fail'); }
         return { ...(ins as UserFileRow), thumbUrl: await resolveUrl(path) };
@@ -274,21 +280,43 @@ export const Inventory: React.FC = () => {
 
     useEffect(() => { fetchAll(); }, [fetchAll]);
 
+    // ── Prune dead project references from inventory slots ────────────────────
+    useEffect(() => {
+        if (!projects.length || !inventorySlots.length) return;
+        const validIds = new Set(projects.map(p => p.id));
+        for (const slot of inventorySlots) {
+            if (!slot.linkedProjectIds?.length) continue;
+            const pruned = slot.linkedProjectIds.filter(id => validIds.has(id));
+            if (pruned.length !== slot.linkedProjectIds.length) {
+                updateInventorySlot(slot.id, { linkedProjectIds: pruned.length ? pruned : undefined });
+            }
+        }
+    // Run once when projects and slots are both loaded
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [projects.length > 0 && inventorySlots.length > 0]);
+
     // ── Upload / delete cloud ─────────────────────────────────────────────────
 
     const handleFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const f = e.target.files?.[0];
         if (!f || !uploadCtx) return;
+        // Prevent concurrent uploads to the same category (race condition guard)
+        const catLock = catKey(uploadCtx.cat);
+        if (uploadingCatRef.current === catLock) return;
         try {
             if (!(f.type || '').toLowerCase().startsWith('image/')) throw new Error('Images only');
-            if (!uid) throw new Error('Sign in');
+            const freshUid = requireUid();
             setUploading(true);
-            const up = await upload(f, catKey(uploadCtx.cat));
+            uploadingCatRef.current = catLock;
+            const up = await upload(f, catLock);
             if (uploadCtx.replaceId) {
                 const old = allAtt[uploadCtx.cat].find(r => r.id === uploadCtx.replaceId);
                 if (old) {
-                    await supabase.from('user_files').delete().eq('id', old.id).eq('user_id', uid);
-                    if (old.thumb_path) await supabase.storage.from('thumbs').remove([old.thumb_path]);
+                    // DB first, storage best-effort
+                    const { error: delErr } = await supabase.from('user_files').delete().eq('id', old.id).eq('user_id', freshUid);
+                    if (!delErr && old.thumb_path) {
+                        try { await supabase.storage.from('thumbs').remove([old.thumb_path]); } catch { /* orphan ok */ }
+                    }
                 }
             }
             pe?.emitEvent('inventory.upload.completed', { source: 'user', metadata: { category: uploadCtx.cat } });
@@ -300,6 +328,7 @@ export const Inventory: React.FC = () => {
             playErrorSound();
         } finally {
             setUploading(false);
+            uploadingCatRef.current = null;
             setUploadCtx(null);
             if (fileRef.current) fileRef.current.value = '';
         }
@@ -307,15 +336,20 @@ export const Inventory: React.FC = () => {
 
     const removeCloud = async (row: InventoryAttachment) => {
         try {
-            if (!uid) throw new Error('Sign in');
-            await supabase.from('user_files').delete().eq('id', row.id).eq('user_id', uid);
-            if (row.thumb_path) await supabase.storage.from('thumbs').remove([row.thumb_path]);
+            const freshUid = requireUid();
+            // Delete DB row first (the record of truth), then storage (best-effort cleanup)
+            const { error: dbErr } = await supabase.from('user_files').delete().eq('id', row.id).eq('user_id', freshUid);
+            if (dbErr) throw dbErr;
+            // Storage cleanup — best-effort; if this fails the file is orphaned but DB is clean
+            if (row.thumb_path) {
+                try { await supabase.storage.from('thumbs').remove([row.thumb_path]); } catch { /* orphaned file, non-critical */ }
+            }
             setAllAtt(prev => { const n = { ...prev }; for (const c of ALL_CATS) n[c] = n[c].filter(r => r.id !== row.id); return n; });
             if (selectedId === row.id) setSelectedId(null);
             setConfirmDelete(null);
             pe?.emitEvent('inventory.item.deleted', { source: 'user', metadata: { itemSource: 'cloud' } });
             playSuccessSound();
-        } catch { setError('Delete failed'); playErrorSound(); }
+        } catch (err) { setError(err instanceof Error ? err.message : 'Delete failed'); playErrorSound(); }
     };
 
     // ── Ledger CRUD ───────────────────────────────────────────────────────────

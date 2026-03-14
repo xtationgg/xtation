@@ -2544,7 +2544,7 @@ export const XPProvider: React.FC<{ children: React.ReactNode }> = ({ children }
     const now = Date.now();
     const newSlot: InventorySlot = {
       ...payload,
-      id: `inv-${now}-${Math.random().toString(36).slice(2, 6)}`,
+      id: typeof crypto !== 'undefined' && crypto.randomUUID ? `inv-${crypto.randomUUID()}` : `inv-${now}-${Math.random().toString(36).slice(2, 10)}`,
       createdAt: now,
       updatedAt: now,
     };

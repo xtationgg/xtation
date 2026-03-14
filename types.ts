@@ -79,18 +79,18 @@ export interface RewardConfig {
   customSoundUrl?: string;
 }
 
-// Inventory Types
-export type InventoryCategory = 'APPAREL' | 'EQUIPMENT' | 'TOOLS' | 'LIBRARY' | 'CONSUMABLES' | 'VALUABLES' | 'MISC';
+// Inventory Types — canonical InventoryCategory lives in xpTypes.ts
+export type { InventoryCategory } from './components/XP/xpTypes';
+import type { InventoryCategory } from './components/XP/xpTypes';
 
+/** Legacy outfit-item shape used by Profile view (localStorage-based). */
 export interface InventoryItem {
   id: string;
   category: InventoryCategory;
   mediaUrl?: string;
   mediaType: 'image' | 'video' | 'embed' | 'model';
-
-  // Display
-  name: string; // main title
-  details?: string; // optional detailed text
+  name: string;
+  details?: string;
   importance?: 'low' | 'medium' | 'high' | 'critical';
 }
 
