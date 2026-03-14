@@ -1,6 +1,5 @@
 import React, { Suspense, lazy, useEffect, useMemo, useRef, useState } from 'react';
 import { TopBar } from './components/Layout/TopBar';
-import { Lobby } from './components/Views/Lobby';
 import { TerminalErrorBoundary } from './components/UI/TerminalErrorBoundary';
 import { RewardOverlay } from './components/Features/RewardOverlay';
 import { AuthCallbackView } from './components/Auth/AuthCallbackView';
@@ -122,16 +121,7 @@ const LazyDuskRelay = lazy(() => loadDuskRelay().then((module) => ({ default: mo
 const LazyChatDock = lazy(() => loadChatDock().then((module) => ({ default: module.ChatDock })));
 const LazyDevHUD = lazy(() => loadDevHud().then((module) => ({ default: module.DevHUD })));
 
-// Lazy view imports (also in ViewRouter.tsx but still referenced inline in App.tsx)
-const LazyLab = lazy(() => import('./components/Views/Lab').then((m) => ({ default: m.Lab })));
-const LazyAdmin = lazy(() => import('./components/Views/Admin').then((m) => ({ default: m.Admin })));
-const LazyProfile = lazy(() => import('./components/Views/Profile').then((m) => ({ default: m.Profile })));
-const LazySettings = lazy(() => import('./components/Views/Settings').then((m) => ({ default: m.Settings })));
-const LazyInventory = lazy(() => import('./components/Views/Inventory').then((m) => ({ default: m.Inventory })));
-const LazyMultiplayer = lazy(() => import('./components/Views/Multiplayer').then((m) => ({ default: m.Multiplayer })));
-const LazyStore = lazy(() => import('./components/Views/Store').then((m) => ({ default: m.Store })));
-const LazyEarth = lazy(() => import('./components/Views/Earth').then((m) => ({ default: m.Earth })));
-const LazyUiKitPlayground = lazy(() => import('./components/Views/UiKitPlayground').then((m) => ({ default: m.UiKitPlayground })));
+// Lazy view imports now live in ViewRouter.tsx — no longer duplicated here
 
 // SectionLoadingState moved to src/navigation/ViewRouter.tsx
 
@@ -1004,85 +994,23 @@ const App: React.FC = () => {
     }
   };
 
-  const renderContent = () => {
-    switch (currentView) {
-      case ClientView.HOME:
-      case ClientView.LAB:
-        return <LazyLab />;
-      case ClientView.ADMIN:
-        return <LazyAdmin onChangeView={(view) => setCurrentView(view)} />;
-      case ClientView.TFT:
-        return <LazyEarth />;
-      case ClientView.MULTIPLAYER:
-        return <LazyMultiplayer />;
-      case ClientView.PROFILE:
-        return <LazyProfile rewardConfigs={rewardConfigs} />;
-      case ClientView.INVENTORY:
-        return <LazyInventory />;
-      case ClientView.STORE:
-        return <LazyStore />;
-      case ClientView.UI_KIT:
-        return <LazyUiKitPlayground />;
-      case ClientView.SETTINGS:
-        return (
-          <LazySettings
-            rewardConfigs={rewardConfigs}
-            onUpdateConfig={updateRewardConfig}
-            currentXP={totalXP}
-            onOpenGuidedSetup={!user ? openGuestGuidedSetup : undefined}
-          />
-        );
-      case ClientView.LOBBY:
-      case ClientView.MATCH_FOUND:
-      case ClientView.CHAMP_SELECT:
-        return (
-          <Lobby
-            onBack={() => setCurrentView(previousView)}
-            setBackground={setCustomBackground}
-            onOpenWorkspace={(view) => {
-              if (isPlayStageView(currentView)) {
-                setPreviousView(currentView);
-              }
-              setCurrentView(view);
-            }}
-            onOpenGuidedSetup={onboardingState.status !== 'completed' ? () => setIsOnboardingOpen(true) : undefined}
-            onboardingHandoff={onboardingHandoff}
-            stationIdentity={stationIdentitySummary}
-            onStarterSessionLive={(transition) => {
-              writeStationTransitionNotice({
-                scope: activeUserId ? 'account' : 'guest',
-                ...transition,
-              });
-              appendStationActivity(
-                {
-                  ...transition,
-                  chips: buildStarterLoopChips('starter-session-live', transition.chips),
-                },
-                activeUserId
-              );
-            }}
-            onDismissOnboardingHandoff={() => {
-              setOnboardingHandoff(null);
-              writeXtationOnboardingHandoff(null, activeUserId);
-            }}
-            onNavigateStage={(view) => {
-              // keep App route synced so TopBar lock + background behave consistently
-              setCurrentView(view);
-            }}
-          />
-        );
-      default:
-        return (
-            <div className="flex items-center justify-center h-full text-[#5B5A56] flex-col">
-                <div className="w-20 h-20 border border-[#3C3C41] border-dashed rounded-full flex items-center justify-center animate-spin-slow mb-4">
-                    <div className="w-16 h-16 border border-[#C8AA6E] rounded-full opacity-20"></div>
-                </div>
-                <div className="text-4xl font-bold mb-2 opacity-30 tracking-widest uppercase">Under Construction</div>
-                <div className="text-sm text-[#A09B8C]">This section of the XTATION network is currently offline.</div>
-            </div>
-        );
-    }
-  };
+  // renderContent() replaced by <ViewRouter /> — all view switching now lives in ViewRouter.tsx
+
+  const handleStarterSessionLive = useMemo(() => (transition: {
+    title: string; detail: string; workspaceLabel: string; targetView: ClientView; chips: string[];
+  }) => {
+    writeStationTransitionNotice({
+      scope: activeUserId ? 'account' : 'guest',
+      ...transition,
+    });
+    appendStationActivity(
+      {
+        ...transition,
+        chips: buildStarterLoopChips('starter-session-live', transition.chips),
+      },
+      activeUserId
+    );
+  }, [activeUserId]);
 
   // IndexedDB background helpers moved to src/station/useBackgroundManager.ts
 
@@ -1391,11 +1319,30 @@ const App: React.FC = () => {
                 </div>
               </div>
             ) : null}
-            <Suspense fallback={<SectionLoadingState view={currentView} />}>
-              <div className={`xt-shell-stage ${viewMotionToken} ${currentView === ClientView.PROFILE ? 'h-full' : ''}`}>
-                {renderContent()}
-              </div>
-            </Suspense>
+            <div className={`xt-shell-stage ${viewMotionToken} ${currentView === ClientView.PROFILE ? 'h-full' : ''}`}>
+              <ViewRouter
+                currentView={currentView}
+                previousView={previousView}
+                rewardConfigs={rewardConfigs}
+                updateRewardConfig={updateRewardConfig}
+                totalXP={totalXP}
+                user={user}
+                operatorAccess={operatorAccess}
+                featureVisibility={featureVisibility}
+                onboardingState={onboardingState}
+                onboardingHandoff={onboardingHandoff}
+                stationIdentity={stationIdentitySummary}
+                activeUserId={activeUserId}
+                setCurrentView={setCurrentView}
+                setPreviousView={setPreviousView}
+                setCustomBackground={setCustomBackground}
+                setIsOnboardingOpen={setIsOnboardingOpen}
+                setOnboardingHandoff={setOnboardingHandoff}
+                onStarterSessionLive={handleStarterSessionLive}
+                onNavigateStage={(view) => setCurrentView(view)}
+                openGuestGuidedSetup={!user ? openGuestGuidedSetup : undefined}
+              />
+            </div>
         </div>
       </div>
 
