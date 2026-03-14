@@ -7,7 +7,7 @@
 import { useCallback, useRef, useState } from 'react';
 import { ClientView } from '../../types';
 
-const defaultViewBackgrounds: Record<ClientView, string | null> = {
+export const defaultViewBackgrounds: Record<ClientView, string | null> = {
   [ClientView.HOME]: null,
   [ClientView.LAB]: null,
   [ClientView.ADMIN]: null,

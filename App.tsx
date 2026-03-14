@@ -112,7 +112,7 @@ import {
   isPlayStageView,
 } from './src/navigation/ViewRouter';
 import { useRewardSystem } from './src/station/useRewardSystem';
-import { useBackgroundManager, saveBackgroundBlob, loadBackgroundBlob } from './src/station/useBackgroundManager';
+import { useBackgroundManager, defaultViewBackgrounds, saveBackgroundBlob, loadBackgroundBlob } from './src/station/useBackgroundManager';
 
 const loadDuskRelay = () => import('./components/Features/HextechAssistant');
 const loadChatDock = () => import('./components/Chat');
