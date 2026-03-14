@@ -5872,10 +5872,10 @@
   --inv-text-heading: #ffffff;
   --inv-text-primary: #d4d4d4;
   --inv-text-secondary: #aaaaaa;
-  --inv-text-muted: #444444;
+  --inv-text-muted: #555555;
   --inv-text-label: #999999;
-  --inv-text-cat: #666666;
-  --inv-accent-pink: #c8102e;
+  --inv-text-cat: #777777;
+  --inv-accent-pink: #d4243f;
   --inv-accent-pink-dim: rgba(200, 16, 46, 0.10);
   --inv-accent-gold: #d8ac61;
   --inv-imp-critical: #c8102e;
@@ -6371,19 +6371,21 @@
 .xt-inv-url-modal {
   width: 420px;
   max-width: 90vw;
-  background: #0a0a0a;
-  border: 1px solid rgba(200, 16, 46, 0.2);
+  background: #111111;
+  border: 1px solid rgba(200, 16, 46, 0.25);
+  border-top: 2px solid var(--inv-accent-pink);
   padding: 28px 32px;
   display: flex;
   flex-direction: column;
   gap: 20px;
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.6);
 }
 .xt-inv-url-modal-head {
   display: flex;
   align-items: center;
   gap: 8px;
-  color: var(--inv-text-muted);
-  font-size: 9px;
+  color: #ccc;
+  font-size: 10px;
   font-weight: 700;
   letter-spacing: 0.22em;
   text-transform: uppercase;
@@ -6391,26 +6393,25 @@
 }
 .xt-inv-url-modal-head svg {
   color: var(--inv-accent-pink);
-  opacity: 0.6;
+  opacity: 0.8;
 }
 .xt-inv-url-modal-input {
   width: 100%;
-  background: rgba(255,255,255,0.02);
-  border: 1px solid rgba(255,255,255,0.08);
-  color: var(--inv-text-primary);
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.12);
+  color: #e0e0e0;
   font-size: 13px;
   font-family: var(--font-mono, ui-monospace, monospace);
   letter-spacing: 0.02em;
-  padding: 10px 14px;
+  padding: 12px 14px;
   outline: none;
   transition: border-color 150ms ease;
 }
 .xt-inv-url-modal-input:focus {
-  border-color: rgba(200, 16, 46, 0.4);
+  border-color: rgba(200, 16, 46, 0.5);
 }
 .xt-inv-url-modal-input::placeholder {
-  color: var(--inv-text-muted);
-  opacity: 0.35;
+  color: #666;
 }
 .xt-inv-url-modal-actions {
   display: flex;
@@ -6419,28 +6420,30 @@
 }
 .xt-inv-url-modal-btn {
   background: transparent;
-  border: 1px solid rgba(255,255,255,0.08);
-  color: var(--inv-text-secondary);
+  border: 1px solid rgba(255,255,255,0.12);
+  color: #aaa;
   font-size: 9px;
   font-weight: 600;
   letter-spacing: 0.14em;
   text-transform: uppercase;
   font-family: var(--font-mono, ui-monospace, monospace);
-  padding: 8px 20px;
+  padding: 8px 22px;
   cursor: pointer;
   transition: background 150ms ease, border-color 150ms ease, color 150ms ease;
 }
 .xt-inv-url-modal-btn.cancel:hover {
-  border-color: rgba(255,255,255,0.15);
-  color: var(--inv-text-primary);
+  border-color: rgba(255,255,255,0.2);
+  color: #fff;
 }
 .xt-inv-url-modal-btn.upload {
-  border-color: rgba(200, 16, 46, 0.3);
-  color: var(--inv-accent-pink);
+  border-color: rgba(200, 16, 46, 0.4);
+  color: #e83050;
+  background: rgba(200, 16, 46, 0.06);
 }
 .xt-inv-url-modal-btn.upload:hover {
-  background: rgba(200, 16, 46, 0.08);
-  border-color: rgba(200, 16, 46, 0.5);
+  background: rgba(200, 16, 46, 0.12);
+  border-color: rgba(200, 16, 46, 0.6);
+  color: #ff3d5a;
 }
 .xt-inv-url-modal-btn:disabled {
   opacity: 0.25;
@@ -6957,7 +6960,14 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 0 16px;
+  padding: 0 10px;
+}
+.xt-inv-bar-item.is-active .xt-inv-bar-num {
+  color: #fff;
+  font-weight: 600;
+}
+.xt-inv-bar-item.is-active .xt-inv-bar-label {
+  color: var(--inv-text-secondary);
 }
 .xt-inv-bar-top {
   display: flex;
@@ -6983,10 +6993,6 @@
   height: 14px;
   background: rgba(255, 255, 255, 0.06);
   margin: 0 8px;
-}
-/* TOTAL count in bottom bar gets red accent */
-.xt-inv-bar-item:last-of-type .xt-inv-bar-num {
-  color: var(--inv-accent-pink);
 }
 .xt-inv-bar-num--active {
   color: var(--inv-accent-pink) !important;

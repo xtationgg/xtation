@@ -755,22 +755,15 @@ export const Inventory: React.FC = () => {
                             })}
                         </div>
 
-                        {/* Footer: add + archive toggle */}
-                        <div className="xt-inv-grid-footer">
-                            <div className="xt-inv-add-row">
-                                <input value={newItemName}
-                                    onChange={e => setNewItemName(e.target.value)}
-                                    onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addLedger(); } }}
-                                    placeholder={`+ add ${activeCat.toLowerCase()} item`} />
-                                <button onClick={addLedger}><Plus size={14} /></button>
-                            </div>
-                            {archivedCount > 0 && (
+                        {/* Footer: archive toggle only */}
+                        {archivedCount > 0 && (
+                            <div className="xt-inv-grid-footer">
                                 <button className="xt-inv-archive-toggle" onClick={() => setShowArchived(v => !v)}>
                                     <Archive size={11} />
                                     <span>{showArchived ? 'hide archived' : `${archivedCount} archived`}</span>
                                 </button>
-                            )}
-                        </div>
+                            </div>
+                        )}
                     </div>
                 </div>
 
@@ -1087,19 +1080,22 @@ export const Inventory: React.FC = () => {
 
             {/* ══ RESOURCE BAR ════════════════════════════════════════════ */}
             <div className="xt-inv-bar">
-                <div className="xt-inv-bar-item">
-                    <div className="xt-inv-bar-top">
-                        <span className="xt-inv-bar-num">{String(items.filter(i => !i.archivedAt).length).padStart(3, '0')}</span>
+                {ALL_CATS.map(c => (
+                    <div key={c} className={`xt-inv-bar-item${c === activeCat ? ' is-active' : ''}`}>
+                        <span className="xt-inv-bar-num">{String(counts[c]).padStart(2, '0')}</span>
+                        <span className="xt-inv-bar-label">{c.slice(0, 3)}</span>
                     </div>
+                ))}
+                <div className="xt-inv-bar-sep" />
+                <div className="xt-inv-bar-item">
+                    <span className="xt-inv-bar-num">{String(items.filter(i => !i.archivedAt).length).padStart(3, '0')}</span>
                     <span className="xt-inv-bar-label">total</span>
                 </div>
                 {totalLinked > 0 && (
                     <>
                         <div className="xt-inv-bar-sep" />
                         <div className="xt-inv-bar-item">
-                            <div className="xt-inv-bar-top">
-                                <span className="xt-inv-bar-num xt-inv-bar-num--active">{String(totalLinked).padStart(3, '0')}</span>
-                            </div>
+                            <span className="xt-inv-bar-num xt-inv-bar-num--active">{String(totalLinked).padStart(2, '0')}</span>
                             <span className="xt-inv-bar-label">linked</span>
                         </div>
                     </>
