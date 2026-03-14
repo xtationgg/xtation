@@ -2,7 +2,7 @@
 import React, { useEffect, useMemo, useRef, useState, useCallback } from 'react';
 import {
     Plus, Trash2, Upload, Box, Wrench, Shirt, Cpu, Loader2, X,
-    Send, Archive, RotateCcw, FolderOpen,
+    Send, Archive, RotateCcw, FolderOpen, Link2,
     BookOpen, Coffee, Gem,
 } from 'lucide-react';
 import { playClickSound, playHoverSound, playSuccessSound, playErrorSound } from '../../utils/SoundEffects';
@@ -52,7 +52,7 @@ type UnifiedItem = {
 
 const ALL_CATS: InventoryCategory[] = ['APPAREL', 'EQUIPMENT', 'TOOLS', 'LIBRARY', 'CONSUMABLES', 'VALUABLES', 'MISC'];
 const GRID_COLS = 4;
-const EMPTY_SLOTS = 16;
+const EMPTY_SLOTS = 12;
 
 const catIcons: Record<InventoryCategory, React.FC<{ size?: number; className?: string }>> = {
     APPAREL: Shirt, EQUIPMENT: Cpu, TOOLS: Wrench,
@@ -142,8 +142,11 @@ export const Inventory: React.FC = () => {
     const [editingName, setEditingName]         = useState<string | null>(null);
     const [editingDetails, setEditingDetails]   = useState<string | null>(null);
     const [showProjectPicker, setShowProjectPicker] = useState(false);
+    const [urlUploadCat, setUrlUploadCat] = useState<InventoryCategory | null>(null);
+    const [urlInput, setUrlInput] = useState('');
 
     const fileRef   = useRef<HTMLInputElement>(null);
+    const shellRef  = useRef<HTMLDivElement>(null);
 
     // ── Capability loadout (GEAR panel)
     const caps = useMemo(() => getActiveCapabilityItems(settings, theme), [settings, theme]);
@@ -294,8 +297,9 @@ export const Inventory: React.FC = () => {
         const path = `${freshUid}/inventory/${oid}/${id}.png`;
         const { error: e1 } = await supabase.storage.from('thumbs').upload(path, blob, { upsert: false, contentType: 'image/png' });
         if (e1) throw e1;
+        const fname = f.name.replace(/\.[^.]+$/, '') || 'Image';
         const { data: ins, error: e2 } = await supabase.from('user_files')
-            .insert({ user_id: freshUid, owner_type: 'inventory', owner_id: oid, kind: 'image', thumb_path: path, mime: 'image/png', size_bytes: blob.size })
+            .insert({ user_id: freshUid, owner_type: 'inventory', owner_id: oid, kind: 'image', thumb_path: path, mime: 'image/png', size_bytes: blob.size, title: fname })
             .select('*').single();
         if (e2 || !ins) { await supabase.storage.from('thumbs').remove([path]); throw e2 || new Error('insert fail'); }
         return { ...(ins as UserFileRow), thumbUrl: await resolveUrl(path) };
@@ -319,6 +323,19 @@ export const Inventory: React.FC = () => {
     }, [uid]);
 
     useEffect(() => { fetchAll(); }, [fetchAll]);
+
+    // ── Click-outside deselection
+    useEffect(() => {
+        const handler = (e: MouseEvent) => {
+            if (!selectedId) return;
+            const t = e.target as HTMLElement;
+            if (t.closest('.xt-inv-details') || t.closest('.xt-inv-card') || t.closest('.xt-inv-grid-footer') || t.closest('.xt-inv-topbar')) return;
+            setSelectedId(null);
+        };
+        const el = shellRef.current;
+        el?.addEventListener('mousedown', handler);
+        return () => el?.removeEventListener('mousedown', handler);
+    }, [selectedId]);
 
     // ── Prune dead project references from inventory slots ────────────────────
     useEffect(() => {
@@ -371,6 +388,31 @@ export const Inventory: React.FC = () => {
             uploadingCatRef.current = null;
             setUploadCtx(null);
             if (fileRef.current) fileRef.current.value = '';
+        }
+    };
+
+    const handleUrlUpload = async () => {
+        if (!urlUploadCat || !urlInput.trim()) return;
+        try {
+            const freshUid = requireUid();
+            setUploading(true);
+            const url = urlInput.trim();
+            const label = url.replace(/^https?:\/\//, '').split('/').pop()?.split('?')[0] || 'Link';
+            const { data: ins, error: e } = await supabase.from('user_files')
+                .insert({ user_id: freshUid, owner_type: 'inventory', owner_id: catKey(urlUploadCat), kind: 'link', title: label, notes: url, mime: 'text/uri-list', size_bytes: 0 })
+                .select('*').single();
+            if (e || !ins) throw e || new Error('insert fail');
+            pe?.emitEvent('inventory.upload.completed', { source: 'user', metadata: { category: urlUploadCat, type: 'url' } });
+            playSuccessSound();
+            await fetchAll();
+            setSelectedId(ins.id);
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'URL upload failed');
+            playErrorSound();
+        } finally {
+            setUploading(false);
+            setUrlUploadCat(null);
+            setUrlInput('');
         }
     };
 
@@ -565,10 +607,11 @@ export const Inventory: React.FC = () => {
 
     // ── Helpers ───────────────────────────────────────────────────────────────
 
+    const MONTHS = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
     const fmtDate = (ts?: number) => {
         if (!ts) return null;
         const d = new Date(ts);
-        return `${d.getDate().toString().padStart(2, '0')}.${(d.getMonth() + 1).toString().padStart(2, '0')}.${d.getFullYear().toString().slice(-2)}`;
+        return `${d.getDate().toString().padStart(2, '0')} ${MONTHS[d.getMonth()]} ${d.getFullYear().toString().slice(-2)}`;
     };
 
     const handleSelectItem = (item: UnifiedItem) => {
@@ -586,7 +629,7 @@ export const Inventory: React.FC = () => {
     // ─────────────────────────────────────────────────────────────────────────
 
     return (
-        <div className="xt-inv-shell">
+        <div className="xt-inv-shell" ref={shellRef}>
 
             {/* ══ TOP BAR — category tabs ═══════════════════════════════════ */}
             <div className="xt-inv-topbar">
@@ -655,11 +698,26 @@ export const Inventory: React.FC = () => {
                                 if (!item) {
                                     const isAdd = i === activeItems.length;
                                     return (
-                                        <button key={`e-${i}`}
-                                            className={`xt-inv-card xt-inv-card--empty${isAdd ? ' xt-inv-card--add' : ''}`}
-                                            onClick={isAdd ? () => { setUploadCtx({ cat: activeCat }); fileRef.current?.click(); playClickSound(); } : undefined}>
-                                            {isAdd && <Plus size={20} className="xt-inv-card-plus" />}
-                                        </button>
+                                        <div key={`e-${i}`}
+                                            className={`xt-inv-card xt-inv-card--empty${isAdd ? ' xt-inv-card--add' : ''}`}>
+                                            {isAdd && (
+                                                <>
+                                                    <Plus size={20} className="xt-inv-card-plus" />
+                                                    <div className="xt-inv-add-split">
+                                                        <button className="xt-inv-add-half"
+                                                            onClick={() => { setUploadCtx({ cat: activeCat }); fileRef.current?.click(); playClickSound(); }}>
+                                                            <Upload size={13} />
+                                                            <span>FILE</span>
+                                                        </button>
+                                                        <button className="xt-inv-add-half"
+                                                            onClick={() => { setUrlUploadCat(activeCat); playClickSound(); }}>
+                                                            <Link2 size={13} />
+                                                            <span>URL</span>
+                                                        </button>
+                                                    </div>
+                                                </>
+                                            )}
+                                        </div>
                                     );
                                 }
                                 const sel = selectedId === item.id;
@@ -684,20 +742,11 @@ export const Inventory: React.FC = () => {
                                             <div className="xt-inv-card-name">{item.name}</div>
                                         </div>
                                         <div className="xt-inv-card-footer">
-                                            {item.importance && (
-                                                <span className="xt-inv-card-imp" style={{ background: impColor(item.importance) }} />
-                                            )}
-                                            {item.tier && (
-                                                <span className="xt-inv-card-tier-dot" style={{ background: item.tier === 'legendary' ? '#f5c842' : item.tier === 'epic' ? '#a855f7' : item.tier === 'rare' ? '#3b82f6' : '#666' }} />
-                                            )}
-                                            <span className="xt-inv-card-src-icon" title={item.source}>
-                                                {item.source === 'cloud' ? <Upload size={8} /> : item.source === 'ledger' ? <Box size={8} /> : <Cpu size={8} />}
-                                            </span>
                                             {item.linkedProjectIds?.some(pid => activeProjects.some(p => p.id === pid)) && (
                                                 <span className="xt-inv-card-linked-mark" />
                                             )}
-                                            {branch && (
-                                                <span className="xt-inv-card-branch" style={{ color: branch.color }}>{branch.label}</span>
+                                            {item.importance && (
+                                                <span className="xt-inv-card-imp" style={{ background: impColor(item.importance) }} />
                                             )}
                                         </div>
                                         {item.archivedAt && <span className="xt-inv-card-archived-mark" title="Archived" />}
@@ -715,6 +764,18 @@ export const Inventory: React.FC = () => {
                                     placeholder={`+ add ${activeCat.toLowerCase()} item`} />
                                 <button onClick={addLedger}><Plus size={14} /></button>
                             </div>
+                            {urlUploadCat && (
+                                <div className="xt-inv-url-row">
+                                    <Link2 size={12} className="xt-inv-url-icon" />
+                                    <input value={urlInput}
+                                        onChange={e => setUrlInput(e.target.value)}
+                                        onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleUrlUpload(); } if (e.key === 'Escape') { setUrlUploadCat(null); setUrlInput(''); } }}
+                                        placeholder="paste url…"
+                                        autoFocus />
+                                    <button onClick={handleUrlUpload} disabled={!urlInput.trim()}><Send size={12} /></button>
+                                    <button onClick={() => { setUrlUploadCat(null); setUrlInput(''); }}><X size={12} /></button>
+                                </div>
+                            )}
                             {archivedCount > 0 && (
                                 <button className="xt-inv-archive-toggle" onClick={() => setShowArchived(v => !v)}>
                                     <Archive size={11} />
@@ -1020,18 +1081,6 @@ export const Inventory: React.FC = () => {
                                     <span className="xt-inv-foot-label">Category</span>
                                     <span className="xt-inv-foot-val">{selected.category}</span>
                                 </div>
-                                {selected.tier && (
-                                    <div className="xt-inv-foot-stat">
-                                        <span className="xt-inv-foot-label">Tier</span>
-                                        <span className="xt-inv-foot-val" style={{ color: TIER_COLORS[selected.tier] }}>{TIER_LABELS[selected.tier]}</span>
-                                    </div>
-                                )}
-                                {selected.importance && (
-                                    <div className="xt-inv-foot-stat">
-                                        <span className="xt-inv-foot-label">Priority</span>
-                                        <span className="xt-inv-foot-val" style={{ color: impColor(selected.importance) }}>{selected.importance}</span>
-                                    </div>
-                                )}
                                 {selected.createdAt && (
                                     <div className="xt-inv-foot-stat xt-inv-foot-stat--right">
                                         <span className="xt-inv-foot-label">Added</span>
