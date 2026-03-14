@@ -196,12 +196,15 @@ const App: React.FC = () => {
   // Reward system (extracted to useRewardSystem)
   const {
     rewardConfigs,
+    setRewardConfigs,
+    defaultRewardConfigs,
     activeReward,
     activeRewardDuration,
     setActiveReward,
     setActiveRewardDuration,
     updateRewardConfig,
     rewardDismissTimer,
+    resetForUser,
   } = useRewardSystem(totalXP);
 
   const lastPresentationViewRef = useRef<ClientView | null>(null);
@@ -503,9 +506,7 @@ const App: React.FC = () => {
     setActiveUserId(activeUserId);
     setCustomBackground(null);
     setResolvedBackgrounds({});
-    setActiveReward(null);
-    setTriggeredLevels([]);
-    setHasInitialized(false);
+    resetForUser();
 
     if (!activeUserId) {
       setRewardConfigs(defaultRewardConfigs);

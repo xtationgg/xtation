@@ -86,13 +86,22 @@ export function useRewardSystem(totalXP: number) {
     });
   }, [totalXP, rewardConfigs, triggeredLevels, hasInitialized]);
 
+  const resetForUser = useCallback(() => {
+    setTriggeredLevels([]);
+    setHasInitialized(false);
+    setActiveReward(null);
+  }, []);
+
   return {
     rewardConfigs,
+    setRewardConfigs,
+    defaultRewardConfigs,
     activeReward,
     activeRewardDuration,
     setActiveReward,
     setActiveRewardDuration,
     updateRewardConfig,
     rewardDismissTimer,
+    resetForUser,
   };
 }
