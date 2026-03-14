@@ -7873,6 +7873,336 @@
 }
 .xt-selftree-add-btn:hover { opacity: 1; }
 
+/* ═══════════════════════════════════════════════════════════
+   SELF TREE — Dedicated visualization page in Profile
+   ═══════════════════════════════════════════════════════════ */
+
+.xt-selftree-page {
+  padding: 0;
+}
+.xt-selftree-page-inner {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 32px 24px 48px;
+}
+.xt-selftree-page-header {
+  text-align: center;
+  margin-bottom: 32px;
+}
+.xt-selftree-page-kicker {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.25em;
+  color: var(--app-accent);
+  margin-bottom: 8px;
+}
+.xt-selftree-page-title {
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--app-text);
+  margin: 0 0 8px;
+  letter-spacing: -0.02em;
+}
+.xt-selftree-page-desc {
+  font-size: 13px;
+  color: var(--app-muted);
+  max-width: 440px;
+  margin: 0 auto;
+  line-height: 1.5;
+}
+
+/* Radar / hexagonal chart */
+.xt-selftree-radar-wrap {
+  display: flex;
+  justify-content: center;
+  margin: 0 auto 36px;
+  max-width: 320px;
+}
+.xt-selftree-radar-svg {
+  width: 100%;
+  height: auto;
+}
+.xt-selftree-radar-ring {
+  fill: none;
+  stroke: color-mix(in srgb, var(--app-text) 6%, transparent);
+  stroke-width: 0.5;
+}
+.xt-selftree-radar-axis {
+  stroke: color-mix(in srgb, var(--app-text) 5%, transparent);
+  stroke-width: 0.5;
+}
+.xt-selftree-radar-shape {
+  fill: color-mix(in srgb, var(--app-accent) 15%, transparent);
+  stroke: var(--app-accent);
+  stroke-width: 1.5;
+  opacity: 0.85;
+  transition: d 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.xt-selftree-radar-dot {
+  transition: r 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.xt-selftree-radar-label {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+/* Branch cards grid */
+.xt-selftree-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 14px;
+  margin-bottom: 24px;
+}
+.xt-selftree-card {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 12px;
+  padding: 16px;
+  transition: border-color 0.2s, background 0.2s;
+}
+.xt-selftree-card:hover {
+  border-color: rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.03);
+}
+.xt-selftree-card-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.xt-selftree-card-icon {
+  font-size: 20px;
+  line-height: 1;
+  margin-top: 2px;
+}
+.xt-selftree-card-branch {
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+.xt-selftree-card-desc {
+  font-size: 11px;
+  color: var(--app-muted);
+  line-height: 1.4;
+  margin-top: 2px;
+}
+.xt-selftree-card-bar-track {
+  height: 5px;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.06);
+  overflow: hidden;
+  margin-bottom: 12px;
+}
+.xt-selftree-card-bar-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 1.2s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.xt-selftree-card-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.xt-selftree-card-stat {
+  font-size: 10px;
+  color: var(--app-muted);
+  letter-spacing: 0.02em;
+}
+.xt-selftree-card-stat-val {
+  font-weight: 700;
+  color: var(--app-text);
+  margin-right: 2px;
+}
+
+/* Card nodes */
+.xt-selftree-card-nodes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+.xt-selftree-card-node {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 8px 3px 6px;
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.03);
+  font-size: 10px;
+  color: var(--app-text);
+}
+.xt-selftree-card-node-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.xt-selftree-card-node-title {
+  font-size: 10px;
+}
+.xt-selftree-card-node-del {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--app-muted);
+  font-size: 11px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  border: none;
+  transition: background 0.12s, color 0.12s;
+}
+.xt-selftree-card-node-del:hover {
+  background: rgba(239, 68, 68, 0.2);
+  color: #ef4444;
+}
+.xt-selftree-card-add-row {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  width: 100%;
+}
+.xt-selftree-card-add-input {
+  flex: 1;
+  min-width: 0;
+  padding: 4px 8px;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--app-text);
+  font-size: 10px;
+  font-family: inherit;
+  outline: none;
+  transition: border-color 0.15s;
+}
+.xt-selftree-card-add-input:focus {
+  border-color: var(--app-accent);
+}
+.xt-selftree-card-add-input::placeholder {
+  color: var(--app-muted);
+  opacity: 0.45;
+}
+.xt-selftree-card-add-btn {
+  font-size: 10px;
+  letter-spacing: 0.03em;
+  margin-top: 8px;
+  cursor: pointer;
+  background: none;
+  border: none;
+  padding: 2px 0;
+  opacity: 0.55;
+  transition: opacity 0.12s;
+  display: block;
+}
+.xt-selftree-card-add-btn:hover {
+  opacity: 1;
+}
+
+/* Footer summary */
+.xt-selftree-page-footer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 11px;
+  color: var(--app-muted);
+  padding-top: 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+.xt-selftree-page-footer strong {
+  color: var(--app-text);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   LAB WIKI LINKS — [[link]] syntax with autocomplete
+   ═══════════════════════════════════════════════════════════ */
+
+.xt-wiki-editor-wrap {
+  position: relative;
+}
+.xt-wiki-autocomplete {
+  position: absolute;
+  left: 0;
+  right: 0;
+  background: var(--app-panel, #1a1a1e);
+  border: 1px solid color-mix(in srgb, var(--app-text) 12%, transparent);
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+  z-index: 20;
+  max-height: 200px;
+  overflow-y: auto;
+  padding: 4px;
+}
+.xt-wiki-autocomplete-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  color: var(--app-text);
+  cursor: pointer;
+  border: none;
+  background: none;
+  width: 100%;
+  text-align: left;
+  transition: background 0.1s;
+}
+.xt-wiki-autocomplete-item:hover,
+.xt-wiki-autocomplete-item[data-active="true"] {
+  background: color-mix(in srgb, var(--app-accent) 12%, transparent);
+}
+.xt-wiki-autocomplete-kind {
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--app-muted);
+  opacity: 0.7;
+  flex-shrink: 0;
+}
+
+/* Backlinks section */
+.xt-wiki-backlinks {
+  margin-top: 12px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+.xt-wiki-backlinks-title {
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  color: var(--app-muted);
+  margin-bottom: 8px;
+}
+.xt-wiki-backlink-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 0;
+  font-size: 11px;
+  color: var(--app-accent);
+  cursor: pointer;
+  border: none;
+  background: none;
+  transition: opacity 0.12s;
+  width: 100%;
+  text-align: left;
+}
+.xt-wiki-backlink-item:hover {
+  opacity: 0.7;
+}
+
 /* ─── Play view — Weekly dots ─────────────────────────────────────────────── */
 .xt-ops-week-dots {
   display: flex;

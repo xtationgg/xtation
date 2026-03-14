@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   BarChart3,
   Bot,
@@ -74,6 +74,13 @@ import type {
   LabPublishStatus,
   LabProjectKind,
 } from '../../src/lab/types';
+import {
+  extractWikiLinks,
+  getActiveWikiLink,
+  getBacklinks,
+  getWikiSuggestions,
+  insertWikiLink,
+} from '../../src/lab/wikiLinks';
 
 type LabSection = 'workspace' | 'assistants' | 'knowledge' | 'automations' | 'media' | 'templates';
 type NoteCollection = 'all' | 'pinned' | 'linked' | 'plans' | 'baselines' | 'research';
@@ -304,6 +311,10 @@ export const Lab: React.FC = () => {
   const [activeSection, setActiveSection] = useState<LabSection>('workspace');
   const [noteCollection, setNoteCollection] = useState<NoteCollection>('all');
   const [selectedNoteId, setSelectedNoteId] = useState<string | null>(notes[0]?.id ?? null);
+  // Wiki link autocomplete state
+  const [wikiActive, setWikiActive] = useState<{ query: string; start: number; end: number } | null>(null);
+  const [wikiSelectedIdx, setWikiSelectedIdx] = useState(0);
+  const noteTextareaRef = useRef<HTMLTextAreaElement>(null);
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(assistantProjects[0]?.id ?? null);
   const [selectedAutomationId, setSelectedAutomationId] = useState<string | null>(automations[0]?.id ?? null);
   const [selectedMediaAccountId, setSelectedMediaAccountId] = useState<string | null>(mediaAccounts[0]?.id ?? null);
@@ -2401,11 +2412,129 @@ export const Lab: React.FC = () => {
                     </label>
                   </div>
 
-                  <textarea
-                    value={selectedNote.content}
-                    onChange={(event) => updateNote(selectedNote.id, { content: event.target.value })}
-                    className={`${fieldTextarea} min-h-[260px] w-full`}
-                  />
+                  {/* Wiki-link-aware editor */}
+                  <div className="xt-wiki-editor-wrap">
+                    <textarea
+                      ref={noteTextareaRef}
+                      value={selectedNote.content}
+                      onChange={(event) => {
+                        updateNote(selectedNote.id, { content: event.target.value });
+                        // Check for active wiki link at cursor
+                        const pos = event.target.selectionStart;
+                        const link = getActiveWikiLink(event.target.value, pos);
+                        setWikiActive(link);
+                        setWikiSelectedIdx(0);
+                      }}
+                      onKeyDown={(event) => {
+                        if (!wikiActive) return;
+                        const suggestions = getWikiSuggestions(wikiActive.query, notes, selectedNote.id);
+                        if (suggestions.length === 0) return;
+                        if (event.key === 'ArrowDown') {
+                          event.preventDefault();
+                          setWikiSelectedIdx((i) => Math.min(i + 1, suggestions.length - 1));
+                        } else if (event.key === 'ArrowUp') {
+                          event.preventDefault();
+                          setWikiSelectedIdx((i) => Math.max(i - 1, 0));
+                        } else if (event.key === 'Enter' || event.key === 'Tab') {
+                          event.preventDefault();
+                          const chosen = suggestions[wikiSelectedIdx];
+                          if (chosen) {
+                            const { newContent, newCursorPos } = insertWikiLink(
+                              selectedNote.content, wikiActive.start, wikiActive.end, chosen.title
+                            );
+                            updateNote(selectedNote.id, { content: newContent });
+                            setWikiActive(null);
+                            // Restore cursor position after React re-render
+                            requestAnimationFrame(() => {
+                              if (noteTextareaRef.current) {
+                                noteTextareaRef.current.selectionStart = newCursorPos;
+                                noteTextareaRef.current.selectionEnd = newCursorPos;
+                                noteTextareaRef.current.focus();
+                              }
+                            });
+                          }
+                        } else if (event.key === 'Escape') {
+                          setWikiActive(null);
+                        }
+                      }}
+                      onBlur={() => {
+                        // Delay to allow click on autocomplete items
+                        setTimeout(() => setWikiActive(null), 200);
+                      }}
+                      onSelect={(event) => {
+                        const ta = event.target as HTMLTextAreaElement;
+                        const link = getActiveWikiLink(ta.value, ta.selectionStart);
+                        if (link && !wikiActive) {
+                          setWikiActive(link);
+                          setWikiSelectedIdx(0);
+                        } else if (!link && wikiActive) {
+                          setWikiActive(null);
+                        }
+                      }}
+                      placeholder="Write notes… Use [[Note Title]] to link to other notes."
+                      className={`${fieldTextarea} min-h-[260px] w-full`}
+                    />
+                    {/* Wiki autocomplete dropdown */}
+                    {wikiActive && (() => {
+                      const suggestions = getWikiSuggestions(wikiActive.query, notes, selectedNote.id);
+                      if (suggestions.length === 0) return null;
+                      return (
+                        <div className="xt-wiki-autocomplete" style={{ top: '100%', marginTop: 4 }}>
+                          {suggestions.map((note, idx) => (
+                            <button
+                              key={note.id}
+                              type="button"
+                              className="xt-wiki-autocomplete-item"
+                              data-active={idx === wikiSelectedIdx}
+                              onMouseDown={(e) => {
+                                e.preventDefault(); // Prevent blur
+                                const { newContent, newCursorPos } = insertWikiLink(
+                                  selectedNote.content, wikiActive.start, wikiActive.end, note.title
+                                );
+                                updateNote(selectedNote.id, { content: newContent });
+                                setWikiActive(null);
+                                requestAnimationFrame(() => {
+                                  if (noteTextareaRef.current) {
+                                    noteTextareaRef.current.selectionStart = newCursorPos;
+                                    noteTextareaRef.current.selectionEnd = newCursorPos;
+                                    noteTextareaRef.current.focus();
+                                  }
+                                });
+                              }}
+                            >
+                              <FileText size={12} />
+                              <span className="flex-1 truncate">{note.title}</span>
+                              <span className="xt-wiki-autocomplete-kind">{note.kind}</span>
+                            </button>
+                          ))}
+                        </div>
+                      );
+                    })()}
+                  </div>
+
+                  {/* Backlinks — notes that reference this note */}
+                  {(() => {
+                    const backlinks = getBacklinks(selectedNote.title, notes, selectedNote.id);
+                    if (backlinks.length === 0) return null;
+                    return (
+                      <div className="xt-wiki-backlinks">
+                        <div className="xt-wiki-backlinks-title">
+                          {backlinks.length} backlink{backlinks.length !== 1 ? 's' : ''}
+                        </div>
+                        {backlinks.map((bl) => (
+                          <button
+                            key={bl.id}
+                            type="button"
+                            className="xt-wiki-backlink-item"
+                            onClick={() => setSelectedNoteId(bl.id)}
+                          >
+                            <Link2 size={10} />
+                            {bl.title}
+                          </button>
+                        ))}
+                      </div>
+                    );
+                  })()}
 
                   <div className="grid gap-4 lg:grid-cols-2">
                     <div className={`${detailPanel} p-4`}>

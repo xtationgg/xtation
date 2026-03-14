@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react';
-import { Camera, Edit2, Check, X, Upload, Box, User, Activity, Award, BarChart2, Sword, Zap, Link2, FileText, Shield, ChevronLeft, GitBranch } from 'lucide-react';
+import { Camera, Edit2, Check, X, Upload, Box, User, Activity, Award, BarChart2, Sword, Zap, Link2, FileText, Shield, ChevronLeft, GitBranch, TreePine } from 'lucide-react';
 import { ProfilePanel } from '../UI/ProfilePanel';
 import { Hint } from '../UI/Hint';
 import { RewardVisual } from '../UI/RewardVisual';
@@ -80,10 +80,10 @@ interface BioStats {
 
 export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
   const [calendarSubView, setCalendarSubView] = useState<'day' | 'log'>('day');
-  const [activeTab, setActiveTab] = useState<'PROFILE' | 'HEALTH' | 'ACHIEVEMENTS' | 'ACTIVITY' | 'LOG'>(() => {
+  const [activeTab, setActiveTab] = useState<'PROFILE' | 'HEALTH' | 'ACHIEVEMENTS' | 'ACTIVITY' | 'LOG' | 'SELF_TREE'>(() => {
     try {
       const stored = window.sessionStorage.getItem('profileActiveTab');
-      if (stored === 'PROFILE' || stored === 'HEALTH' || stored === 'ACHIEVEMENTS' || stored === 'ACTIVITY' || stored === 'LOG') {
+      if (stored === 'PROFILE' || stored === 'HEALTH' || stored === 'ACHIEVEMENTS' || stored === 'ACTIVITY' || stored === 'LOG' || stored === 'SELF_TREE') {
         return stored;
       }
     } catch {}
@@ -2639,6 +2639,224 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
           </div>
           </div>
         );
+
+      case 'SELF_TREE': {
+        const ST_BRANCHES: { branch: SelfTreeBranch; color: string; icon: string; desc: string }[] = [
+          { branch: 'Knowledge',     color: '#60a5fa', icon: '📚', desc: 'Learning, research, and skill depth' },
+          { branch: 'Creation',      color: '#c084fc', icon: '✦',  desc: 'Building, designing, and making' },
+          { branch: 'Systems',       color: '#34d399', icon: '⚙',  desc: 'Structure, code, and automation' },
+          { branch: 'Communication', color: '#fb923c', icon: '◎',  desc: 'Writing, outreach, and presence' },
+          { branch: 'Physical',      color: '#f87171', icon: '◈',  desc: 'Health, energy, and movement' },
+          { branch: 'Inner',         color: '#facc15', icon: '◉',  desc: 'Mindset, reflection, and clarity' },
+        ];
+
+        const stActiveTasks = tasks.filter(t => t.status !== 'dropped' && !t.archivedAt);
+        const stActiveProjects = xpProjects.filter(p => p.status !== 'Archived');
+        const stActiveSlots = inventorySlots.filter(s => !s.archivedAt);
+        const stCompletedTasks = tasks.filter(t => t.status === 'done');
+
+        const stGetBranchData = (branch: SelfTreeBranch) => {
+          const activeTasks = stActiveTasks.filter(t => t.selfTreePrimary === branch || t.selfTreeSecondary === branch);
+          const completedTasks = stCompletedTasks.filter(t => t.selfTreePrimary === branch || t.selfTreeSecondary === branch);
+          const projects = stActiveProjects.filter(p => p.selfTreePrimary === branch || p.selfTreeSecondary === branch);
+          const items = stActiveSlots.filter(s => s.selfTreeBranch === branch);
+          const nodes = selfTreeNodes.filter(n => n.rootBranch === branch);
+          const score = activeTasks.length + projects.length * 2 + items.length + completedTasks.length;
+          return { activeTasks, completedTasks, projects, items, nodes, score };
+        };
+
+        const stBranchData = ST_BRANCHES.map(b => ({ ...b, ...stGetBranchData(b.branch) }));
+        const stMaxScore = Math.max(...stBranchData.map(d => d.score), 1);
+        const stTotalScore = stBranchData.reduce((sum, d) => sum + d.score, 0);
+        // Compute radar coordinates for hexagonal chart
+        const stRadarPoints = stBranchData.map((d, i) => {
+          const angle = (Math.PI * 2 * i) / 6 - Math.PI / 2;
+          const r = stMaxScore > 0 ? (d.score / stMaxScore) * 100 : 0;
+          return { x: 150 + Math.cos(angle) * r, y: 150 + Math.sin(angle) * r };
+        });
+        const stRadarPath = stRadarPoints.map((p, i) => `${i === 0 ? 'M' : 'L'}${p.x},${p.y}`).join(' ') + 'Z';
+
+        return (
+          <div className="xt-selftree-page overflow-y-auto h-full">
+            <div className="xt-selftree-page-inner">
+              {/* Header */}
+              <div className="xt-selftree-page-header">
+                <div className="xt-selftree-page-kicker">Identity Growth</div>
+                <h2 className="xt-selftree-page-title">Self Tree</h2>
+                <p className="xt-selftree-page-desc">
+                  Your growth across 6 life dimensions. Every quest, project, and item you tag feeds a branch.
+                </p>
+              </div>
+
+              {/* Radar visualization */}
+              <div className="xt-selftree-radar-wrap">
+                <svg viewBox="0 0 300 300" className="xt-selftree-radar-svg">
+                  {/* Grid rings */}
+                  {[25, 50, 75, 100].map(r => (
+                    <polygon
+                      key={r}
+                      points={Array.from({ length: 6 }, (_, i) => {
+                        const a = (Math.PI * 2 * i) / 6 - Math.PI / 2;
+                        return `${150 + Math.cos(a) * r},${150 + Math.sin(a) * r}`;
+                      }).join(' ')}
+                      className="xt-selftree-radar-ring"
+                    />
+                  ))}
+                  {/* Axis lines */}
+                  {ST_BRANCHES.map((_, i) => {
+                    const a = (Math.PI * 2 * i) / 6 - Math.PI / 2;
+                    return (
+                      <line
+                        key={i}
+                        x1="150" y1="150"
+                        x2={150 + Math.cos(a) * 105}
+                        y2={150 + Math.sin(a) * 105}
+                        className="xt-selftree-radar-axis"
+                      />
+                    );
+                  })}
+                  {/* Data shape */}
+                  {stTotalScore > 0 && (
+                    <polygon
+                      points={stRadarPoints.map(p => `${p.x},${p.y}`).join(' ')}
+                      className="xt-selftree-radar-shape"
+                    />
+                  )}
+                  {/* Data points */}
+                  {stRadarPoints.map((p, i) => (
+                    <circle
+                      key={i}
+                      cx={p.x} cy={p.y} r={stBranchData[i].score > 0 ? 4 : 2}
+                      fill={stBranchData[i].color}
+                      className="xt-selftree-radar-dot"
+                    />
+                  ))}
+                  {/* Labels */}
+                  {ST_BRANCHES.map((b, i) => {
+                    const a = (Math.PI * 2 * i) / 6 - Math.PI / 2;
+                    const lx = 150 + Math.cos(a) * 130;
+                    const ly = 150 + Math.sin(a) * 130;
+                    return (
+                      <text
+                        key={b.branch}
+                        x={lx} y={ly}
+                        textAnchor="middle"
+                        dominantBaseline="middle"
+                        fill={b.color}
+                        className="xt-selftree-radar-label"
+                      >
+                        {b.branch}
+                      </text>
+                    );
+                  })}
+                </svg>
+              </div>
+
+              {/* Branch cards grid */}
+              <div className="xt-selftree-cards-grid">
+                {stBranchData.map(({ branch, color, icon, desc, activeTasks, completedTasks, projects, items, nodes, score }) => {
+                  const pct = stMaxScore > 0 ? Math.round((score / stMaxScore) * 100) : 0;
+                  const isAdding = selfTreeNewNode?.branch === branch;
+                  return (
+                    <div key={branch} className="xt-selftree-card" style={{ borderColor: `color-mix(in srgb, ${color} 25%, transparent)` }}>
+                      {/* Card header */}
+                      <div className="xt-selftree-card-head">
+                        <span className="xt-selftree-card-icon" style={{ color }}>{icon}</span>
+                        <div>
+                          <div className="xt-selftree-card-branch" style={{ color }}>{branch}</div>
+                          <div className="xt-selftree-card-desc">{desc}</div>
+                        </div>
+                      </div>
+
+                      {/* Progress bar */}
+                      <div className="xt-selftree-card-bar-track">
+                        <div
+                          className="xt-selftree-card-bar-fill"
+                          style={{ width: `${Math.max(pct, score > 0 ? 4 : 0)}%`, background: color }}
+                        />
+                      </div>
+
+                      {/* Stats */}
+                      <div className="xt-selftree-card-stats">
+                        <span className="xt-selftree-card-stat">
+                          <span className="xt-selftree-card-stat-val">{activeTasks.length}</span> active
+                        </span>
+                        <span className="xt-selftree-card-stat">
+                          <span className="xt-selftree-card-stat-val">{completedTasks.length}</span> done
+                        </span>
+                        <span className="xt-selftree-card-stat">
+                          <span className="xt-selftree-card-stat-val">{projects.length}</span> projects
+                        </span>
+                        <span className="xt-selftree-card-stat">
+                          <span className="xt-selftree-card-stat-val">{items.length}</span> items
+                        </span>
+                      </div>
+
+                      {/* Nodes */}
+                      {(nodes.length > 0 || isAdding) && (
+                        <div className="xt-selftree-card-nodes">
+                          {nodes.map(node => (
+                            <div key={node.id} className="xt-selftree-card-node">
+                              <span className="xt-selftree-card-node-dot" style={{ background: color }} />
+                              <span className="xt-selftree-card-node-title">{node.title}</span>
+                              <button
+                                type="button"
+                                onClick={() => deleteSelfTreeNode(node.id)}
+                                className="xt-selftree-card-node-del"
+                              >×</button>
+                            </div>
+                          ))}
+                          {isAdding && (
+                            <div className="xt-selftree-card-add-row">
+                              <input
+                                autoFocus
+                                type="text"
+                                value={selfTreeNewNode.text}
+                                onChange={e => setSelfTreeNewNode({ branch, text: e.target.value })}
+                                onKeyDown={e => {
+                                  if (e.key === 'Enter' && selfTreeNewNode.text.trim()) {
+                                    addSelfTreeNode({ rootBranch: branch, title: selfTreeNewNode.text.trim() });
+                                    setSelfTreeNewNode(null);
+                                  } else if (e.key === 'Escape') {
+                                    setSelfTreeNewNode(null);
+                                  }
+                                }}
+                                placeholder="Node title…"
+                                className="xt-selftree-card-add-input"
+                                style={{ borderColor: `color-mix(in srgb, ${color} 35%, transparent)` }}
+                              />
+                              <button type="button" onClick={() => setSelfTreeNewNode(null)} className="xt-selftree-card-node-del">×</button>
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      {/* Add node */}
+                      {!isAdding && (
+                        <button
+                          type="button"
+                          onClick={() => setSelfTreeNewNode({ branch, text: '' })}
+                          className="xt-selftree-card-add-btn"
+                          style={{ color: `color-mix(in srgb, ${color} 70%, var(--app-muted))` }}
+                        >
+                          + add milestone
+                        </button>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Summary footer */}
+              <div className="xt-selftree-page-footer">
+                <span>Total growth score: <strong>{stTotalScore}</strong></span>
+                <span>·</span>
+                <span>{selfTreeNodes.length} milestones across {ST_BRANCHES.filter((_, i) => stBranchData[i].nodes.length > 0).length} branches</span>
+              </div>
+            </div>
+          </div>
+        );
+      }
     }
   };
 
@@ -2651,6 +2869,7 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
           <div className="flex-1 h-px bg-gradient-to-r from-transparent to-[color-mix(in_srgb,var(--app-accent)_30%,transparent)]" />
           <div className="flex items-center gap-1 bg-[var(--app-panel)] border border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] rounded-xl px-1.5 py-1">
             <TabButton label="PROFILE" value="PROFILE" icon={<User size={12} />} />
+            <TabButton label="SELF TREE" value="SELF_TREE" icon={<TreePine size={12} />} />
             <TabButton label="HEALTH" value="HEALTH" icon={<Activity size={12} />} />
             <TabButton label="ACHIEVEMENTS" value="ACHIEVEMENTS" icon={<Award size={12} />} />
             <TabButton label="ACTIVITY" value="ACTIVITY" icon={<Activity size={12} />} />
