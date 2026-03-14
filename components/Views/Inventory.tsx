@@ -399,7 +399,7 @@ export const Inventory: React.FC = () => {
             const url = urlInput.trim();
             const label = url.replace(/^https?:\/\//, '').split('/').pop()?.split('?')[0] || 'Link';
             const { data: ins, error: e } = await supabase.from('user_files')
-                .insert({ user_id: freshUid, owner_type: 'inventory', owner_id: catKey(urlUploadCat), kind: 'link', title: label, notes: url, mime: 'text/uri-list', size_bytes: 0 })
+                .insert({ user_id: freshUid, owner_type: 'inventory', owner_id: catKey(urlUploadCat), kind: 'file', title: label, notes: url, mime: 'text/uri-list', size_bytes: 0, thumb_path: '' })
                 .select('*').single();
             if (e || !ins) throw e || new Error('insert fail');
             pe?.emitEvent('inventory.upload.completed', { source: 'user', metadata: { category: urlUploadCat, type: 'url' } });
@@ -764,18 +764,6 @@ export const Inventory: React.FC = () => {
                                     placeholder={`+ add ${activeCat.toLowerCase()} item`} />
                                 <button onClick={addLedger}><Plus size={14} /></button>
                             </div>
-                            {urlUploadCat && (
-                                <div className="xt-inv-url-row">
-                                    <Link2 size={12} className="xt-inv-url-icon" />
-                                    <input value={urlInput}
-                                        onChange={e => setUrlInput(e.target.value)}
-                                        onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleUrlUpload(); } if (e.key === 'Escape') { setUrlUploadCat(null); setUrlInput(''); } }}
-                                        placeholder="paste url…"
-                                        autoFocus />
-                                    <button onClick={handleUrlUpload} disabled={!urlInput.trim()}><Send size={12} /></button>
-                                    <button onClick={() => { setUrlUploadCat(null); setUrlInput(''); }}><X size={12} /></button>
-                                </div>
-                            )}
                             {archivedCount > 0 && (
                                 <button className="xt-inv-archive-toggle" onClick={() => setShowArchived(v => !v)}>
                                     <Archive size={11} />
@@ -1123,6 +1111,28 @@ export const Inventory: React.FC = () => {
             </div>
 
             <input type="file" ref={fileRef} className="hidden" accept="image/*,.png,.jpg,.jpeg,.gif,.webp,.svg,.heic" onChange={handleFile} />
+
+            {/* URL upload modal */}
+            {urlUploadCat && (
+                <div className="xt-inv-url-overlay" onMouseDown={() => { setUrlUploadCat(null); setUrlInput(''); }}>
+                    <div className="xt-inv-url-modal" onMouseDown={e => e.stopPropagation()}>
+                        <div className="xt-inv-url-modal-head">
+                            <Link2 size={14} />
+                            <span>UPLOAD URL</span>
+                        </div>
+                        <input className="xt-inv-url-modal-input"
+                            value={urlInput}
+                            onChange={e => setUrlInput(e.target.value)}
+                            onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleUrlUpload(); } if (e.key === 'Escape') { setUrlUploadCat(null); setUrlInput(''); } }}
+                            placeholder="https://…"
+                            autoFocus />
+                        <div className="xt-inv-url-modal-actions">
+                            <button className="xt-inv-url-modal-btn cancel" onClick={() => { setUrlUploadCat(null); setUrlInput(''); }}>CANCEL</button>
+                            <button className="xt-inv-url-modal-btn upload" onClick={handleUrlUpload} disabled={!urlInput.trim()}>UPLOAD</button>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* Viewer modal */}
             {viewer && (
