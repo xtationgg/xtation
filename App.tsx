@@ -122,6 +122,17 @@ const LazyDuskRelay = lazy(() => loadDuskRelay().then((module) => ({ default: mo
 const LazyChatDock = lazy(() => loadChatDock().then((module) => ({ default: module.ChatDock })));
 const LazyDevHUD = lazy(() => loadDevHud().then((module) => ({ default: module.DevHUD })));
 
+// Lazy view imports (also in ViewRouter.tsx but still referenced inline in App.tsx)
+const LazyLab = lazy(() => import('./components/Views/Lab').then((m) => ({ default: m.Lab })));
+const LazyAdmin = lazy(() => import('./components/Views/Admin').then((m) => ({ default: m.Admin })));
+const LazyProfile = lazy(() => import('./components/Views/Profile').then((m) => ({ default: m.Profile })));
+const LazySettings = lazy(() => import('./components/Views/Settings').then((m) => ({ default: m.Settings })));
+const LazyInventory = lazy(() => import('./components/Views/Inventory').then((m) => ({ default: m.Inventory })));
+const LazyMultiplayer = lazy(() => import('./components/Views/Multiplayer').then((m) => ({ default: m.Multiplayer })));
+const LazyStore = lazy(() => import('./components/Views/Store').then((m) => ({ default: m.Store })));
+const LazyEarth = lazy(() => import('./components/Views/Earth').then((m) => ({ default: m.Earth })));
+const LazyUiKitPlayground = lazy(() => import('./components/Views/UiKitPlayground').then((m) => ({ default: m.UiKitPlayground })));
+
 // SectionLoadingState moved to src/navigation/ViewRouter.tsx
 
 const AssistantLoadingState: React.FC = () => (
