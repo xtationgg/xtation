@@ -64,7 +64,15 @@ const TIER_LABELS: Record<number, string> = { 1: 'Common', 2: 'Uncommon', 3: 'Ra
 const TIER_COLORS: Record<number, string> = {
     1: '#9ca3af', 2: '#34d399', 3: '#60a5fa', 4: '#c084fc', 5: '#f59e0b',
 };
-const LIBRARY_SUBTYPES = ['book', 'pdf', 'article', 'course', 'research', 'dataset', 'note'];
+const CATEGORY_SUBTYPES: Partial<Record<InventoryCategory, string[]>> = {
+    APPAREL: ['shirt', 'pants', 'shoes', 'hat', 'jacket', 'accessory', 'uniform'],
+    EQUIPMENT: ['monitor', 'keyboard', 'mouse', 'headphones', 'phone', 'laptop', 'tablet', 'camera'],
+    TOOLS: ['software', 'hardware', 'service', 'resource', 'plugin', 'cli', 'framework'],
+    LIBRARY: ['book', 'pdf', 'article', 'course', 'research', 'dataset', 'note'],
+    CONSUMABLES: ['food', 'drink', 'supplement', 'medicine', 'subscription', 'credit'],
+    VALUABLES: ['collectible', 'certificate', 'license', 'token', 'rare', 'memorabilia'],
+    MISC: ['template', 'snippet', 'config', 'preset', 'backup', 'other'],
+};
 
 const impColor = (i?: string) => {
     switch (i) {
@@ -128,6 +136,7 @@ export const Inventory: React.FC = () => {
     // ── Grid controls
     const [searchQuery, setSearchQuery]     = useState('');
     const [showArchived, setShowArchived]   = useState(false);
+    const [sortBy, setSortBy]               = useState<'date' | 'name' | 'tier' | 'importance'>('date');
 
     // ── Details panel editing state
     const [confirmDelete, setConfirmDelete]     = useState<string | null>(null);
@@ -154,6 +163,7 @@ export const Inventory: React.FC = () => {
                     name: r.title || 'Image',
                     thumbUrl: r.thumbUrl || undefined,
                     importance: (r.meta as Record<string, unknown> | undefined)?.importance as UnifiedItem['importance'],
+                    archivedAt: (r.meta as Record<string, unknown> | undefined)?.archivedAt as number | undefined,
                     mediaUrl: r.thumbUrl || '',
                     details: r.notes || undefined,
                     cloudRow: r,
@@ -198,8 +208,20 @@ export const Inventory: React.FC = () => {
                 i.details?.toLowerCase().includes(q)
             );
         }
+        // Sort
+        result.sort((a, b) => {
+            switch (sortBy) {
+                case 'name': return a.name.localeCompare(b.name);
+                case 'tier': return (b.tier || 0) - (a.tier || 0);
+                case 'importance': {
+                    const impOrder = { critical: 4, high: 3, medium: 2, low: 1 };
+                    return (impOrder[b.importance as keyof typeof impOrder] || 0) - (impOrder[a.importance as keyof typeof impOrder] || 0);
+                }
+                case 'date': default: return (b.createdAt || 0) - (a.createdAt || 0);
+            }
+        });
         return result;
-    }, [items, activeCat, showArchived, searchQuery]);
+    }, [items, activeCat, showArchived, searchQuery, sortBy]);
 
     const selected = useMemo(() => items.find(i => i.id === selectedId) || null, [items, selectedId]);
 
@@ -210,7 +232,7 @@ export const Inventory: React.FC = () => {
     }, [items]);
 
     const archivedCount = useMemo(
-        () => items.filter(i => i.category === activeCat && i.archivedAt && i.source === 'ledger').length,
+        () => items.filter(i => i.category === activeCat && i.archivedAt).length,
         [items, activeCat]
     );
 
@@ -309,6 +331,13 @@ export const Inventory: React.FC = () => {
             setUploading(true);
             uploadingCatRef.current = catLock;
             const up = await upload(f, catLock);
+            // Create a ledger slot linked to this cloud file
+            addInventorySlot({
+                category: uploadCtx.cat,
+                name: up.title || 'Uploaded Image',
+                fileId: up.id,
+                sourceType: 'uploaded',
+            });
             if (uploadCtx.replaceId) {
                 const old = allAtt[uploadCtx.cat].find(r => r.id === uploadCtx.replaceId);
                 if (old) {
@@ -362,7 +391,20 @@ export const Inventory: React.FC = () => {
         playSuccessSound();
     };
 
-    const removeLedger = (id: string) => {
+    const removeLedger = async (id: string) => {
+        // Cascade: if this ledger slot references a cloud file, delete it too
+        const slot = inventorySlots.find(s => s.id === id);
+        if (slot?.fileId && uid) {
+            try {
+                const { data: fileRow } = await supabase.from('user_files').select('thumb_path').eq('id', slot.fileId).eq('user_id', uid).single();
+                await supabase.from('user_files').delete().eq('id', slot.fileId).eq('user_id', uid);
+                if (fileRow?.thumb_path) {
+                    try { await supabase.storage.from('thumbs').remove([fileRow.thumb_path]); } catch { /* best-effort */ }
+                }
+                // Refresh cloud files
+                await fetchAll();
+            } catch { /* Supabase cleanup failed — ledger still deletes */ }
+        }
         deleteInventorySlot(id);
         setSelectedId(null);
         setConfirmDelete(null);
@@ -410,19 +452,31 @@ export const Inventory: React.FC = () => {
             ? current.filter(id => id !== projectId)
             : [...current, projectId];
         updateLedger(item.ledgerSlot.id, { linkedProjectIds: next });
+        pe?.emitEvent('inventory.item.updated', { source: 'user', metadata: { field: 'linkedProject' } });
     };
 
     const archiveItem = (item: UnifiedItem) => {
-        if (!item.ledgerSlot) return;
-        updateLedger(item.ledgerSlot.id, { archivedAt: Date.now() });
+        if (item.source === 'ledger' && item.ledgerSlot) {
+            updateLedger(item.ledgerSlot.id, { archivedAt: Date.now() });
+        } else if (item.source === 'cloud' && item.cloudRow && uid) {
+            // Archive cloud item by updating meta in Supabase
+            supabase.from('user_files').update({ meta: { ...(item.cloudRow.meta as Record<string, unknown> || {}), archivedAt: Date.now() } }).eq('id', item.cloudRow.id).eq('user_id', uid).then(() => fetchAll());
+        }
         setSelectedId(null);
         setConfirmDelete(null);
+        pe?.emitEvent('inventory.item.updated', { source: 'user', metadata: { field: 'archived' } });
         playClickSound();
     };
 
     const restoreItem = (item: UnifiedItem) => {
-        if (!item.ledgerSlot) return;
-        updateLedger(item.ledgerSlot.id, { archivedAt: undefined });
+        if (item.source === 'ledger' && item.ledgerSlot) {
+            updateLedger(item.ledgerSlot.id, { archivedAt: undefined });
+        } else if (item.source === 'cloud' && item.cloudRow && uid) {
+            const meta = { ...(item.cloudRow.meta as Record<string, unknown> || {}) };
+            delete meta.archivedAt;
+            supabase.from('user_files').update({ meta }).eq('id', item.cloudRow.id).eq('user_id', uid).then(() => fetchAll());
+        }
+        pe?.emitEvent('inventory.item.updated', { source: 'user', metadata: { field: 'restored' } });
         playClickSound();
     };
 
@@ -436,6 +490,8 @@ export const Inventory: React.FC = () => {
             body: [
                 `Category: ${item.category}`,
                 `Source: ${item.source}`,
+                item.thumbUrl      ? `Thumbnail: ${item.thumbUrl}` : null,
+                item.tier          ? `Tier: ${TIER_LABELS[item.tier]} (T${item.tier})` : null,
                 branch            ? `Self Tree: ${branch}` : null,
                 item.importance   ? `Priority: ${item.importance}` : null,
                 item.details      ? `Notes: ${item.details}` : null,
@@ -548,6 +604,12 @@ export const Inventory: React.FC = () => {
                                 </button>
                             )}
                         </div>
+                        <select className="xt-inv-sort-select" value={sortBy} onChange={e => setSortBy(e.target.value as typeof sortBy)}>
+                            <option value="date">Date</option>
+                            <option value="name">Name</option>
+                            <option value="tier">Tier</option>
+                            <option value="importance">Priority</option>
+                        </select>
                     </div>
 
                     {/* Capability loadout strip — GEAR only */}
@@ -670,7 +732,7 @@ export const Inventory: React.FC = () => {
                                             </div>
                                         ) : (
                                             <>
-                                                {selected.source === 'ledger' && (
+                                                {(selected.source === 'ledger' || selected.source === 'cloud') && (
                                                     selected.archivedAt ? (
                                                         <button title="Restore" onClick={() => restoreItem(selected)}>
                                                             <RotateCcw size={13} />
@@ -780,12 +842,12 @@ export const Inventory: React.FC = () => {
                                         </div>
                                     )}
 
-                                    {/* Subtype — LIBRARY only */}
-                                    {selected.source === 'ledger' && selected.category === 'LIBRARY' && selected.ledgerSlot && (
+                                    {/* Subtype */}
+                                    {selected.source === 'ledger' && selected.ledgerSlot && CATEGORY_SUBTYPES[selected.category] && (
                                         <div className="xt-inv-section">
                                             <span className="xt-inv-section-label">SUBTYPE</span>
                                             <div className="xt-inv-tier-pills">
-                                                {LIBRARY_SUBTYPES.map(st => (
+                                                {(CATEGORY_SUBTYPES[selected.category] || []).map(st => (
                                                     <button key={st}
                                                         className={`xt-inv-tier-btn${selected.subtype === st ? ' is-active' : ''}`}
                                                         style={selected.subtype === st ? { borderColor: '#60a5fa', color: '#60a5fa', background: '#60a5fa18' } : {}}
@@ -797,8 +859,8 @@ export const Inventory: React.FC = () => {
                                         </div>
                                     )}
 
-                                    {/* Quantity — CONSUMABLES only */}
-                                    {selected.source === 'ledger' && selected.category === 'CONSUMABLES' && selected.ledgerSlot && (
+                                    {/* Quantity */}
+                                    {selected.source === 'ledger' && selected.ledgerSlot && (
                                         <div className="xt-inv-section">
                                             <span className="xt-inv-section-label">QUANTITY</span>
                                             <div className="xt-inv-qty-row">
@@ -812,7 +874,7 @@ export const Inventory: React.FC = () => {
                                     )}
 
                                     {/* External link */}
-                                    {selected.source === 'ledger' && (selected.category === 'TOOLS' || selected.category === 'LIBRARY') && selected.ledgerSlot && (
+                                    {selected.source === 'ledger' && selected.ledgerSlot && (
                                         <div className="xt-inv-section">
                                             <span className="xt-inv-section-label">LINK</span>
                                             <input

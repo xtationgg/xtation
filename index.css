@@ -6911,6 +6911,31 @@
   font-variant-numeric: tabular-nums;
 }
 
+/* ── Sort dropdown ─────────────────────────────────────────────────── */
+.xt-inv-sort-select {
+  background: #060606;
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 0;
+  padding: 5px 8px;
+  font-size: 9px;
+  font-family: var(--font-mono, ui-monospace, monospace);
+  color: var(--inv-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  outline: none;
+  cursor: pointer;
+  transition: border-color 150ms ease;
+  -webkit-appearance: none;
+  appearance: none;
+}
+.xt-inv-sort-select:focus {
+  border-color: var(--inv-accent-pink);
+}
+.xt-inv-sort-select option {
+  background: #0a0a0a;
+  color: var(--inv-text-primary);
+}
+
 
 /* ── Capability loadout bar ──────────────────────────────────────────── */
 .xt-inv-loadout-bar {
