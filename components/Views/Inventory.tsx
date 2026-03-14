@@ -492,11 +492,8 @@ export const Inventory: React.FC = () => {
                 })}
             </div>
 
-            {/* ══ MAIN LAYOUT ══════════════════════════════════════════════ */}
-            <div className="xt-inv-main">
-
-                {/* ── Grid area ─────────────────────────────────────────── */}
-                <div className="xt-inv-grid-area">
+            {/* ── Grid area ─────────────────────────────────────────── */}
+            <div className="xt-inv-grid-area">
 
                     {/* Grid header — heading + search */}
                     <div className="xt-inv-grid-head">
@@ -605,28 +602,28 @@ export const Inventory: React.FC = () => {
                 <div className="xt-inv-details">
                     {selected ? (
                         <>
-                            {/* Panel header — name (editable for ledger) + action buttons */}
-                            <div className="xt-inv-details-head">
-                                {selected.source === 'ledger' && selected.ledgerSlot ? (
-                                    editingName !== null ? (
-                                        <input autoFocus className="xt-inv-details-name-input"
-                                            value={editingName}
-                                            onChange={e => setEditingName(e.target.value)}
-                                            onBlur={() => saveEditingName(selected)}
-                                            onKeyDown={e => { if (e.key === 'Enter') saveEditingName(selected); if (e.key === 'Escape') setEditingName(null); }} />
-                                    ) : (
-                                        <span className="xt-inv-grid-heading is-editable"
-                                            title="Click to rename"
-                                            onClick={() => setEditingName(selected.name)}>
-                                            {selected.name}
-                                        </span>
-                                    )
+                            {/* Hero: full-width image/icon preview */}
+                            <div className="xt-inv-details-hero">
+                                {selected.source === 'cloud' && selected.mediaUrl ? (
+                                    <div className="xt-inv-hero-img"
+                                        style={{ perspective: '900px' }}
+                                        onPointerDown={pDown} onPointerMove={pMove} onPointerUp={pUp} onPointerLeave={pUp}>
+                                        <div style={{ transform: `rotateY(${rotation}deg)`, transformStyle: 'preserve-3d', transition: dragRef.current.dragging ? 'none' : 'transform 0.2s ease-out', width: '100%', height: '100%' }}>
+                                            <img src={selected.mediaUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
+                                        </div>
+                                    </div>
                                 ) : (
-                                    <span className="xt-inv-grid-heading">{selected.name}</span>
+                                    <div className="xt-inv-hero-icon">
+                                        {React.createElement(catIcons[selected.category], { size: 72 })}
+                                    </div>
                                 )}
-
-                                <div className="xt-inv-details-head-actions">
-                                    {/* Delete / archive flow */}
+                                {/* Floating action buttons */}
+                                <div className="xt-inv-hero-actions">
+                                    {selected.source === 'cloud' && (
+                                        <button onClick={() => { setUploadCtx({ cat: selected.category, replaceId: selected.cloudRow?.id }); fileRef.current?.click(); playClickSound(); }} title="Replace image">
+                                            <Upload size={13} />
+                                        </button>
+                                    )}
                                     {selected.source !== 'capability' && (
                                         confirmDelete === selected.id ? (
                                             <div className="xt-inv-confirm-delete">
@@ -641,64 +638,49 @@ export const Inventory: React.FC = () => {
                                             <>
                                                 {selected.source === 'ledger' && (
                                                     selected.archivedAt ? (
-                                                        <button className="xt-inv-head-btn" title="Restore from archive" onClick={() => restoreItem(selected)}>
+                                                        <button title="Restore" onClick={() => restoreItem(selected)}>
                                                             <RotateCcw size={13} />
                                                         </button>
                                                     ) : (
-                                                        <button className="xt-inv-head-btn" title="Archive" onClick={() => archiveItem(selected)}>
+                                                        <button title="Archive" onClick={() => archiveItem(selected)}>
                                                             <Archive size={13} />
                                                         </button>
                                                     )
                                                 )}
-                                                <button className="xt-inv-head-btn danger" title="Delete permanently" onClick={() => setConfirmDelete(selected.id)}>
+                                                <button className="danger" title="Delete permanently" onClick={() => setConfirmDelete(selected.id)}>
                                                     <Trash2 size={13} />
                                                 </button>
                                             </>
                                         )
                                     )}
-                                    {/* Send to Dusk */}
-                                    <button className="xt-inv-head-btn dusk" title="Send context to Dusk" onClick={() => sendToDusk(selected)}>
+                                    <button className="dusk" title="Send context to Dusk" onClick={() => sendToDusk(selected)}>
                                         <Send size={13} />
                                     </button>
                                 </div>
                             </div>
 
-                            <div className="xt-inv-details-body custom-scrollbar">
-
-                                {/* Preview image */}
-                                <div className="xt-inv-preview">
-                                    {selected.source === 'cloud' && selected.mediaUrl ? (
-                                        <div className="xt-inv-preview-img"
-                                            style={{ perspective: '900px' }}
-                                            onPointerDown={pDown} onPointerMove={pMove} onPointerUp={pUp} onPointerLeave={pUp}>
-                                            <div style={{ transform: `rotateY(${rotation}deg)`, transformStyle: 'preserve-3d', transition: dragRef.current.dragging ? 'none' : 'transform 0.2s ease-out', width: '100%', height: '100%' }}>
-                                                <img src={selected.mediaUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
-                                            </div>
-                                        </div>
+                            {/* Content zone */}
+                            <div className="xt-inv-details-content">
+                                {/* Item name */}
+                                <div className="xt-inv-details-name-zone">
+                                    {selected.source === 'ledger' && selected.ledgerSlot ? (
+                                        editingName !== null ? (
+                                            <input autoFocus className="xt-inv-details-name-input"
+                                                value={editingName}
+                                                onChange={e => setEditingName(e.target.value)}
+                                                onBlur={() => saveEditingName(selected)}
+                                                onKeyDown={e => { if (e.key === 'Enter') saveEditingName(selected); if (e.key === 'Escape') setEditingName(null); }} />
+                                        ) : (
+                                            <span className="xt-inv-details-title is-editable" title="Click to rename" onClick={() => setEditingName(selected.name)}>
+                                                {selected.name}
+                                            </span>
+                                        )
                                     ) : (
-                                        <div className="xt-inv-preview-icon">
-                                            {React.createElement(catIcons[selected.category], { size: 56 })}
-                                        </div>
-                                    )}
-                                    {selected.source === 'cloud' && (
-                                        <div className="xt-inv-preview-actions">
-                                            <button onClick={() => { setUploadCtx({ cat: selected.category, replaceId: selected.cloudRow?.id }); fileRef.current?.click(); playClickSound(); }} title="Replace image">
-                                                <Upload size={14} />
-                                            </button>
-                                        </div>
+                                        <span className="xt-inv-details-title">{selected.name}</span>
                                     )}
                                 </div>
 
-                                {/* Replace image — visible action button for cloud */}
-                                {selected.source === 'cloud' && (
-                                    <button className="xt-inv-action-btn"
-                                        onClick={() => { setUploadCtx({ cat: selected.category, replaceId: selected.cloudRow?.id }); fileRef.current?.click(); playClickSound(); }}>
-                                        <Upload size={12} />
-                                        <span>Replace Image</span>
-                                    </button>
-                                )}
-
-                                {/* Capability item breakdown */}
+                                {/* Capability info */}
                                 {selected.source === 'capability' && selected.capabilityItem && (
                                     <div className="xt-inv-cap-info">
                                         <div className="xt-inv-cap-header">
@@ -716,10 +698,9 @@ export const Inventory: React.FC = () => {
                                     </div>
                                 )}
 
-                                {/* Notes — editable for ledger, read-only for cloud */}
+                                {/* Notes */}
                                 {selected.source !== 'capability' && (
-                                    <div className="xt-inv-section">
-                                        <span className="xt-inv-section-label">NOTES</span>
+                                    <div className="xt-inv-details-desc">
                                         {selected.source === 'ledger' && selected.ledgerSlot ? (
                                             editingDetails !== null ? (
                                                 <textarea autoFocus
@@ -731,8 +712,7 @@ export const Inventory: React.FC = () => {
                                                     rows={3}
                                                     placeholder="Add notes about this item…" />
                                             ) : (
-                                                <div className="xt-inv-notes-display"
-                                                    onClick={() => setEditingDetails(selected.details || '')}>
+                                                <div className="xt-inv-notes-display" onClick={() => setEditingDetails(selected.details || '')}>
                                                     {selected.details
                                                         ? <p>{selected.details}</p>
                                                         : <span className="xt-inv-notes-placeholder">Click to add notes…</span>}
@@ -746,200 +726,192 @@ export const Inventory: React.FC = () => {
                                     </div>
                                 )}
 
-                                {/* Tier — ledger only */}
-                                {selected.source === 'ledger' && selected.ledgerSlot && (
-                                    <div className="xt-inv-section">
-                                        <span className="xt-inv-section-label">TIER</span>
-                                        <div className="xt-inv-tier-pills">
-                                            {([1, 2, 3, 4, 5] as const).map(t => (
-                                                <button key={t}
-                                                    className={`xt-inv-tier-btn${selected.tier === t ? ' is-active' : ''}`}
-                                                    style={selected.tier === t ? { borderColor: TIER_COLORS[t], color: TIER_COLORS[t], background: `${TIER_COLORS[t]}18` } : {}}
-                                                    onClick={() => updateLedger(selected.ledgerSlot!.id, { tier: t })}>
-                                                    T{t} <span className="xt-inv-tier-label">{TIER_LABELS[t]}</span>
-                                                </button>
-                                            ))}
-                                        </div>
-                                    </div>
-                                )}
+                                {/* Metadata — scrollable */}
+                                <div className="xt-inv-details-meta custom-scrollbar">
 
-                                {/* Subtype — LIBRARY items only */}
-                                {selected.source === 'ledger' && selected.category === 'LIBRARY' && selected.ledgerSlot && (
-                                    <div className="xt-inv-section">
-                                        <span className="xt-inv-section-label">SUBTYPE</span>
-                                        <div className="xt-inv-tier-pills">
-                                            {LIBRARY_SUBTYPES.map(st => (
-                                                <button key={st}
-                                                    className={`xt-inv-tier-btn${selected.subtype === st ? ' is-active' : ''}`}
-                                                    style={selected.subtype === st ? { borderColor: '#60a5fa', color: '#60a5fa', background: '#60a5fa18' } : {}}
-                                                    onClick={() => updateLedger(selected.ledgerSlot!.id, { subtype: st })}>
-                                                    {st}
-                                                </button>
-                                            ))}
-                                        </div>
-                                    </div>
-                                )}
-
-                                {/* Quantity — CONSUMABLES only */}
-                                {selected.source === 'ledger' && selected.category === 'CONSUMABLES' && selected.ledgerSlot && (
-                                    <div className="xt-inv-section">
-                                        <span className="xt-inv-section-label">QUANTITY</span>
-                                        <div className="xt-inv-qty-row">
-                                            <button className="xt-inv-qty-btn"
-                                                onClick={() => updateLedger(selected.ledgerSlot!.id, { quantity: Math.max(0, (selected.quantity || 0) - 1) })}>−</button>
-                                            <span className="xt-inv-qty-val">{selected.quantity ?? 0}</span>
-                                            <button className="xt-inv-qty-btn"
-                                                onClick={() => updateLedger(selected.ledgerSlot!.id, { quantity: (selected.quantity || 0) + 1 })}>+</button>
-                                        </div>
-                                    </div>
-                                )}
-
-                                {/* External link — TOOLS + LIBRARY */}
-                                {selected.source === 'ledger' && (selected.category === 'TOOLS' || selected.category === 'LIBRARY') && selected.ledgerSlot && (
-                                    <div className="xt-inv-section">
-                                        <span className="xt-inv-section-label">LINK</span>
-                                        <input
-                                            type="url"
-                                            className="xt-inv-link-input"
-                                            value={selected.externalLink || ''}
-                                            placeholder="https://…"
-                                            onChange={e => updateLedger(selected.ledgerSlot!.id, { externalLink: e.target.value || undefined })}
-                                        />
-                                        {selected.externalLink && (
-                                            <a href={selected.externalLink} target="_blank" rel="noreferrer" className="xt-inv-link-open">
-                                                open ↗
-                                            </a>
-                                        )}
-                                    </div>
-                                )}
-
-                                {/* Self Tree branch tagger — ledger only */}
-                                {selected.source === 'ledger' && (
-                                    <div className="xt-inv-section">
-                                        <span className="xt-inv-section-label">SELF TREE</span>
-                                        <div className="xt-inv-tree-picker">
-                                            {SELF_TREE_BRANCHES.map(b => (
-                                                <button key={b.value}
-                                                    className={`xt-inv-tree-btn${selected.selfTreeBranch === b.value ? ' is-active' : ''}`}
-                                                    style={selected.selfTreeBranch === b.value ? { borderColor: b.color, color: b.color, background: `${b.color}14` } : {}}
-                                                    onClick={() => setTreeBranch(selected, b.value)}>
-                                                    {b.label}
-                                                </button>
-                                            ))}
-                                        </div>
-                                    </div>
-                                )}
-
-                                {/* Priority / importance — ledger only */}
-                                {selected.source === 'ledger' && (
-                                    <div className="xt-inv-section">
-                                        <span className="xt-inv-section-label">PRIORITY</span>
-                                        <div className="xt-inv-imp-pills">
-                                            {(['low', 'medium', 'high', 'critical'] as const).map(imp => (
-                                                <button key={imp}
-                                                    className={`xt-inv-imp-btn${selected.importance === imp ? ' is-active' : ''}`}
-                                                    style={selected.importance === imp ? { borderColor: impColor(imp), color: impColor(imp), background: `${impColor(imp)}14` } : {}}
-                                                    onClick={() => setImportance(selected, imp)}>
-                                                    {imp}
-                                                </button>
-                                            ))}
-                                        </div>
-                                    </div>
-                                )}
-
-                                {/* Linked Projects — ledger only, only shown if projects exist */}
-                                {selected.source === 'ledger' && activeProjects.length > 0 && (
-                                    <div className="xt-inv-section">
-                                        <div className="xt-inv-section-head">
-                                            <span className="xt-inv-section-label">PROJECTS</span>
-                                            <button className="xt-inv-section-toggle" onClick={() => setShowProjectPicker(v => !v)}>
-                                                <FolderOpen size={11} />
-                                            </button>
-                                        </div>
-                                        {(selected.linkedProjectIds || []).length > 0 && (
-                                            <div className="xt-inv-project-tags">
-                                                {(selected.linkedProjectIds || []).map(pid => {
-                                                    const proj = projects.find(p => p.id === pid);
-                                                    if (!proj) return null;
-                                                    return (
-                                                        <span key={pid} className="xt-inv-project-tag"
-                                                            onClick={() => toggleProject(selected, pid)}>
-                                                            {proj.title}
-                                                            <X size={9} />
-                                                        </span>
-                                                    );
-                                                })}
+                                    {/* Tier */}
+                                    {selected.source === 'ledger' && selected.ledgerSlot && (
+                                        <div className="xt-inv-section">
+                                            <span className="xt-inv-section-label">TIER</span>
+                                            <div className="xt-inv-tier-pills">
+                                                {([1, 2, 3, 4, 5] as const).map(t => (
+                                                    <button key={t}
+                                                        className={`xt-inv-tier-btn${selected.tier === t ? ' is-active' : ''}`}
+                                                        style={selected.tier === t ? { borderColor: TIER_COLORS[t], color: TIER_COLORS[t], background: `${TIER_COLORS[t]}18` } : {}}
+                                                        onClick={() => updateLedger(selected.ledgerSlot!.id, { tier: t })}>
+                                                        T{t} <span className="xt-inv-tier-label">{TIER_LABELS[t]}</span>
+                                                    </button>
+                                                ))}
                                             </div>
-                                        )}
-                                        {showProjectPicker && (
-                                            <div className="xt-inv-project-picker">
-                                                {activeProjects.map(proj => {
-                                                    const linked = (selected.linkedProjectIds || []).includes(proj.id);
-                                                    return (
-                                                        <button key={proj.id}
-                                                            className={`xt-inv-project-opt${linked ? ' is-linked' : ''}`}
-                                                            onClick={() => toggleProject(selected, proj.id)}>
-                                                            <span className="xt-inv-project-opt-name">{proj.title}</span>
-                                                            <span className="xt-inv-project-opt-type">{proj.type}</span>
-                                                        </button>
-                                                    );
-                                                })}
-                                            </div>
-                                        )}
-                                    </div>
-                                )}
+                                        </div>
+                                    )}
 
-                                {/* Stats strip */}
-                                <div className="xt-inv-stats">
-                                    <div className="xt-inv-stat">
-                                        <span className="xt-inv-stat-label">Source</span>
-                                        <span className="xt-inv-stat-val">{selected.source}</span>
-                                    </div>
-                                    <div className="xt-inv-stat">
-                                        <span className="xt-inv-stat-label">Type</span>
-                                        <span className="xt-inv-stat-val">{selected.category}</span>
-                                    </div>
-                                    {selected.tier && (
-                                        <div className="xt-inv-stat">
-                                            <span className="xt-inv-stat-label">Tier</span>
-                                            <span className="xt-inv-stat-val" style={{ color: TIER_COLORS[selected.tier] }}>T{selected.tier} {TIER_LABELS[selected.tier]}</span>
+                                    {/* Subtype — LIBRARY only */}
+                                    {selected.source === 'ledger' && selected.category === 'LIBRARY' && selected.ledgerSlot && (
+                                        <div className="xt-inv-section">
+                                            <span className="xt-inv-section-label">SUBTYPE</span>
+                                            <div className="xt-inv-tier-pills">
+                                                {LIBRARY_SUBTYPES.map(st => (
+                                                    <button key={st}
+                                                        className={`xt-inv-tier-btn${selected.subtype === st ? ' is-active' : ''}`}
+                                                        style={selected.subtype === st ? { borderColor: '#60a5fa', color: '#60a5fa', background: '#60a5fa18' } : {}}
+                                                        onClick={() => updateLedger(selected.ledgerSlot!.id, { subtype: st })}>
+                                                        {st}
+                                                    </button>
+                                                ))}
+                                            </div>
                                         </div>
                                     )}
-                                    {selected.subtype && (
-                                        <div className="xt-inv-stat">
-                                            <span className="xt-inv-stat-label">Subtype</span>
-                                            <span className="xt-inv-stat-val">{selected.subtype}</span>
+
+                                    {/* Quantity — CONSUMABLES only */}
+                                    {selected.source === 'ledger' && selected.category === 'CONSUMABLES' && selected.ledgerSlot && (
+                                        <div className="xt-inv-section">
+                                            <span className="xt-inv-section-label">QUANTITY</span>
+                                            <div className="xt-inv-qty-row">
+                                                <button className="xt-inv-qty-btn"
+                                                    onClick={() => updateLedger(selected.ledgerSlot!.id, { quantity: Math.max(0, (selected.quantity || 0) - 1) })}>−</button>
+                                                <span className="xt-inv-qty-val">{selected.quantity ?? 0}</span>
+                                                <button className="xt-inv-qty-btn"
+                                                    onClick={() => updateLedger(selected.ledgerSlot!.id, { quantity: (selected.quantity || 0) + 1 })}>+</button>
+                                            </div>
                                         </div>
                                     )}
-                                    {selected.createdAt && (
-                                        <div className="xt-inv-stat">
-                                            <span className="xt-inv-stat-label">Added</span>
-                                            <span className="xt-inv-stat-val">{fmtDate(selected.createdAt)}</span>
+
+                                    {/* External link */}
+                                    {selected.source === 'ledger' && (selected.category === 'TOOLS' || selected.category === 'LIBRARY') && selected.ledgerSlot && (
+                                        <div className="xt-inv-section">
+                                            <span className="xt-inv-section-label">LINK</span>
+                                            <input
+                                                type="url"
+                                                className="xt-inv-link-input"
+                                                value={selected.externalLink || ''}
+                                                placeholder="https://…"
+                                                onChange={e => updateLedger(selected.ledgerSlot!.id, { externalLink: e.target.value || undefined })}
+                                            />
+                                            {selected.externalLink && (
+                                                <a href={selected.externalLink} target="_blank" rel="noreferrer" className="xt-inv-link-open">
+                                                    open ↗
+                                                </a>
+                                            )}
                                         </div>
                                     )}
-                                    {selected.archivedAt && (
-                                        <div className="xt-inv-stat">
-                                            <span className="xt-inv-stat-label">Archived</span>
-                                            <span className="xt-inv-stat-val" style={{ color: '#e8b800' }}>{fmtDate(selected.archivedAt)}</span>
+
+                                    {/* Self Tree */}
+                                    {selected.source === 'ledger' && (
+                                        <div className="xt-inv-section">
+                                            <span className="xt-inv-section-label">SELF TREE</span>
+                                            <div className="xt-inv-tree-picker">
+                                                {SELF_TREE_BRANCHES.map(b => (
+                                                    <button key={b.value}
+                                                        className={`xt-inv-tree-btn${selected.selfTreeBranch === b.value ? ' is-active' : ''}`}
+                                                        style={selected.selfTreeBranch === b.value ? { borderColor: b.color, color: b.color, background: `${b.color}14` } : {}}
+                                                        onClick={() => setTreeBranch(selected, b.value)}>
+                                                        {b.label}
+                                                    </button>
+                                                ))}
+                                            </div>
                                         </div>
                                     )}
+
+                                    {/* Priority */}
+                                    {selected.source === 'ledger' && (
+                                        <div className="xt-inv-section">
+                                            <span className="xt-inv-section-label">PRIORITY</span>
+                                            <div className="xt-inv-imp-pills">
+                                                {(['low', 'medium', 'high', 'critical'] as const).map(imp => (
+                                                    <button key={imp}
+                                                        className={`xt-inv-imp-btn${selected.importance === imp ? ' is-active' : ''}`}
+                                                        style={selected.importance === imp ? { borderColor: impColor(imp), color: impColor(imp), background: `${impColor(imp)}14` } : {}}
+                                                        onClick={() => setImportance(selected, imp)}>
+                                                        {imp}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* Linked Projects */}
+                                    {selected.source === 'ledger' && activeProjects.length > 0 && (
+                                        <div className="xt-inv-section">
+                                            <div className="xt-inv-section-head">
+                                                <span className="xt-inv-section-label">PROJECTS</span>
+                                                <button className="xt-inv-section-toggle" onClick={() => setShowProjectPicker(v => !v)}>
+                                                    <FolderOpen size={11} />
+                                                </button>
+                                            </div>
+                                            {(selected.linkedProjectIds || []).length > 0 && (
+                                                <div className="xt-inv-project-tags">
+                                                    {(selected.linkedProjectIds || []).map(pid => {
+                                                        const proj = projects.find(p => p.id === pid);
+                                                        if (!proj) return null;
+                                                        return (
+                                                            <span key={pid} className="xt-inv-project-tag"
+                                                                onClick={() => toggleProject(selected, pid)}>
+                                                                {proj.title}
+                                                                <X size={9} />
+                                                            </span>
+                                                        );
+                                                    })}
+                                                </div>
+                                            )}
+                                            {showProjectPicker && (
+                                                <div className="xt-inv-project-picker">
+                                                    {activeProjects.map(proj => {
+                                                        const linked = (selected.linkedProjectIds || []).includes(proj.id);
+                                                        return (
+                                                            <button key={proj.id}
+                                                                className={`xt-inv-project-opt${linked ? ' is-linked' : ''}`}
+                                                                onClick={() => toggleProject(selected, proj.id)}>
+                                                                <span className="xt-inv-project-opt-name">{proj.title}</span>
+                                                                <span className="xt-inv-project-opt-type">{proj.type}</span>
+                                                            </button>
+                                                        );
+                                                    })}
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
+
                                 </div>
+                            </div>
 
+                            {/* Stats footer — fixed bottom bar like reference */}
+                            <div className="xt-inv-details-foot">
+                                <div className="xt-inv-foot-stat">
+                                    <span className="xt-inv-foot-label">Source</span>
+                                    <span className="xt-inv-foot-val">{selected.source}</span>
+                                </div>
+                                <div className="xt-inv-foot-stat">
+                                    <span className="xt-inv-foot-label">Category</span>
+                                    <span className="xt-inv-foot-val">{selected.category}</span>
+                                </div>
+                                {selected.tier && (
+                                    <div className="xt-inv-foot-stat">
+                                        <span className="xt-inv-foot-label">Tier</span>
+                                        <span className="xt-inv-foot-val" style={{ color: TIER_COLORS[selected.tier] }}>{TIER_LABELS[selected.tier]}</span>
+                                    </div>
+                                )}
+                                {selected.importance && (
+                                    <div className="xt-inv-foot-stat">
+                                        <span className="xt-inv-foot-label">Priority</span>
+                                        <span className="xt-inv-foot-val" style={{ color: impColor(selected.importance) }}>{selected.importance}</span>
+                                    </div>
+                                )}
+                                {selected.createdAt && (
+                                    <div className="xt-inv-foot-stat xt-inv-foot-stat--right">
+                                        <span className="xt-inv-foot-label">Added</span>
+                                        <span className="xt-inv-foot-val">{fmtDate(selected.createdAt)}</span>
+                                    </div>
+                                )}
                             </div>
                         </>
                     ) : (
-                        <>
-                            <div className="xt-inv-details-head">
-                                <span className="xt-inv-grid-heading">Details</span>
-                            </div>
-                            <div className="xt-inv-details-empty">
-                                <Box size={36} />
-                                <span>Select an item</span>
-                            </div>
-                        </>
+                        <div className="xt-inv-details-empty">
+                            <Box size={36} />
+                            <span>Select an item</span>
+                        </div>
                     )}
                 </div>
-            </div>
 
             {/* ══ RESOURCE BAR ════════════════════════════════════════════ */}
             <div className="xt-inv-bar">

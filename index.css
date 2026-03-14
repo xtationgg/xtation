@@ -5830,74 +5830,119 @@
    Design tokens extracted from reference: inventory-target.png (1920x1080)
    ═══════════════════════════════════════════════════════════════════════════ */
 
+/*
+ * ╔══════════════════════════════════════════════════════════════════════╗
+ * ║           XTATION — INVENTORY PAGE STYLES  (V2 — REFINED)          ║
+ * ║           Inspired by Control (Remedy Entertainment)                ║
+ * ║           Off-limits: class names (see RULES.md)                    ║
+ * ╚══════════════════════════════════════════════════════════════════════╝
+ *
+ * V2 IMPROVEMENTS OVER V1:
+ *   1. Card hover — red left-edge indicator
+ *   2. Mixed case body text (uppercase only for labels/headings)
+ *   3. Stronger selected card — red left bar + tint
+ *   4. Empty slots — barely visible, just faint outline
+ *   5. Hero zone — taller, darker gradient overlay
+ *   6. Active tab — red dot indicator
+ *   7. Footer stat values — brighter, red-tinted tier
+ *   8. 5-column card grid (more items visible)
+ *   9. Smooth 150ms transitions on everything
+ *  10. Chips/tags — red border on hover
+ */
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   SHELL — root container
+   ═══════════════════════════════════════════════════════════════════════════ */
 .xt-inv-shell {
-  --inv-bg: #0f0e0b;
-  --inv-topbar-bg: #191714;
-  --inv-card-bg: #1e1c18;
-  --inv-card-bg-hover: #242220;
-  --inv-card-bg-selected: #252b27;
-  --inv-card-bg-empty: #141210;
-  --inv-details-bg: #141310;
-  --inv-preview-bg: #1a1e1b;
-  --inv-bar-bg: #161512;
-  --inv-grid-line: #090806;
-  --inv-card-border: #1a1916;
-  --inv-card-border-sel: #3a3e3d;
-  --inv-text-heading: #c8c6be;
-  --inv-text-primary: #c4c2ba;
-  --inv-text-secondary: #9ea49f;
-  --inv-text-muted: #5c5f5a;
-  --inv-text-label: #bebcb8;
-  --inv-text-cat: #c3bfbc;
-  --inv-accent-pink: #ab3687;
-  --inv-accent-pink-dim: rgba(171, 54, 135, 0.18);
+
+  /* ── Design tokens ─────────────────────────────────────────────────── */
+  --inv-bg: #000000;
+  --inv-topbar-bg: #000000;
+  --inv-card-bg: #090909;
+  --inv-card-bg-hover: #0f0f0f;
+  --inv-card-bg-selected: rgba(200, 16, 46, 0.06);
+  --inv-card-bg-empty: #030303;
+  --inv-details-bg: #0a0a0a;
+  --inv-preview-bg: #060606;
+  --inv-bar-bg: #000000;
+  --inv-grid-line: rgba(255,255,255,0.06);
+  --inv-card-border: rgba(255,255,255,0.06);
+  --inv-card-border-sel: #c8102e;
+  --inv-text-heading: #ffffff;
+  --inv-text-primary: #d4d4d4;
+  --inv-text-secondary: #888888;
+  --inv-text-muted: #3a3a3a;
+  --inv-text-label: #999999;
+  --inv-text-cat: #666666;
+  --inv-accent-pink: #c8102e;
+  --inv-accent-pink-dim: rgba(200, 16, 46, 0.10);
   --inv-accent-gold: #d8ac61;
-  --inv-imp-critical: #e8293a;
+  --inv-imp-critical: #c8102e;
   --inv-imp-high: #a055f5;
   --inv-imp-medium: #e8b800;
 
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  overflow: hidden;
+  /* ── Layout (DO NOT change grid-template-areas or grid-area values) ─── */
+  display: grid;
+  grid-template-areas:
+    "topbar  topbar"
+    "grid    details"
+    "bar     bar";
+  grid-template-columns: 1.6fr 1fr;
+  grid-template-rows: auto 1fr auto;
+  box-sizing: border-box;
+  height: 100%;                                 /* ❌ keep */
+  overflow: hidden;                             /* ❌ keep */
+
   background: var(--inv-bg);
   color: var(--inv-text-primary);
   font-family: inherit;
-  align-items: center;
-  padding: 36px 60px;
+  padding: 6vh 10vw 4vh;
+  row-gap: 10px;
+  column-gap: 6vw;
 }
 
-/* ── Category tab bar ──────────────────────────────────────────────────── */
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   TOPBAR — category tabs (centered, red dot on active)
+   ═══════════════════════════════════════════════════════════════════════════ */
 .xt-inv-topbar {
+  grid-area: topbar;                            /* ❌ keep */
   display: flex;
   align-items: stretch;
+  justify-content: center;
   gap: 0;
-  height: 40px;
-  min-height: 40px;
+  height: 36px;
+  min-height: 36px;
+  max-height: 36px;
   padding: 0;
-  background: var(--inv-topbar-bg);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  background: transparent;
+  border-bottom: none;
   width: 100%;
-  max-width: 1280px;
 }
+
 .xt-inv-topbar-btn {
   display: flex;
   align-items: center;
-  gap: 7px;
-  padding: 0 22px;
+  gap: 6px;
+  padding: 0 18px;
   border: none;
-  border-right: 1px solid rgba(255, 255, 255, 0.03);
   border-radius: 0;
   background: transparent;
   color: var(--inv-text-muted);
-  font-size: 10px;
-  font-weight: 600;
+  font-size: 9.5px;
+  font-weight: 500;
   text-transform: uppercase;
-  letter-spacing: 0.16em;
+  letter-spacing: 0.25em;
   cursor: pointer;
   position: relative;
-  transition: color 140ms ease-out, background 140ms ease-out;
+  transition: color 150ms ease;
 }
+.xt-inv-topbar-btn:last-child {
+  border-right: none;
+}
+
+/* Red underline on active */
 .xt-inv-topbar-btn::after {
   content: '';
   position: absolute;
@@ -5907,93 +5952,179 @@
   height: 2px;
   background: var(--inv-accent-pink);
   transform: scaleX(0);
-  transition: transform 160ms ease-out;
+  transition: transform 150ms ease;
 }
+
+/* [#6] Red dot before active tab label */
+.xt-inv-topbar-btn::before {
+  content: '';
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: var(--inv-accent-pink);
+  transition: width 150ms ease, height 150ms ease, margin 150ms ease;
+  margin-right: 0;
+  flex-shrink: 0;
+}
+
 .xt-inv-topbar-btn:hover {
   color: var(--inv-text-secondary);
-  background: rgba(255, 255, 255, 0.015);
 }
 .xt-inv-topbar-btn.is-active {
-  color: var(--inv-text-primary);
-  background: rgba(171, 54, 135, 0.06);
+  color: var(--inv-text-heading);
 }
 .xt-inv-topbar-btn.is-active::after {
   transform: scaleX(1);
 }
-
-/* ── Main layout — 50/50 split, outer padding creates the breathing room */
-.xt-inv-main {
-  flex: none;
-  width: 100%;
-  max-width: 1280px;
-  height: clamp(460px, 62vh, 580px);
-  display: flex;
-  flex-direction: row-reverse;
-  overflow: hidden;
-  min-height: 0;
-  padding: 24px 28px;
-  gap: 36px;
+.xt-inv-topbar-btn.is-active::before {
+  width: 5px;
+  height: 5px;
+  margin-right: 8px;
 }
 
-/* ── Grid area (right half) ─────────────────────────────────────────── */
+.xt-inv-topbar-count {
+  font-size: 9px;
+  font-family: var(--font-mono, ui-monospace, monospace);
+  color: var(--inv-text-muted);
+  opacity: 0.6;
+  letter-spacing: 0.04em;
+  transition: color 150ms ease, opacity 150ms ease;
+}
+.xt-inv-topbar-btn.is-active .xt-inv-topbar-count {
+  color: var(--inv-accent-pink);
+  opacity: 1;
+}
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   LEFT PANEL — grid area
+   ═══════════════════════════════════════════════════════════════════════════ */
 .xt-inv-grid-area {
-  flex: 1;
+  grid-area: grid;                              /* ❌ keep */
   min-width: 0;
+  min-height: 0;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
-  padding: 0;
-  animation: xt-welcome-fade-up 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) 0.1s both;
+  overflow: hidden;                             /* ❌ keep */
+  padding: 20px 24px 14px;
+  margin: 0;
+  background: transparent;
+  border: none;
+  position: relative;                           /* ❌ keep */
 }
+
+/* No HUD brackets */
+.xt-inv-grid-area::before {
+  content: '';
+  position: absolute;
+  display: none;
+}
+.xt-inv-grid-area::after {
+  content: '';
+  position: absolute;
+  display: none;
+}
+
 .xt-inv-grid-head {
-  display: flex;
+  display: flex !important;
   align-items: center;
   justify-content: space-between;
   gap: 10px;
-  padding: 0 0 10px 1px;
+  padding: 0 0 14px 0;
 }
+.xt-inv-grid-head-left {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
 .xt-inv-grid-heading {
-  font-size: 18px;
-  font-weight: 900;
+  font-size: 11px;
+  font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.12em;
-  color: var(--inv-text-heading);
-  padding-bottom: 7px;
-  background-image:
-    linear-gradient(var(--inv-accent-pink), var(--inv-accent-pink)),
-    linear-gradient(rgba(255,255,255,0.06), rgba(255,255,255,0.06)),
-    linear-gradient(rgba(255,255,255,0.04), rgba(255,255,255,0.04));
-  background-size: 32px 1px, 100% 1px, 100% 1px;
-  background-position: bottom 0px left, bottom 3px left, bottom 7px left;
-  background-repeat: no-repeat;
+  letter-spacing: 0.3em;
+  color: var(--inv-text-secondary);
+  padding-bottom: 0;
+  background-image: none;
 }
+
 .xt-inv-grid-sub {
   font-size: 9px;
   text-transform: uppercase;
-  letter-spacing: 0.24em;
+  letter-spacing: 0.25em;
   color: var(--inv-text-muted);
   font-family: var(--font-mono, ui-monospace, monospace);
 }
+
 .xt-inv-grid-scroll {
-  flex: 1;
-  overflow-y: auto;
-  padding-bottom: 4px;
+  flex: 1;                                      /* ❌ keep */
+  overflow-y: auto;                             /* ❌ keep */
+  padding-bottom: 8px;
 }
 
-/* ── Item grid — 4 cols, compact, inset by grid-area padding ─────────── */
+/* Search bar */
+.xt-inv-search {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.xt-inv-search-input {
+  background: #060606;
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 0;
+  padding: 6px 28px 6px 10px;
+  font-size: 10px;
+  font-family: var(--font-mono, ui-monospace, monospace);
+  color: var(--inv-text-primary);
+  outline: none;
+  width: 140px;
+  transition: border-color 150ms ease, width 150ms ease;
+  letter-spacing: 0.04em;
+}
+.xt-inv-search-input:focus {
+  border-color: var(--inv-accent-pink);
+  width: 180px;
+}
+.xt-inv-search-input::placeholder {
+  color: var(--inv-text-muted);
+  opacity: 0.5;
+}
+.xt-inv-search-clear {
+  position: absolute;
+  right: 5px;
+  background: transparent;
+  border: none;
+  color: var(--inv-text-muted);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  padding: 0;
+  opacity: 0.5;
+  transition: opacity 150ms ease, color 150ms ease;
+}
+.xt-inv-search-clear:hover { opacity: 1; color: var(--inv-accent-pink); }
+
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   ITEM GRID — [#8] 5-column cards (more items visible)
+   ═══════════════════════════════════════════════════════════════════════════ */
 .xt-inv-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 2px;
-  background: var(--inv-grid-line);
-  counter-reset: inv-slot;
+  gap: 6px;
+  background: transparent;
+  counter-reset: inv-slot;                      /* ❌ keep */
 }
 
-/* ── Item card — portrait orientation, icon top, name bottom ─────────── */
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   ITEM CARD — [#1] red left-edge on hover, [#3] stronger selected state
+   ═══════════════════════════════════════════════════════════════════════════ */
 .xt-inv-card {
   position: relative;
-  aspect-ratio: 1 / 1.25;
-  border: none;
+  aspect-ratio: 1 / 1.25;                      /* ❌ keep */
+  border: 1px solid rgba(255, 255, 255, 0.04);
   background: var(--inv-card-bg);
   border-radius: 0;
   cursor: pointer;
@@ -6001,39 +6132,42 @@
   flex-direction: column;
   overflow: hidden;
   text-align: left;
-  counter-increment: inv-slot;
-  transition: background 140ms ease-out, box-shadow 140ms ease-out;
+  counter-increment: inv-slot;                  /* ❌ keep */
+  transition: background 150ms ease, border-color 150ms ease, box-shadow 150ms ease;
 }
 
-/* Slot number — top-left corner */
 .xt-inv-card::before {
   content: counter(inv-slot, decimal-leading-zero);
   position: absolute;
   top: 5px;
   left: 6px;
-  font-size: 7.5px;
+  font-size: 7px;
   font-family: var(--font-mono, ui-monospace, monospace);
-  color: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.06);
   letter-spacing: 0.04em;
   line-height: 1;
   pointer-events: none;
   z-index: 2;
+  transition: color 150ms ease;
 }
 
+/* [#1] Red left-edge on hover */
 .xt-inv-card:hover {
   background: var(--inv-card-bg-hover);
+  border-color: rgba(255,255,255,0.08);
+  box-shadow: inset 2px 0 0 0 var(--inv-accent-pink);
 }
 
-/* Selected: left accent bar + faint pink glow */
+/* [#3] Selected — red left bar + red tint background */
 .xt-inv-card.is-selected {
   background: var(--inv-card-bg-selected);
-  box-shadow:
-    inset 2px 0 0 0 var(--inv-accent-pink),
-    inset 0 0 0 1px rgba(171, 54, 135, 0.2),
-    inset 0 0 20px rgba(171, 54, 135, 0.04);
+  border-color: var(--inv-card-border-sel);
+  box-shadow: inset 3px 0 0 0 var(--inv-accent-pink);
+}
+.xt-inv-card.is-selected::before {
+  color: rgba(200, 16, 46, 0.5);
 }
 
-/* Card visual — fills top portion, centered icon/thumb */
 .xt-inv-card-visual {
   flex: 1;
   display: flex;
@@ -6041,27 +6175,31 @@
   justify-content: center;
   overflow: hidden;
   color: var(--inv-text-muted);
-  opacity: 0.4;
+  opacity: 0.3;
   padding: 10px;
-  transition: opacity 140ms ease-out;
+  transition: opacity 150ms ease;
 }
 .xt-inv-card-visual img {
   max-width: 70%;
   max-height: 70%;
   object-fit: contain;
-  opacity: 0.88;
+  opacity: 0.9;
 }
-.xt-inv-card:hover .xt-inv-card-visual { opacity: 0.7; }
-.xt-inv-card.is-selected .xt-inv-card-visual { opacity: 0.9; }
+.xt-inv-card:hover .xt-inv-card-visual {
+  opacity: 0.6;
+}
+.xt-inv-card.is-selected .xt-inv-card-visual {
+  opacity: 0.9;
+}
 
-/* Card text — name, bottom portion */
 .xt-inv-card-text {
-  padding: 5px 8px 0 8px;
+  padding: 4px 7px 0 7px;
   flex-shrink: 0;
 }
+/* [#2] Card names stay uppercase (they're labels) */
 .xt-inv-card-name {
-  font-size: 9.5px;
-  font-weight: 600;
+  font-size: 8.5px;
+  font-weight: 500;
   text-transform: uppercase;
   letter-spacing: 0.06em;
   color: var(--inv-text-secondary);
@@ -6069,60 +6207,63 @@
   overflow: hidden;
   text-overflow: ellipsis;
   line-height: 1.3;
+  transition: color 150ms ease;
 }
-.xt-inv-card.is-selected .xt-inv-card-name {
+.xt-inv-card:hover .xt-inv-card-name {
   color: var(--inv-text-primary);
 }
+.xt-inv-card.is-selected .xt-inv-card-name {
+  color: var(--inv-text-heading);
+}
 
-/* Card footer — source badge, importance accent */
 .xt-inv-card-footer {
   display: flex;
   align-items: center;
   gap: 4px;
-  padding: 3px 8px 5px;
+  padding: 2px 7px 5px;
   flex-shrink: 0;
 }
 .xt-inv-card-src {
-  font-size: 8px;
-  font-weight: 500;
+  font-size: 7.5px;
+  font-weight: 400;
   text-transform: lowercase;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.04em;
   color: var(--inv-text-muted);
-  opacity: 0.45;
+  opacity: 0.5;
   font-family: var(--font-mono, ui-monospace, monospace);
 }
-/* Importance: small colored pill replacing the dot */
+
 .xt-inv-card-imp {
-  width: 14px;
-  height: 3px;
-  border-radius: 2px;
+  width: 12px;
+  height: 2px;
+  border-radius: 0;
   flex-shrink: 0;
   margin-left: auto;
   margin-right: 2px;
+  box-shadow: none;
 }
 
-/* Empty slot */
+/* Empty slot — ghost outlines */
 .xt-inv-card--empty {
   cursor: default;
-  background: var(--inv-card-bg-empty);
+  background: transparent;
+  border-color: rgba(255,255,255,0.025);
+  border-style: solid;
 }
 .xt-inv-card--empty::before {
-  opacity: 0.06; /* dimmer slot numbers on empty */
+  opacity: 0.02;
 }
-/* Subtle corner HUD marks on empty slots */
 .xt-inv-card--empty::after {
   content: '';
   position: absolute;
   inset: 0;
-  background:
-    linear-gradient(to bottom right, rgba(255,255,255,0.025) 0px 1px, transparent 1px) top left / 6px 6px no-repeat,
-    linear-gradient(to bottom left, rgba(255,255,255,0.025) 0px 1px, transparent 1px) top right / 6px 6px no-repeat,
-    linear-gradient(to top right, rgba(255,255,255,0.025) 0px 1px, transparent 1px) bottom left / 6px 6px no-repeat,
-    linear-gradient(to top left, rgba(255,255,255,0.025) 0px 1px, transparent 1px) bottom right / 6px 6px no-repeat;
+  background: none;
   pointer-events: none;
 }
 .xt-inv-card--empty:hover {
-  background: #0a0906;
+  background: rgba(255,255,255,0.008);
+  border-color: rgba(255,255,255,0.04);
+  box-shadow: none;
 }
 
 /* Add slot (+) */
@@ -6130,109 +6271,282 @@
   cursor: pointer;
   align-items: center;
   justify-content: center;
+  border-style: dashed;
+  border-color: rgba(255,255,255,0.04);
 }
 .xt-inv-card--add::before { display: none; }
 .xt-inv-card--add::after { display: none; }
 .xt-inv-card-plus {
   color: var(--inv-text-muted);
-  opacity: 0.18;
-  transition: opacity 180ms ease-out, color 180ms ease-out;
+  opacity: 0.12;
+  transition: opacity 150ms ease, color 150ms ease;
 }
-.xt-inv-card--add:hover { background: #0c0a08; }
+.xt-inv-card--add:hover {
+  background: #0c0c0c;
+  border-color: rgba(200, 16, 46, 0.2);
+  box-shadow: none;
+}
 .xt-inv-card--add:hover .xt-inv-card-plus {
-  opacity: 0.55;
+  opacity: 0.5;
   color: var(--inv-accent-pink);
 }
 
 /* Quick-add row */
 .xt-inv-add-row {
   display: flex;
-  gap: 2px;
-  margin-top: 2px;
+  gap: 4px;
+  margin-top: 10px;
 }
 .xt-inv-add-row input {
   flex: 1;
-  border: 1px solid rgba(255, 255, 255, 0.035);
-  background: #060504;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: #040404;
   border-radius: 0;
-  padding: 6px 10px;
+  padding: 8px 12px;
   font-size: 10px;
   color: var(--inv-text-primary);
   outline: none;
   font-family: var(--font-mono, ui-monospace, monospace);
-  transition: border-color 160ms ease-out;
+  transition: border-color 150ms ease;
 }
 .xt-inv-add-row input:focus {
-  border-color: rgba(171, 54, 135, 0.25);
+  border-color: var(--inv-accent-pink);
 }
 .xt-inv-add-row input::placeholder {
   color: var(--inv-text-muted);
-  opacity: 0.28;
+  opacity: 0.4;
 }
 .xt-inv-add-row button {
-  border: 1px solid rgba(255, 255, 255, 0.035);
-  background: #060504;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: #040404;
   border-radius: 0;
-  width: 28px;
-  height: 28px;
+  width: 32px;
+  height: 32px;
   display: flex;
   align-items: center;
   justify-content: center;
   color: var(--inv-text-muted);
   cursor: pointer;
-  transition: color 140ms ease-out, background 140ms ease-out;
+  transition: color 150ms ease, background 150ms ease, border-color 150ms ease;
 }
 .xt-inv-add-row button:hover {
   color: var(--inv-accent-pink);
-  background: rgba(171, 54, 135, 0.08);
+  background: #0c0c0c;
+  border-color: rgba(200, 16, 46, 0.2);
 }
 
+
 /* ═══════════════════════════════════════════════════════════════════════════
-   DETAILS PANEL
+   RIGHT PANEL — DETAILS
    ═══════════════════════════════════════════════════════════════════════════ */
 .xt-inv-details {
-  flex: 1;
+  grid-area: details;                           /* ❌ keep */
   min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;                             /* ❌ keep */
+  background: rgba(255,255,255,0.018);
+  border: 1px solid rgba(255,255,255,0.05);
+  border-radius: 0;
+  margin: 0;
+  position: relative;                           /* ❌ keep */
+  padding: 0;
+}
+
+/* No HUD brackets */
+.xt-inv-details::before {
+  display: none;
+}
+.xt-inv-details::after {
+  display: none;
+}
+
+/* Hero zone — compact, separated */
+.xt-inv-details-hero {
+  position: relative;
+  flex-shrink: 0;
+  height: 38%;
+  min-height: 140px;
+  background: #040404;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+  overflow: hidden;
+  margin: 8px 8px 0;
+}
+/* Stronger gradient overlay at bottom of hero */
+.xt-inv-details-hero::after {
+  content: 'PREVIEW';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 24px 20px 10px;
+  font-size: 9px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.35em;
+  color: rgba(255,255,255,0.18);
+  background: linear-gradient(0deg, rgba(0,0,0,0.75) 0%, rgba(0,0,0,0.3) 50%, transparent 100%);
+  pointer-events: none;
+  z-index: 3;
+}
+.xt-inv-hero-img {
+  width: 100%;
+  height: 100%;
+  cursor: grab;
+  user-select: none;
+}
+.xt-inv-hero-img:active { cursor: grabbing; }
+.xt-inv-hero-img img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.xt-inv-hero-icon {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--inv-text-muted);
+  opacity: 0.06;
+}
+
+/* Hero action buttons */
+.xt-inv-hero-actions {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  display: flex;
+  gap: 4px;
+  opacity: 0;
+  transition: opacity 150ms ease;
+  z-index: 5;
+}
+.xt-inv-details-hero:hover .xt-inv-hero-actions { opacity: 1; }
+.xt-inv-hero-actions button {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(255,255,255,0.1);
+  background: rgba(0,0,0,0.85);
+  color: var(--inv-text-secondary);
+  cursor: pointer;
+  transition: border-color 150ms ease, color 150ms ease;
+  border-radius: 0;
+}
+.xt-inv-hero-actions button:hover {
+  border-color: rgba(255,255,255,0.3);
+  color: var(--inv-text-heading);
+}
+.xt-inv-hero-actions button.danger:hover { border-color: var(--inv-accent-pink); color: var(--inv-accent-pink); }
+.xt-inv-hero-actions button.dusk:hover { border-color: var(--inv-text-secondary); color: var(--inv-text-heading); }
+
+/* Content zone below hero */
+.xt-inv-details-content {
+  flex: 1;                                      /* ❌ keep */
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  background: transparent;
-  border: none;
-  border-radius: 0;
-  animation: xt-welcome-fade-up 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) 0.2s both;
-  position: relative;
-  padding: 0;
+  padding: 20px 24px 0;
 }
-.xt-inv-details-head {
-  padding: 0 0 10px 0;
-  border-bottom: 1px solid rgba(255,255,255,0.03);
+
+/* Item name — red, uppercase (it's a heading) */
+.xt-inv-details-name-zone {
   flex-shrink: 0;
+  padding-bottom: 16px;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
 }
-.xt-inv-details-body {
-  flex: 1;
+.xt-inv-details-title {
+  font-size: 18px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  color: var(--inv-accent-pink);
+  line-height: 1.3;
+  display: block;
+}
+.xt-inv-details-title.is-editable { cursor: pointer; }
+.xt-inv-details-title.is-editable:hover {
+  color: #e83050;
+}
+
+/* [#2] Description — mixed case, more readable */
+.xt-inv-details-desc {
+  flex-shrink: 0;
+  padding: 14px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.03);
+  font-size: 12px;
+  line-height: 1.65;
+  color: var(--inv-text-secondary);
+  text-transform: none;
+}
+
+/* Scrollable metadata */
+.xt-inv-details-meta {
+  flex: 1;                                      /* ❌ keep */
+  overflow-y: auto;                             /* ❌ keep */
+  padding-bottom: 12px;
+}
+
+/* Stats footer — clean, separated */
+.xt-inv-details-foot {
+  flex-shrink: 0;
+  display: flex;
+  align-items: flex-end;
+  gap: 0;
+  border-top: 1px solid rgba(255,255,255,0.04);
+  padding: 14px 24px;
+  background: transparent;
+}
+.xt-inv-foot-stat {
   display: flex;
   flex-direction: column;
-  overflow-y: auto;
+  gap: 5px;
+  padding-right: 28px;
+  margin-right: 28px;
+  border-right: 1px solid rgba(255,255,255,0.06);
 }
+.xt-inv-foot-stat:last-of-type { border-right: none; margin-right: 0; padding-right: 0; }
+.xt-inv-foot-stat--right { margin-left: auto; padding-right: 0; border-right: none; margin-right: 0; }
+.xt-inv-foot-label {
+  font-size: 8px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.25em;
+  color: var(--inv-text-muted);
+  font-family: var(--font-mono, ui-monospace, monospace);
+}
+.xt-inv-foot-val {
+  font-size: 14px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--inv-text-heading);
+}
+/* First stat (TIER) gets red color */
+.xt-inv-foot-stat:first-child .xt-inv-foot-val {
+  color: var(--inv-accent-pink);
+}
+
+/* Empty state */
 .xt-inv-details-empty {
   flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 14px;
+  gap: 16px;
   color: var(--inv-text-muted);
-  font-size: 9.5px;
+  font-size: 10px;
   text-transform: uppercase;
-  letter-spacing: 0.3em;
-  opacity: 0.28;
+  letter-spacing: 0.4em;
 }
 
-/* Corner marks on the preview box — positioned via preview's own corners */
-.xt-inv-details::before { display: none; }
-.xt-inv-details::after { display: none; }
-
-/* Preview area — square box, centered, max 260px */
+/* Preview square */
 .xt-inv-preview {
   position: relative;
   width: 100%;
@@ -6241,7 +6555,7 @@
   align-items: stretch;
   justify-content: stretch;
   background: var(--inv-preview-bg);
-  border: 1px solid rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.04);
   overflow: hidden;
 }
 .xt-inv-preview-img {
@@ -6268,116 +6582,125 @@
   height: 100%;
   min-height: 160px;
   color: var(--inv-text-muted);
-  opacity: 0.18;
+  opacity: 0.06;
 }
 .xt-inv-preview-actions {
   position: absolute;
-  top: 8px;
-  right: 8px;
+  top: 10px;
+  right: 10px;
   display: flex;
   gap: 4px;
   opacity: 0;
-  transition: opacity 160ms ease-out;
+  transition: opacity 150ms ease;
   z-index: 5;
 }
 .xt-inv-preview:hover .xt-inv-preview-actions { opacity: 1; }
 .xt-inv-preview-actions button {
-  width: 26px;
-  height: 26px;
+  width: 28px;
+  height: 28px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 1px solid rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255,255,255,0.1);
   border-radius: 0;
-  background: rgba(0, 0, 0, 0.65);
+  background: rgba(0, 0, 0, 0.85);
   color: var(--inv-text-secondary);
   cursor: pointer;
-  transition: border-color 140ms, background 140ms, color 140ms;
+  transition: border-color 150ms ease, color 150ms ease;
 }
 .xt-inv-preview-actions button:hover {
-  border-color: rgba(255,255,255,0.15);
-  background: rgba(0, 0, 0, 0.85);
-  color: var(--inv-text-primary);
+  border-color: rgba(255,255,255,0.3);
+  color: var(--inv-text-heading);
 }
 .xt-inv-preview-actions button.danger:hover {
-  border-color: #e8293a;
-  color: #e8293a;
+  border-color: var(--inv-accent-pink);
+  color: var(--inv-accent-pink);
 }
 
-/* Item info section */
+/* [#2] Item info — mixed case for description text */
 .xt-inv-info {
-  padding: 14px 0;
+  padding: 20px 0;
   flex: 1;
 }
 .xt-inv-info-name {
-  font-size: 15px;
-  font-weight: 800;
+  font-size: 18px;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
-  color: var(--inv-text-primary);
+  letter-spacing: 0.1em;
+  color: var(--inv-accent-pink);
   margin: 0;
   line-height: 1.2;
 }
 .xt-inv-info-desc {
-  margin-top: 8px;
+  margin-top: 12px;
   font-size: 12px;
-  line-height: 1.6;
+  line-height: 1.7;
   color: var(--inv-text-secondary);
+  text-transform: none;
 }
 
-/* Chips */
+/* [#10] Tag chips — red border on hover */
 .xt-inv-info-chips {
-  margin-top: 10px;
+  margin-top: 16px;
   display: flex;
   flex-wrap: wrap;
-  gap: 4px;
+  gap: 6px;
 }
 .xt-inv-chip {
-  padding: 3px 8px;
+  padding: 5px 14px;
   font-size: 8px;
   text-transform: uppercase;
-  letter-spacing: 0.12em;
-  color: var(--inv-text-muted);
-  border: 1px solid rgba(255,255,255,0.06);
-  background: rgba(255,255,255,0.02);
+  letter-spacing: 0.16em;
+  font-weight: 500;
+  color: var(--inv-text-secondary);
+  border: 1px solid rgba(255,255,255,0.08);
+  background: transparent;
   border-radius: 0;
+  transition: border-color 150ms ease, color 150ms ease;
+}
+.xt-inv-chip:hover {
+  border-color: var(--inv-accent-pink);
+  color: var(--inv-text-heading);
 }
 
-/* Ledger actions */
-.xt-inv-info-ledger { margin-top: 12px; }
+/* Rename input + actions */
+.xt-inv-info-ledger { margin-top: 16px; }
 .xt-inv-info-rename {
   width: 100%;
-  border: 1px solid rgba(171, 54, 135, 0.3);
-  background: var(--inv-card-bg);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: #040404;
   border-radius: 0;
-  padding: 5px 10px;
+  padding: 8px 12px;
   font-size: 11px;
   color: var(--inv-text-primary);
   outline: none;
   font-family: var(--font-mono, ui-monospace, monospace);
+  transition: border-color 150ms ease;
+}
+.xt-inv-info-rename:focus {
+  border-color: var(--inv-accent-pink);
 }
 .xt-inv-info-btns { display: flex; gap: 6px; }
 .xt-inv-info-btns button {
-  padding: 5px 12px;
+  padding: 7px 16px;
   font-size: 9px;
   font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.1em;
-  border: 1px solid rgba(255,255,255,0.06);
+  letter-spacing: 0.12em;
+  border: 1px solid rgba(255,255,255,0.08);
   border-radius: 0;
-  background: rgba(255,255,255,0.02);
+  background: transparent;
   color: var(--inv-text-secondary);
   cursor: pointer;
-  transition: border-color 140ms, background 140ms, color 140ms;
+  transition: border-color 150ms ease, color 150ms ease, background 150ms ease;
 }
 .xt-inv-info-btns button:hover {
-  border-color: rgba(255,255,255,0.12);
-  background: rgba(255,255,255,0.04);
-  color: var(--inv-text-primary);
+  border-color: rgba(255,255,255,0.2);
+  color: var(--inv-text-heading);
 }
 .xt-inv-info-btns button.danger:hover {
-  border-color: #e8293a;
-  color: #e8293a;
+  border-color: var(--inv-accent-pink);
+  color: var(--inv-accent-pink);
 }
 
 /* Stats strip */
@@ -6385,16 +6708,16 @@
   display: flex;
   align-items: flex-end;
   gap: 28px;
-  border-top: 1px solid rgba(255, 255, 255, 0.04);
+  border-top: 1px solid rgba(255,255,255,0.06);
   margin-top: auto;
   flex-shrink: 0;
-  padding: 12px 0;
+  padding: 16px 0;
 }
 .xt-inv-stat {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 3px;
+  gap: 4px;
 }
 .xt-inv-stat--right {
   margin-left: auto;
@@ -6405,104 +6728,107 @@
 }
 .xt-inv-stat-label {
   font-size: 9px;
-  font-weight: 600;
+  font-weight: 500;
   text-transform: uppercase;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.12em;
   color: var(--inv-text-muted);
   font-family: var(--font-mono, ui-monospace, monospace);
 }
 .xt-inv-stat-val {
-  font-size: 13px;
+  font-size: 14px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  color: var(--inv-text-secondary);
+  color: var(--inv-text-heading);
   display: flex;
   align-items: center;
   gap: 5px;
 }
 
+
 /* ═══════════════════════════════════════════════════════════════════════════
-   BOTTOM STATUS BAR
+   BOTTOM STATUS BAR — centered, scaled up
    ═══════════════════════════════════════════════════════════════════════════ */
 .xt-inv-bar {
+  grid-area: bar;                               /* ❌ keep */
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 0;
-  padding: 0 18px;
-  height: 48px;
-  min-height: 48px;
-  border-top: 1px solid rgba(255,255,255,0.04);
-  background: var(--inv-bar-bg);
+  padding: 0 20px;
+  height: 32px;
+  min-height: 32px;
+  max-height: 32px;
+  border-top: none;
+  background: transparent;
+  border: none;
   font-family: var(--font-mono, ui-monospace, monospace);
-  animation: xt-welcome-fade-up 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) 0.3s both;
   width: 100%;
-  max-width: 1280px;
 }
 .xt-inv-bar-item {
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
-  padding: 0 10px;
+  align-items: center;
+  padding: 0 16px;
 }
 .xt-inv-bar-top {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 6px;
   color: var(--inv-text-muted);
 }
 .xt-inv-bar-num {
   font-size: 11px;
-  font-weight: 700;
-  color: #8e9090;
+  font-weight: 500;
+  color: var(--inv-text-secondary);
   letter-spacing: 0.06em;
 }
 .xt-inv-bar-label {
-  font-size: 8.5px;
-  text-transform: lowercase;
-  letter-spacing: 0.05em;
-  color: #5a5c5a;
-  margin-top: 2px;
+  font-size: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--inv-text-muted);
+  margin-top: 1px;
 }
 .xt-inv-bar-sep {
   width: 1px;
-  height: 24px;
-  background: rgba(255, 255, 255, 0.05);
-  margin: 0 4px;
+  height: 14px;
+  background: rgba(255, 255, 255, 0.04);
+  margin: 0 8px;
 }
 .xt-inv-bar-grow { flex: 1; }
 .xt-inv-bar-sync {
-  font-size: 8.5px;
-  font-weight: 700;
+  font-size: 8px;
+  font-weight: 500;
   text-transform: uppercase;
-  letter-spacing: 0.16em;
-  color: var(--inv-accent-pink);
-  opacity: 0.55;
+  letter-spacing: 0.3em;
+  color: var(--inv-text-muted);
+  opacity: 0.5;
 }
+
 
 /* ═══════════════════════════════════════════════════════════════════════════
    VIEWER MODAL
    ═══════════════════════════════════════════════════════════════════════════ */
 .xt-inv-viewer {
-  border: 1px solid rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.08);
   border-radius: 0;
-  background: var(--inv-bg);
+  background: #000000;
   max-width: 900px;
   width: 100%;
   overflow: hidden;
-  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.9);
 }
 .xt-inv-viewer-top {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 10px 16px;
-  border-bottom: 1px solid rgba(255,255,255,0.04);
+  padding: 14px 20px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
   font-size: 11px;
   font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.1em;
-  color: var(--inv-text-primary);
+  letter-spacing: 0.12em;
+  color: var(--inv-text-heading);
 }
 .xt-inv-viewer-top button {
   background: none;
@@ -6510,15 +6836,16 @@
   color: var(--inv-text-muted);
   cursor: pointer;
   padding: 4px;
+  transition: color 150ms ease;
 }
-.xt-inv-viewer-top button:hover { color: var(--inv-text-primary); }
+.xt-inv-viewer-top button:hover { color: var(--inv-text-heading); }
 .xt-inv-viewer-img {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 24px;
+  padding: 32px;
   min-height: 300px;
-  background: rgba(0, 0, 0, 0.4);
+  background: #040404;
 }
 .xt-inv-viewer-img img {
   max-width: 100%;
@@ -6526,75 +6853,64 @@
   object-fit: contain;
 }
 
-/* ── Tab count badge ──────────────────────────────────────────────────── */
-.xt-inv-topbar-count {
-  font-size: 8px;
-  font-family: var(--font-mono, ui-monospace, monospace);
-  color: var(--inv-text-muted);
-  opacity: 0.55;
-  letter-spacing: 0.06em;
-  padding-left: 2px;
-}
-.xt-inv-topbar-btn.is-active .xt-inv-topbar-count {
-  color: var(--inv-accent-pink);
-  opacity: 0.8;
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   EFFECTS & UTILITIES
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* No scan lines */
+.xt-inv-shell::before {
+  display: none;
 }
 
-/* ── Grid head — flex layout for search ──────────────────────────────── */
-.xt-inv-grid-head {
-  display: flex !important;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  padding: 0 0 10px 1px;
-}
-.xt-inv-grid-head-left {
-  display: flex;
-  align-items: baseline;
-  gap: 10px;
-  flex-shrink: 0;
-}
-
-/* ── Search bar ──────────────────────────────────────────────────────── */
-.xt-inv-search {
+/* Ensure content stays above pseudo overlays */
+.xt-inv-grid-area > *,
+.xt-inv-details > * {
   position: relative;
-  display: flex;
-  align-items: center;
+  z-index: 1;
 }
-.xt-inv-search-input {
-  background: rgba(255,255,255,0.025);
-  border: 1px solid rgba(255,255,255,0.05);
-  border-radius: 0;
-  padding: 4px 24px 4px 8px;
-  font-size: 9px;
-  font-family: var(--font-mono, ui-monospace, monospace);
-  color: var(--inv-text-secondary);
-  outline: none;
-  width: 110px;
-  transition: border-color 150ms ease-out, width 200ms ease-out;
-  letter-spacing: 0.04em;
+
+/* Scrollbar — thin, red-tinted */
+.xt-inv-grid-scroll::-webkit-scrollbar,
+.xt-inv-details-meta::-webkit-scrollbar {
+  width: 2px;
 }
-.xt-inv-search-input:focus {
-  border-color: rgba(171,54,135,0.3);
-  width: 150px;
-}
-.xt-inv-search-input::placeholder {
-  color: var(--inv-text-muted);
-  opacity: 0.35;
-}
-.xt-inv-search-clear {
-  position: absolute;
-  right: 5px;
+.xt-inv-grid-scroll::-webkit-scrollbar-track,
+.xt-inv-details-meta::-webkit-scrollbar-track {
   background: transparent;
-  border: none;
-  color: var(--inv-text-muted);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  padding: 0;
-  opacity: 0.5;
 }
-.xt-inv-search-clear:hover { opacity: 1; }
+.xt-inv-grid-scroll::-webkit-scrollbar-thumb,
+.xt-inv-details-meta::-webkit-scrollbar-thumb {
+  background: rgba(200, 16, 46, 0.2);
+  border-radius: 0;
+}
+.xt-inv-grid-scroll::-webkit-scrollbar-thumb:hover,
+.xt-inv-details-meta::-webkit-scrollbar-thumb:hover {
+  background: rgba(200, 16, 46, 0.4);
+}
+
+/* No pulsing sync — static */
+.xt-inv-bar-sync {
+  animation: none;
+}
+
+/* Subtle fade-in on load */
+@keyframes xt-welcome-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Tabular numbers in stats */
+.xt-inv-foot-val {
+  font-variant-numeric: tabular-nums;
+}
+
 
 /* ── Capability loadout bar ──────────────────────────────────────────── */
 .xt-inv-loadout-bar {
@@ -6741,7 +7057,7 @@
   flex: 1;
   background: transparent;
   border: none;
-  border-bottom: 1px solid rgba(171,54,135,0.35);
+  border-bottom: 1px solid rgba(200,16,46,0.35);
   color: var(--inv-text-heading);
   font-size: 18px;
   font-weight: 900;
@@ -6786,7 +7102,7 @@
 .xt-inv-head-btn.dusk:hover {
   color: var(--inv-accent-pink);
   background: var(--inv-accent-pink-dim);
-  border-color: rgba(171,54,135,0.25);
+  border-color: rgba(200,16,46,0.25);
 }
 
 /* ── Inline delete confirmation ──────────────────────────────────────── */
@@ -6874,8 +7190,8 @@
   letter-spacing: 0.2em;
   color: var(--inv-accent-pink);
   padding: 2px 6px;
-  border: 1px solid rgba(171,54,135,0.3);
-  background: rgba(171,54,135,0.07);
+  border: 1px solid rgba(200,16,46,0.3);
+  background: rgba(200,16,46,0.07);
 }
 .xt-inv-cap-source {
   font-size: 8.5px;
@@ -6933,7 +7249,7 @@
 .xt-inv-notes-input {
   width: 100%;
   background: rgba(255,255,255,0.02);
-  border: 1px solid rgba(171,54,135,0.25);
+  border: 1px solid rgba(200,16,46,0.25);
   border-radius: 0;
   padding: 8px 10px;
   font-size: 11px;
@@ -7118,13 +7434,13 @@
   text-transform: uppercase;
   letter-spacing: 0.08em;
   color: var(--inv-accent-pink);
-  border: 1px solid rgba(171,54,135,0.25);
-  background: rgba(171,54,135,0.07);
+  border: 1px solid rgba(200,16,46,0.25);
+  background: rgba(200,16,46,0.07);
   cursor: pointer;
   border-radius: 0;
   transition: background 130ms;
 }
-.xt-inv-project-tag:hover { background: rgba(171,54,135,0.14); }
+.xt-inv-project-tag:hover { background: rgba(200,16,46,0.14); }
 
 /* ── Project picker dropdown ─────────────────────────────────────────── */
 .xt-inv-project-picker {
@@ -7148,7 +7464,7 @@
   transition: background 130ms;
 }
 .xt-inv-project-opt:hover { background: var(--inv-card-bg-hover); }
-.xt-inv-project-opt.is-linked { background: rgba(171,54,135,0.07); }
+.xt-inv-project-opt.is-linked { background: rgba(200,16,46,0.07); }
 .xt-inv-project-opt-name {
   font-size: 10px;
   font-weight: 600;
