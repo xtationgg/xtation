@@ -128,7 +128,6 @@ export const Inventory: React.FC = () => {
     const uploadingCatRef               = useRef<string | null>(null);
     const [error, setError]             = useState('');
     const [selectedId, setSelectedId]   = useState<string | null>(null);
-    const [rotation, setRotation]       = useState(0);
     const [newItemName, setNewItemName] = useState('');
     const [viewer, setViewer]           = useState<{ item: InventoryAttachment; url: string | null } | null>(null);
     const [uploadCtx, setUploadCtx]     = useState<{ cat: InventoryCategory; replaceId?: string } | null>(null);
@@ -145,8 +144,6 @@ export const Inventory: React.FC = () => {
     const [showProjectPicker, setShowProjectPicker] = useState(false);
 
     const fileRef   = useRef<HTMLInputElement>(null);
-    const resetRef  = useRef<number | null>(null);
-    const dragRef   = useRef({ dragging: false, startX: 0, startR: 0 });
 
     // ── Capability loadout (GEAR panel)
     const caps = useMemo(() => getActiveCapabilityItems(settings, theme), [settings, theme]);
@@ -158,12 +155,19 @@ export const Inventory: React.FC = () => {
         const out: UnifiedItem[] = [];
         for (const c of ALL_CATS) {
             for (const r of (allAtt[c] || [])) {
+                const meta = (r.meta as Record<string, unknown>) || {};
                 out.push({
                     id: r.id, source: 'cloud', category: c,
                     name: r.title || 'Image',
                     thumbUrl: r.thumbUrl || undefined,
-                    importance: (r.meta as Record<string, unknown> | undefined)?.importance as UnifiedItem['importance'],
-                    archivedAt: (r.meta as Record<string, unknown> | undefined)?.archivedAt as number | undefined,
+                    importance: meta.importance as UnifiedItem['importance'],
+                    tier: meta.tier as UnifiedItem['tier'],
+                    subtype: meta.subtype as string | undefined,
+                    quantity: meta.quantity as number | undefined,
+                    externalLink: meta.externalLink as string | undefined,
+                    selfTreeBranch: meta.selfTreeBranch as SelfTreeBranch | undefined,
+                    linkedProjectIds: meta.linkedProjectIds as string[] | undefined,
+                    archivedAt: meta.archivedAt as number | undefined,
                     mediaUrl: r.thumbUrl || '',
                     details: r.notes || undefined,
                     cloudRow: r,
@@ -417,41 +421,75 @@ export const Inventory: React.FC = () => {
         pe?.emitEvent('inventory.item.updated', { source: 'user', metadata: { field: Object.keys(patch)[0] } });
     };
 
+    /** Update a cloud item's title or notes column in Supabase */
+    const updateCloudField = async (row: InventoryAttachment, field: 'title' | 'notes', value: string) => {
+        if (!uid) return;
+        const { error: e } = await supabase.from('user_files').update({ [field]: value || null }).eq('id', row.id).eq('user_id', uid);
+        if (!e) {
+            setAllAtt(prev => {
+                const n = { ...prev };
+                for (const c of ALL_CATS) n[c] = n[c].map(r => r.id === row.id ? { ...r, [field]: value || null } : r);
+                return n;
+            });
+        }
+    };
+
+    /** Update a cloud item's meta JSON in Supabase (merges with existing meta) */
+    const updateCloudMeta = async (row: InventoryAttachment, patch: Record<string, unknown>) => {
+        if (!uid) return;
+        const existing = (row.meta as Record<string, unknown>) || {};
+        const merged = { ...existing, ...patch };
+        // Remove undefined/null values
+        for (const k of Object.keys(merged)) { if (merged[k] === undefined || merged[k] === null) delete merged[k]; }
+        const { error: e } = await supabase.from('user_files').update({ meta: merged }).eq('id', row.id).eq('user_id', uid);
+        if (!e) {
+            setAllAtt(prev => {
+                const n = { ...prev };
+                for (const c of ALL_CATS) n[c] = n[c].map(r => r.id === row.id ? { ...r, meta: merged } : r);
+                return n;
+            });
+        }
+    };
+
     // ── Details panel actions ─────────────────────────────────────────────────
 
     const saveEditingName = (item: UnifiedItem) => {
-        if (!item.ledgerSlot || editingName === null) return;
+        if (editingName === null) return;
         const n = editingName.trim();
-        if (n && n !== item.name) updateLedger(item.ledgerSlot.id, { name: n });
+        if (n && n !== item.name) {
+            if (item.source === 'ledger' && item.ledgerSlot) updateLedger(item.ledgerSlot.id, { name: n });
+            else if (item.source === 'cloud' && item.cloudRow) updateCloudField(item.cloudRow, 'title', n);
+        }
         setEditingName(null);
     };
 
     const saveEditingDetails = (item: UnifiedItem) => {
-        if (!item.ledgerSlot || editingDetails === null) return;
-        updateLedger(item.ledgerSlot.id, { details: editingDetails || undefined });
+        if (editingDetails === null) return;
+        if (item.source === 'ledger' && item.ledgerSlot) updateLedger(item.ledgerSlot.id, { details: editingDetails || undefined });
+        else if (item.source === 'cloud' && item.cloudRow) updateCloudField(item.cloudRow, 'notes', editingDetails);
         setEditingDetails(null);
     };
 
     const setTreeBranch = (item: UnifiedItem, branch: SelfTreeBranch) => {
-        if (!item.ledgerSlot) return;
         const next = branch === item.selfTreeBranch ? undefined : branch;
-        updateLedger(item.ledgerSlot.id, { selfTreeBranch: next });
+        if (item.source === 'ledger' && item.ledgerSlot) updateLedger(item.ledgerSlot.id, { selfTreeBranch: next });
+        else if (item.source === 'cloud' && item.cloudRow) updateCloudMeta(item.cloudRow, { selfTreeBranch: next });
         if (next) pe?.emitEvent('inventory.item.tree_tagged', { source: 'user', metadata: { branch: next, category: item.category } });
     };
 
     const setImportance = (item: UnifiedItem, imp: InventorySlot['importance']) => {
-        if (!item.ledgerSlot) return;
         const next = imp === item.importance ? undefined : imp;
-        updateLedger(item.ledgerSlot.id, { importance: next });
+        if (item.source === 'ledger' && item.ledgerSlot) updateLedger(item.ledgerSlot.id, { importance: next });
+        else if (item.source === 'cloud' && item.cloudRow) updateCloudMeta(item.cloudRow, { importance: next });
     };
 
     const toggleProject = (item: UnifiedItem, projectId: string) => {
-        if (!item.ledgerSlot) return;
         const current = item.linkedProjectIds || [];
         const next = current.includes(projectId)
             ? current.filter(id => id !== projectId)
             : [...current, projectId];
-        updateLedger(item.ledgerSlot.id, { linkedProjectIds: next });
+        if (item.source === 'ledger' && item.ledgerSlot) updateLedger(item.ledgerSlot.id, { linkedProjectIds: next });
+        else if (item.source === 'cloud' && item.cloudRow) updateCloudMeta(item.cloudRow, { linkedProjectIds: next.length ? next : undefined });
         pe?.emitEvent('inventory.item.updated', { source: 'user', metadata: { field: 'linkedProject' } });
     };
 
@@ -505,27 +543,7 @@ export const Inventory: React.FC = () => {
         playClickSound();
     };
 
-    // ── 3D rotation drag on preview ───────────────────────────────────────────
-
-    const resetRot = () => {
-        if (resetRef.current) clearTimeout(resetRef.current);
-        resetRef.current = window.setTimeout(() => setRotation(0), 3000);
-    };
-    useEffect(() => () => { if (resetRef.current) clearTimeout(resetRef.current); }, []);
-    const pDown = (e: React.PointerEvent<HTMLDivElement>) => {
-        dragRef.current = { dragging: true, startX: e.clientX, startR: rotation };
-        (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
-    };
-    const pMove = (e: React.PointerEvent<HTMLDivElement>) => {
-        if (!dragRef.current.dragging) return;
-        setRotation(Math.max(-60, Math.min(60, dragRef.current.startR + (e.clientX - dragRef.current.startX) * 0.2)));
-        resetRot();
-    };
-    const pUp = (e: React.PointerEvent<HTMLDivElement>) => {
-        dragRef.current.dragging = false;
-        (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId);
-        resetRot();
-    };
+    // ── (3D rotation removed — flat preview for 2D images) ──────────────────
 
     // ── Grid construction ─────────────────────────────────────────────────────
 
@@ -548,7 +566,6 @@ export const Inventory: React.FC = () => {
 
     const handleSelectItem = (item: UnifiedItem) => {
         setSelectedId(item.id);
-        setRotation(0);
         setEditingName(null);
         setEditingDetails(null);
         setShowProjectPicker(false);
@@ -701,12 +718,8 @@ export const Inventory: React.FC = () => {
                             {/* Hero: full-width image/icon preview */}
                             <div className="xt-inv-details-hero">
                                 {selected.source === 'cloud' && selected.mediaUrl ? (
-                                    <div className="xt-inv-hero-img"
-                                        style={{ perspective: '900px' }}
-                                        onPointerDown={pDown} onPointerMove={pMove} onPointerUp={pUp} onPointerLeave={pUp}>
-                                        <div style={{ transform: `rotateY(${rotation}deg)`, transformStyle: 'preserve-3d', transition: dragRef.current.dragging ? 'none' : 'transform 0.2s ease-out', width: '100%', height: '100%' }}>
-                                            <img src={selected.mediaUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
-                                        </div>
+                                    <div className="xt-inv-hero-img">
+                                        <img src={selected.mediaUrl} alt="" style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
                                     </div>
                                 ) : (
                                     <div className="xt-inv-hero-icon">
@@ -757,9 +770,9 @@ export const Inventory: React.FC = () => {
 
                             {/* Content zone */}
                             <div className="xt-inv-details-content">
-                                {/* Item name */}
+                                {/* Item name — editable for ledger & cloud */}
                                 <div className="xt-inv-details-name-zone">
-                                    {selected.source === 'ledger' && selected.ledgerSlot ? (
+                                    {selected.source !== 'capability' ? (
                                         editingName !== null ? (
                                             <input autoFocus className="xt-inv-details-name-input"
                                                 value={editingName}
@@ -794,30 +807,24 @@ export const Inventory: React.FC = () => {
                                     </div>
                                 )}
 
-                                {/* Notes */}
+                                {/* Notes — editable for ledger & cloud */}
                                 {selected.source !== 'capability' && (
                                     <div className="xt-inv-details-desc">
-                                        {selected.source === 'ledger' && selected.ledgerSlot ? (
-                                            editingDetails !== null ? (
-                                                <textarea autoFocus
-                                                    className="xt-inv-notes-input"
-                                                    value={editingDetails}
-                                                    onChange={e => setEditingDetails(e.target.value)}
-                                                    onBlur={() => saveEditingDetails(selected)}
-                                                    onKeyDown={e => { if (e.key === 'Escape') setEditingDetails(null); }}
-                                                    rows={3}
-                                                    placeholder="Add notes about this item…" />
-                                            ) : (
-                                                <div className="xt-inv-notes-display" onClick={() => setEditingDetails(selected.details || '')}>
-                                                    {selected.details
-                                                        ? <p>{selected.details}</p>
-                                                        : <span className="xt-inv-notes-placeholder">Click to add notes…</span>}
-                                                </div>
-                                            )
+                                        {editingDetails !== null ? (
+                                            <textarea autoFocus
+                                                className="xt-inv-notes-input"
+                                                value={editingDetails}
+                                                onChange={e => setEditingDetails(e.target.value)}
+                                                onBlur={() => saveEditingDetails(selected)}
+                                                onKeyDown={e => { if (e.key === 'Escape') setEditingDetails(null); }}
+                                                rows={3}
+                                                placeholder="Add notes about this item…" />
                                         ) : (
-                                            <p className="xt-inv-info-desc">
-                                                {selected.details || <span className="xt-inv-notes-placeholder">No notes</span>}
-                                            </p>
+                                            <div className="xt-inv-notes-display" onClick={() => setEditingDetails(selected.details || '')}>
+                                                {selected.details
+                                                    ? <p>{selected.details}</p>
+                                                    : <span className="xt-inv-notes-placeholder">Click to add notes…</span>}
+                                            </div>
                                         )}
                                     </div>
                                 )}
@@ -825,8 +832,8 @@ export const Inventory: React.FC = () => {
                                 {/* Metadata — scrollable */}
                                 <div className="xt-inv-details-meta custom-scrollbar">
 
-                                    {/* Tier */}
-                                    {selected.source === 'ledger' && selected.ledgerSlot && (
+                                    {/* Tier — ledger & cloud */}
+                                    {selected.source !== 'capability' && (
                                         <div className="xt-inv-section">
                                             <span className="xt-inv-section-label">TIER</span>
                                             <div className="xt-inv-tier-pills">
@@ -834,7 +841,10 @@ export const Inventory: React.FC = () => {
                                                     <button key={t}
                                                         className={`xt-inv-tier-btn${selected.tier === t ? ' is-active' : ''}`}
                                                         style={selected.tier === t ? { borderColor: TIER_COLORS[t], color: TIER_COLORS[t], background: `${TIER_COLORS[t]}18` } : {}}
-                                                        onClick={() => updateLedger(selected.ledgerSlot!.id, { tier: t })}>
+                                                        onClick={() => {
+                                                            if (selected.source === 'ledger' && selected.ledgerSlot) updateLedger(selected.ledgerSlot.id, { tier: t });
+                                                            else if (selected.source === 'cloud' && selected.cloudRow) updateCloudMeta(selected.cloudRow, { tier: t });
+                                                        }}>
                                                         T{t} <span className="xt-inv-tier-label">{TIER_LABELS[t]}</span>
                                                     </button>
                                                 ))}
@@ -842,8 +852,8 @@ export const Inventory: React.FC = () => {
                                         </div>
                                     )}
 
-                                    {/* Subtype */}
-                                    {selected.source === 'ledger' && selected.ledgerSlot && CATEGORY_SUBTYPES[selected.category] && (
+                                    {/* Subtype — ledger & cloud */}
+                                    {selected.source !== 'capability' && CATEGORY_SUBTYPES[selected.category] && (
                                         <div className="xt-inv-section">
                                             <span className="xt-inv-section-label">SUBTYPE</span>
                                             <div className="xt-inv-tier-pills">
@@ -851,7 +861,10 @@ export const Inventory: React.FC = () => {
                                                     <button key={st}
                                                         className={`xt-inv-tier-btn${selected.subtype === st ? ' is-active' : ''}`}
                                                         style={selected.subtype === st ? { borderColor: '#60a5fa', color: '#60a5fa', background: '#60a5fa18' } : {}}
-                                                        onClick={() => updateLedger(selected.ledgerSlot!.id, { subtype: st })}>
+                                                        onClick={() => {
+                                                            if (selected.source === 'ledger' && selected.ledgerSlot) updateLedger(selected.ledgerSlot.id, { subtype: st });
+                                                            else if (selected.source === 'cloud' && selected.cloudRow) updateCloudMeta(selected.cloudRow, { subtype: st });
+                                                        }}>
                                                         {st}
                                                     </button>
                                                 ))}
@@ -859,22 +872,30 @@ export const Inventory: React.FC = () => {
                                         </div>
                                     )}
 
-                                    {/* Quantity */}
-                                    {selected.source === 'ledger' && selected.ledgerSlot && (
+                                    {/* Quantity — ledger & cloud */}
+                                    {selected.source !== 'capability' && (
                                         <div className="xt-inv-section">
                                             <span className="xt-inv-section-label">QUANTITY</span>
                                             <div className="xt-inv-qty-row">
                                                 <button className="xt-inv-qty-btn"
-                                                    onClick={() => updateLedger(selected.ledgerSlot!.id, { quantity: Math.max(0, (selected.quantity || 0) - 1) })}>−</button>
+                                                    onClick={() => {
+                                                        const next = Math.max(0, (selected.quantity || 0) - 1);
+                                                        if (selected.source === 'ledger' && selected.ledgerSlot) updateLedger(selected.ledgerSlot.id, { quantity: next });
+                                                        else if (selected.source === 'cloud' && selected.cloudRow) updateCloudMeta(selected.cloudRow, { quantity: next });
+                                                    }}>−</button>
                                                 <span className="xt-inv-qty-val">{selected.quantity ?? 0}</span>
                                                 <button className="xt-inv-qty-btn"
-                                                    onClick={() => updateLedger(selected.ledgerSlot!.id, { quantity: (selected.quantity || 0) + 1 })}>+</button>
+                                                    onClick={() => {
+                                                        const next = (selected.quantity || 0) + 1;
+                                                        if (selected.source === 'ledger' && selected.ledgerSlot) updateLedger(selected.ledgerSlot.id, { quantity: next });
+                                                        else if (selected.source === 'cloud' && selected.cloudRow) updateCloudMeta(selected.cloudRow, { quantity: next });
+                                                    }}>+</button>
                                             </div>
                                         </div>
                                     )}
 
-                                    {/* External link */}
-                                    {selected.source === 'ledger' && selected.ledgerSlot && (
+                                    {/* External link — ledger & cloud */}
+                                    {selected.source !== 'capability' && (
                                         <div className="xt-inv-section">
                                             <span className="xt-inv-section-label">LINK</span>
                                             <input
@@ -882,7 +903,11 @@ export const Inventory: React.FC = () => {
                                                 className="xt-inv-link-input"
                                                 value={selected.externalLink || ''}
                                                 placeholder="https://…"
-                                                onChange={e => updateLedger(selected.ledgerSlot!.id, { externalLink: e.target.value || undefined })}
+                                                onChange={e => {
+                                                    const val = e.target.value || undefined;
+                                                    if (selected.source === 'ledger' && selected.ledgerSlot) updateLedger(selected.ledgerSlot.id, { externalLink: val });
+                                                    else if (selected.source === 'cloud' && selected.cloudRow) updateCloudMeta(selected.cloudRow, { externalLink: val });
+                                                }}
                                             />
                                             {selected.externalLink && (
                                                 <a href={selected.externalLink} target="_blank" rel="noreferrer" className="xt-inv-link-open">
@@ -892,8 +917,8 @@ export const Inventory: React.FC = () => {
                                         </div>
                                     )}
 
-                                    {/* Self Tree */}
-                                    {selected.source === 'ledger' && (
+                                    {/* Self Tree — ledger & cloud */}
+                                    {selected.source !== 'capability' && (
                                         <div className="xt-inv-section">
                                             <span className="xt-inv-section-label">SELF TREE</span>
                                             <div className="xt-inv-tree-picker">
@@ -909,8 +934,8 @@ export const Inventory: React.FC = () => {
                                         </div>
                                     )}
 
-                                    {/* Priority */}
-                                    {selected.source === 'ledger' && (
+                                    {/* Priority — ledger & cloud */}
+                                    {selected.source !== 'capability' && (
                                         <div className="xt-inv-section">
                                             <span className="xt-inv-section-label">PRIORITY</span>
                                             <div className="xt-inv-imp-pills">
@@ -926,8 +951,8 @@ export const Inventory: React.FC = () => {
                                         </div>
                                     )}
 
-                                    {/* Linked Projects */}
-                                    {selected.source === 'ledger' && activeProjects.length > 0 && (
+                                    {/* Linked Projects — ledger & cloud */}
+                                    {selected.source !== 'capability' && activeProjects.length > 0 && (
                                         <div className="xt-inv-section">
                                             <div className="xt-inv-section-head">
                                                 <span className="xt-inv-section-label">PROJECTS</span>
