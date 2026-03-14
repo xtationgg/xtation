@@ -4,15 +4,40 @@ import {
   Bot,
   CheckCircle2,
   Clock3,
+  Flame,
   Trophy,
   X,
   Zap,
 } from 'lucide-react';
 import { useXP } from '../XP/xpStore';
+import type { SelfTreeBranch } from '../XP/xpTypes';
 import { getQuestStepCounts, parseQuestNotesAndSteps } from '../../src/lib/quests/steps';
 import { useLab } from '../../src/lab/LabProvider';
 import { openDuskBrief } from '../../src/dusk/bridge';
 import { useOptionalPresentationEvents } from '../../src/presentation/PresentationEventsProvider';
+
+const BRANCH_META: Record<SelfTreeBranch, { color: string; icon: string }> = {
+  Knowledge: { color: '#60a5fa', icon: '📘' },
+  Creation: { color: '#c084fc', icon: '🎨' },
+  Systems: { color: '#34d399', icon: '⚙️' },
+  Communication: { color: '#fb923c', icon: '💬' },
+  Physical: { color: '#f87171', icon: '💪' },
+  Inner: { color: '#facc15', icon: '🧘' },
+};
+
+const REFLECTION_PROMPTS = [
+  'What felt hardest? What clicked?',
+  'One thing you learned or noticed?',
+  'How does this connect to your bigger picture?',
+  'What would you do differently next time?',
+  'What energy level did this need?',
+];
+
+const pickReflectionPrompt = (taskId: string) => {
+  let hash = 0;
+  for (let i = 0; i < taskId.length; i++) hash = ((hash << 5) - hash + taskId.charCodeAt(i)) | 0;
+  return REFLECTION_PROMPTS[Math.abs(hash) % REFLECTION_PROMPTS.length];
+};
 
 export interface QuestDebriefPanelProps {
   taskId: string;
@@ -29,6 +54,8 @@ export const QuestDebriefPanel: React.FC<QuestDebriefPanelProps> = ({
   const lab = useLab();
   const task = selectors.getTaskById(taskId);
   const xpBreakdown = selectors.getQuestCompletionXP(taskId);
+  const momentum = selectors.getMomentum();
+  const completedToday = selectors.getCompletedCountForDay();
   const [reflectionText, setReflectionText] = useState('');
   const [savedToLab, setSavedToLab] = useState(false);
   const [phase, setPhase] = useState<'reveal' | 'detail'>('reveal');
@@ -43,6 +70,9 @@ export const QuestDebriefPanel: React.FC<QuestDebriefPanelProps> = ({
     if (!task?.completedAt || !task?.startedAt) return 0;
     return Math.max(0, Math.floor((task.completedAt - task.startedAt) / 60000));
   }, [task]);
+
+  const branchMeta = task?.selfTreePrimary ? BRANCH_META[task.selfTreePrimary] : null;
+  const reflectionPlaceholder = pickReflectionPrompt(taskId);
 
   useEffect(() => {
     if (!task) return;
@@ -73,18 +103,23 @@ export const QuestDebriefPanel: React.FC<QuestDebriefPanelProps> = ({
     const parsed = parseQuestNotesAndSteps(task.details);
     const lines: string[] = [];
     lines.push(`Quest completed: ${task.title}`);
+    if (task.selfTreePrimary) lines.push(`Branch: ${task.selfTreePrimary}`);
     if (sessionMinutes > 0) lines.push(`Duration: ${sessionMinutes}m`);
     if (stepCounts.total > 0)
       lines.push(`Steps: ${stepCounts.completed}/${stepCounts.total}`);
     if (xpBreakdown) lines.push(`XP earned: ${xpBreakdown.total}`);
+    if (momentum.currentStreak > 0) lines.push(`Streak: ${momentum.currentStreak} days`);
     if (parsed.notes) lines.push(`\nNotes:\n${parsed.notes}`);
     if (reflectionText.trim()) lines.push(`\nReflection:\n${reflectionText.trim()}`);
+
+    const tags = ['debrief', 'quest-completion'];
+    if (task.selfTreePrimary) tags.push(task.selfTreePrimary.toLowerCase());
 
     lab.addNote({
       title: `Debrief: ${task.title}`,
       content: lines.join('\n'),
       kind: 'brief',
-      tags: ['debrief', 'quest-completion'],
+      tags,
       linkedQuestIds: [task.id],
     });
     setSavedToLab(true);
@@ -115,6 +150,11 @@ export const QuestDebriefPanel: React.FC<QuestDebriefPanelProps> = ({
         <div className="xt-debrief-reveal-content">
           <div className="xt-debrief-reveal-kicker">Quest Complete</div>
           <h1 className="xt-debrief-reveal-title">{task.title}</h1>
+          {branchMeta ? (
+            <div className="xt-debrief-reveal-branch" style={{ color: branchMeta.color }}>
+              <span>{branchMeta.icon}</span> {task.selfTreePrimary}
+            </div>
+          ) : null}
           {xpTotal > 0 ? (
             <div className="xt-debrief-reveal-xp">+{xpTotal} XP</div>
           ) : null}
@@ -169,7 +209,28 @@ export const QuestDebriefPanel: React.FC<QuestDebriefPanelProps> = ({
                 <CheckCircle2 size={10} /> {stepCounts.completed}/{stepCounts.total} steps
               </span>
             ) : null}
+            {branchMeta && task.selfTreePrimary ? (
+              <span
+                className="xt-debrief-chip"
+                style={{ borderColor: branchMeta.color, color: branchMeta.color }}
+              >
+                {branchMeta.icon} {task.selfTreePrimary}
+              </span>
+            ) : null}
+            {momentum.currentStreak > 0 ? (
+              <span className="xt-debrief-chip xt-debrief-chip--streak">
+                <Flame size={10} /> {momentum.currentStreak}d streak
+                {momentum.streakMultiplier > 1 ? ` · x${momentum.streakMultiplier.toFixed(1)}` : ''}
+              </span>
+            ) : null}
           </div>
+
+          {/* Today's context */}
+          {completedToday > 1 ? (
+            <div className="xt-debrief-insight">
+              {completedToday === 2 ? '2nd' : completedToday === 3 ? '3rd' : `${completedToday}th`} quest completed today
+            </div>
+          ) : null}
 
           {/* XP Breakdown */}
           {xpBreakdown && xpTotal > 0 ? (
@@ -212,7 +273,7 @@ export const QuestDebriefPanel: React.FC<QuestDebriefPanelProps> = ({
             <textarea
               value={reflectionText}
               onChange={(e) => setReflectionText(e.target.value)}
-              placeholder="What went well? What's next?"
+              placeholder={reflectionPlaceholder}
               rows={3}
               className="xt-debrief-textarea"
             />

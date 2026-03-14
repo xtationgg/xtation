@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Calendar,
   CheckCircle2,
@@ -15,7 +15,7 @@ import {
 import { QuestModal } from '../Play/QuestModal';
 import { QuestDebriefPanel } from '../Play/QuestDebriefPanel';
 import { useXP } from '../XP/xpStore';
-import type { Project, QuestLevel, Task } from '../XP/xpTypes';
+import type { Project, QuestLevel, SelfTreeBranch, Task } from '../XP/xpTypes';
 import { ClientView } from '../../types';
 import { useXtationSettings } from '../../src/settings/SettingsProvider';
 import type { XtationOnboardingHandoff } from '../../src/onboarding/storage';
@@ -258,6 +258,19 @@ export const Play: React.FC<PlayProps> = ({
   const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
   const [debriefTaskId, setDebriefTaskId] = useState<string | null>(null);
 
+  // ── Quick-add quest ──
+  const [quickAddValue, setQuickAddValue] = useState('');
+  const [quickAddFocused, setQuickAddFocused] = useState(false);
+  const quickAddRef = useRef<HTMLInputElement>(null);
+
+  // ── Inline step-add ──
+  const [inlineStepValue, setInlineStepValue] = useState('');
+  const inlineStepRef = useRef<HTMLInputElement>(null);
+
+  // ── Completion celebration ──
+  const [celebrationData, setCelebrationData] = useState<{ xp: number; title: string } | null>(null);
+  const celebrationTimerRef = useRef<number | null>(null);
+
   const activeSession = selectors.getActiveSession();
   const activeTasks = selectors.getActiveTasks();
 
@@ -355,6 +368,47 @@ export const Play: React.FC<PlayProps> = ({
     Knowledge: '#60a5fa', Creation: '#c084fc', Systems: '#34d399',
     Communication: '#fb923c', Physical: '#f87171', Inner: '#facc15',
   };
+
+  const branchDistribution = useMemo(() => {
+    const counts: Record<string, number> = {};
+    let total = 0;
+    for (const t of activeTasks) {
+      if (t.selfTreePrimary) {
+        counts[t.selfTreePrimary] = (counts[t.selfTreePrimary] || 0) + 1;
+        total++;
+      }
+    }
+    if (total === 0) return null;
+    return Object.entries(counts)
+      .sort((a, b) => b[1] - a[1])
+      .map(([branch, count]) => ({
+        branch,
+        count,
+        pct: Math.round((count / total) * 100),
+        color: BRANCH_COLORS[branch] || '#888',
+      }));
+  }, [activeTasks]);
+
+  const branchGrowth = useMemo(() => {
+    const taskMap = new Map(tasks.map(t => [t.id, t]));
+    const counts: Record<string, number> = {};
+    let maxCount = 0;
+    for (const c of completions) {
+      const t = taskMap.get(c.taskId);
+      if (t?.selfTreePrimary) {
+        counts[t.selfTreePrimary] = (counts[t.selfTreePrimary] || 0) + 1;
+        if (counts[t.selfTreePrimary] > maxCount) maxCount = counts[t.selfTreePrimary];
+      }
+    }
+    if (maxCount === 0) return null;
+    const ALL_BRANCHES = ['Knowledge', 'Creation', 'Systems', 'Communication', 'Physical', 'Inner'] as const;
+    return ALL_BRANCHES.map(branch => ({
+      branch,
+      count: counts[branch] || 0,
+      pct: maxCount > 0 ? Math.round(((counts[branch] || 0) / maxCount) * 100) : 0,
+      color: BRANCH_COLORS[branch],
+    }));
+  }, [tasks, completions]);
 
   const weekDots = useMemo(() => {
     const base = new Date(dateKey + 'T12:00:00');
@@ -508,6 +562,7 @@ export const Play: React.FC<PlayProps> = ({
     questType: Task['questType'];
     level: QuestLevel;
     projectId?: string;
+    selfTreePrimary?: SelfTreeBranch;
   }) => {
     if (editingTaskId) {
       updateTask(editingTaskId, {
@@ -518,6 +573,7 @@ export const Play: React.FC<PlayProps> = ({
         questType: draft.questType,
         level: draft.level,
         projectId: draft.projectId,
+        selfTreePrimary: draft.selfTreePrimary,
       });
       setSelectedTaskId(editingTaskId);
     } else {
@@ -531,6 +587,7 @@ export const Play: React.FC<PlayProps> = ({
         level: draft.level,
         projectId: draft.projectId,
         scheduledAt: draft.scheduledAt,
+        selfTreePrimary: draft.selfTreePrimary,
         icon: draft.level >= 3 ? 'flag' : 'zap',
       });
       setSelectedTaskId(createdId);
@@ -550,6 +607,39 @@ export const Play: React.FC<PlayProps> = ({
     });
   };
 
+  // ── Quick-add quest handler ──
+  const handleQuickAdd = useCallback(() => {
+    const title = quickAddValue.trim();
+    if (!title) return;
+    const createdId = addTask({
+      title,
+      details: '',
+      priority: 'normal',
+      status: 'todo',
+      category: 'Quest',
+      questType: 'session',
+      level: 1 as QuestLevel,
+      icon: 'zap',
+    });
+    setSelectedTaskId(createdId);
+    setQuickAddValue('');
+    quickAddRef.current?.blur();
+  }, [quickAddValue, addTask]);
+
+  // ── Inline step-add handler ──
+  const handleInlineStepAdd = useCallback(() => {
+    const text = inlineStepValue.trim();
+    if (!text || !selectedTask) return;
+    const parsed = parseQuestNotesAndSteps(selectedTask.details);
+    const nextSteps = [...parsed.steps, { text, done: false }];
+    updateTask(selectedTask.id, {
+      details: encodeQuestNotesWithSteps(parsed.notes, nextSteps),
+    });
+    setInlineStepValue('');
+    // Keep focus on input for rapid multi-step entry
+    setTimeout(() => inlineStepRef.current?.focus(), 0);
+  }, [inlineStepValue, selectedTask, updateTask]);
+
   const handleRunSelectedQuest = () => {
     if (!selectedTask) return;
     resumeTaskSession(selectedTask.id);
@@ -557,20 +647,91 @@ export const Play: React.FC<PlayProps> = ({
 
   const handleCompleteSelectedQuest = () => {
     if (!selectedTask) return;
-    completeTask(selectedTask.id, {
+    const taskTitle = selectedTask.title;
+    const taskId = selectedTask.id;
+    const xpBreakdown = selectors.getQuestCompletionXP(taskId);
+
+    completeTask(taskId, {
       minutes: Math.max(0, Math.floor(selectedTaskTodayMs / 60000)),
       source: selectedTaskRunning ? 'session' : 'manual_done',
     });
     presentationEvents?.emitEvent('quest.completed', {
       source: 'user',
       metadata: {
-        taskId: selectedTask.id,
-        title: selectedTask.title,
+        taskId,
+        title: taskTitle,
         via: selectedTaskRunning ? 'session' : 'manual_done',
       },
     });
-    setDebriefTaskId(selectedTask.id);
+
+    // Trigger celebration flash, then open debrief after animation
+    setCelebrationData({ xp: xpBreakdown?.total ?? 0, title: taskTitle });
+    if (celebrationTimerRef.current) window.clearTimeout(celebrationTimerRef.current);
+    celebrationTimerRef.current = window.setTimeout(() => {
+      setCelebrationData(null);
+      setDebriefTaskId(taskId);
+      celebrationTimerRef.current = null;
+    }, 1800);
   };
+
+  // ── Global keyboard shortcuts ──
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      // Don't capture when typing in inputs/textareas or modal is open
+      const tag = (e.target as HTMLElement)?.tagName;
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+      if (modalOpen || debriefTaskId) return;
+
+      switch (e.key) {
+        case ' ': // Space → toggle session (start/pause)
+          if (!selectedTask) return;
+          e.preventDefault();
+          if (selectedTaskRunning) {
+            pauseSession();
+          } else {
+            handleRunSelectedQuest();
+          }
+          break;
+        case 'n': // N → focus quick-add input
+        case 'N':
+          e.preventDefault();
+          quickAddRef.current?.focus();
+          break;
+        case 'e': // E → edit selected quest
+        case 'E':
+          if (selectedTask) {
+            e.preventDefault();
+            openEditQuest(selectedTask.id);
+          }
+          break;
+        case 'c': // C → complete selected quest
+        case 'C':
+          if (selectedTask && !e.metaKey && !e.ctrlKey) {
+            e.preventDefault();
+            handleCompleteSelectedQuest();
+          }
+          break;
+        case 'ArrowDown': // Navigate quest list
+          e.preventDefault();
+          setSelectedTaskId((current) => {
+            const idx = orderedTasks.findIndex((t) => t.id === current);
+            const next = orderedTasks[idx + 1];
+            return next?.id ?? current;
+          });
+          break;
+        case 'ArrowUp':
+          e.preventDefault();
+          setSelectedTaskId((current) => {
+            const idx = orderedTasks.findIndex((t) => t.id === current);
+            const prev = orderedTasks[idx - 1];
+            return prev?.id ?? current;
+          });
+          break;
+      }
+    };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [selectedTask, selectedTaskRunning, modalOpen, debriefTaskId, orderedTasks]);
 
   const editingTask = editingTaskId ? selectors.getTaskById(editingTaskId) : null;
   const selectedStepCounts = getQuestStepCounts(selectedTask?.details);
@@ -639,9 +800,47 @@ export const Play: React.FC<PlayProps> = ({
         <aside className="xt-ops-rack">
           <div className="xt-ops-rack-header">
             <span className="xt-ops-rack-label">Operations</span>
-            <button type="button" onClick={openCreateQuest} className="xt-ops-rack-add">
+            <button type="button" onClick={openCreateQuest} className="xt-ops-rack-add" title="Full quest editor">
               <Plus size={12} />
             </button>
+          </div>
+
+          {/* Quick-add quest — type title, Enter to create */}
+          <div className={`xt-ops-quick-add ${quickAddFocused ? 'xt-ops-quick-add--focused' : ''}`}>
+            <input
+              ref={quickAddRef}
+              type="text"
+              placeholder="Quick add quest…"
+              value={quickAddValue}
+              onChange={(e) => setQuickAddValue(e.target.value)}
+              onFocus={() => setQuickAddFocused(true)}
+              onBlur={() => setQuickAddFocused(false)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault();
+                  handleQuickAdd();
+                } else if (e.key === 'Enter' && e.shiftKey) {
+                  // Shift+Enter → open full modal with title pre-filled
+                  e.preventDefault();
+                  const title = quickAddValue.trim();
+                  setQuickAddValue('');
+                  if (title) {
+                    setEditingTaskId(null);
+                    setModalOpen(true);
+                    // The modal will open empty — but this at least skips the + click
+                  }
+                } else if (e.key === 'Escape') {
+                  setQuickAddValue('');
+                  quickAddRef.current?.blur();
+                }
+              }}
+              className="xt-ops-quick-add-input"
+            />
+            {quickAddValue.trim() && (
+              <span className="xt-ops-quick-add-hint">
+                ↵ create · ⇧↵ full editor
+              </span>
+            )}
           </div>
 
           {/* Vitals bar */}
@@ -663,6 +862,20 @@ export const Play: React.FC<PlayProps> = ({
               <span className="xt-ops-vital-unit">mult</span>
             </div>
           </div>
+
+          {/* Branch distribution bar */}
+          {branchDistribution && (
+            <div className="xt-ops-branch-bar" title="Self-Tree branch distribution">
+              {branchDistribution.map(({ branch, pct, color }) => (
+                <div
+                  key={branch}
+                  className="xt-ops-branch-bar-seg"
+                  style={{ width: `${Math.max(pct, 4)}%`, background: color }}
+                  title={`${branch}: ${pct}%`}
+                />
+              ))}
+            </div>
+          )}
 
           {/* Quest list */}
           <div className="xt-ops-rack-scroll">
@@ -836,7 +1049,15 @@ export const Play: React.FC<PlayProps> = ({
                     <span className="xt-ops-tag">{PRIORITY_LABELS[selectedTask.priority]}</span>
                     <span className="xt-ops-tag">L{selectedTask.level ?? 1}</span>
                     {selectedTask.selfTreePrimary ? (
-                      <span className="xt-ops-tag">{SELF_TREE_LABELS[selectedTask.selfTreePrimary]}</span>
+                      <span
+                        className="xt-ops-tag"
+                        style={{
+                          borderColor: BRANCH_COLORS[selectedTask.selfTreePrimary],
+                          color: BRANCH_COLORS[selectedTask.selfTreePrimary],
+                        }}
+                      >
+                        {SELF_TREE_LABELS[selectedTask.selfTreePrimary]}
+                      </span>
                     ) : null}
                   </div>
                 </div>
@@ -910,9 +1131,30 @@ export const Play: React.FC<PlayProps> = ({
                     </div>
                   ) : (
                     <div className="xt-ops-steps-empty">
-                      No steps defined. Edit quest to add a checklist.
+                      Add steps below or edit quest for full checklist.
                     </div>
                   )}
+
+                  {/* Inline step-add input */}
+                  <div className="xt-ops-step-add">
+                    <input
+                      ref={inlineStepRef}
+                      type="text"
+                      placeholder="+ Add step…"
+                      value={inlineStepValue}
+                      onChange={(e) => setInlineStepValue(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          handleInlineStepAdd();
+                        } else if (e.key === 'Escape') {
+                          setInlineStepValue('');
+                          inlineStepRef.current?.blur();
+                        }
+                      }}
+                      className="xt-ops-step-add-input"
+                    />
+                  </div>
 
                   {/* Notes */}
                   {selectedTaskSteps.notes ? (
@@ -1016,6 +1258,34 @@ export const Play: React.FC<PlayProps> = ({
                       </div>
                     )}
                   </div>
+
+                  {/* Self-Tree growth */}
+                  {branchGrowth ? (
+                    <div className="xt-ops-panel">
+                      <div className="xt-ops-panel-head">
+                        <span className="xt-ops-panel-label">Self-Tree</span>
+                        <span className="xt-ops-panel-count">
+                          {branchGrowth.reduce((s, b) => s + b.count, 0)} total
+                        </span>
+                      </div>
+                      <div className="xt-ops-tree-branches">
+                        {branchGrowth.map(({ branch, count, pct, color }) => (
+                          <div key={branch} className="xt-ops-tree-row">
+                            <span className="xt-ops-tree-label" style={{ color: count > 0 ? color : undefined }}>
+                              {branch.slice(0, 4)}
+                            </span>
+                            <div className="xt-ops-tree-track">
+                              <div
+                                className="xt-ops-tree-fill"
+                                style={{ width: `${Math.max(pct, count > 0 ? 4 : 0)}%`, background: color }}
+                              />
+                            </div>
+                            <span className="xt-ops-tree-count">{count}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ) : null}
                 </div>
               </div>
             </>
@@ -1042,6 +1312,21 @@ export const Play: React.FC<PlayProps> = ({
           )}
         </main>
       </div>
+
+      {/* ── Completion Celebration Overlay ── */}
+      {celebrationData && (
+        <div className="xt-ops-celebration" aria-live="assertive">
+          <div className="xt-ops-celebration-flash" />
+          <div className="xt-ops-celebration-content">
+            <div className="xt-ops-celebration-check">
+              <CheckCircle2 size={36} />
+            </div>
+            <div className="xt-ops-celebration-title">Quest Complete</div>
+            <div className="xt-ops-celebration-xp">+{celebrationData.xp} XP</div>
+            <div className="xt-ops-celebration-quest">{celebrationData.title}</div>
+          </div>
+        </div>
+      )}
 
       <QuestModal
         open={modalOpen}

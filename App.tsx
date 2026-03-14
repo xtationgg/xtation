@@ -105,72 +105,24 @@ import {
 } from './src/station/transitionSummary';
 import { PLAY_NAVIGATION_EVENT, type PlayNavigationPayload } from './src/play/bridge';
 import { routeWheelToContainer } from './src/ui/wheelScroll';
+import {
+  SectionLoadingState,
+  ViewRouter,
+  formatWorkspaceLabel,
+  isPlayStageView,
+} from './src/navigation/ViewRouter';
+import { useRewardSystem } from './src/station/useRewardSystem';
+import { useBackgroundManager, saveBackgroundBlob, loadBackgroundBlob } from './src/station/useBackgroundManager';
 
-const loadLab = () => import('./components/Views/Lab');
-const loadAdmin = () => import('./components/Views/Admin');
-const loadProfile = () => import('./components/Views/Profile');
-const loadSettings = () => import('./components/Views/Settings');
-const loadInventory = () => import('./components/Views/Inventory');
-const loadMultiplayer = () => import('./components/Views/Multiplayer');
-const loadStore = () => import('./components/Views/Store');
-const loadEarth = () => import('./components/Views/Earth');
-const loadUiKitPlayground = () => import('./components/Views/UiKitPlayground');
 const loadDuskRelay = () => import('./components/Features/HextechAssistant');
 const loadChatDock = () => import('./components/Chat');
 const loadDevHud = () => import('./src/dev/DevHUD');
 
-const LazyLab = lazy(() => loadLab().then((module) => ({ default: module.Lab })));
-const LazyAdmin = lazy(() => loadAdmin().then((module) => ({ default: module.Admin })));
-const LazyProfile = lazy(() => loadProfile().then((module) => ({ default: module.Profile })));
-const LazySettings = lazy(() => loadSettings().then((module) => ({ default: module.Settings })));
-const LazyInventory = lazy(() => loadInventory().then((module) => ({ default: module.Inventory })));
-const LazyMultiplayer = lazy(() => loadMultiplayer().then((module) => ({ default: module.Multiplayer })));
-const LazyStore = lazy(() => loadStore().then((module) => ({ default: module.Store })));
-const LazyEarth = lazy(() => loadEarth().then((module) => ({ default: module.Earth })));
-const LazyUiKitPlayground = lazy(() => loadUiKitPlayground().then((module) => ({ default: module.UiKitPlayground })));
 const LazyDuskRelay = lazy(() => loadDuskRelay().then((module) => ({ default: module.DuskRelay || module.HextechAssistant })));
 const LazyChatDock = lazy(() => loadChatDock().then((module) => ({ default: module.ChatDock })));
 const LazyDevHUD = lazy(() => loadDevHud().then((module) => ({ default: module.DevHUD })));
 
-const SectionLoadingState: React.FC<{ view: ClientView }> = ({ view }) => {
-  const label =
-    view === ClientView.LAB || view === ClientView.HOME
-      ? 'Lab'
-      : view === ClientView.ADMIN
-        ? 'Admin'
-      : view === ClientView.MULTIPLAYER
-        ? 'Multiplayer'
-        : view === ClientView.PROFILE
-          ? 'Profile'
-          : view === ClientView.INVENTORY
-            ? 'Inventory'
-            : view === ClientView.STORE
-              ? 'Store'
-              : view === ClientView.SETTINGS
-                ? 'Settings'
-                : view === ClientView.TFT
-                  ? 'Earth'
-                  : view === ClientView.UI_KIT
-                    ? 'UI Kit'
-                    : 'XTATION';
-
-  return (
-    <div className="flex h-full min-h-[420px] items-center justify-center px-6">
-      <div className="xt-shell-loading-card max-w-xl px-8 py-10 text-center">
-        <div className="text-[10px] uppercase tracking-[0.3em] text-[var(--app-accent)]">{label}</div>
-        <div className="mt-3 text-2xl font-semibold text-[var(--app-text)]">Loading section</div>
-        <div className="mt-3 text-sm leading-6 text-[var(--app-muted)]">
-          XTATION is streaming this workspace only when you open it, so the main action room stays lighter and faster.
-        </div>
-        <div className="mt-6 flex items-center justify-center gap-2">
-          <span className="xt-shell-dot h-2.5 w-2.5 rounded-full bg-[var(--app-accent)]" />
-          <span className="xt-shell-dot xt-shell-dot--2 h-2.5 w-2.5 rounded-full bg-[color-mix(in_srgb,var(--app-accent)_70%,transparent)]" />
-          <span className="xt-shell-dot xt-shell-dot--3 h-2.5 w-2.5 rounded-full bg-[color-mix(in_srgb,var(--app-accent)_40%,transparent)]" />
-        </div>
-      </div>
-    </div>
-  );
-};
+// SectionLoadingState moved to src/navigation/ViewRouter.tsx
 
 const AssistantLoadingState: React.FC = () => (
   <aside
@@ -190,60 +142,10 @@ const AssistantLoadingState: React.FC = () => (
   </aside>
 );
 
-const defaultRewardConfigs: RewardConfig[] = [
-  { level: 1, threshold: 100, animation: 'CYBER_PULSE', sound: 'LEVEL_UP' },
-  { level: 2, threshold: 250, animation: 'GOLDEN_HEX', sound: 'CHIME' },
-  { level: 3, threshold: 500, animation: 'GLITCH_STORM', sound: 'TECH_POWER' },
-  { level: 4, threshold: 1000, animation: 'ORBITAL_STRIKE', sound: 'ALARM' },
-  { level: 5, threshold: 2000, animation: 'NEON_BURST', sound: 'BASS_DROP' },
-];
-
-const defaultViewBackgrounds: Record<ClientView, string | null> = {
-  [ClientView.HOME]: null,
-  [ClientView.LAB]: null,
-  [ClientView.ADMIN]: null,
-  [ClientView.TFT]: null,
-  [ClientView.MULTIPLAYER]: null,
-  [ClientView.PROFILE]: null,
-  [ClientView.INVENTORY]: null,
-  [ClientView.STORE]: null,
-  [ClientView.UI_KIT]: null,
-  [ClientView.SETTINGS]: null,
-  [ClientView.LOBBY]: null,
-  [ClientView.MATCH_FOUND]: null,
-  [ClientView.CHAMP_SELECT]: null,
-};
-
-const formatWorkspaceLabel = (view: ClientView | null | undefined) => {
-  switch (view) {
-    case ClientView.LOBBY:
-      return 'Play';
-    case ClientView.HOME:
-    case ClientView.LAB:
-      return 'Lab';
-    case ClientView.PROFILE:
-      return 'Profile';
-    case ClientView.MULTIPLAYER:
-      return 'Multiplayer';
-    case ClientView.INVENTORY:
-      return 'Inventory';
-    case ClientView.STORE:
-      return 'Store';
-    case ClientView.SETTINGS:
-      return 'Settings';
-    case ClientView.ADMIN:
-      return 'Admin';
-    case ClientView.TFT:
-      return 'Earth';
-    case ClientView.UI_KIT:
-      return 'UI Kit';
-    default:
-      return 'Play';
-  }
-};
-
-const isPlayStageView = (view: ClientView) =>
-  view === ClientView.LOBBY || view === ClientView.MATCH_FOUND || view === ClientView.CHAMP_SELECT;
+// defaultRewardConfigs moved to src/station/useRewardSystem.ts
+// defaultViewBackgrounds moved to src/station/useBackgroundManager.ts
+// formatWorkspaceLabel moved to src/navigation/ViewRouter.tsx
+// isPlayStageView moved to src/navigation/ViewRouter.tsx
 
 const App: React.FC = () => {
   const currentPath = window.location.pathname;
@@ -277,31 +179,35 @@ const App: React.FC = () => {
   const [recentStationActivity, setRecentStationActivity] = useState<StationActivityEntry[]>([]);
   const [isGuestMode, setIsGuestMode] = useState<boolean>(() => readGuestModeSession());
   
-  // New State for dynamic background (e.g., Champ Select splash art)
-  const [customBackground, setCustomBackground] = useState<string | null>(null);
-  const [viewBackgrounds, setViewBackgrounds] = useState<Record<ClientView, string | null>>(defaultViewBackgrounds);
-  const [resolvedBackgrounds, setResolvedBackgrounds] = useState<Record<string, string>>({});
-  const backgroundInputRef = useRef<HTMLInputElement>(null);
+  // Background state (extracted to useBackgroundManager)
+  const {
+    customBackground, setCustomBackground,
+    viewBackgrounds, setViewBackgrounds,
+    resolvedBackgrounds, setResolvedBackgrounds,
+    backgroundInputRef,
+  } = useBackgroundManager();
   const shellRootRef = useRef<HTMLDivElement>(null);
 
   const { tasks, stats, selectors, authStatus, getLedgerSnapshot, replaceLedger } = useXP();
 
-  // Reward System State
-  const [rewardConfigs, setRewardConfigs] = useState<RewardConfig[]>(defaultRewardConfigs);
-  
-  const [triggeredLevels, setTriggeredLevels] = useState<number[]>([]);
-  const [activeReward, setActiveReward] = useState<RewardConfig | null>(null);
-  const [activeRewardDuration, setActiveRewardDuration] = useState<number>(4000);
-  const rewardStartRef = useRef<number>(0);
-  const [hasInitialized, setHasInitialized] = useState(false);
+  const totalXP = stats.totalEarnedXP;
+  const activeTasksCount = selectors.getActiveTasks().length;
+
+  // Reward system (extracted to useRewardSystem)
+  const {
+    rewardConfigs,
+    activeReward,
+    activeRewardDuration,
+    setActiveReward,
+    setActiveRewardDuration,
+    updateRewardConfig,
+    rewardDismissTimer,
+  } = useRewardSystem(totalXP);
+
   const lastPresentationViewRef = useRef<ClientView | null>(null);
   const lastMotionViewRef = useRef<ClientView | null>(null);
   const lastRestoredScopeRef = useRef<string | null>(null);
   const [viewMotionToken, setViewMotionToken] = useState<'xt-shell-section-a' | 'xt-shell-section-b'>('xt-shell-section-a');
-
-  const totalXP = stats.totalEarnedXP;
-  const activeTasksCount = selectors.getActiveTasks().length;
-  const rewardDismissTimer = useRef<number | null>(null);
   const isResetPasswordRoute = currentPath === '/reset-password';
   const isAuthCallbackRoute = currentPath === '/auth/callback';
   const featureVisibility = useMemo(
@@ -961,45 +867,7 @@ const App: React.FC = () => {
 
   
 
-  // Monitor XP for Rewards
-  useEffect(() => {
-    // Initial Load: Don't trigger animations for already achieved levels
-    if (!hasInitialized) {
-        const alreadyReached = rewardConfigs
-            .filter(c => totalXP >= c.threshold)
-            .map(c => c.level);
-            
-        setTriggeredLevels(alreadyReached);
-        setHasInitialized(true);
-        return;
-    }
-
-    // RESET LOGIC: Check if we dropped below any previously achieved thresholds
-    // This allows re-triggering if XP goes down and back up
-    const stillAchievedLevels = triggeredLevels.filter(level => {
-        const config = rewardConfigs.find(c => c.level === level);
-        // If config exists and we still meet the threshold, keep it.
-        // If config is missing (deleted level?) or threshold not met, drop it.
-        return config && totalXP >= config.threshold;
-    });
-
-    if (stillAchievedLevels.length !== triggeredLevels.length) {
-        setTriggeredLevels(stillAchievedLevels);
-        // Return early to let state update before checking for new triggers
-        return; 
-    }
-
-      // TRIGGER LOGIC: Check for new achievements
-      rewardConfigs.forEach(config => {
-        if (totalXP >= config.threshold && !triggeredLevels.includes(config.level)) {
-            // Trigger Reward
-            setTriggeredLevels(prev => [...prev, config.level]);
-            setActiveReward(config);
-            setActiveRewardDuration(4000); // fallback until media reports duration
-            rewardStartRef.current = Date.now();
-        }
-      });
-  }, [totalXP, rewardConfigs, triggeredLevels, hasInitialized]);
+  // Reward monitoring moved to useRewardSystem hook
 
 
   const getBackgroundStyle = () => {
@@ -1098,9 +966,7 @@ const App: React.FC = () => {
     return () => window.clearTimeout(timeoutId);
   }, []);
 
-  const updateRewardConfig = (newConfig: RewardConfig) => {
-    setRewardConfigs(prev => prev.map(c => c.level === newConfig.level ? newConfig : c));
-  };
+  // updateRewardConfig now provided by useRewardSystem hook
 
   const handleBackgroundUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -1206,72 +1072,9 @@ const App: React.FC = () => {
     }
   };
 
-  // IndexedDB helpers for large backgrounds
-  const openBgDB = () => new Promise<IDBDatabase>((resolve, reject) => {
-    const req = indexedDB.open('ViewBackgroundDB', 1);
-    req.onupgradeneeded = () => {
-        const db = req.result;
-        if (!db.objectStoreNames.contains('backgrounds')) {
-            db.createObjectStore('backgrounds');
-        }
-    };
-    req.onsuccess = () => resolve(req.result);
-    req.onerror = () => reject(req.error);
-  });
+  // IndexedDB background helpers moved to src/station/useBackgroundManager.ts
 
-  const saveBackgroundBlob = async (file: File) => {
-    const db = await openBgDB();
-    const key = `bg-${Date.now()}`;
-    const tx = db.transaction('backgrounds', 'readwrite');
-    tx.objectStore('backgrounds').put(file, key);
-    await new Promise((resolve, reject) => {
-        tx.oncomplete = () => resolve(null);
-        tx.onerror = () => reject(tx.error);
-    });
-    return `idb:${key}`;
-  };
-
-  const loadBackgroundBlob = async (idbKey: string) => {
-    const key = idbKey.replace('idb:', '');
-    try {
-        const db = await openBgDB();
-        const tx = db.transaction('backgrounds', 'readonly');
-        const req = tx.objectStore('backgrounds').get(key);
-        const blob: Blob | undefined = await new Promise((resolve, reject) => {
-            req.onsuccess = () => resolve(req.result as Blob | undefined);
-            req.onerror = () => reject(req.error);
-        });
-        return blob || null;
-    } catch (err) {
-        console.error('Failed to load background blob', err);
-        return null;
-    }
-  };
-
-  useEffect(() => {
-    if (!activeReward) {
-        if (rewardDismissTimer.current) {
-            clearTimeout(rewardDismissTimer.current);
-            rewardDismissTimer.current = null;
-        }
-        return;
-    }
-    if (rewardDismissTimer.current) {
-        clearTimeout(rewardDismissTimer.current);
-    }
-    const elapsed = Date.now() - rewardStartRef.current;
-    const remaining = Math.max(activeRewardDuration - elapsed, 250);
-    rewardDismissTimer.current = window.setTimeout(() => {
-        setActiveReward(null);
-    }, remaining);
-
-    return () => {
-        if (rewardDismissTimer.current) {
-            clearTimeout(rewardDismissTimer.current);
-            rewardDismissTimer.current = null;
-        }
-    };
-  }, [activeReward, activeRewardDuration]);
+  // Reward dismiss timer moved to useRewardSystem hook
 
   if (isAuthCallbackRoute) {
     return <AuthCallbackView />;

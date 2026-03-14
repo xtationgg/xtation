@@ -3,50 +3,21 @@ export enum ClientView {
   HOME = 'HOME',
   LAB = 'LAB',
   ADMIN = 'ADMIN',
-  TFT = 'EARTH',
+  TFT = 'EARTH', // Legacy key name — maps to Earth/Map view
   MULTIPLAYER = 'MULTIPLAYER',
   PROFILE = 'PROFILE',
-  INVENTORY = 'INVENTORY', // Renamed from COLLECTION
-  LOOT = 'LOOT',
+  INVENTORY = 'INVENTORY',
+  LOOT = 'LOOT', // Legacy — unused, kept for enum stability
   STORE = 'STORE',
   UI_KIT = 'UI_KIT',
   SETTINGS = 'SETTINGS',
-  LOBBY = 'LOBBY',
-  CHAMP_SELECT = 'CHAMP_SELECT',
-  MATCH_FOUND = 'MATCH_FOUND'
+  LOBBY = 'LOBBY', // Play section landing
+  CHAMP_SELECT = 'CHAMP_SELECT', // Legacy key — Play stage: active quest view
+  MATCH_FOUND = 'MATCH_FOUND', // Legacy key — Play stage: quest match view
 }
 
-export interface Friend {
-  id: string;
-  name: string;
-  status: 'online' | 'mobile' | 'offline' | 'in-game';
-  statusMessage?: string;
-  iconId: number;
-}
-
-export interface Champion {
-  id: string;
-  name: string;
-  role: string[];
-  image: string;
-}
-
-export interface NewsItem {
-  id: string;
-  title: string;
-  category: string;
-  image: string;
-  description: string;
-}
-
-export interface MatchHistoryItem {
-  id: string;
-  champion: string;
-  result: 'VICTORY' | 'DEFEAT';
-  kda: string;
-  mode: string;
-  date: string;
-}
+// Legacy LoL prototype types (Friend, Champion, NewsItem, MatchHistoryItem) removed.
+// See git history if needed.
 
 export enum Priority {
   HIGH = 'HIGH',

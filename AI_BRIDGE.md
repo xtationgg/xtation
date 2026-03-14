@@ -403,6 +403,99 @@ All work should pass `npm run build` and `npx vitest run` before committing.
 
 ```txt
 AI: Claude (Opus 4.6)
+Time: 2026-03-15
+Lock: none
+
+Phase 1 Self-Tree + Debrief Enhancement:
+
+Self-Tree branch integration (complete data pipeline):
+- QuestModal: added selfTreePrimary to QuestDraft, onSave, serialization
+- QuestModal: 6-button branch selector UI (Knowledge, Creation, Systems, Communication, Physical, Inner)
+- Play.tsx: handleSaveQuest passes selfTreePrimary to addTask/updateTask
+- Play.tsx: branch distribution bar (colored segments showing quest balance)
+- Colors matched across QuestModal ↔ Play.tsx BRANCH_COLORS
+
+Debrief panel enhancements:
+- Self-Tree branch badge in reveal phase + stats chips
+- Momentum/streak chip with flame icon + multiplier
+- Today's completion context ("3rd quest completed today")
+- Structured reflection prompts (5 rotating prompts, deterministic per taskId)
+- Lab save includes branch tag + streak info
+
+Inventory card cleanup:
+- Removed branch label from card footer overlay (kept linked-mark + importance bar only)
+
+Files: QuestModal.tsx, Play.tsx, QuestDebriefPanel.tsx, Inventory.tsx, index.css
+Build: clean
+No architecture changes
+
+Need from next AI:
+- Self-Tree dedicated visualization page
+- Lab wiki links
+- Continue App.tsx decomposition
+```
+
+```txt
+AI: Claude (Opus 4.6)
+Time: 2026-03-15
+Lock: none
+
+Phase 1 Quest Flow Polish — full batch:
+
+Batch 1 — Quest creation speed:
+- Quick-add quest input in rack sidebar (Enter=create, Shift+Enter=full editor)
+- Inline step-add in steps panel (Enter to add without opening modal)
+- Keyboard shortcuts: Space(start/pause), N(quick-add), E(edit), C(complete), arrows(navigate)
+
+Batch 2 — Focus mode (session-active UI transformation):
+- Sidebar collapses to 56px strip when session running (desktop)
+- Hover-expand: sidebar slides open on hover for quest switching
+- Intel panels, relay, urgent alerts hidden/faded during session
+- Timer enlarges to 64px, ring scales up 8%, emblem rotates slowly
+- Steps panel stays visible + accent border
+- All driven by existing .xt-ops--live class (pure CSS, no new state)
+
+Batch 3 — Quest completion celebration:
+- Full-screen overlay: radial accent flash + animated checkmark + XP burst
+- 1.8s celebration auto-opens debrief panel
+- Step check-off micro-animation (scale bounce + accent flash)
+
+Files: components/Views/Play.tsx, index.css
+Build: clean, Tests: 240/240
+No architecture changes
+
+Need from next AI:
+- Self-Tree XP visualization
+- Lab wiki links
+- Or debrief panel improvements
+```
+
+```txt
+AI: Claude (Opus 4.6)
+Time: 2026-03-15
+Lock: none
+
+Phase 1 Foundation — App.tsx decomposition (batch 1):
+- Extracted `src/navigation/ViewRouter.tsx`: SectionLoadingState, formatWorkspaceLabel, isPlayStageView, ViewRouter component, lazy view imports
+- Extracted `src/station/useRewardSystem.ts`: reward configs, XP level-up monitoring, auto-dismiss timer (exact behavior preserved from App.tsx)
+- Extracted `src/station/useBackgroundManager.ts`: per-view backgrounds, IndexedDB blob helpers
+- Removed dead legacy types from types.ts: Friend, Champion, NewsItem, MatchHistoryItem interfaces
+- Cleaned constants.ts: removed MOCK_FRIENDS, CHAMPIONS, NEWS_ITEMS, MATCH_HISTORY (LoL mock data, zero imports)
+- Added legacy annotations to ClientView enum (TFT, CHAMP_SELECT, MATCH_FOUND, LOOT)
+- App.tsx: 1,824 → 1,627 lines (197 lines extracted)
+- Build: clean, Tests: 240/240 passing
+- No architecture changes — just extraction and dead code removal
+
+Context: Full XTATION vision brainstorm completed (19 docs in ~/Desktop/workspace/XTATION-DEEP-VISION/brainstorm/).
+Phase 1 build plan locked: Foundation → Quest Polish → Sessions → Self-Tree → Lab Links → Celebrations.
+
+Need from next AI:
+- Continue App.tsx decomposition (station transition logic, onboarding hooks)
+- Or proceed to quest flow polish (Play.tsx / xpStore.tsx)
+```
+
+```txt
+AI: Claude (Opus 4.6)
 Time: 2026-03-13 03:00
 Lock: none
 

@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Plus, Trash2, X } from 'lucide-react';
 import { DateTimePicker } from '../UI/DateTimePicker';
 import { ConfirmModal } from '../UI/ConfirmModal';
-import { Task, TaskPriority, QuestType, QuestLevel } from '../XP/xpTypes';
+import { Task, TaskPriority, QuestType, QuestLevel, SelfTreeBranch } from '../XP/xpTypes';
 import { useXP } from '../XP/xpStore';
 import { encodeQuestNotesWithSteps, parseQuestNotesAndSteps } from '../../src/lib/quests/steps';
 
@@ -14,6 +14,7 @@ interface QuestDraft {
   questType: QuestType;
   level: QuestLevel;
   projectId?: string;
+  selfTreePrimary?: SelfTreeBranch;
 }
 
 interface StepDraft {
@@ -34,12 +35,22 @@ interface QuestModalProps {
     questType: QuestType;
     level: QuestLevel;
     projectId?: string;
+    selfTreePrimary?: SelfTreeBranch;
   }) => void;
   onDelete?: () => void;
 }
 
 const FOCUSABLE_SELECTOR =
   'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+
+const SELF_TREE_BRANCHES: { branch: SelfTreeBranch; color: string; icon: string }[] = [
+  { branch: 'Knowledge', color: '#60a5fa', icon: '📘' },
+  { branch: 'Creation', color: '#c084fc', icon: '🎨' },
+  { branch: 'Systems', color: '#34d399', icon: '⚙️' },
+  { branch: 'Communication', color: '#fb923c', icon: '💬' },
+  { branch: 'Physical', color: '#f87171', icon: '💪' },
+  { branch: 'Inner', color: '#facc15', icon: '🧘' },
+];
 
 const defaultDraft: QuestDraft = {
   title: '',
@@ -49,6 +60,7 @@ const defaultDraft: QuestDraft = {
   questType: 'session',
   level: 1,
   projectId: undefined,
+  selfTreePrimary: undefined,
 };
 
 const createStepId = () => `step-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
@@ -85,6 +97,7 @@ const serializeSnapshot = (draft: QuestDraft, steps: StepDraft[], scheduleSeed: 
     questType: draft.questType,
     level: draft.level,
     projectId: draft.projectId || null,
+    selfTreePrimary: draft.selfTreePrimary || null,
     steps: steps.map((step) => ({ text: step.text, done: step.done })),
   });
 
@@ -137,6 +150,7 @@ export const QuestModal: React.FC<QuestModalProps> = ({ open, task, onClose, onS
           questType: task.questType ?? 'session',
           level: task.level ?? 1,
           projectId: task.projectId,
+          selfTreePrimary: task.selfTreePrimary,
         }
       : {
           ...defaultDraft,
@@ -231,6 +245,7 @@ export const QuestModal: React.FC<QuestModalProps> = ({ open, task, onClose, onS
       questType: draft.questType,
       level: draft.level,
       projectId: draft.projectId || undefined,
+      selfTreePrimary: draft.selfTreePrimary,
     });
   };
 
@@ -480,6 +495,43 @@ export const QuestModal: React.FC<QuestModalProps> = ({ open, task, onClose, onS
                     </div>
                   ) : null}
                 </div>
+              </div>
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-[10px] uppercase tracking-[0.14em] text-[var(--app-muted)]">Branch</label>
+              <div className="grid grid-cols-6 gap-1.5">
+                {SELF_TREE_BRANCHES.map(({ branch, color, icon }) => {
+                  const active = draft.selfTreePrimary === branch;
+                  return (
+                    <button
+                      key={branch}
+                      type="button"
+                      onClick={() =>
+                        setDraft((prev) => ({
+                          ...prev,
+                          selfTreePrimary: prev.selfTreePrimary === branch ? undefined : branch,
+                        }))
+                      }
+                      className="flex flex-col items-center gap-1 rounded-xl border px-1 py-2 text-center transition-all duration-150"
+                      style={{
+                        borderColor: active ? color : 'var(--app-border)',
+                        background: active
+                          ? `color-mix(in srgb, ${color} 14%, var(--app-panel))`
+                          : 'var(--app-panel-2)',
+                        boxShadow: active ? `0 0 8px ${color}33` : 'none',
+                      }}
+                    >
+                      <span className="text-[14px] leading-none">{icon}</span>
+                      <span
+                        className="text-[8px] font-semibold uppercase tracking-[0.08em] leading-none"
+                        style={{ color: active ? color : 'var(--app-muted)' }}
+                      >
+                        {branch.slice(0, 5)}
+                      </span>
+                    </button>
+                  );
+                })}
               </div>
             </div>
 

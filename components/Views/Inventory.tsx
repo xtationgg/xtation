@@ -745,9 +745,6 @@ export const Inventory: React.FC = () => {
                                                 {item.linkedProjectIds?.some(pid => activeProjects.some(p => p.id === pid)) && (
                                                     <span className="xt-inv-card-linked-mark" />
                                                 )}
-                                                {branch && (
-                                                    <span className="xt-inv-card-overlay-branch" style={{ color: branch.color }}>{branch.label}</span>
-                                                )}
                                                 {item.importance && (
                                                     <span className="xt-inv-card-imp" style={{ background: impColor(item.importance) }} />
                                                 )}
