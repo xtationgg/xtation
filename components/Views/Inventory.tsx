@@ -2,7 +2,7 @@
 import React, { useEffect, useMemo, useRef, useState, useCallback } from 'react';
 import {
     Plus, Trash2, Upload, Box, Wrench, Shirt, Cpu, Loader2, X,
-    Send, Archive, RotateCcw, FolderOpen, Link2,
+    Send, Archive, RotateCcw, FolderOpen, Link2, ChevronDown,
     BookOpen, Coffee, Gem,
 } from 'lucide-react';
 import { playClickSound, playHoverSound, playSuccessSound, playErrorSound } from '../../utils/SoundEffects';
@@ -142,6 +142,7 @@ export const Inventory: React.FC = () => {
     const [editingName, setEditingName]         = useState<string | null>(null);
     const [editingDetails, setEditingDetails]   = useState<string | null>(null);
     const [showProjectPicker, setShowProjectPicker] = useState(false);
+    const [showPriority, setShowPriority] = useState(false);
     const [urlUploadCat, setUrlUploadCat] = useState<InventoryCategory | null>(null);
     const [urlInput, setUrlInput] = useState('');
 
@@ -1035,20 +1036,32 @@ export const Inventory: React.FC = () => {
                                         </div>
                                     )}
 
-                                    {/* Priority — ledger & cloud */}
+                                    {/* Priority — collapsible, ledger & cloud */}
                                     {selected.source !== 'capability' && (
                                         <div className="xt-inv-section">
-                                            <span className="xt-inv-section-label">PRIORITY</span>
-                                            <div className="xt-inv-imp-pills">
-                                                {(['low', 'medium', 'high', 'critical'] as const).map(imp => (
-                                                    <button key={imp}
-                                                        className={`xt-inv-imp-btn${selected.importance === imp ? ' is-active' : ''}`}
-                                                        style={selected.importance === imp ? { borderColor: impColor(imp), color: impColor(imp), background: `${impColor(imp)}14` } : {}}
-                                                        onClick={() => setImportance(selected, imp)}>
-                                                        {imp}
-                                                    </button>
-                                                ))}
+                                            <div className="xt-inv-section-head">
+                                                <span className="xt-inv-section-label">
+                                                    PRIORITY
+                                                    {!showPriority && selected.importance && (
+                                                        <span className="xt-inv-section-hint" style={{ color: impColor(selected.importance) }}> — {selected.importance}</span>
+                                                    )}
+                                                </span>
+                                                <button className={`xt-inv-section-toggle${showPriority ? ' is-open' : ''}`} onClick={() => setShowPriority(v => !v)}>
+                                                    <ChevronDown size={12} />
+                                                </button>
                                             </div>
+                                            {showPriority && (
+                                                <div className="xt-inv-imp-pills">
+                                                    {(['low', 'medium', 'high', 'critical'] as const).map(imp => (
+                                                        <button key={imp}
+                                                            className={`xt-inv-imp-btn${selected.importance === imp ? ' is-active' : ''}`}
+                                                            style={selected.importance === imp ? { borderColor: impColor(imp), color: impColor(imp), background: `${impColor(imp)}14` } : {}}
+                                                            onClick={() => setImportance(selected, imp)}>
+                                                            {imp}
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            )}
                                         </div>
                                     )}
 
