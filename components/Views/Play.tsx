@@ -787,10 +787,25 @@ export const Play: React.FC<PlayProps> = ({
 
   return (
     <div className={`xt-ops-room ${playMode}`}>
-      {/* ── Grid environment background ── */}
+      {/* ── Cinematic environment background ── */}
       <div className="xt-ops-grid-env" aria-hidden="true">
         <div className="xt-ops-grid-plane" />
         <div className="xt-ops-grid-glow" />
+        <div className="xt-ops-vignette" />
+        {/* Floating ambient particles */}
+        <div className="xt-ops-particles">
+          {Array.from({ length: 18 }, (_, i) => (
+            <div key={i} className="xt-ops-particle" style={{
+              left: `${5 + (i * 37 % 90)}%`,
+              animationDelay: `${(i * 1.3) % 8}s`,
+              animationDuration: `${6 + (i % 5) * 2}s`,
+              '--particle-size': `${1 + (i % 3)}px`,
+              '--particle-drift': `${-20 + (i * 7 % 40)}px`,
+            } as React.CSSProperties} />
+          ))}
+        </div>
+        {/* Horizon light beam — subtle atmospheric line */}
+        <div className="xt-ops-horizon" />
       </div>
 
       {/* ── Master-detail layout ── */}
@@ -843,24 +858,33 @@ export const Play: React.FC<PlayProps> = ({
             )}
           </div>
 
-          {/* Vitals bar */}
+          {/* Vitals bar — compact HUD stats */}
           <div className="xt-ops-vitals">
-            <div className="xt-ops-vital">
+            <div className="xt-ops-vital" title="Minutes tracked today">
               <span className="xt-ops-vital-val">{daySummary.minutesTracked}</span>
               <span className="xt-ops-vital-unit">min</span>
             </div>
-            <div className="xt-ops-vital">
+            <div className="xt-ops-vital" title="Quests completed today">
               <span className="xt-ops-vital-val">{daySummary.completedCount}</span>
               <span className="xt-ops-vital-unit">done</span>
             </div>
-            <div className="xt-ops-vital">
+            <div className="xt-ops-vital" title="Current daily streak">
               <span className="xt-ops-vital-val">{momentum.currentStreak}</span>
               <span className="xt-ops-vital-unit">streak</span>
             </div>
-            <div className="xt-ops-vital">
+            <div className="xt-ops-vital" title="XP multiplier from streak">
               <span className="xt-ops-vital-val xt-ops-vital-val--accent">x{momentum.streakMultiplier.toFixed(1)}</span>
               <span className="xt-ops-vital-unit">mult</span>
             </div>
+          </div>
+
+          {/* Week activity tracker — game-style progress dots */}
+          <div className="xt-ops-week-strip">
+            {weekDots.map(({ dk, active, isToday, label }) => (
+              <div key={dk} className={`xt-ops-week-cell ${active ? 'xt-ops-week-cell--active' : ''} ${isToday ? 'xt-ops-week-cell--today' : ''}`}>
+                <span className="xt-ops-week-cell-label">{label}</span>
+              </div>
+            ))}
           </div>
 
           {/* Branch distribution bar */}
@@ -987,14 +1011,32 @@ export const Play: React.FC<PlayProps> = ({
               {/* ── HUD Ring + Timer ── */}
               <div className="xt-ops-hud">
                 <div className="xt-ops-ring-container">
+                  {/* Outer atmosphere glow — cinematic depth ring */}
+                  <div className="xt-ops-ring-aura" />
                   {/* Background ring */}
                   <svg className="xt-ops-ring-svg" viewBox="0 0 260 260">
+                    {/* Outer decorative ring */}
+                    <circle
+                      cx="130" cy="130" r="126"
+                      fill="none"
+                      stroke="var(--app-border)"
+                      strokeWidth="0.5"
+                      opacity="0.2"
+                    />
                     <circle
                       cx="130" cy="130" r="120"
                       fill="none"
                       stroke="var(--app-border)"
                       strokeWidth="2"
                       opacity="0.4"
+                    />
+                    {/* Inner decorative ring */}
+                    <circle
+                      cx="130" cy="130" r="114"
+                      fill="none"
+                      stroke="var(--app-border)"
+                      strokeWidth="0.5"
+                      opacity="0.15"
                     />
                     {/* Progress ring */}
                     <circle
@@ -1008,14 +1050,15 @@ export const Play: React.FC<PlayProps> = ({
                       className="xt-ops-ring-progress"
                       transform="rotate(-90 130 130)"
                     />
-                    {/* Tick marks at quarters */}
-                    {[0, 90, 180, 270].map((angle) => (
+                    {/* Tick marks — 12 positions like a clock */}
+                    {Array.from({ length: 12 }, (_, i) => i * 30).map((angle) => (
                       <line
                         key={angle}
-                        x1="130" y1="6" x2="130" y2="14"
+                        x1="130" y1={angle % 90 === 0 ? '4' : '8'}
+                        x2="130" y2={angle % 90 === 0 ? '16' : '14'}
                         stroke="var(--app-muted)"
-                        strokeWidth="1"
-                        opacity="0.5"
+                        strokeWidth={angle % 90 === 0 ? '1.5' : '0.5'}
+                        opacity={angle % 90 === 0 ? '0.5' : '0.25'}
                         transform={`rotate(${angle} 130 130)`}
                       />
                     ))}
@@ -1290,19 +1333,29 @@ export const Play: React.FC<PlayProps> = ({
               </div>
             </>
           ) : (
-            /* ── Empty state ── */
+            /* ── Empty state — cinematic idle ── */
             <div className="xt-ops-empty">
-              <svg className="xt-ops-ring-svg xt-ops-ring-svg--ghost" viewBox="0 0 260 260">
-                <circle cx="130" cy="130" r="120" fill="none" stroke="var(--app-border)" strokeWidth="1" opacity="0.2" />
-              </svg>
+              <div className="xt-ops-empty-sigil">
+                <svg viewBox="0 0 260 260" className="xt-ops-empty-sigil-svg">
+                  <circle cx="130" cy="130" r="120" fill="none" stroke="var(--app-border)" strokeWidth="0.5" opacity="0.15" />
+                  <circle cx="130" cy="130" r="100" fill="none" stroke="var(--app-border)" strokeWidth="1" opacity="0.12" />
+                  <circle cx="130" cy="130" r="80" fill="none" stroke="var(--app-border)" strokeWidth="0.5" opacity="0.08" />
+                  {/* Cross-hatch compass lines */}
+                  {[0, 45, 90, 135].map(angle => (
+                    <line key={angle} x1="130" y1="30" x2="130" y2="230" stroke="var(--app-border)" strokeWidth="0.3" opacity="0.06" transform={`rotate(${angle} 130 130)`} />
+                  ))}
+                  {/* Diamond at center */}
+                  <polygon points="130,106 154,130 130,154 106,130" fill="none" stroke="var(--app-accent)" strokeWidth="0.8" opacity="0.2" />
+                </svg>
+              </div>
               <div className="xt-ops-empty-content">
-                <div className="xt-ops-panel-label text-[var(--app-accent)]">No operation selected</div>
-                <h2 className="xt-ops-empty-title">Select or create a quest</h2>
+                <div className="xt-ops-panel-label text-[var(--app-accent)]">Standing By</div>
+                <h2 className="xt-ops-empty-title">No active mission</h2>
                 <p className="xt-ops-empty-desc">
-                  Pick a quest from the rack, or create a new operation.
+                  Select a quest from Operations or create a new mission.
                 </p>
                 <div className="xt-ops-empty-actions">
-                  <PlayActionButton label="Create Quest" onClick={openCreateQuest} icon={<Plus size={14} />} tone="accent" />
+                  <PlayActionButton label="New Mission" onClick={openCreateQuest} icon={<Plus size={14} />} tone="accent" />
                   {onOpenGuidedSetup ? (
                     <PlayActionButton label="Guided Setup" onClick={onOpenGuidedSetup} icon={<Sparkles size={14} />} />
                   ) : null}
@@ -1313,17 +1366,27 @@ export const Play: React.FC<PlayProps> = ({
         </main>
       </div>
 
-      {/* ── Completion Celebration Overlay ── */}
+      {/* ── Completion Celebration Overlay — cinematic fullscreen ── */}
       {celebrationData && (
         <div className="xt-ops-celebration" aria-live="assertive">
+          <div className="xt-ops-celebration-bg" />
           <div className="xt-ops-celebration-flash" />
+          <div className="xt-ops-celebration-rays" />
           <div className="xt-ops-celebration-content">
-            <div className="xt-ops-celebration-check">
-              <CheckCircle2 size={36} />
+            <div className="xt-ops-celebration-emblem">
+              <svg viewBox="0 0 120 120" className="xt-ops-celebration-emblem-svg">
+                <polygon points="60,8 72,44 112,44 80,66 90,104 60,80 30,104 40,66 8,44 48,44"
+                  fill="none" stroke="var(--app-accent)" strokeWidth="1.5" opacity="0.6" />
+                <circle cx="60" cy="60" r="28" fill="none" stroke="var(--app-accent)" strokeWidth="1" opacity="0.4" />
+              </svg>
+              <div className="xt-ops-celebration-check">
+                <CheckCircle2 size={32} />
+              </div>
             </div>
-            <div className="xt-ops-celebration-title">Quest Complete</div>
+            <div className="xt-ops-celebration-kicker">Mission Complete</div>
             <div className="xt-ops-celebration-xp">+{celebrationData.xp} XP</div>
             <div className="xt-ops-celebration-quest">{celebrationData.title}</div>
+            <div className="xt-ops-celebration-bar" />
           </div>
         </div>
       )}

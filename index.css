@@ -9738,17 +9738,104 @@
 }
 
 .xt-ops--armed .xt-ops-grid-glow {
-  opacity: 0.3;
+  opacity: 0.4;
 }
 
 .xt-ops--live .xt-ops-grid-glow {
   opacity: 1;
+  background: radial-gradient(
+    ellipse 70% 55% at 50% 25%,
+    color-mix(in srgb, var(--app-accent) 12%, transparent),
+    transparent 65%
+  );
   animation: xt-ops-breathe 3.5s ease-in-out infinite;
 }
 
 @keyframes xt-ops-breathe {
   0%, 100% { opacity: 0.6; }
   50% { opacity: 1; }
+}
+
+/* Vignette — cinematic edge darkening */
+.xt-ops-vignette {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse 75% 65% at 50% 45%, transparent 40%, rgba(0,0,0,0.5) 100%);
+  pointer-events: none;
+}
+
+.xt-ops--live .xt-ops-vignette {
+  background: radial-gradient(ellipse 65% 55% at 50% 40%, transparent 30%, rgba(0,0,0,0.65) 100%);
+}
+
+/* Floating ambient particles */
+.xt-ops-particles {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.xt-ops-particle {
+  position: absolute;
+  bottom: -10px;
+  width: var(--particle-size, 2px);
+  height: var(--particle-size, 2px);
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--app-accent) 30%, white 10%);
+  opacity: 0;
+  animation: xt-particle-rise linear infinite;
+}
+
+@keyframes xt-particle-rise {
+  0% {
+    transform: translateY(0) translateX(0);
+    opacity: 0;
+  }
+  10% { opacity: 0.4; }
+  50% { opacity: 0.2; }
+  90% { opacity: 0.05; }
+  100% {
+    transform: translateY(-100vh) translateX(var(--particle-drift, 10px));
+    opacity: 0;
+  }
+}
+
+.xt-ops--live .xt-ops-particle {
+  background: color-mix(in srgb, var(--app-accent) 50%, white 15%);
+}
+
+.xt-ops--live .xt-ops-particle:nth-child(3n) {
+  width: calc(var(--particle-size, 2px) + 1px);
+  height: calc(var(--particle-size, 2px) + 1px);
+  box-shadow: 0 0 4px color-mix(in srgb, var(--app-accent) 30%, transparent);
+}
+
+/* Horizon light beam */
+.xt-ops-horizon {
+  position: absolute;
+  bottom: 20%;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(90deg,
+    transparent 5%,
+    color-mix(in srgb, var(--app-accent) 8%, transparent) 30%,
+    color-mix(in srgb, var(--app-accent) 15%, transparent) 50%,
+    color-mix(in srgb, var(--app-accent) 8%, transparent) 70%,
+    transparent 95%
+  );
+  opacity: 0;
+  transition: opacity 0.8s ease;
+}
+
+.xt-ops--armed .xt-ops-horizon {
+  opacity: 0.4;
+}
+
+.xt-ops--live .xt-ops-horizon {
+  opacity: 0.7;
+  box-shadow: 0 0 20px color-mix(in srgb, var(--app-accent) 10%, transparent);
 }
 
 /* Scan-line overlay during live state */
@@ -9884,6 +9971,47 @@
   margin-top: 2px;
 }
 
+/* Week strip — compact activity tracker in sidebar */
+.xt-ops-week-strip {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  border-bottom: 1px solid var(--app-border);
+}
+
+.xt-ops-week-cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 5px 0;
+  border-right: 1px solid color-mix(in srgb, var(--app-border) 40%, transparent);
+}
+
+.xt-ops-week-cell:last-child { border-right: none; }
+
+.xt-ops-week-cell-label {
+  font-size: 8px;
+  letter-spacing: 0.06em;
+  color: color-mix(in srgb, var(--app-muted) 60%, transparent);
+  font-weight: 500;
+}
+
+.xt-ops-week-cell--active {
+  background: color-mix(in srgb, var(--app-accent) 8%, transparent);
+}
+
+.xt-ops-week-cell--active .xt-ops-week-cell-label {
+  color: var(--app-accent);
+  font-weight: 600;
+}
+
+.xt-ops-week-cell--today {
+  border-bottom: 2px solid var(--app-accent);
+}
+
+.xt-ops-week-cell--today .xt-ops-week-cell-label {
+  color: var(--app-text);
+}
+
 /* Branch distribution bar */
 .xt-ops-branch-bar {
   display: flex;
@@ -9904,39 +10032,47 @@
   padding: 4px 0;
 }
 
-/* Briefing card */
+/* Briefing card — game-client mission list item */
 .xt-ops-briefing {
+  position: relative;
   display: flex;
   align-items: stretch;
   width: 100%;
   text-align: left;
   background: transparent;
   border: none;
-  border-bottom: 1px solid color-mix(in srgb, var(--app-border) 50%, transparent);
-  transition: background 80ms ease;
+  border-bottom: 1px solid color-mix(in srgb, var(--app-border) 40%, transparent);
+  transition: background 120ms ease, box-shadow 120ms ease;
 }
 
 .xt-ops-briefing:hover {
-  background: rgba(255,255,255,0.03);
+  background: rgba(255,255,255,0.04);
 }
 
 .xt-ops-briefing--active {
-  background: rgba(255,255,255,0.06);
+  background: linear-gradient(90deg, rgba(255,255,255,0.08), rgba(255,255,255,0.03));
+  box-shadow: inset 0 0 20px rgba(0,0,0,0.2);
 }
 
 .xt-ops-briefing-edge {
   width: 3px;
   flex-shrink: 0;
   background: transparent;
-  transition: background 80ms ease;
+  transition: background 120ms ease, box-shadow 120ms ease;
 }
 
 .xt-ops-briefing--active .xt-ops-briefing-edge {
   background: var(--app-text);
+  box-shadow: 0 0 6px color-mix(in srgb, var(--app-text) 20%, transparent);
 }
 
 .xt-ops-briefing--live .xt-ops-briefing-edge {
   background: var(--app-accent);
+  box-shadow: 0 0 8px color-mix(in srgb, var(--app-accent) 40%, transparent);
+}
+
+.xt-ops-briefing--live {
+  background: linear-gradient(90deg, color-mix(in srgb, var(--app-accent) 8%, transparent), transparent);
 }
 
 .xt-ops-briefing-body {
@@ -10130,7 +10266,35 @@
   }
 }
 
+/* Ring aura — outer glow halo for cinematic depth */
+.xt-ops-ring-aura {
+  position: absolute;
+  inset: -30px;
+  border-radius: 50%;
+  background: radial-gradient(circle, color-mix(in srgb, var(--app-accent) 6%, transparent) 30%, transparent 70%);
+  opacity: 0;
+  transition: opacity 0.6s ease;
+  pointer-events: none;
+}
+
+.xt-ops--armed .xt-ops-ring-aura {
+  opacity: 0.5;
+}
+
+.xt-ops--live .xt-ops-ring-aura {
+  opacity: 1;
+  background: radial-gradient(circle, color-mix(in srgb, var(--app-accent) 10%, transparent) 20%, transparent 65%);
+  animation: xt-ring-aura-pulse 4s ease-in-out infinite;
+}
+
+@keyframes xt-ring-aura-pulse {
+  0%, 100% { opacity: 0.6; transform: scale(1); }
+  50% { opacity: 1; transform: scale(1.04); }
+}
+
 .xt-ops-ring-svg {
+  position: relative;
+  z-index: 1;
   width: 100%;
   height: 100%;
 }
@@ -10694,14 +10858,33 @@
   font-variant-numeric: tabular-nums;
 }
 
-/* Empty state */
+/* Empty state — cinematic idle */
 .xt-ops-empty {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   min-height: 60vh;
   text-align: center;
+}
+
+.xt-ops-empty-sigil {
+  width: 200px;
+  height: 200px;
+  margin-bottom: 20px;
+  animation: xt-empty-sigil-rotate 40s linear infinite;
+  opacity: 0.5;
+}
+
+.xt-ops-empty-sigil-svg {
+  width: 100%;
+  height: 100%;
+}
+
+@keyframes xt-empty-sigil-rotate {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
 
 .xt-ops-empty-content {
@@ -10712,10 +10895,11 @@
 }
 
 .xt-ops-empty-title {
-  font-size: 18px;
+  font-size: 20px;
   font-weight: 600;
   color: var(--app-text);
-  letter-spacing: -0.01em;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
 }
 
 .xt-ops-empty-desc {
@@ -10724,12 +10908,13 @@
   max-width: 300px;
   line-height: 1.5;
   margin-top: 4px;
+  letter-spacing: 0.02em;
 }
 
 .xt-ops-empty-actions {
   display: flex;
   gap: 8px;
-  margin-top: 16px;
+  margin-top: 20px;
 }
 
 /* ═══════════════════════════════════════════════════════════
@@ -10925,12 +11110,30 @@
 
 /* ── Quest title: glow emphasis during session ── */
 .xt-ops--live .xt-ops-quest-title {
-  text-shadow: 0 0 30px color-mix(in srgb, var(--app-accent) 15%, transparent);
+  color: #ffffff;
+  text-shadow:
+    0 0 30px color-mix(in srgb, var(--app-accent) 20%, transparent),
+    0 0 60px color-mix(in srgb, var(--app-accent) 8%, transparent);
+  letter-spacing: 0.02em;
 }
 
-/* ── Emblem: subtle rotation during session ── */
+/* ── Quest tags: dim during focus to reduce clutter ── */
+.xt-ops--live .xt-ops-quest-tags {
+  opacity: 0.4;
+  transition: opacity 0.3s ease;
+}
+
+.xt-ops-quest-tags {
+  transition: opacity 0.3s ease 0.1s;
+}
+
+/* ── Emblem: subtle rotation + glow during session ── */
 .xt-ops--live .xt-ops-emblem {
   animation: xt-emblem-spin 20s linear infinite;
+}
+
+.xt-ops--live .xt-ops-emblem-inner {
+  box-shadow: 0 0 10px color-mix(in srgb, var(--app-accent) 30%, transparent);
 }
 
 @keyframes xt-emblem-spin {
@@ -10938,8 +11141,23 @@
   to { transform: rotate(360deg); }
 }
 
+/* ── Controls: accent glow on start button during session ── */
+.xt-ops--live .xt-ops-controls .xt-play-action[data-tone='accent'] {
+  box-shadow: 0 0 12px color-mix(in srgb, var(--app-accent) 20%, transparent);
+}
+
+/* ── Branch dot glow in sidebar during session ── */
+.xt-ops--live .xt-ops-branch-dot {
+  box-shadow: 0 0 4px currentColor;
+}
+
 /* ═══════════════════════════════════════════════════════════
    QUEST COMPLETION CELEBRATION
+   ═══════════════════════════════════════════════════════════ */
+
+/* ═══════════════════════════════════════════════════════════
+   CINEMATIC COMPLETION CELEBRATION
+   Inspired by Star Wars score screens and hero achievement overlays
    ═══════════════════════════════════════════════════════════ */
 
 .xt-ops-celebration {
@@ -10953,17 +11171,76 @@
   animation: xt-celebrate-in 0.3s ease-out;
 }
 
+/* Dark cinematic background wash */
+.xt-ops-celebration-bg {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  animation: xt-celebrate-bg 1.8s ease-out forwards;
+}
+
+@keyframes xt-celebrate-bg {
+  0% { opacity: 0; }
+  15% { opacity: 1; }
+  70% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+/* Central radial flash */
 .xt-ops-celebration-flash {
   position: absolute;
   inset: 0;
-  background: radial-gradient(ellipse 60% 50% at 50% 45%, color-mix(in srgb, var(--app-accent) 25%, transparent), transparent 70%);
+  background: radial-gradient(
+    ellipse 50% 45% at 50% 45%,
+    color-mix(in srgb, var(--app-accent) 30%, transparent),
+    color-mix(in srgb, var(--app-accent) 8%, transparent) 40%,
+    transparent 70%
+  );
   animation: xt-celebrate-flash 1.8s ease-out forwards;
 }
 
 @keyframes xt-celebrate-flash {
-  0% { opacity: 1; }
-  30% { opacity: 0.8; }
+  0% { opacity: 0; transform: scale(0.6); }
+  15% { opacity: 1; transform: scale(1.1); }
+  30% { opacity: 0.6; transform: scale(1); }
   100% { opacity: 0; }
+}
+
+/* Radial light rays emanating from center */
+.xt-ops-celebration-rays {
+  position: absolute;
+  inset: 0;
+  background:
+    conic-gradient(
+      from 0deg at 50% 45%,
+      transparent 0deg, color-mix(in srgb, var(--app-accent) 4%, transparent) 10deg,
+      transparent 20deg, color-mix(in srgb, var(--app-accent) 3%, transparent) 30deg,
+      transparent 40deg, color-mix(in srgb, var(--app-accent) 5%, transparent) 50deg,
+      transparent 60deg, color-mix(in srgb, var(--app-accent) 3%, transparent) 70deg,
+      transparent 80deg, color-mix(in srgb, var(--app-accent) 4%, transparent) 90deg,
+      transparent 100deg, color-mix(in srgb, var(--app-accent) 3%, transparent) 110deg,
+      transparent 120deg, color-mix(in srgb, var(--app-accent) 5%, transparent) 130deg,
+      transparent 140deg, color-mix(in srgb, var(--app-accent) 3%, transparent) 150deg,
+      transparent 160deg, color-mix(in srgb, var(--app-accent) 4%, transparent) 170deg,
+      transparent 180deg, color-mix(in srgb, var(--app-accent) 3%, transparent) 190deg,
+      transparent 200deg, color-mix(in srgb, var(--app-accent) 5%, transparent) 210deg,
+      transparent 220deg, color-mix(in srgb, var(--app-accent) 3%, transparent) 230deg,
+      transparent 240deg, color-mix(in srgb, var(--app-accent) 4%, transparent) 250deg,
+      transparent 260deg, color-mix(in srgb, var(--app-accent) 3%, transparent) 270deg,
+      transparent 280deg, color-mix(in srgb, var(--app-accent) 5%, transparent) 290deg,
+      transparent 300deg, color-mix(in srgb, var(--app-accent) 3%, transparent) 310deg,
+      transparent 320deg, color-mix(in srgb, var(--app-accent) 4%, transparent) 330deg,
+      transparent 340deg, color-mix(in srgb, var(--app-accent) 3%, transparent) 350deg,
+      transparent 360deg
+    );
+  animation: xt-celebrate-rays 1.8s ease-out forwards;
+}
+
+@keyframes xt-celebrate-rays {
+  0% { opacity: 0; transform: rotate(0deg) scale(0.5); }
+  20% { opacity: 0.8; transform: rotate(5deg) scale(1.2); }
+  40% { opacity: 0.5; transform: rotate(8deg) scale(1); }
+  100% { opacity: 0; transform: rotate(15deg) scale(1.3); }
 }
 
 .xt-ops-celebration-content {
@@ -10988,53 +11265,101 @@
   to { opacity: 1; }
 }
 
+/* Emblem — geometric star/circle mark */
+.xt-ops-celebration-emblem {
+  position: relative;
+  width: 100px;
+  height: 100px;
+  margin-bottom: 12px;
+}
+
+.xt-ops-celebration-emblem-svg {
+  width: 100%;
+  height: 100%;
+  animation: xt-celebrate-emblem 1.2s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+@keyframes xt-celebrate-emblem {
+  0% { transform: scale(0) rotate(-30deg); opacity: 0; }
+  50% { transform: scale(1.15) rotate(5deg); opacity: 1; }
+  100% { transform: scale(1) rotate(0deg); }
+}
+
 .xt-ops-celebration-check {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
   color: var(--app-accent);
-  margin-bottom: 10px;
-  filter: drop-shadow(0 0 20px color-mix(in srgb, var(--app-accent) 50%, transparent));
-  animation: xt-celebrate-check 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  filter: drop-shadow(0 0 20px color-mix(in srgb, var(--app-accent) 60%, transparent));
+  animation: xt-celebrate-check 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) 0.2s both;
 }
 
 @keyframes xt-celebrate-check {
-  0% { transform: scale(0); opacity: 0; }
-  60% { transform: scale(1.3); opacity: 1; }
-  100% { transform: scale(1); }
+  0% { transform: translate(-50%, -50%) scale(0); opacity: 0; }
+  60% { transform: translate(-50%, -50%) scale(1.3); opacity: 1; }
+  100% { transform: translate(-50%, -50%) scale(1); }
 }
 
-.xt-ops-celebration-title {
-  font-size: 12px;
-  letter-spacing: 0.3em;
+.xt-ops-celebration-kicker {
+  font-size: 11px;
+  letter-spacing: 0.4em;
   text-transform: uppercase;
   color: var(--app-accent);
+  animation: xt-celebrate-kicker 0.8s ease-out 0.3s both;
+}
+
+@keyframes xt-celebrate-kicker {
+  0% { opacity: 0; letter-spacing: 0.8em; }
+  100% { opacity: 1; letter-spacing: 0.4em; }
 }
 
 .xt-ops-celebration-xp {
-  font-size: 48px;
+  font-size: clamp(42px, 8vw, 64px);
   font-weight: 700;
   letter-spacing: 0.06em;
   color: #ffffff;
-  text-shadow: 0 0 40px color-mix(in srgb, var(--app-accent) 40%, transparent);
+  text-shadow: 0 0 50px color-mix(in srgb, var(--app-accent) 50%, transparent),
+               0 0 100px color-mix(in srgb, var(--app-accent) 20%, transparent);
   font-variant-numeric: tabular-nums;
   margin-top: 4px;
-  animation: xt-celebrate-xp 1.2s ease-out forwards;
+  animation: xt-celebrate-xp 1.4s ease-out forwards;
 }
 
 @keyframes xt-celebrate-xp {
   0% { transform: scale(0.5); opacity: 0; }
-  25% { transform: scale(1.15); opacity: 1; }
-  40% { transform: scale(1); }
+  20% { transform: scale(1.2); opacity: 1; }
+  35% { transform: scale(1); }
   70% { opacity: 1; transform: translateY(0); }
   100% { opacity: 0; transform: translateY(-12px); }
 }
 
 .xt-ops-celebration-quest {
   font-size: 13px;
-  color: color-mix(in srgb, var(--app-text) 70%, transparent);
+  letter-spacing: 0.08em;
+  color: color-mix(in srgb, var(--app-text) 60%, transparent);
   margin-top: 6px;
-  max-width: 300px;
+  max-width: 400px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  text-transform: uppercase;
+}
+
+/* Thin accent bar below content — cinematic separator */
+.xt-ops-celebration-bar {
+  width: 60px;
+  height: 2px;
+  margin-top: 16px;
+  background: linear-gradient(90deg, transparent, var(--app-accent), transparent);
+  opacity: 0;
+  animation: xt-celebrate-bar 1s ease-out 0.5s forwards;
+}
+
+@keyframes xt-celebrate-bar {
+  0% { width: 0; opacity: 0; }
+  50% { opacity: 0.8; }
+  100% { width: 60px; opacity: 0; }
 }
 
 /* ═══════════════════════════════════════════════════════════
