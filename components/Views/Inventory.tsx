@@ -738,16 +738,19 @@ export const Inventory: React.FC = () => {
                                                 <Icon size={28} />
                                             )}
                                         </div>
-                                        <div className="xt-inv-card-text">
-                                            <div className="xt-inv-card-name">{item.name}</div>
-                                        </div>
-                                        <div className="xt-inv-card-footer">
-                                            {item.linkedProjectIds?.some(pid => activeProjects.some(p => p.id === pid)) && (
-                                                <span className="xt-inv-card-linked-mark" />
-                                            )}
-                                            {item.importance && (
-                                                <span className="xt-inv-card-imp" style={{ background: impColor(item.importance) }} />
-                                            )}
+                                        <div className="xt-inv-card-overlay">
+                                            <div className="xt-inv-card-overlay-name">{item.name}</div>
+                                            <div className="xt-inv-card-overlay-row">
+                                                {item.linkedProjectIds?.some(pid => activeProjects.some(p => p.id === pid)) && (
+                                                    <span className="xt-inv-card-linked-mark" />
+                                                )}
+                                                {branch && (
+                                                    <span className="xt-inv-card-overlay-branch" style={{ color: branch.color }}>{branch.label}</span>
+                                                )}
+                                                {item.importance && (
+                                                    <span className="xt-inv-card-imp" style={{ background: impColor(item.importance) }} />
+                                                )}
+                                            </div>
                                         </div>
                                         {item.archivedAt && <span className="xt-inv-card-archived-mark" title="Archived" />}
                                     </button>
