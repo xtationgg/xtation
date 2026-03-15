@@ -11340,44 +11340,89 @@
   display: flex;
   flex-direction: column;
   min-height: 100%;
-  max-width: 1600px;
+  max-width: 800px;
   margin: 0 auto;
+  padding: 0 24px;
+  gap: 0;
 }
 
-@media (min-width: 900px) {
-  .xt-ops-layout {
-    flex-direction: row;
-  }
+/* ── Compact header bar ── */
+.xt-ops-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--app-border);
+  gap: 12px;
 }
 
-/* ── Mission Rack (sidebar) ── */
+.xt-ops-rack-toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--app-accent) 88%, white 12%);
+  background: none;
+  border: 1px solid color-mix(in srgb, var(--app-accent) 20%, transparent);
+  padding: 7px 14px;
+  cursor: pointer;
+  transition: background 120ms ease, border-color 120ms ease;
+}
+
+.xt-ops-rack-toggle:hover {
+  background: color-mix(in srgb, var(--app-accent) 8%, transparent);
+  border-color: color-mix(in srgb, var(--app-accent) 40%, transparent);
+}
+
+.xt-ops-topbar .xt-ops-rack-add {
+  width: auto;
+  height: auto;
+  padding: 7px 14px;
+  gap: 6px;
+}
+
+.xt-ops-topbar-add-label {
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+/* ── Rack backdrop overlay ── */
+.xt-ops-rack-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 29;
+  animation: xt-rack-backdrop-in 0.2s ease;
+}
+
+@keyframes xt-rack-backdrop-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* ── Mission Rack (sidebar → slide-in drawer) ── */
 .xt-ops-rack {
-  position: relative;
+  position: fixed;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 300px;
   display: flex;
   flex-direction: column;
-  width: 100%;
   border-right: 1px solid var(--app-border);
-  background: rgba(0,0,0,0.6);
-  backdrop-filter: blur(8px);
+  background: rgba(0,0,0,0.92);
+  backdrop-filter: blur(12px);
+  transform: translateX(-100%);
+  transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+  z-index: 30;
+  overflow-y: auto;
 }
 
-@media (min-width: 900px) {
-  .xt-ops-rack {
-    width: 280px;
-    min-width: 280px;
-    max-width: 280px;
-    height: 100vh;
-    position: sticky;
-    top: 0;
-  }
-}
-
-@media (min-width: 1200px) {
-  .xt-ops-rack {
-    width: 320px;
-    min-width: 320px;
-    max-width: 320px;
-  }
+.xt-ops-rack.is-open {
+  transform: translateX(0);
 }
 
 .xt-ops-rack-header {
@@ -11671,15 +11716,9 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 24px 20px 40px;
-  gap: 24px;
+  padding: 16px 0 40px;
+  gap: 20px;
   min-width: 0;
-}
-
-@media (min-width: 900px) {
-  .xt-ops-command {
-    padding: 32px 40px 48px;
-  }
 }
 
 /* Relay banner */
@@ -11727,22 +11766,54 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 20px;
+  gap: 16px;
   width: 100%;
   max-width: 800px;
+  padding: 24px 0 0;
+}
+
+/* Idle: hide ring entirely, show quest title as hero */
+.xt-ops--armed .xt-ops-ring-container {
+  width: 100px;
+  height: 100px;
+}
+
+.xt-ops--idle .xt-ops-ring-container {
+  display: none;
 }
 
 .xt-ops-ring-container {
   position: relative;
-  width: 220px;
-  height: 220px;
+  width: 100px;
+  height: 100px;
+  transition: width 0.4s cubic-bezier(0.22, 1, 0.36, 1),
+              height 0.4s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-@media (min-width: 900px) {
-  .xt-ops-ring-container {
-    width: 260px;
-    height: 260px;
-  }
+/* Session active: HUD becomes a compact header-style row */
+.xt-ops--live .xt-ops-hud {
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--app-border);
+  gap: 16px;
+}
+
+.xt-ops--live .xt-ops-ring-container {
+  width: 48px;
+  height: 48px;
+  flex-shrink: 0;
+}
+
+.xt-ops--live .xt-ops-quest-header {
+  flex: 1;
+  min-width: 0;
+  text-align: left;
+}
+
+.xt-ops--live .xt-ops-controls {
+  flex-shrink: 0;
 }
 
 /* Ring aura — outer glow halo for cinematic depth */
@@ -11807,7 +11878,7 @@
 }
 
 .xt-ops-timer {
-  font-size: 38px;
+  font-size: 22px;
   font-weight: 600;
   letter-spacing: 0.08em;
   color: var(--app-text);
@@ -11815,21 +11886,10 @@
   font-family: inherit;
 }
 
-@media (min-width: 900px) {
-  .xt-ops-timer {
-    font-size: 46px;
-  }
-}
-
 .xt-ops--live .xt-ops-timer {
+  font-size: 24px;
   color: #ffffff;
-  text-shadow: 0 0 20px color-mix(in srgb, var(--app-accent) 30%, transparent);
-}
-
-@media (min-width: 900px) {
-  .xt-ops--live .xt-ops-timer {
-    font-size: 52px;
-  }
+  text-shadow: 0 0 12px color-mix(in srgb, var(--app-accent) 30%, transparent);
 }
 
 .xt-ops-timer-status {
@@ -11904,12 +11964,19 @@
 }
 
 .xt-ops-quest-title {
-  font-size: clamp(20px, 3vw, 32px);
+  font-size: 28px;
   font-weight: 600;
   letter-spacing: -0.02em;
   text-transform: uppercase;
   color: var(--app-text);
   line-height: 1.1;
+}
+
+/* Session mode: compact quest title */
+.xt-ops--live .xt-ops-quest-title {
+  font-size: 18px;
+  text-align: left;
+  text-shadow: none;
 }
 
 .xt-ops-quest-tags {
@@ -12431,6 +12498,39 @@
   opacity: 0.7;
 }
 
+/* ── Step progress bar ── */
+.xt-ops-step-progress {
+  width: 100%;
+  max-width: 800px;
+  height: 6px;
+  background: color-mix(in srgb, var(--app-text) 8%, transparent);
+  border-radius: 3px;
+  position: relative;
+  overflow: hidden;
+  display: none;
+}
+
+.xt-ops--live .xt-ops-step-progress {
+  display: block;
+}
+
+.xt-ops-step-progress-fill {
+  height: 100%;
+  background: var(--app-accent);
+  border-radius: 3px;
+  transition: width 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.xt-ops-step-progress-label {
+  position: absolute;
+  right: 0;
+  top: -18px;
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  color: var(--app-accent);
+  font-weight: 600;
+}
+
 /* ── Keyboard shortcuts hints ── */
 .xt-ops-kb-hints {
   display: flex;
@@ -12533,86 +12633,14 @@
 
 /* ═══════════════════════════════════════════════════════════
    FOCUS MODE — session-active UI transformation
-   When .xt-ops--live is active, XTATION recedes into a
-   quiet, focused presence with only essential elements.
+   When .xt-ops--live is active, XTATION enters an immersive
+   focused mode with steps as the main content.
    ═══════════════════════════════════════════════════════════ */
 
-/* ── Rack sidebar: collapse to compact strip ── */
-@media (min-width: 900px) {
-  .xt-ops--live .xt-ops-rack {
-    width: 56px;
-    min-width: 56px;
-    max-width: 56px;
-    transition: width 0.4s cubic-bezier(0.22, 1, 0.36, 1),
-                min-width 0.4s cubic-bezier(0.22, 1, 0.36, 1),
-                max-width 0.4s cubic-bezier(0.22, 1, 0.36, 1);
-    overflow: hidden;
-  }
-
-  /* Fade rack out smoothly even when not live */
-  .xt-ops-rack {
-    transition: width 0.35s cubic-bezier(0.22, 1, 0.36, 1),
-                min-width 0.35s cubic-bezier(0.22, 1, 0.36, 1),
-                max-width 0.35s cubic-bezier(0.22, 1, 0.36, 1);
-  }
-}
-
-/* Hide rack sub-elements in focus mode */
-.xt-ops--live .xt-ops-rack-header,
-.xt-ops--live .xt-ops-quick-add,
-.xt-ops--live .xt-ops-vitals,
-.xt-ops--live .xt-ops-rack-scroll,
-.xt-ops--live .xt-ops-rack-footer {
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.25s ease;
-}
-
-/* Hover-expand: rack slides open on hover during focus mode */
-@media (min-width: 900px) {
-  .xt-ops--live .xt-ops-rack:hover {
-    width: 280px;
-    min-width: 280px;
-    max-width: 280px;
-    z-index: 10;
-    box-shadow: 8px 0 24px rgba(0, 0, 0, 0.6);
-  }
-
-  .xt-ops--live .xt-ops-rack:hover .xt-ops-rack-header,
-  .xt-ops--live .xt-ops-rack:hover .xt-ops-quick-add,
-  .xt-ops--live .xt-ops-rack:hover .xt-ops-vitals,
-  .xt-ops--live .xt-ops-rack:hover .xt-ops-rack-scroll,
-  .xt-ops--live .xt-ops-rack:hover .xt-ops-rack-footer {
-    opacity: 1;
-    pointer-events: auto;
-    transition: opacity 0.2s ease 0.15s;
-  }
-
-  .xt-ops--live .xt-ops-rack:hover::after {
-    opacity: 0;
-  }
-}
-
-/* Base transitions for smooth exit from focus */
-.xt-ops-rack-header,
-.xt-ops-quick-add,
-.xt-ops-vitals,
-.xt-ops-rack-scroll,
-.xt-ops-rack-footer {
-  transition: opacity 0.3s ease 0.1s;
-}
-
-/* Focus mode accent strip on collapsed rack */
-.xt-ops--live .xt-ops-rack::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 2px;
-  height: 100%;
-  background: var(--app-accent);
-  opacity: 0.5;
-  animation: xt-focus-pulse 3s ease-in-out infinite;
+/* ── Rack drawer: always hidden by default (slide-in via .is-open) ── */
+/* During live, also hide the top bar Operations toggle to reduce clutter */
+.xt-ops--live .xt-ops-topbar .xt-ops-rack-toggle {
+  opacity: 0.4;
 }
 
 @keyframes xt-focus-pulse {
@@ -12620,80 +12648,26 @@
   50% { opacity: 0.7; }
 }
 
-/* ── Timer: enlarge during session ── */
-@media (min-width: 900px) {
-  .xt-ops--live .xt-ops-timer {
-    font-size: 64px;
-    letter-spacing: 0.12em;
-    transition: font-size 0.4s cubic-bezier(0.22, 1, 0.36, 1);
-  }
-
-  .xt-ops-timer {
-    transition: font-size 0.3s cubic-bezier(0.22, 1, 0.36, 1),
-                color 0.3s ease,
-                text-shadow 0.3s ease;
-  }
-}
-
-/* Ring: scale up during session */
-@media (min-width: 900px) {
-  .xt-ops--live .xt-ops-ring-container {
-    transform: scale(1.08);
-    transition: transform 0.5s cubic-bezier(0.22, 1, 0.36, 1);
-  }
-
-  .xt-ops-ring-container {
-    transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
-  }
-}
-
 /* ── Hide non-essential panels during session ── */
 .xt-ops--live .xt-ops-intel {
-  opacity: 0;
-  max-height: 0;
-  overflow: hidden;
-  pointer-events: none;
-  transition: opacity 0.3s ease, max-height 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+  display: none;
 }
 
-.xt-ops-intel {
-  max-height: 2000px;
-  transition: opacity 0.3s ease 0.15s, max-height 0.4s cubic-bezier(0.22, 1, 0.36, 1) 0.1s;
+/* Stats strip: hide entirely during session */
+.xt-ops--live .xt-ops-stats {
+  display: none;
 }
 
-/* Stats strip: compact during session — keep XP + Steps visible, dim the rest */
-.xt-ops--live .xt-ops-stats > :first-child,
-.xt-ops--live .xt-ops-stats > :last-child {
-  opacity: 0.3;
-  transition: opacity 0.3s ease;
-}
-
-.xt-ops-stats > :first-child,
-.xt-ops-stats > :last-child {
-  transition: opacity 0.3s ease 0.1s;
-}
-
-/* Relay: compact during session */
+/* Relay: hide during session */
 .xt-ops--live .xt-ops-relay {
-  opacity: 0.4;
-  max-height: 30px;
-  overflow: hidden;
-  transition: opacity 0.3s ease, max-height 0.3s ease;
+  display: none;
 }
 
-.xt-ops-relay {
-  transition: opacity 0.3s ease 0.1s, max-height 0.3s ease 0.1s;
-}
-
-/* ── Steps panel: stays visible + highlighted during session ── */
+/* ── Steps panel: full-width during session ── */
 .xt-ops--live .xt-ops-panels {
   grid-template-columns: 1fr !important;
-  max-width: 600px;
-  transition: max-width 0.4s cubic-bezier(0.22, 1, 0.36, 1);
-}
-
-.xt-ops-panels {
-  transition: max-width 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+  max-width: 100%;
+  background: none;
 }
 
 /* Steps panel gets accent border during focus */
@@ -12722,37 +12696,14 @@
   50% { opacity: 1; }
 }
 
-/* ── Quest title: glow emphasis during session ── */
-.xt-ops--live .xt-ops-quest-title {
-  color: #ffffff;
-  text-shadow:
-    0 0 30px color-mix(in srgb, var(--app-accent) 20%, transparent),
-    0 0 60px color-mix(in srgb, var(--app-accent) 8%, transparent);
-  letter-spacing: 0.02em;
-}
-
-/* ── Quest tags: dim during focus to reduce clutter ── */
+/* ── Quest tags: hide during focus to reduce clutter ── */
 .xt-ops--live .xt-ops-quest-tags {
-  opacity: 0.4;
-  transition: opacity 0.3s ease;
+  display: none;
 }
 
-.xt-ops-quest-tags {
-  transition: opacity 0.3s ease 0.1s;
-}
-
-/* ── Emblem: subtle rotation + glow during session ── */
+/* ── Emblem: hide during session for compact header ── */
 .xt-ops--live .xt-ops-emblem {
-  animation: xt-emblem-spin 20s linear infinite;
-}
-
-.xt-ops--live .xt-ops-emblem-inner {
-  box-shadow: 0 0 10px color-mix(in srgb, var(--app-accent) 30%, transparent);
-}
-
-@keyframes xt-emblem-spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
+  display: none;
 }
 
 /* ── Controls: accent glow on start button during session ── */
@@ -12763,6 +12714,11 @@
 /* ── Branch dot glow in sidebar during session ── */
 .xt-ops--live .xt-ops-branch-dot {
   box-shadow: 0 0 4px currentColor;
+}
+
+/* ── Keyboard hints: hide during session ── */
+.xt-ops--live .xt-ops-kb-hints {
+  display: none;
 }
 
 /* ═══════════════════════════════════════════════════════════

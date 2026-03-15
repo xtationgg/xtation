@@ -256,6 +256,9 @@ export const Play: React.FC<PlayProps> = ({
   const [editingTaskId, setEditingTaskId] = useState<string | null>(null);
   const [debriefTaskId, setDebriefTaskId] = useState<string | null>(null);
 
+  // ── Rack (sidebar) drawer toggle ──
+  const [rackOpen, setRackOpen] = useState(false);
+
   // ── Quick-add quest ──
   const [quickAddValue, setQuickAddValue] = useState('');
   const [quickAddFocused, setQuickAddFocused] = useState(false);
@@ -822,8 +825,21 @@ export const Play: React.FC<PlayProps> = ({
       {/* ── Master-detail layout ── */}
       <div className="xt-ops-layout">
 
-        {/* ══ LEFT: Mission Rack ══ */}
-        <aside className="xt-ops-rack">
+        {/* ── Compact header bar ── */}
+        <div className="xt-ops-topbar">
+          <button type="button" className="xt-ops-rack-toggle" onClick={() => setRackOpen(prev => !prev)}>
+            Operations {rackOpen ? '\u25B4' : '\u25BE'}
+          </button>
+          <button type="button" onClick={openCreateQuest} className="xt-ops-rack-add" title="New quest">
+            <Plus size={12} /> <span className="xt-ops-topbar-add-label">Quest</span>
+          </button>
+        </div>
+
+        {/* ── Rack backdrop overlay ── */}
+        {rackOpen && <div className="xt-ops-rack-backdrop" onClick={() => setRackOpen(false)} />}
+
+        {/* ══ LEFT: Mission Rack (now a slide-in drawer) ══ */}
+        <aside className={`xt-ops-rack ${rackOpen ? 'is-open' : ''}`}>
           <div className="xt-ops-rack-header">
             <span className="xt-ops-rack-label">Operations</span>
             <button type="button" onClick={openCreateQuest} className="xt-ops-rack-add" title="Full quest editor">
@@ -1160,6 +1176,19 @@ export const Play: React.FC<PlayProps> = ({
                   />
                 </div>
               </div>
+
+              {/* Step progress bar — visible during session */}
+              {selectedStepCounts && selectedStepCounts.total > 0 && (
+                <div className="xt-ops-step-progress">
+                  <div
+                    className="xt-ops-step-progress-fill"
+                    style={{ width: `${Math.round((selectedStepCounts.done / selectedStepCounts.total) * 100)}%` }}
+                  />
+                  <span className="xt-ops-step-progress-label">
+                    {Math.round((selectedStepCounts.done / selectedStepCounts.total) * 100)}%
+                  </span>
+                </div>
+              )}
 
               {/* Urgent alert */}
               {urgentPresentationSignal ? (
