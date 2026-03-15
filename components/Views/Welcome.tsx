@@ -1,5 +1,5 @@
-import React, { useMemo, useRef } from 'react';
-import { ArrowRight, Bot, Boxes, Compass, Layers3, ShieldCheck, UserRound } from 'lucide-react';
+import React, { useMemo, useState } from 'react';
+import { ArrowRight, Info, X } from 'lucide-react';
 import { AuthCard } from '../Auth/AuthCard';
 import { StationContinuityPanel } from '../Auth/StationContinuityPanel';
 import { playClickSound, playHoverSound } from '../../utils/SoundEffects';
@@ -16,40 +16,10 @@ interface WelcomeProps {
   onResumeGuidedSetup?: () => void;
 }
 
-const sectionCards = [
-  {
-    title: 'Play',
-    caption: 'Run your active quest, focus session, and execution flow.',
-    icon: Compass,
-  },
-  {
-    title: 'Profile',
-    caption: 'Track history, level, self tree growth, and identity.',
-    icon: UserRound,
-  },
-  {
-    title: 'Lab',
-    caption: 'Build automations, assistants, knowledge systems, and templates.',
-    icon: Layers3,
-  },
-  {
-    title: 'Inventory',
-    caption: 'Keep resources, assets, and unlocked XTATION capabilities aligned.',
-    icon: Boxes,
-  },
-];
-
-const operatingSignals = [
-  'Local-first and offline-capable by default',
-  'Dusk-assisted workflows with explicit user control',
-  'Web now, desktop-ready, mobile companion later',
-  'One account, one station, one evolving system',
-];
-
 export const Welcome: React.FC<WelcomeProps> = ({ onEnterLocalMode, onResumeGuidedSetup }) => {
-  const shellRef = useRef<HTMLDivElement | null>(null);
   const { currentStation, access } = useAdminConsole();
   const { settings } = useXtationSettings();
+  const [showStationInfo, setShowStationInfo] = useState(false);
   const stationActivity = useMemo(() => readStationActivity(), []);
   const lastView = useMemo(() => readStoredXtationLastView(), []);
   const continuityContext = useMemo(
@@ -105,73 +75,67 @@ export const Welcome: React.FC<WelcomeProps> = ({ onEnterLocalMode, onResumeGuid
       : null;
 
   return (
-    <div ref={shellRef} className="xt-welcome-shell" onWheel={routeWheelToContainer}>
+    <div className="xt-wc-shell" onWheel={routeWheelToContainer}>
       <div className="xt-welcome-backdrop" />
 
-      <div className="xt-welcome-frame">
-        <header className="xt-welcome-header">
-          <div>
-            <div className="xt-welcome-kicker">XTATION</div>
-            <div className="xt-welcome-header-detail">Personal operating system for execution, systems, and real-world follow-through.</div>
-          </div>
-          <div className="xt-welcome-chip">
-            <ShieldCheck size={14} className="text-[var(--app-accent)]" />
-            Local-first
-          </div>
-        </header>
+      <div className="xt-wc-center">
+        {/* Brand */}
+        <div className="xt-wc-brand">XTATION</div>
+        <p className="xt-wc-tagline">
+          Personal operating system for execution, systems, and real-world follow-through.
+        </p>
 
-        <div className="xt-welcome-layout">
-          <section className="space-y-8">
-            <div className="max-w-4xl">
-              <div className="xt-welcome-chip xt-welcome-chip--accent">
-                <Bot size={13} />
-                Dusk-ready station
-              </div>
-              <h1 className="xt-welcome-title">
-                Build your <span className="xt-welcome-title-accent">system</span> once.
-                <br />
-                Run your <span className="xt-welcome-title-accent">life</span> through it every day.
-              </h1>
-              <p className="xt-welcome-detail">
-                XTATION combines action rooms, growth tracking, systems design, people ops, resources, and Dusk into one station.
-                Sign in for cloud sync, or enter local mode and keep moving offline.
-              </p>
-            </div>
+        {/* Auth Card */}
+        <AuthCard
+          variant="landing"
+          showOrb
+          title="Welcome Back"
+          description="Sign in for cloud sync, or enter local mode to keep moving offline."
+          isGuestMode={false}
+          continuityStatus={localStationStatus}
+          entryDescriptor={guestEntry.transitionDescriptor}
+          showEntryDescriptor={false}
+        />
 
-            <div className="xt-welcome-cards">
-              {sectionCards.map(({ title, caption, icon: Icon }) => (
-                <article key={title} className="xt-welcome-card">
-                  <div className="flex items-center justify-between gap-3">
-                    <div className="xt-welcome-card-title">{title}</div>
-                    <Icon size={16} className="text-[var(--app-accent)]" />
-                  </div>
-                  <div className="xt-welcome-card-detail">{caption}</div>
-                </article>
-              ))}
-            </div>
+        {/* Local mode button */}
+        <button
+          type="button"
+          onMouseEnter={playHoverSound}
+          onClick={() => {
+            playClickSound();
+            onEnterLocalMode();
+          }}
+          className="xt-wc-local-btn ui-pressable"
+        >
+          {localStationStatus.actionLabel}
+          <ArrowRight size={14} />
+        </button>
 
-            <div className="xt-welcome-signals-row">
-              {operatingSignals.map((signal) => (
-                <div key={signal} className="xt-welcome-signal-chip">
-                  {signal}
-                </div>
-              ))}
-            </div>
-          </section>
+        {/* Station info icon */}
+        <div className="xt-wc-info-row">
+          <button
+            type="button"
+            className="xt-wc-info-trigger"
+            onClick={() => setShowStationInfo(!showStationInfo)}
+            title="Station details"
+          >
+            <Info size={14} />
+            <span>Station Info</span>
+          </button>
+        </div>
+      </div>
 
-          <aside className="space-y-4">
-            <AuthCard
-              variant="landing"
-              showOrb={false}
-              eyebrow="Access"
-              title="Open your XTATION station"
-              description="Sign in for synced progress, upgrades, and shared layers. Your local station still works first."
-              isGuestMode={false}
-              continuityStatus={localStationStatus}
-              entryDescriptor={guestEntry.transitionDescriptor}
-              showEntryDescriptor={false}
-            />
-
+      {/* Station Info Overlay */}
+      {showStationInfo ? (
+        <div className="xt-wc-info-overlay">
+          <div className="xt-wc-info-panel">
+            <button
+              type="button"
+              className="xt-wc-info-close"
+              onClick={() => setShowStationInfo(false)}
+            >
+              <X size={16} />
+            </button>
             <StationContinuityPanel
               status={localStationStatus}
               releaseChannel={currentStation.releaseChannel}
@@ -184,21 +148,9 @@ export const Welcome: React.FC<WelcomeProps> = ({ onEnterLocalMode, onResumeGuid
               onOpenGuidedSetup={onResumeGuidedSetup}
               variant="welcome"
             />
-            <button
-              type="button"
-              onMouseEnter={playHoverSound}
-              onClick={() => {
-                playClickSound();
-                onEnterLocalMode();
-              }}
-              className="xt-welcome-primary ui-pressable"
-            >
-              {localStationStatus.actionLabel}
-              <ArrowRight size={14} />
-            </button>
-          </aside>
+          </div>
         </div>
-      </div>
+      ) : null}
     </div>
   );
 };
