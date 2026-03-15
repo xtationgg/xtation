@@ -16750,3 +16750,59 @@ a {
   background: color-mix(in srgb, var(--app-panel) 90%, white);
   border-color: var(--app-border);
 }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   ANNOUNCER OVERLAY
+   ═══════════════════════════════════════════════════════════════════════════ */
+.xt-announcer-overlay {
+  position: fixed;
+  top: 64px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  pointer-events: none;
+}
+.xt-announcer-message {
+  padding: 8px 24px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  color: var(--app-text);
+  background: color-mix(in srgb, var(--app-panel) 92%, transparent);
+  border: 1px solid var(--app-border);
+  border-radius: 2px;
+  animation: xt-announcer-in 0.3s ease-out, xt-announcer-out 0.3s ease-in 2.7s forwards;
+  pointer-events: auto;
+}
+.xt-announcer-message--voice {
+  font-size: 14px;
+  font-weight: 600;
+  padding: 12px 32px;
+  border-color: color-mix(in srgb, var(--app-accent) 30%, transparent);
+  background: color-mix(in srgb, var(--app-bg) 95%, var(--app-accent));
+}
+.xt-announcer-message--sound {
+  color: color-mix(in srgb, var(--app-text) 80%, transparent);
+}
+.xt-announcer-message--visual {
+  color: var(--app-muted);
+  border-color: color-mix(in srgb, var(--app-border) 60%, transparent);
+  font-size: 11px;
+}
+.xt-announcer-text {
+  text-transform: lowercase;
+}
+
+@keyframes xt-announcer-in {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes xt-announcer-out {
+  from { opacity: 1; }
+  to { opacity: 0; transform: translateY(-4px); }
+}

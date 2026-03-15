@@ -2,6 +2,7 @@ import React, { Suspense, lazy, useEffect, useMemo, useRef, useState } from 'rea
 import { TopBar } from './components/Layout/TopBar';
 import { TerminalErrorBoundary } from './components/UI/TerminalErrorBoundary';
 import { RewardOverlay } from './components/Features/RewardOverlay';
+import { AnnouncerOverlay } from './components/Features/AnnouncerOverlay';
 import { AuthCallbackView } from './components/Auth/AuthCallbackView';
 import { GuestStationHandoff } from './components/Auth/GuestStationHandoff';
 import { ResetPasswordView } from './components/Auth/ResetPasswordView';
@@ -1576,6 +1577,9 @@ const App: React.FC = () => {
       <Suspense fallback={null}>
         <LazyDevHUD />
       </Suspense>
+
+      {/* XTATION Announcer Overlay */}
+      <AnnouncerOverlay />
 
             {/* Global decorative border bottom */}
       <div className="h-0.5 bg-gradient-to-r from-[#010A13] via-[#C8AA6E] to-[#010A13] opacity-30 z-50"></div>
