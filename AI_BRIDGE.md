@@ -83,6 +83,25 @@ All work should pass `npm run build` and `npx vitest run` before committing.
   - `/Users/sarynass/dyad-apps/CLient-D82pm/components/Views/ProfileLobbyScene.tsx`
   - `/Users/sarynass/dyad-apps/CLient-D82pm/scene-source/avatar-lobby/demo.tsx`
 
+## Latest Claude Note
+
+- Date: 2026-03-15
+- Play section deep bug sweep and code audit:
+  - **3 user-reported bugs fixed** (commit `0ffd2d0`):
+    1. QuestModal focus stealing — useCallback stabilization + attemptCloseRef pattern to decouple focus trap from timer-driven re-renders
+    2. Double hover on quest briefing cards — CSS `:not()` pseudo-class to exclude active/live states
+    3. Session timer reset-to-0 — always show `selectedTaskTodayMs` (includes all sessions + live elapsed) instead of per-session elapsed
+  - **Deep audit fixes** (commit `10da470`):
+    1. Wrapped `handleRunSelectedQuest` / `handleCompleteSelectedQuest` in `useCallback` — were causing stale closures in keyboard handler
+    2. Added `useEffect` cleanup for `celebrationTimerRef` — prevented setState after unmount
+    3. Refactored keyboard shortcut handler to ref-based state access — eliminated stale closures and removed excessive listener re-registration
+    4. Fixed QuestModal `Cmd+Enter` save stale closure — added `handleSaveRef` pattern so save always uses latest draft/steps
+  - Files touched:
+    - `components/Views/Play.tsx`
+    - `components/Play/QuestModal.tsx`
+    - `index.css`
+  - Verification: 240/240 tests pass, build clean
+
 ## Latest Codex Note
 
 - Date: 2026-03-12
