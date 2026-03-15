@@ -135,6 +135,7 @@ export const QuestModal: React.FC<QuestModalProps> = ({ open, task, onClose, onS
   const isDirtyRef = useRef(false);
   const surfaceRef = useRef<HTMLDivElement | null>(null);
   const lastFocusedRef = useRef<HTMLElement | null>(null);
+  const attemptCloseRef = useRef<() => void>(() => {});
 
   useEffect(() => {
     if (!open) return;
@@ -183,6 +184,12 @@ export const QuestModal: React.FC<QuestModalProps> = ({ open, task, onClose, onS
     onClose();
   }, [onClose]);
 
+  // Keep ref in sync so keydown handler always calls the latest attemptClose
+  useEffect(() => {
+    attemptCloseRef.current = attemptClose;
+  }, [attemptClose]);
+
+  // Focus management — only re-run when `open` changes, NOT on attemptClose changes
   useEffect(() => {
     if (!open) return;
 
@@ -193,7 +200,7 @@ export const QuestModal: React.FC<QuestModalProps> = ({ open, task, onClose, onS
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === 'Escape') {
         event.preventDefault();
-        attemptClose();
+        attemptCloseRef.current();
         return;
       }
 
@@ -226,7 +233,7 @@ export const QuestModal: React.FC<QuestModalProps> = ({ open, task, onClose, onS
       document.removeEventListener('keydown', handleKeyDown);
       lastFocusedRef.current?.focus?.();
     };
-  }, [open, attemptClose]);
+  }, [open]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const saveDisabled =
     !draft.title.trim() ||

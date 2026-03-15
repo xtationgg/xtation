@@ -539,20 +539,20 @@ export const Play: React.FC<PlayProps> = ({
     });
   }, [presentationEvents, urgentPresentationSignal]);
 
-  const openCreateQuest = () => {
+  const openCreateQuest = useCallback(() => {
     setEditingTaskId(null);
     setModalOpen(true);
-  };
+  }, []);
 
-  const openEditQuest = (taskId: string) => {
+  const openEditQuest = useCallback((taskId: string) => {
     setEditingTaskId(taskId);
     setModalOpen(true);
-  };
+  }, []);
 
-  const closeModal = () => {
+  const closeModal = useCallback(() => {
     setModalOpen(false);
     setEditingTaskId(null);
-  };
+  }, []);
 
   const handleSaveQuest = (draft: {
     title: string;
@@ -769,15 +769,13 @@ export const Play: React.FC<PlayProps> = ({
 
 
   // ── Ring progress for HUD ──
+  // Always use selectedTaskTodayMs — it already includes the running session's
+  // live elapsed time via getSessionMsForDate. This prevents the timer resetting
+  // to 0 when starting a new session on a task with previous sessions.
   const ringProgress = useMemo(() => {
     if (!selectedTask) return 0;
-    if (selectedTaskRunning && activeSession) {
-      const ms = selectors.getSessionDisplayMs(activeSession, now);
-      // One full rotation per 60 minutes
-      return Math.min(1, (ms / 3600000));
-    }
     return Math.min(1, (selectedTaskTodayMs / 3600000));
-  }, [selectedTask, selectedTaskRunning, activeSession, selectors, now, selectedTaskTodayMs]);
+  }, [selectedTask, selectedTaskTodayMs]);
 
   const ringCircumference = 2 * Math.PI * 120; // r=120
   const ringOffset = ringCircumference * (1 - ringProgress);
@@ -1067,9 +1065,7 @@ export const Play: React.FC<PlayProps> = ({
                   {/* Center content */}
                   <div className="xt-ops-ring-center">
                     <div className="xt-ops-timer">
-                      {selectedTaskRunning && activeSession
-                        ? formatDuration(selectors.getSessionDisplayMs(activeSession, now))
-                        : formatDuration(selectedTaskTodayMs)}
+                      {formatDuration(selectedTaskTodayMs)}
                     </div>
                     <div className="xt-ops-timer-status">
                       {selectedTaskRunning ? 'SESSION ACTIVE' : selectedTaskTodayMs > 0 ? 'TRACKED TODAY' : 'READY'}

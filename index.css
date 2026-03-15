@@ -1049,7 +1049,7 @@
   transition: background 80ms ease !important;
 }
 
-[data-theme='control'] .xt-ops-briefing:hover {
+[data-theme='control'] .xt-ops-briefing:not(.xt-ops-briefing--active):not(.xt-ops-briefing--live):hover {
   background: rgba(255,255,255,0.04) !important;
 }
 
@@ -10045,7 +10045,7 @@
   transition: background 120ms ease, box-shadow 120ms ease;
 }
 
-.xt-ops-briefing:hover {
+.xt-ops-briefing:not(.xt-ops-briefing--active):not(.xt-ops-briefing--live):hover {
   background: rgba(255,255,255,0.04);
 }
 
