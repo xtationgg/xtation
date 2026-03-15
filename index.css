@@ -3,17 +3,17 @@
 @tailwind utilities;
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   SIGN-IN PAGE — 21st.dev inspired
+   SIGN-IN PAGE — 21st.dev inspired, container-scaled
    ═══════════════════════════════════════════════════════════════════════════ */
 
 /* Animations */
 @keyframes si-fadeSlideIn {
   from { opacity: 0; filter: blur(4px); transform: translateY(12px); }
-  to { opacity: 1; filter: blur(0); transform: translateY(0); }
+  to   { opacity: 1; filter: blur(0);   transform: translateY(0); }
 }
 @keyframes si-slideRightIn {
   from { opacity: 0; filter: blur(6px); transform: translateX(40px); }
-  to { opacity: 1; filter: blur(0); transform: translateX(0); }
+  to   { opacity: 1; filter: blur(0);   transform: translateX(0); }
 }
 
 .si-anim {
@@ -21,13 +21,13 @@
   animation: si-fadeSlideIn 0.6s ease forwards;
 }
 .si-anim-d1 { animation-delay: 0.05s; }
-.si-anim-d2 { animation-delay: 0.1s; }
+.si-anim-d2 { animation-delay: 0.10s; }
 .si-anim-d3 { animation-delay: 0.15s; }
-.si-anim-d4 { animation-delay: 0.2s; }
+.si-anim-d4 { animation-delay: 0.20s; }
 .si-anim-d5 { animation-delay: 0.25s; }
-.si-anim-d6 { animation-delay: 0.3s; }
+.si-anim-d6 { animation-delay: 0.30s; }
 .si-anim-d7 { animation-delay: 0.35s; }
-.si-anim-d8 { animation-delay: 0.4s; }
+.si-anim-d8 { animation-delay: 0.40s; }
 .si-anim-d9 { animation-delay: 0.45s; }
 
 .si-slide-right {
@@ -35,45 +35,67 @@
   animation: si-slideRightIn 0.8s ease forwards;
 }
 
-/* Shell */
-.si-shell {
+/* ── Viewport: fullscreen centering backdrop ── */
+.si-viewport {
   display: flex;
-  height: 100dvh;
+  align-items: center;
+  justify-content: center;
   width: 100%;
+  height: 100dvh;
   background: var(--app-bg);
-  color: var(--app-text);
-  overflow: hidden;
-}
-.si-shell--compact {
-  height: auto;
-  min-height: 0;
+  padding: 5vh 5vw;
 }
 
-/* Form column */
+/* ── Card: the 70% contained panel ── */
+.si-card {
+  display: flex;
+  width: 70%;
+  max-width: 1100px;
+  height: min(80vh, 720px);
+  background: var(--app-panel);
+  border: 1px solid var(--app-border);
+  border-radius: clamp(12px, 1.5vw, 24px);
+  overflow: hidden;
+  color: var(--app-text);
+  container-type: inline-size;
+  container-name: si-card;
+  box-shadow: 0 8px 40px rgba(0,0,0,0.25);
+}
+
+/* Compact (drawer) — no viewport, no card shell */
+.si-card--compact {
+  width: 100%;
+  max-width: 420px;
+  height: auto;
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+  background: transparent;
+}
+
+/* ── Form column ── */
 .si-form-col {
   flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 32px;
+  padding: clamp(16px, 4cqi, 40px);
   overflow-y: auto;
 }
 .si-form-inner {
   width: 100%;
-  max-width: 420px;
+  max-width: 380px;
 }
 .si-form-content {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: clamp(10px, 2cqi, 18px);
 }
 
 /* Logo */
-.si-xt-logo {
-  margin-bottom: 4px;
-}
+.si-xt-logo { margin-bottom: clamp(0px, 0.5cqi, 4px); }
 .si-xt-logo-text {
-  font-size: 11px;
+  font-size: clamp(9px, 1.4cqi, 12px);
   font-weight: 700;
   letter-spacing: 0.3em;
   text-transform: uppercase;
@@ -82,19 +104,16 @@
 
 /* Title */
 .si-title {
-  font-size: 36px;
+  font-size: clamp(20px, 4.5cqi, 36px);
   font-weight: 600;
   line-height: 1.15;
   color: var(--app-text);
   margin: 0;
   letter-spacing: -0.02em;
 }
-.si-title-light {
-  font-weight: 300;
-  color: var(--app-text);
-}
+.si-title-light { font-weight: 300; }
 .si-subtitle {
-  font-size: 14px;
+  font-size: clamp(11px, 1.8cqi, 14px);
   color: var(--app-muted);
   margin: 0;
   line-height: 1.5;
@@ -104,19 +123,19 @@
 .si-form {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: clamp(10px, 1.8cqi, 16px);
 }
 .si-label {
   display: block;
-  font-size: 12px;
+  font-size: clamp(10px, 1.5cqi, 12px);
   font-weight: 500;
   color: var(--app-muted);
-  margin-bottom: 6px;
+  margin-bottom: clamp(3px, 0.6cqi, 6px);
 }
 
 /* Glass input */
 .si-glass-input {
-  border-radius: 14px;
+  border-radius: clamp(8px, 1.6cqi, 14px);
   border: 1px solid var(--app-border);
   background: color-mix(in srgb, var(--app-text) 4%, transparent);
   backdrop-filter: blur(8px);
@@ -130,28 +149,21 @@
 .si-input {
   width: 100%;
   background: transparent;
-  font-size: 13px;
-  padding: 14px 16px;
-  border-radius: 14px;
+  font-size: clamp(11px, 1.7cqi, 14px);
+  padding: clamp(8px, 1.6cqi, 14px) clamp(10px, 2cqi, 16px);
+  border-radius: clamp(8px, 1.6cqi, 14px);
   border: none;
   outline: none;
   color: var(--app-text);
   font-family: inherit;
 }
-.si-input::placeholder {
-  color: var(--app-muted);
-  opacity: 0.5;
-}
-.si-input--password {
-  padding-right: 48px;
-}
+.si-input::placeholder { color: var(--app-muted); opacity: 0.5; }
+.si-input--password { padding-right: clamp(36px, 5cqi, 48px); }
 
-.si-password-wrap {
-  position: relative;
-}
+.si-password-wrap { position: relative; }
 .si-eye-btn {
   position: absolute;
-  inset: 0 12px 0 auto;
+  inset: 0 clamp(8px, 1.2cqi, 12px) 0 auto;
   display: flex;
   align-items: center;
   background: none;
@@ -160,6 +172,7 @@
   cursor: pointer;
   transition: color 150ms ease;
 }
+.si-eye-btn svg { width: clamp(14px, 2.2cqi, 20px); height: clamp(14px, 2.2cqi, 20px); }
 .si-eye-btn:hover { color: var(--app-text); }
 
 /* Options row */
@@ -167,24 +180,24 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  font-size: 13px;
+  font-size: clamp(10px, 1.5cqi, 13px);
 }
 .si-remember {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: clamp(4px, 0.8cqi, 8px);
   cursor: pointer;
   color: var(--app-text);
   opacity: 0.9;
 }
 .si-checkbox {
-  width: 16px;
-  height: 16px;
+  width: clamp(12px, 1.8cqi, 16px);
+  height: clamp(12px, 1.8cqi, 16px);
   accent-color: var(--app-accent);
   cursor: pointer;
 }
 .si-reset-link {
-  font-size: 13px;
+  font-size: inherit;
   color: var(--app-accent);
   background: none;
   border: none;
@@ -196,10 +209,10 @@
 
 /* Notice */
 .si-notice {
-  font-size: 12px;
+  font-size: clamp(10px, 1.4cqi, 12px);
   color: var(--app-muted);
   line-height: 1.5;
-  padding: 8px 12px;
+  padding: clamp(6px, 1cqi, 8px) clamp(8px, 1.4cqi, 12px);
   border-radius: 8px;
   background: color-mix(in srgb, var(--app-accent) 8%, transparent);
   border: 1px solid color-mix(in srgb, var(--app-accent) 20%, transparent);
@@ -213,14 +226,14 @@
 /* Submit */
 .si-submit {
   width: 100%;
-  padding: 14px;
-  font-size: 13px;
+  padding: clamp(9px, 1.6cqi, 14px);
+  font-size: clamp(11px, 1.6cqi, 13px);
   font-weight: 600;
   letter-spacing: 0.04em;
   color: var(--app-text);
   background: var(--app-accent);
   border: none;
-  border-radius: 14px;
+  border-radius: clamp(8px, 1.6cqi, 14px);
   cursor: pointer;
   transition: opacity 150ms ease, transform 100ms ease;
   font-family: inherit;
@@ -238,18 +251,19 @@
 }
 .si-divider-line {
   position: absolute;
-  left: 0;
-  right: 0;
+  left: 0; right: 0;
   height: 1px;
   background: var(--app-border);
 }
 .si-divider-text {
   position: relative;
-  padding: 0 16px;
-  font-size: 12px;
+  padding: 0 clamp(8px, 1.6cqi, 16px);
+  font-size: clamp(10px, 1.4cqi, 12px);
   color: var(--app-muted);
-  background: var(--app-bg);
+  background: var(--app-panel);
 }
+/* In compact mode the card has transparent bg, match viewport bg */
+.si-card--compact .si-divider-text { background: var(--app-bg); }
 
 /* Google button */
 .si-google {
@@ -257,17 +271,22 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
-  padding: 14px;
-  font-size: 13px;
+  gap: clamp(6px, 1.2cqi, 10px);
+  padding: clamp(9px, 1.6cqi, 14px);
+  font-size: clamp(11px, 1.6cqi, 13px);
   font-weight: 500;
   color: var(--app-text);
   background: transparent;
   border: 1px solid var(--app-border);
-  border-radius: 14px;
+  border-radius: clamp(8px, 1.6cqi, 14px);
   cursor: pointer;
   transition: background 150ms ease, border-color 150ms ease;
   font-family: inherit;
+}
+.si-google-svg {
+  width: clamp(14px, 2.2cqi, 20px);
+  height: clamp(14px, 2.2cqi, 20px);
+  flex-shrink: 0;
 }
 .si-google:hover {
   background: color-mix(in srgb, var(--app-text) 5%, transparent);
@@ -278,7 +297,7 @@
 /* Mode switch */
 .si-switch {
   text-align: center;
-  font-size: 13px;
+  font-size: clamp(10px, 1.5cqi, 13px);
   color: var(--app-muted);
   margin: 0;
 }
@@ -293,18 +312,18 @@
 }
 .si-switch-link:hover { opacity: 0.8; text-decoration: underline; }
 
-/* Local mode button */
+/* Local mode */
 .si-local {
   width: 100%;
-  padding: 12px;
-  font-size: 11px;
+  padding: clamp(8px, 1.4cqi, 12px);
+  font-size: clamp(9px, 1.3cqi, 11px);
   font-weight: 600;
   letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--app-muted);
   background: none;
   border: 1px dashed color-mix(in srgb, var(--app-border) 70%, transparent);
-  border-radius: 14px;
+  border-radius: clamp(8px, 1.6cqi, 14px);
   cursor: pointer;
   transition: color 150ms ease, border-color 150ms ease, background 150ms ease;
   font-family: inherit;
@@ -315,56 +334,67 @@
   background: color-mix(in srgb, var(--app-text) 3%, transparent);
 }
 
-/* Hero column */
+/* ── Hero column ── */
 .si-hero-col {
   flex: 1;
   position: relative;
-  padding: 16px;
+  padding: clamp(8px, 1.2cqi, 16px);
   display: none;
-}
-@media (min-width: 768px) {
-  .si-hero-col { display: block; }
 }
 .si-hero-img {
   position: absolute;
-  inset: 16px;
-  border-radius: 20px;
+  inset: clamp(8px, 1.2cqi, 16px);
+  border-radius: clamp(10px, 1.8cqi, 20px);
   background-size: cover;
   background-position: center;
 }
 .si-hero-overlay {
   position: absolute;
-  inset: 16px;
-  border-radius: 20px;
-  background: linear-gradient(180deg, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.5) 100%);
+  inset: clamp(8px, 1.2cqi, 16px);
+  border-radius: clamp(10px, 1.8cqi, 20px);
+  background: linear-gradient(180deg, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.55) 100%);
   pointer-events: none;
 }
 .si-hero-brand {
   position: absolute;
-  bottom: 48px;
-  left: 48px;
+  bottom: clamp(20px, 4cqi, 48px);
+  left: clamp(20px, 4cqi, 48px);
   z-index: 1;
 }
 .si-hero-brand-text {
-  font-size: 24px;
+  font-size: clamp(14px, 3cqi, 24px);
   font-weight: 700;
   letter-spacing: 0.2em;
   color: #fff;
   text-shadow: 0 2px 12px rgba(0,0,0,0.4);
 }
 .si-hero-brand-sub {
-  font-size: 13px;
+  font-size: clamp(10px, 1.6cqi, 13px);
   color: rgba(255,255,255,0.7);
-  margin-top: 4px;
+  margin-top: clamp(2px, 0.4cqi, 4px);
   letter-spacing: 0.04em;
 }
 
-/* Compact mode adjustments */
-.si-shell--compact .si-form-col {
-  padding: 16px;
+/* Show hero on wider cards (container query) */
+@container si-card (min-width: 640px) {
+  .si-hero-col { display: block; }
 }
-.si-shell--compact .si-title {
-  font-size: 24px;
+
+/* ── Responsive: small screens fill more space ── */
+@media (max-width: 900px) {
+  .si-card {
+    width: 92%;
+    height: min(88vh, 760px);
+  }
+}
+@media (max-width: 560px) {
+  .si-viewport { padding: 0; }
+  .si-card {
+    width: 100%;
+    height: 100dvh;
+    border-radius: 0;
+    border: none;
+  }
 }
 
 /* ── Interface Hint System ─────────────────────────────────────────────────── */
