@@ -164,7 +164,6 @@ export const SignInPage: React.FC<SignInPageProps> = ({
             ) : (
               <div className="si-success si-anim si-anim-d1">
                 <div className="si-success-icon"><Check /></div>
-                <div className="si-success-bar"><div className="si-success-bar-fill" /></div>
               </div>
             )}
           </div>

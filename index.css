@@ -44,7 +44,7 @@
   position: relative;
   width: 70%;
   max-width: 1060px;
-  height: min(82vh, 700px);
+  height: min(82vh, 660px);
   border-radius: clamp(12px, 1.4vw, 22px);
   overflow: hidden;
   color: var(--app-text);
@@ -99,7 +99,7 @@
   z-index: 2;
   background: linear-gradient(
     90deg,
-    rgba(0,0,0,0.82) 0%,
+    rgba(0,0,0,0.85) 0%,
     rgba(0,0,0,0.6) 45%,
     rgba(0,0,0,0.2) 100%
   );
@@ -174,6 +174,10 @@
 .si-panel-inner button,
 .si-panel-inner label {
   text-transform: none;
+}
+.si-panel-inner button,
+.si-panel-inner input {
+  font-family: inherit;
 }
 .si-panel-inner .si-brand,
 .si-panel-inner .si-label,
@@ -395,7 +399,7 @@
   font-weight: 600;
   letter-spacing: 0.02em;
   color: var(--app-bg);
-  background: var(--app-accent);
+  background: color-mix(in srgb, var(--app-accent) 20%, var(--app-text));
   border: none;
   border-radius: clamp(8px, 1.4cqi, 12px);
   cursor: pointer;
@@ -404,7 +408,7 @@
 }
 .si-btn-primary svg { width: clamp(12px, 1.8cqi, 16px); height: clamp(12px, 1.8cqi, 16px); }
 .si-btn-primary:hover {
-  filter: brightness(1.1);
+  filter: brightness(1.15);
   box-shadow: 0 4px 16px color-mix(in srgb, var(--app-accent) 30%, transparent);
 }
 .si-btn-primary:active { transform: scale(0.98); }
@@ -427,6 +431,8 @@
   opacity: 0.6;
   text-transform: lowercase;
   letter-spacing: 0.06em;
+  background: color-mix(in srgb, var(--app-bg) 72%, transparent);
+  padding: 0 6px;
 }
 
 /* Google */
@@ -553,7 +559,7 @@
 .si-card--compact {
   width: 100%;
   max-width: none;
-  height: 100%;
+  height: auto;
   border-radius: 0;
   border: none;
   box-shadow: none;

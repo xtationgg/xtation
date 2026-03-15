@@ -91,30 +91,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const signInWithGoogle = async () => {
     setError(null);
     const redirectTo = `${window.location.origin}/auth/callback`;
-    const { data, error: signInError } = await supabase.auth.signInWithOAuth({
+    const { error: signInError } = await supabase.auth.signInWithOAuth({
       provider: 'google',
-      options: {
-        redirectTo,
-        skipBrowserRedirect: true,
-        queryParams: { prompt: 'select_account' },
-      },
+      options: { redirectTo },
     });
     if (signInError) {
       setError(signInError.message);
-      console.error('[auth] Google login failed:', signInError.message);
-      return;
-    }
-    // Open Google OAuth in a popup window
-    if (data?.url) {
-      const w = 500;
-      const h = 620;
-      const left = Math.round(window.screenX + (window.outerWidth - w) / 2);
-      const top = Math.round(window.screenY + (window.outerHeight - h) / 2);
-      window.open(
-        data.url,
-        'xtation-google-auth',
-        `width=${w},height=${h},left=${left},top=${top},popup=yes`
-      );
     }
   };
 
