@@ -107,8 +107,8 @@ const PillButton: React.FC<{
     onClick={onClick}
     className={`${panelButton} ${
       active
-        ? 'border-[var(--app-accent)] bg-[color-mix(in_srgb,var(--app-accent)_18%,transparent)] text-[var(--app-text)]'
-        : 'border-[var(--app-border)] text-[var(--app-muted)] hover:border-[var(--app-accent)] hover:text-[var(--app-text)]'
+        ? 'border-[var(--app-accent)] bg-[var(--app-accent)] text-[var(--app-bg)] font-bold'
+        : 'border-[color-mix(in_srgb,var(--app-text)_12%,transparent)] text-[var(--app-muted)] hover:border-[var(--app-accent)] hover:text-[var(--app-text)]'
     }`}
   >
     {children}
@@ -490,7 +490,7 @@ export const Admin: React.FC<AdminProps> = ({ onChangeView }) => {
             <div className="flex flex-col gap-5">
 
               {/* Station Status */}
-              <div className="border border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] border-t-2 border-t-[var(--app-accent)]">
+              <div className="border border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] border-t-2 border-t-[var(--app-accent)] bg-[color-mix(in_srgb,var(--app-text)_2%,transparent)]">
                 <div className="px-5 pt-4 pb-1">
                   <div className="text-[10px] font-bold uppercase tracking-[0.24em] text-[var(--app-accent)]">Station Status</div>
                 </div>
@@ -514,22 +514,22 @@ export const Admin: React.FC<AdminProps> = ({ onChangeView }) => {
               </div>
 
               {/* Surface Snapshot */}
-              <div className="border border-[color-mix(in_srgb,var(--app-text)_10%,transparent)]">
+              <div className="border border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-[color-mix(in_srgb,var(--app-text)_2%,transparent)]">
                 <div className="px-5 pt-4 pb-1">
                   <div className="text-[10px] font-bold uppercase tracking-[0.24em] text-[var(--app-muted)]">Surface Snapshot</div>
                 </div>
-                <div className="px-5 pb-4 grid gap-0 sm:grid-cols-3">
+                <div className="px-5 pb-4 grid gap-0 sm:grid-cols-2 lg:grid-cols-3">
                   {[
                     { label: 'Theme', value: `${theme} / ${accent}` },
                     { label: 'Level', value: `Lv.${stats.playerLevel} · ${stats.totalEarnedXP} XP` },
-                    { label: 'Data', value: `${tasks.length} quests · ${sessions.length} sessions` },
-                    { label: 'Unlocks', value: `${settings.unlocks.activeWidgetIds.length} widgets · ${settings.unlocks.activeLabModuleIds.length} modules` },
-                    { label: 'Features', value: `Lab ${settings.features.labEnabled ? '\u2713' : '\u2717'}  MP ${settings.features.multiplayerEnabled ? '\u2713' : '\u2717'}  Store ${settings.features.storeEnabled ? '\u2713' : '\u2717'}` },
+                    { label: 'Data', value: `${tasks.length}Q · ${sessions.length}S` },
+                    { label: 'Unlocks', value: `${settings.unlocks.activeWidgetIds.length}W · ${settings.unlocks.activeLabModuleIds.length}M` },
+                    { label: 'Features', value: `Lab ${settings.features.labEnabled ? '\u2713' : '\u2717'} MP ${settings.features.multiplayerEnabled ? '\u2713' : '\u2717'} Store ${settings.features.storeEnabled ? '\u2713' : '\u2717'}` },
                     { label: 'Sync', value: `${syncStatus} / ${authStatus}` },
                   ].map(({ label, value }) => (
-                    <div key={label} className="flex items-center justify-between gap-3 py-2.5 border-b border-[color-mix(in_srgb,var(--app-text)_5%,transparent)] last:border-0">
-                      <span className="text-[11px] uppercase tracking-[0.1em] text-[var(--app-muted)]">{label}</span>
-                      <span className="text-[13px] font-medium text-[var(--app-text)] text-right">{value}</span>
+                    <div key={label} className="flex flex-col gap-1 py-3 px-1 border-b border-[color-mix(in_srgb,var(--app-text)_5%,transparent)]">
+                      <span className="text-[10px] uppercase tracking-[0.14em] text-[var(--app-muted)]">{label}</span>
+                      <span className="text-[13px] font-medium text-[var(--app-text)]">{value}</span>
                     </div>
                   ))}
                 </div>
@@ -537,7 +537,7 @@ export const Admin: React.FC<AdminProps> = ({ onChangeView }) => {
             </div>
 
             {/* Right: Audit feed */}
-            <div className="border border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] border-t-2 border-t-[color-mix(in_srgb,var(--app-text)_18%,transparent)]">
+            <div className="border border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] border-t-2 border-t-[color-mix(in_srgb,var(--app-text)_18%,transparent)] bg-[color-mix(in_srgb,var(--app-text)_2%,transparent)]">
               <div className="px-5 pt-4 pb-1">
                 <div className="text-[10px] font-bold uppercase tracking-[0.24em] text-[var(--app-muted)]">Audit Trail</div>
               </div>
@@ -563,34 +563,37 @@ export const Admin: React.FC<AdminProps> = ({ onChangeView }) => {
         {activeTab === 'rollout' ? (
           <div className="grid gap-5 xl:grid-cols-[320px_1fr]">
             {/* Station list */}
-            <div className="border border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] border-t-2 border-t-[var(--app-accent)]">
+            <div className="border border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] border-t-2 border-t-[var(--app-accent)] bg-[color-mix(in_srgb,var(--app-text)_2%,transparent)]">
               <div className="px-5 pt-4 pb-2">
                 <div className="text-[10px] font-bold uppercase tracking-[0.24em] text-[var(--app-accent)]">Managed Stations</div>
               </div>
-              <div className="px-2 pb-2">
-                {stations.map((station) => (
-                  <button
-                    key={station.id}
-                    type="button"
-                    onClick={() => setSelectedStationId(station.id)}
-                    className={`w-full text-left px-4 py-3 transition-colors border-l-2 ${
-                      station.id === selectedStation.id
-                        ? 'border-l-[var(--app-accent)] bg-[color-mix(in_srgb,var(--app-accent)_8%,transparent)]'
-                        : 'border-l-transparent hover:bg-[color-mix(in_srgb,var(--app-text)_3%,transparent)]'
-                    }`}
-                  >
-                    <div className="text-[13px] font-semibold text-[var(--app-text)]">{station.label}</div>
-                    <div className="text-[10px] uppercase tracking-[0.1em] text-[var(--app-muted)] mt-0.5">
-                      {station.kind.replace('-', ' ')} · {station.releaseChannel} · {station.plan}
-                    </div>
-                    {station.email ? <div className="text-[11px] text-[var(--app-muted)] mt-0.5">{station.email}</div> : null}
-                  </button>
-                ))}
+              <div className="pb-2">
+                {stations.map((station) => {
+                  const isSel = station.id === selectedStation.id;
+                  return (
+                    <button
+                      key={station.id}
+                      type="button"
+                      onClick={() => setSelectedStationId(station.id)}
+                      className={`w-full text-left px-4 py-3 transition-all border-l-3 ${
+                        isSel
+                          ? 'border-l-[var(--app-accent)] bg-[color-mix(in_srgb,var(--app-text)_10%,transparent)]'
+                          : 'border-l-transparent hover:bg-[color-mix(in_srgb,var(--app-text)_4%,transparent)] opacity-60 hover:opacity-90'
+                      }`}
+                    >
+                      <div className={`text-[13px] font-semibold ${isSel ? 'text-[var(--app-text)]' : 'text-[var(--app-muted)]'}`}>{station.label}</div>
+                      <div className="text-[10px] uppercase tracking-[0.1em] text-[var(--app-muted)] mt-0.5">
+                        {station.kind.replace('-', ' ')} · {station.releaseChannel} · {station.plan}
+                      </div>
+                      {station.email ? <div className="text-[11px] text-[var(--app-muted)] mt-0.5">{station.email}</div> : null}
+                    </button>
+                  );
+                })}
               </div>
             </div>
 
             {/* Controls */}
-            <div className="border border-[color-mix(in_srgb,var(--app-text)_10%,transparent)]">
+            <div className="border border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-[color-mix(in_srgb,var(--app-text)_2%,transparent)]">
               <div className="px-5 pt-4 pb-2">
                 <div className="flex items-center justify-between">
                   <div className="text-[10px] font-bold uppercase tracking-[0.24em] text-[var(--app-muted)]">Rollout Controls</div>
@@ -658,14 +661,14 @@ export const Admin: React.FC<AdminProps> = ({ onChangeView }) => {
                         key={flag}
                         type="button"
                         onClick={() => toggleFeatureFlag(selectedStation.id, flag)}
-                        className={`flex items-center justify-between px-4 py-2.5 text-left transition-colors border ${
+                        className={`flex items-center justify-between px-4 py-2.5 text-left transition-all border ${
                           enabled
-                            ? 'border-[var(--app-accent)] bg-[color-mix(in_srgb,var(--app-accent)_8%,transparent)]'
-                            : 'border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] hover:border-[color-mix(in_srgb,var(--app-text)_18%,transparent)]'
+                            ? 'border-[var(--app-accent)] bg-[color-mix(in_srgb,var(--app-accent)_14%,transparent)]'
+                            : 'border-[color-mix(in_srgb,var(--app-text)_8%,transparent)] opacity-50 hover:opacity-80'
                         }`}
                       >
-                        <span className="text-[13px] font-medium text-[var(--app-text)]">{flag}</span>
-                        <span className={`text-[9px] uppercase tracking-[0.12em] ${enabled ? 'text-[var(--app-accent)]' : 'text-[var(--app-muted)]'}`}>
+                        <span className={`text-[13px] font-medium ${enabled ? 'text-[var(--app-text)]' : 'text-[var(--app-muted)]'}`}>{flag}</span>
+                        <span className={`text-[9px] font-bold uppercase tracking-[0.12em] ${enabled ? 'text-[var(--app-accent)]' : 'text-[var(--app-muted)]'}`}>
                           {enabled ? 'On' : 'Off'}
                         </span>
                       </button>
@@ -687,14 +690,14 @@ export const Admin: React.FC<AdminProps> = ({ onChangeView }) => {
                           key={key}
                           type="button"
                           onClick={() => setFeatureEnabled(key as 'labEnabled' | 'multiplayerEnabled' | 'storeEnabled', !settings.features[key as 'labEnabled' | 'multiplayerEnabled' | 'storeEnabled'])}
-                          className={`flex items-center justify-between px-4 py-2.5 text-left transition-colors border ${
+                          className={`flex items-center justify-between px-4 py-2.5 text-left transition-all border ${
                             settings.features[key as 'labEnabled' | 'multiplayerEnabled' | 'storeEnabled']
-                              ? 'border-[var(--app-accent)] bg-[color-mix(in_srgb,var(--app-accent)_8%,transparent)]'
-                              : 'border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] hover:border-[color-mix(in_srgb,var(--app-text)_18%,transparent)]'
+                              ? 'border-[var(--app-accent)] bg-[color-mix(in_srgb,var(--app-accent)_14%,transparent)]'
+                              : 'border-[color-mix(in_srgb,var(--app-text)_8%,transparent)] opacity-50 hover:opacity-80'
                           }`}
                         >
-                          <span className="text-[13px] font-medium text-[var(--app-text)]">{label}</span>
-                          <span className={`text-[9px] uppercase tracking-[0.12em] ${settings.features[key as 'labEnabled' | 'multiplayerEnabled' | 'storeEnabled'] ? 'text-[var(--app-accent)]' : 'text-[var(--app-muted)]'}`}>
+                          <span className={`text-[13px] font-medium ${settings.features[key as 'labEnabled' | 'multiplayerEnabled' | 'storeEnabled'] ? 'text-[var(--app-text)]' : 'text-[var(--app-muted)]'}`}>{label}</span>
+                          <span className={`text-[9px] font-bold uppercase tracking-[0.12em] ${settings.features[key as 'labEnabled' | 'multiplayerEnabled' | 'storeEnabled'] ? 'text-[var(--app-accent)]' : 'text-[var(--app-muted)]'}`}>
                             {settings.features[key as 'labEnabled' | 'multiplayerEnabled' | 'storeEnabled'] ? 'Visible' : 'Hidden'}
                           </span>
                         </button>
