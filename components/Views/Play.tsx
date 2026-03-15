@@ -949,6 +949,53 @@ export const Play: React.FC<PlayProps> = ({
             taskTodayMsMap={taskTodayMsMap}
           />
         )}
+        {activeSpace === 'mission' && (
+          <div className="pm-mission-view">
+            {activeSession && activeSessionQuest ? (
+              <>
+                <div className="pm-mv-status">{activeSession.status === 'paused' ? 'PAUSED' : 'LIVE SESSION'}</div>
+                <h2 className="pm-mv-title">{activeSessionQuest.title}</h2>
+                <div className="pm-mv-timer">{(() => {
+                  const s = sessionElapsedSeconds;
+                  const h = Math.floor(s / 3600);
+                  const m = Math.floor((s % 3600) / 60);
+                  const sec = s % 60;
+                  return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;
+                })()}</div>
+                <div className="pm-mv-meta">
+                  {activeSessionQuest.questType ? <span className="pm-mv-tag">{activeSessionQuest.questType}</span> : null}
+                  {activeSessionQuest.level ? <span className="pm-mv-tag pm-mv-tag--accent">L{activeSessionQuest.level}</span> : null}
+                  {activeSessionQuest.selfTreePrimary ? <span className="pm-mv-tag">{activeSessionQuest.selfTreePrimary}</span> : null}
+                </div>
+                {parseQuestNotesAndSteps(activeSessionQuest.details).steps.length > 0 ? (
+                  <div className="pm-mv-steps">
+                    <div className="pm-mv-steps-head">Objectives</div>
+                    {parseQuestNotesAndSteps(activeSessionQuest.details).steps.map((step, i) => (
+                      <div key={i} className={`pm-mv-step ${step.done ? 'pm-mv-step--done' : ''}`}>
+                        <span className="pm-mv-step-check">{step.done ? '\u2713' : ''}</span>
+                        <span>{step.text}</span>
+                      </div>
+                    ))}
+                  </div>
+                ) : null}
+                <div className="pm-mv-actions">
+                  <button type="button" className="pm-mv-btn pm-mv-btn--primary" onClick={activeSession.status === 'paused' ? handleRunSelectedQuest : () => pauseSession()}>
+                    {activeSession.status === 'paused' ? 'Resume' : 'Pause'}
+                  </button>
+                  <button type="button" className="pm-mv-btn pm-mv-btn--success" onClick={handleCompleteSelectedQuest}>Complete</button>
+                  <button type="button" className="pm-mv-btn" onClick={() => openEditQuest(activeSessionQuest.id)}>Edit</button>
+                </div>
+              </>
+            ) : (
+              <div className="pm-mv-empty">
+                <div className="pm-mv-empty-icon"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></div>
+                <div className="pm-mv-empty-title">No active mission</div>
+                <div className="pm-mv-empty-sub">Start a quest from the Vault to see your live session here</div>
+                <button type="button" className="pm-mv-btn pm-mv-btn--primary" onClick={() => setActiveSpace('vault')}>Open Vault</button>
+              </div>
+            )}
+          </div>
+        )}
         {activeSpace === 'process' && (
           <div className="play-empty-state">
             <div className="play-empty-state__title">Process</div>

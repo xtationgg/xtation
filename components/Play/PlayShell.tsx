@@ -1,9 +1,12 @@
 import React from 'react';
 import { SessionBanner } from './shared/SessionBanner';
-import { Archive, Activity, ChevronLeft, Swords, Clock, CheckCircle2, Zap, Radio } from 'lucide-react';
+import {
+  Archive, Activity, ChevronLeft, Swords, Clock,
+  CheckCircle2, Zap, Radio, Crosshair, Pause, Play,
+} from 'lucide-react';
 import { DirectionAwareHover } from '../UI/direction-aware-hover';
 
-export type PlaySpace = 'home' | 'process' | 'vault';
+export type PlaySpace = 'home' | 'process' | 'vault' | 'mission';
 
 export interface VaultSummary {
   totalQuests: number;
@@ -42,25 +45,26 @@ const formatTotalTime = (ms: number): string => {
   return `${totalMin}m`;
 };
 
+const formatElapsed = (seconds: number): string => {
+  const h = Math.floor(seconds / 3600);
+  const m = Math.floor((seconds % 3600) / 60);
+  const s = seconds % 60;
+  if (h > 0) return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+  return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+};
+
+const SPACE_LABELS: Record<string, string> = {
+  vault: 'Vault',
+  process: 'Process',
+  mission: 'Active Mission',
+};
+
 export const PlayShell: React.FC<PlayShellProps> = ({
   children, activeSpace, onSwitchSpace, vaultSummary,
-  sessionActive, sessionQuestTitle, sessionElapsed, sessionPaused,
+  sessionActive, sessionQuestTitle, sessionElapsed = 0, sessionPaused,
   onSessionPause, onSessionEnd, onEnterFocus,
 }) => (
   <div className="play-shell">
-    {sessionActive && sessionQuestTitle && onSessionPause && onSessionEnd && onEnterFocus ? (
-      <div className="play-hud-strip">
-        <SessionBanner
-          questTitle={sessionQuestTitle}
-          elapsedSeconds={sessionElapsed || 0}
-          isPaused={sessionPaused || false}
-          onPause={onSessionPause}
-          onEnd={onSessionEnd}
-          onEnterFocus={onEnterFocus}
-        />
-      </div>
-    ) : null}
-
     {activeSpace === 'home' ? (
       <div className="pm-select">
         <div className="pm-header">
@@ -69,6 +73,58 @@ export const PlayShell: React.FC<PlayShellProps> = ({
         </div>
 
         <div className="pm-cards">
+          {/* Active Mission */}
+          <DirectionAwareHover
+            imageUrl="https://images.unsplash.com/photo-1534996858221-380b92700493?w=1200&q=80"
+            className={`pm-card pm-card--mission ${sessionActive ? 'pm-card--live' : ''}`}
+            childrenClassName="pm-card-content"
+            onClick={() => onSwitchSpace('mission')}
+          >
+            <div className="pm-card-inner">
+              <div className="pm-card-icon pm-card-icon--mission">
+                <Crosshair size={28} />
+              </div>
+              <h2 className="pm-card-title">
+                {sessionActive ? sessionQuestTitle || 'Active Mission' : 'Mission'}
+              </h2>
+              <p className="pm-card-desc">
+                {sessionActive
+                  ? 'Live session in progress'
+                  : 'Current quest focus & session HUD'}
+              </p>
+
+              {sessionActive ? (
+                <div className="pm-card-stats">
+                  <div className="pm-stat">
+                    <Clock size={12} />
+                    <span className="pm-stat-val pm-stat-val--mono">{formatElapsed(sessionElapsed)}</span>
+                    <span className="pm-stat-lbl">Elapsed</span>
+                  </div>
+                  <div className="pm-stat">
+                    <Radio size={12} />
+                    <span className="pm-stat-val">{sessionPaused ? 'Paused' : 'Live'}</span>
+                    <span className="pm-stat-lbl">Status</span>
+                  </div>
+                </div>
+              ) : (
+                <div className="pm-card-stats pm-card-stats--muted">
+                  <div className="pm-stat">
+                    <Crosshair size={12} />
+                    <span className="pm-stat-val">--</span>
+                    <span className="pm-stat-lbl">No session</span>
+                  </div>
+                </div>
+              )}
+
+              {sessionActive ? (
+                <div className="pm-card-live">
+                  <Radio size={10} />
+                  <span>{sessionPaused ? 'PAUSED' : 'LIVE'}</span>
+                </div>
+              ) : null}
+            </div>
+          </DirectionAwareHover>
+
           {/* Vault */}
           <DirectionAwareHover
             imageUrl="https://images.unsplash.com/photo-1614854262318-831574f15f1f?w=1200&q=80"
@@ -155,8 +211,21 @@ export const PlayShell: React.FC<PlayShellProps> = ({
             <span>Play</span>
           </button>
           <span className="play-header-space-label">
-            {activeSpace === 'vault' ? 'Vault' : 'Process'}
+            {SPACE_LABELS[activeSpace] || activeSpace}
           </span>
+          {/* Session banner in non-home views */}
+          {sessionActive && sessionQuestTitle && onSessionPause && onSessionEnd && onEnterFocus ? (
+            <div className="play-header-session">
+              <SessionBanner
+                questTitle={sessionQuestTitle}
+                elapsedSeconds={sessionElapsed}
+                isPaused={sessionPaused || false}
+                onPause={onSessionPause}
+                onEnd={onSessionEnd}
+                onEnterFocus={onEnterFocus}
+              />
+            </div>
+          ) : null}
         </div>
         <div className="play-content">
           {children}
