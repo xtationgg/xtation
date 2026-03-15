@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { SessionBanner } from './shared/SessionBanner';
 import {
   Archive, Activity, ChevronLeft, Swords, Clock,
-  CheckCircle2, Zap, Radio, Crosshair, Pause, Play,
+  CheckCircle2, Zap, Radio, Crosshair,
 } from 'lucide-react';
 import { DirectionAwareHover } from '../UI/direction-aware-hover';
+import { readPlayMediaConfig } from '../../src/admin/playMedia';
 
 export type PlaySpace = 'home' | 'process' | 'vault' | 'mission';
 
@@ -63,7 +64,10 @@ export const PlayShell: React.FC<PlayShellProps> = ({
   children, activeSpace, onSwitchSpace, vaultSummary,
   sessionActive, sessionQuestTitle, sessionElapsed = 0, sessionPaused,
   onSessionPause, onSessionEnd, onEnterFocus,
-}) => (
+}) => {
+  const playMediaConfig = useMemo(() => readPlayMediaConfig(), []);
+
+  return (
   <div className="play-shell">
     {activeSpace === 'home' ? (
       <div className="pm-select">
@@ -75,7 +79,7 @@ export const PlayShell: React.FC<PlayShellProps> = ({
         <div className="pm-cards">
           {/* Active Mission */}
           <DirectionAwareHover
-            imageUrl="https://images.unsplash.com/photo-1534996858221-380b92700493?w=1200&q=80"
+            imageUrl={playMediaConfig.missionImage}
             className={`pm-card pm-card--mission ${sessionActive ? 'pm-card--live' : ''}`}
             childrenClassName="pm-card-content"
             onClick={() => onSwitchSpace('mission')}
@@ -127,7 +131,7 @@ export const PlayShell: React.FC<PlayShellProps> = ({
 
           {/* Vault */}
           <DirectionAwareHover
-            imageUrl="https://images.unsplash.com/photo-1614854262318-831574f15f1f?w=1200&q=80"
+            imageUrl={playMediaConfig.vaultImage}
             className="pm-card"
             childrenClassName="pm-card-content"
             onClick={() => onSwitchSpace('vault')}
@@ -171,7 +175,7 @@ export const PlayShell: React.FC<PlayShellProps> = ({
 
           {/* Process */}
           <DirectionAwareHover
-            imageUrl="https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=1200&q=80"
+            imageUrl={playMediaConfig.processImage}
             className="pm-card pm-card--process"
             childrenClassName="pm-card-content"
             onClick={() => onSwitchSpace('process')}
@@ -233,4 +237,5 @@ export const PlayShell: React.FC<PlayShellProps> = ({
       </>
     )}
   </div>
-);
+  );
+};

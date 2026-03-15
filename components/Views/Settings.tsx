@@ -22,6 +22,12 @@ import {
     type SignInMediaConfig,
 } from '../../src/admin/signInMedia';
 import {
+    readPlayMediaConfig,
+    writePlayMediaConfig,
+    resetPlayMediaConfig,
+    type PlayMediaConfig,
+} from '../../src/admin/playMedia';
+import {
     CREATIVE_OPS_SYNC_EVENT,
     getCreativeSkinRuntimeLabel,
     getCreativeSoundPackLabel,
@@ -132,6 +138,7 @@ export const Settings: React.FC<SettingsProps> = ({
   const stationImportInputRef = useRef<HTMLInputElement | null>(null);
   const [creativeState, setCreativeState] = useState(() => readCreativeOpsStateSnapshot(activeUserId));
   const [signInMedia, setSignInMedia] = useState<SignInMediaConfig>(() => readSignInMediaConfig());
+  const [playMedia, setPlayMedia] = useState<PlayMediaConfig>(() => readPlayMediaConfig());
 
     const audioPreviewEvents: Array<{ label: string; eventName: string }> = [
         { label: 'UI', eventName: 'nav.section.profile.open' },
@@ -1344,6 +1351,88 @@ export const Settings: React.FC<SettingsProps> = ({
                                                 </div>
                                             ) : null}
                                         </div>
+                                    </div>
+                                </div>
+                            ) : null}
+
+                            {/* ── Play Section Media (admin only) ── */}
+                            {operatorAccess.allowed ? (
+                                <div className="rounded-[16px] border border-[var(--app-border)] bg-[var(--app-panel-2)] p-4 space-y-4">
+                                    <div className="flex items-center justify-between gap-3">
+                                        <div>
+                                            <div className="text-[10px] uppercase tracking-[0.2em] text-[var(--app-accent)]">Play Section Media</div>
+                                            <div className="mt-1 text-[10px] uppercase tracking-[0.14em] text-[var(--app-muted)]">
+                                                Card images for the 3 mode-select tabs and optional Play background.
+                                            </div>
+                                        </div>
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                playClickSound();
+                                                resetPlayMediaConfig();
+                                                setPlayMedia(readPlayMediaConfig());
+                                            }}
+                                            className="ui-pressable rounded-[var(--app-radius-sm)] border border-[var(--app-border)] px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.18em] text-[var(--app-muted)] transition-colors hover:border-[var(--app-accent)] hover:text-[var(--app-text)]"
+                                        >
+                                            Reset Defaults
+                                        </button>
+                                    </div>
+
+                                    <div className="grid gap-4 lg:grid-cols-3">
+                                        {([
+                                            { key: 'missionImage' as const, label: 'Mission Card' },
+                                            { key: 'vaultImage' as const, label: 'Vault Card' },
+                                            { key: 'processImage' as const, label: 'Process Card' },
+                                        ]).map(({ key, label }) => (
+                                            <div key={key} className="space-y-2">
+                                                <div className="text-[10px] uppercase tracking-[0.16em] text-[var(--app-text)]">{label}</div>
+                                                <input
+                                                    type="text"
+                                                    value={playMedia[key]}
+                                                    onChange={(e) => {
+                                                        const next = { ...playMedia, [key]: e.target.value };
+                                                        setPlayMedia(next);
+                                                        writePlayMediaConfig(next);
+                                                    }}
+                                                    placeholder="Image or video URL..."
+                                                    className="w-full rounded-[8px] border border-[var(--app-border)] bg-[var(--app-panel)] px-3 py-2 text-[12px] text-[var(--app-text)] outline-none focus:border-[var(--app-accent)]"
+                                                />
+                                                {playMedia[key] ? (
+                                                    <div className="relative aspect-video overflow-hidden rounded-[10px] border border-[var(--app-border)] bg-[var(--app-bg)]">
+                                                        {/\.(mp4|webm|ogg|mov)(\?|$)/i.test(playMedia[key]) ? (
+                                                            <video src={playMedia[key]} muted loop autoPlay playsInline className="h-full w-full object-cover" />
+                                                        ) : (
+                                                            <img src={playMedia[key]} alt={`${label} preview`} className="h-full w-full object-cover" />
+                                                        )}
+                                                    </div>
+                                                ) : null}
+                                            </div>
+                                        ))}
+                                    </div>
+
+                                    {/* Play background */}
+                                    <div className="space-y-2 border-t border-[var(--app-border)] pt-4">
+                                        <div className="text-[10px] uppercase tracking-[0.16em] text-[var(--app-text)]">Play Background (optional)</div>
+                                        <input
+                                            type="text"
+                                            value={playMedia.playBackground}
+                                            onChange={(e) => {
+                                                const next = { ...playMedia, playBackground: e.target.value };
+                                                setPlayMedia(next);
+                                                writePlayMediaConfig(next);
+                                            }}
+                                            placeholder="Custom background URL or CSS gradient..."
+                                            className="w-full rounded-[8px] border border-[var(--app-border)] bg-[var(--app-panel)] px-3 py-2 text-[12px] text-[var(--app-text)] outline-none focus:border-[var(--app-accent)]"
+                                        />
+                                        {playMedia.playBackground ? (
+                                            <div className="relative h-20 overflow-hidden rounded-[10px] border border-[var(--app-border)] bg-[var(--app-bg)]" style={{
+                                                backgroundImage: playMedia.playBackground.startsWith('linear-gradient') || playMedia.playBackground.startsWith('radial-gradient')
+                                                    ? playMedia.playBackground
+                                                    : `url(${playMedia.playBackground})`,
+                                                backgroundSize: 'cover',
+                                                backgroundPosition: 'center',
+                                            }} />
+                                        ) : null}
                                     </div>
                                 </div>
                             ) : null}
