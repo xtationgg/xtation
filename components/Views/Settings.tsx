@@ -15,6 +15,13 @@ import { ThemeSwitcher } from '../UI/ThemeSwitcher';
 import { useXP } from '../XP/xpStore';
 import { useAdminConsole } from '../../src/admin/AdminConsoleProvider';
 import {
+    readSignInMediaConfig,
+    writeSignInMediaConfig,
+    resetSignInMediaConfig,
+    SIGNIN_MEDIA_DEFAULTS,
+    type SignInMediaConfig,
+} from '../../src/admin/signInMedia';
+import {
     CREATIVE_OPS_SYNC_EVENT,
     getCreativeSkinRuntimeLabel,
     getCreativeSoundPackLabel,
@@ -124,6 +131,7 @@ export const Settings: React.FC<SettingsProps> = ({
   const [isImportReviewOpen, setIsImportReviewOpen] = useState(false);
   const stationImportInputRef = useRef<HTMLInputElement | null>(null);
   const [creativeState, setCreativeState] = useState(() => readCreativeOpsStateSnapshot(activeUserId));
+  const [signInMedia, setSignInMedia] = useState<SignInMediaConfig>(() => readSignInMediaConfig());
 
     const audioPreviewEvents: Array<{ label: string; eventName: string }> = [
         { label: 'UI', eventName: 'nav.section.profile.open' },
@@ -1263,6 +1271,83 @@ export const Settings: React.FC<SettingsProps> = ({
                                     {currentStation.plan}{currentStation.plan === 'trial' && stationTrialDays !== null ? ` • ${stationTrialDays}d` : ''}
                                 </span>
                             </div>
+                            {/* ── Sign-In Media (admin only) ── */}
+                            {operatorAccess.allowed ? (
+                                <div className="rounded-[16px] border border-[var(--app-border)] bg-[var(--app-panel-2)] p-4 space-y-4">
+                                    <div className="flex items-center justify-between gap-3">
+                                        <div>
+                                            <div className="text-[10px] uppercase tracking-[0.2em] text-[var(--app-accent)]">Sign-In Media</div>
+                                            <div className="mt-1 text-[10px] uppercase tracking-[0.14em] text-[var(--app-muted)]">
+                                                Configure the media displayed on the sign-in page. Supports images and videos.
+                                            </div>
+                                        </div>
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                playClickSound();
+                                                resetSignInMediaConfig();
+                                                setSignInMedia(readSignInMediaConfig());
+                                            }}
+                                            className="ui-pressable rounded-[var(--app-radius-sm)] border border-[var(--app-border)] px-3 py-1.5 text-[10px] font-semibold uppercase tracking-[0.18em] text-[var(--app-muted)] transition-colors hover:border-[var(--app-accent)] hover:text-[var(--app-text)]"
+                                        >
+                                            Reset to Default
+                                        </button>
+                                    </div>
+
+                                    <div className="grid gap-4 lg:grid-cols-2">
+                                        {/* Default media */}
+                                        <div className="space-y-2">
+                                            <div className="text-[10px] uppercase tracking-[0.16em] text-[var(--app-text)]">Default Media</div>
+                                            <input
+                                                type="text"
+                                                value={signInMedia.mediaSrc}
+                                                onChange={(e) => {
+                                                    const next = { ...signInMedia, mediaSrc: e.target.value };
+                                                    setSignInMedia(next);
+                                                    writeSignInMediaConfig(next);
+                                                }}
+                                                placeholder="Image or video URL..."
+                                                className="w-full rounded-[8px] border border-[var(--app-border)] bg-[var(--app-panel)] px-3 py-2 text-[12px] text-[var(--app-text)] outline-none focus:border-[var(--app-accent)]"
+                                            />
+                                            {signInMedia.mediaSrc ? (
+                                                <div className="relative aspect-video overflow-hidden rounded-[10px] border border-[var(--app-border)] bg-[var(--app-bg)]">
+                                                    {/\.(mp4|webm|ogg|mov)(\?|$)/i.test(signInMedia.mediaSrc) ? (
+                                                        <video src={signInMedia.mediaSrc} muted loop autoPlay playsInline className="h-full w-full object-cover" />
+                                                    ) : (
+                                                        <img src={signInMedia.mediaSrc} alt="Default preview" className="h-full w-full object-cover" />
+                                                    )}
+                                                </div>
+                                            ) : null}
+                                        </div>
+
+                                        {/* Success media */}
+                                        <div className="space-y-2">
+                                            <div className="text-[10px] uppercase tracking-[0.16em] text-[var(--app-text)]">Success Media</div>
+                                            <input
+                                                type="text"
+                                                value={signInMedia.mediaSuccessSrc}
+                                                onChange={(e) => {
+                                                    const next = { ...signInMedia, mediaSuccessSrc: e.target.value };
+                                                    setSignInMedia(next);
+                                                    writeSignInMediaConfig(next);
+                                                }}
+                                                placeholder="Image or video URL..."
+                                                className="w-full rounded-[8px] border border-[var(--app-border)] bg-[var(--app-panel)] px-3 py-2 text-[12px] text-[var(--app-text)] outline-none focus:border-[var(--app-accent)]"
+                                            />
+                                            {signInMedia.mediaSuccessSrc ? (
+                                                <div className="relative aspect-video overflow-hidden rounded-[10px] border border-[var(--app-border)] bg-[var(--app-bg)]">
+                                                    {/\.(mp4|webm|ogg|mov)(\?|$)/i.test(signInMedia.mediaSuccessSrc) ? (
+                                                        <video src={signInMedia.mediaSuccessSrc} muted loop autoPlay playsInline className="h-full w-full object-cover" />
+                                                    ) : (
+                                                        <img src={signInMedia.mediaSuccessSrc} alt="Success preview" className="h-full w-full object-cover" />
+                                                    )}
+                                                </div>
+                                            ) : null}
+                                        </div>
+                                    </div>
+                                </div>
+                            ) : null}
+
                             <div className="grid grid-cols-1 xl:grid-cols-4 gap-4">
                                 <div className={`${sectionCard} p-4`}>
                                     <div className="text-[10px] uppercase tracking-[0.2em] text-[var(--app-accent)]">{stationIdentity.modeLabel}</div>

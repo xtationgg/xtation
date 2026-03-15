@@ -1,8 +1,9 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { SignInPage } from '../ui/sign-in';
 import { useAuth } from '../../src/auth/AuthProvider';
 import { writeAuthTransitionSignal } from '../../src/auth/authTransitionSignal';
 import { playClickSound } from '../../utils/SoundEffects';
+import { readSignInMediaConfig } from '../../src/admin/signInMedia';
 
 interface WelcomeProps {
   onEnterLocalMode: () => void;
@@ -11,6 +12,7 @@ interface WelcomeProps {
 
 export const Welcome: React.FC<WelcomeProps> = ({ onEnterLocalMode }) => {
   const { error, signInWithGoogle, signUpWithPassword, signInWithPassword, requestPasswordReset } = useAuth();
+  const mediaConfig = useMemo(() => readSignInMediaConfig(), []);
   const [notice, setNotice] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -78,10 +80,8 @@ export const Welcome: React.FC<WelcomeProps> = ({ onEnterLocalMode }) => {
 
   return (
     <SignInPage
-      /* Default media — replace with your own image/video */
-      mediaSrc="https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=1920&q=80"
-      /* Success media — replace with your own image/video */
-      mediaSuccessSrc="https://images.unsplash.com/photo-1534996858221-380b92700493?w=1920&q=80"
+      mediaSrc={mediaConfig.mediaSrc}
+      mediaSuccessSrc={mediaConfig.mediaSuccessSrc}
       onSignIn={handleSignIn}
       onSignUp={handleSignUp}
       onGoogleSignIn={handleGoogleSignIn}
