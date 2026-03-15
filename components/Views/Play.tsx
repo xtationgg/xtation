@@ -4,7 +4,7 @@ import {
 } from 'lucide-react';
 import { QuestModal } from '../Play/QuestModal';
 import { QuestDebriefPanel } from '../Play/QuestDebriefPanel';
-import { PlayShell } from '../Play/PlayShell';
+import { PlayShell, type PlaySpace, type VaultSummary } from '../Play/PlayShell';
 import { VaultSpace } from '../Play/VaultSpace';
 import { useXP } from '../XP/xpStore';
 import type { Project, QuestLevel, SelfTreeBranch, Task } from '../XP/xpTypes';
@@ -842,8 +842,7 @@ export const Play: React.FC<PlayProps> = ({
   const playMode = selectedTaskRunning ? 'xt-ops--live' : selectedTask ? 'xt-ops--armed' : 'xt-ops--idle';
 
   // ── Play v2: space switcher ──
-  type PlaySpace = 'process' | 'vault';
-  const [activeSpace, setActiveSpace] = useState<PlaySpace>('vault');
+  const [activeSpace, setActiveSpace] = useState<PlaySpace>('home');
   const [focusActive, setFocusActive] = useState(false);
 
   // Session elapsed seconds (live timer for session banner)
@@ -873,6 +872,22 @@ export const Play: React.FC<PlayProps> = ({
     }
     return map;
   }, [orderedTasks, selectors, dateKey, now]);
+
+  // ── Vault summary for mode-select cards ──
+  const vaultSummary: VaultSummary = useMemo(() => {
+    const totalQuests = activeTasks.length;
+    const activeQuests = activeTasks.filter(t => t.status === 'active' || activeSessionTaskIds.has(t.id)).length;
+    const completedToday = completions.filter(c => c.dateKey === dateKey).length;
+    let totalTimeMs = 0;
+    for (const [, ms] of taskTodayMsMap) totalTimeMs += ms;
+    return {
+      totalQuests,
+      activeQuests,
+      completedToday,
+      totalTimeMs,
+      runningQuest: activeSessionQuest?.title ?? null,
+    };
+  }, [activeTasks, activeSessionTaskIds, completions, dateKey, taskTodayMsMap, activeSessionQuest]);
 
   return (
     <div className={`xt-ops-room ${playMode}`}>
@@ -912,6 +927,7 @@ export const Play: React.FC<PlayProps> = ({
       <PlayShell
         activeSpace={activeSpace}
         onSwitchSpace={setActiveSpace}
+        vaultSummary={vaultSummary}
         sessionActive={!!activeSession}
         sessionQuestTitle={activeSessionQuest?.title}
         sessionElapsed={sessionElapsedSeconds}
