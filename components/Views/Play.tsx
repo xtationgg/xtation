@@ -315,24 +315,20 @@ export const Play: React.FC<PlayProps> = ({
   }, [activeTasks, activeSessionTaskIds, now]);
 
   const categoryQuests = useMemo(() => {
-    const active = orderedTasks.filter(t => t.status !== 'done' && t.questType !== 'daily' && !t.projectId);
-    const routine = orderedTasks.filter(t => (t.questType as string) === 'daily' || (t.status !== 'done' && t.details?.includes('routine')));
-    const build = orderedTasks.filter(t => t.status !== 'done' && t.projectId);
+    const nonDone = orderedTasks.filter(t => t.status !== 'done');
+    const routine = nonDone.filter(t => t.questType === 'daily');
+    const routineIds = new Set(routine.map(t => t.id));
+    const build = nonDone.filter(t => t.projectId && !routineIds.has(t.id));
+    const buildIds = new Set(build.map(t => t.id));
+    const active = nonDone.filter(t => !routineIds.has(t.id) && !buildIds.has(t.id));
 
-    return {
-      active: active.length ? active : orderedTasks.filter(t => t.status !== 'done'),
-      routine,
-      build,
-    };
+    return { active, routine, build };
   }, [orderedTasks]);
 
   const handleCategorySwitch = useCallback((cat: PlayCategory) => {
     setActiveCategory(cat);
-    const newCategoryQuests = categoryQuests[cat];
-    if (selectedTaskId && !newCategoryQuests.find(t => t.id === selectedTaskId)) {
-      setSelectedTaskId(null);
-    }
-  }, [categoryQuests, selectedTaskId]);
+    setSelectedTaskId(null); // Always deselect when switching categories
+  }, []);
 
   const currentCategoryQuests = categoryQuests[activeCategory];
 
@@ -991,12 +987,15 @@ export const Play: React.FC<PlayProps> = ({
         {selectedTask ? (
           <div className="xt-play-hero">
             {/* Timer */}
-            {(selectedTaskTodayMs > 0 || selectedTaskRunning) ? (
+            {selectedTaskRunning ? (
               <div className="xt-play-hero-timer">
                 <div className="xt-play-hero-time">{formatDuration(selectedTaskTodayMs)}</div>
-                <div className="xt-play-hero-status">
-                  {selectedTaskRunning ? 'SESSION ACTIVE' : 'TRACKED TODAY'}
-                </div>
+                <div className="xt-play-hero-status">SESSION ACTIVE</div>
+              </div>
+            ) : selectedTaskTodayMs > 0 ? (
+              <div className="xt-play-hero-timer" style={{ opacity: 0.5 }}>
+                <div className="xt-play-hero-time" style={{ fontSize: '24px' }}>{formatDuration(selectedTaskTodayMs)}</div>
+                <div className="xt-play-hero-status" style={{ color: 'var(--app-muted)' }}>TRACKED TODAY</div>
               </div>
             ) : null}
 
