@@ -484,48 +484,52 @@ export const Admin: React.FC<AdminProps> = ({ onChangeView }) => {
 
         {/* ═══ OVERVIEW ═══ */}
         {activeTab === 'overview' ? (
-          <div className="grid gap-[1px] bg-[color-mix(in_srgb,var(--app-text)_6%,transparent)] xl:grid-cols-[1fr_300px]">
+          <div className="grid gap-5 xl:grid-cols-[1fr_340px]">
 
             {/* Left column */}
-            <div className="bg-[var(--app-bg)] flex flex-col">
+            <div className="flex flex-col gap-5">
 
               {/* Station Status */}
-              <div className="border-t-2 border-[var(--app-accent)] p-5">
-                <div className="text-[9px] font-bold uppercase tracking-[0.28em] text-[var(--app-accent)] mb-4">Station Status</div>
-                <div className="grid gap-0 divide-y divide-[color-mix(in_srgb,var(--app-text)_5%,transparent)]">
+              <div className="border border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] border-t-2 border-t-[var(--app-accent)]">
+                <div className="px-5 pt-4 pb-1">
+                  <div className="text-[10px] font-bold uppercase tracking-[0.24em] text-[var(--app-accent)]">Station Status</div>
+                </div>
+                <div className="px-5 pb-4">
                   {[
-                    { ok: access.allowed, label: 'ACCESS', value: access.source === 'env_allowlist' ? 'Allowlisted' : access.source === 'dev_preview' ? 'Dev preview' : 'Locked', meta: access.source.replace('_', ' ') },
-                    { ok: true, label: 'PLAN', value: `${currentStation.plan} / ${currentStation.releaseChannel}`, meta: formatRelativeDays(currentStation.trialEndsAt) },
-                    { ok: platformCloudEnabled, label: 'CLOUD', value: platformCloudEnabled ? platformSyncStatus.replace('_', ' ') : 'local only', meta: '' },
-                    { ok: cloudReadiness.level === 'ready' || cloudReadiness.level === 'partial', label: 'READINESS', value: cloudReadiness.level, meta: cloudReadiness.nextStep },
-                    { ok: !!operatorClaimState.role, label: 'JWT', value: operatorClaimState.role || 'none', meta: '' },
-                    { ok: !!latestBrief, label: 'DUSK', value: latestBrief ? latestBrief.title : 'No brief', meta: '' },
-                  ].map(({ ok, label, value, meta }) => (
-                    <div key={label} className="flex items-center gap-3 py-2.5 first:pt-0 last:pb-0">
+                    { ok: access.allowed, label: 'Access', value: access.source === 'env_allowlist' ? 'Allowlisted' : access.source === 'dev_preview' ? 'Dev preview' : 'Locked', meta: access.source.replace('_', ' ') },
+                    { ok: true, label: 'Plan', value: `${currentStation.plan} / ${currentStation.releaseChannel}`, meta: formatRelativeDays(currentStation.trialEndsAt) },
+                    { ok: platformCloudEnabled, label: 'Cloud', value: platformCloudEnabled ? platformSyncStatus.replace('_', ' ') : 'local only', meta: '' },
+                    { ok: cloudReadiness.level === 'ready' || cloudReadiness.level === 'partial', label: 'Readiness', value: cloudReadiness.level, meta: cloudReadiness.nextStep },
+                    { ok: !!operatorClaimState.role, label: 'JWT Role', value: operatorClaimState.role || 'none', meta: '' },
+                    { ok: !!latestBrief, label: 'Dusk Relay', value: latestBrief ? latestBrief.title : 'No active brief', meta: '' },
+                  ].map(({ ok, label, value, meta }, i, arr) => (
+                    <div key={label} className={`flex items-center gap-4 py-3 ${i < arr.length - 1 ? 'border-b border-[color-mix(in_srgb,var(--app-text)_7%,transparent)]' : ''}`}>
                       {dot(ok)}
-                      <span className="text-[9px] font-semibold uppercase tracking-[0.2em] text-[var(--app-muted)] w-20 flex-shrink-0">{label}</span>
-                      <span className="text-[12px] font-medium text-[var(--app-text)] truncate">{value}</span>
-                      {meta ? <span className="ml-auto text-[9px] uppercase tracking-[0.12em] text-[var(--app-muted)] flex-shrink-0">{meta}</span> : null}
+                      <span className="text-[11px] font-medium uppercase tracking-[0.12em] text-[var(--app-muted)] w-24 flex-shrink-0">{label}</span>
+                      <span className="text-[13px] font-semibold text-[var(--app-text)] truncate">{value}</span>
+                      {meta ? <span className="ml-auto text-[10px] uppercase tracking-[0.08em] text-[var(--app-muted)] flex-shrink-0">{meta}</span> : null}
                     </div>
                   ))}
                 </div>
               </div>
 
-              {/* Surface */}
-              <div className="border-t border-[color-mix(in_srgb,var(--app-text)_6%,transparent)] p-5">
-                <div className="text-[9px] font-bold uppercase tracking-[0.28em] text-[var(--app-muted)] mb-4">Surface Snapshot</div>
-                <div className="grid gap-x-6 gap-y-2 sm:grid-cols-3">
+              {/* Surface Snapshot */}
+              <div className="border border-[color-mix(in_srgb,var(--app-text)_10%,transparent)]">
+                <div className="px-5 pt-4 pb-1">
+                  <div className="text-[10px] font-bold uppercase tracking-[0.24em] text-[var(--app-muted)]">Surface Snapshot</div>
+                </div>
+                <div className="px-5 pb-4 grid gap-0 sm:grid-cols-3">
                   {[
                     { label: 'Theme', value: `${theme} / ${accent}` },
-                    { label: 'Level', value: `${stats.playerLevel} · ${stats.totalEarnedXP} XP` },
-                    { label: 'Data', value: `${tasks.length}Q · ${sessions.length}S` },
-                    { label: 'Unlocks', value: `${settings.unlocks.activeWidgetIds.length}W ${settings.unlocks.activeLabModuleIds.length}M` },
+                    { label: 'Level', value: `Lv.${stats.playerLevel} · ${stats.totalEarnedXP} XP` },
+                    { label: 'Data', value: `${tasks.length} quests · ${sessions.length} sessions` },
+                    { label: 'Unlocks', value: `${settings.unlocks.activeWidgetIds.length} widgets · ${settings.unlocks.activeLabModuleIds.length} modules` },
                     { label: 'Features', value: `Lab ${settings.features.labEnabled ? '\u2713' : '\u2717'}  MP ${settings.features.multiplayerEnabled ? '\u2713' : '\u2717'}  Store ${settings.features.storeEnabled ? '\u2713' : '\u2717'}` },
                     { label: 'Sync', value: `${syncStatus} / ${authStatus}` },
                   ].map(({ label, value }) => (
-                    <div key={label} className="flex items-center justify-between gap-2 py-1">
-                      <span className="text-[9px] uppercase tracking-[0.16em] text-[var(--app-muted)]">{label}</span>
-                      <span className="text-[11px] font-medium text-[var(--app-text)] text-right truncate">{value}</span>
+                    <div key={label} className="flex items-center justify-between gap-3 py-2.5 border-b border-[color-mix(in_srgb,var(--app-text)_5%,transparent)] last:border-0">
+                      <span className="text-[11px] uppercase tracking-[0.1em] text-[var(--app-muted)]">{label}</span>
+                      <span className="text-[13px] font-medium text-[var(--app-text)] text-right">{value}</span>
                     </div>
                   ))}
                 </div>
@@ -533,23 +537,25 @@ export const Admin: React.FC<AdminProps> = ({ onChangeView }) => {
             </div>
 
             {/* Right: Audit feed */}
-            <div className="bg-[var(--app-bg)] border-t-2 border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] p-5">
-              <div className="text-[9px] font-bold uppercase tracking-[0.28em] text-[var(--app-muted)] mb-4">Audit Trail</div>
-              {state.audit.length === 0 ? (
-                <div className="text-[11px] text-[var(--app-muted)] py-4 border border-dashed border-[color-mix(in_srgb,var(--app-text)_8%,transparent)] text-center">No actions yet</div>
-              ) : (
-                <div className="divide-y divide-[color-mix(in_srgb,var(--app-text)_5%,transparent)]">
-                  {state.audit.slice(0, 10).map((entry) => (
-                    <div key={entry.id} className="py-2 first:pt-0 last:pb-0">
-                      <div className="flex items-center justify-between gap-2">
-                        <span className="text-[11px] font-medium text-[var(--app-text)] truncate">{entry.summary}</span>
-                        <span className="text-[8px] uppercase tracking-[0.12em] text-[var(--app-muted)] flex-shrink-0 border border-[color-mix(in_srgb,var(--app-text)_8%,transparent)] px-1.5 py-0.5">{entry.scope}</span>
+            <div className="border border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] border-t-2 border-t-[color-mix(in_srgb,var(--app-text)_18%,transparent)]">
+              <div className="px-5 pt-4 pb-1">
+                <div className="text-[10px] font-bold uppercase tracking-[0.24em] text-[var(--app-muted)]">Audit Trail</div>
+              </div>
+              <div className="px-5 pb-4">
+                {state.audit.length === 0 ? (
+                  <div className="text-[12px] text-[var(--app-muted)] py-6 border border-dashed border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] text-center mt-2">No actions recorded yet</div>
+                ) : (
+                  state.audit.slice(0, 10).map((entry, i, arr) => (
+                    <div key={entry.id} className={`py-3 ${i < arr.length - 1 ? 'border-b border-[color-mix(in_srgb,var(--app-text)_7%,transparent)]' : ''}`}>
+                      <div className="flex items-start justify-between gap-3">
+                        <span className="text-[13px] font-medium text-[var(--app-text)]">{entry.summary}</span>
+                        <span className="text-[9px] uppercase tracking-[0.1em] text-[var(--app-muted)] flex-shrink-0 border border-[color-mix(in_srgb,var(--app-text)_12%,transparent)] px-2 py-0.5 mt-0.5">{entry.scope}</span>
                       </div>
-                      <div className="text-[9px] text-[var(--app-muted)] mt-0.5">{formatDateTime(entry.createdAt)}</div>
+                      <div className="text-[11px] text-[var(--app-muted)] mt-1">{formatDateTime(entry.createdAt)}</div>
                     </div>
-                  ))}
-                </div>
-              )}
+                  ))
+                )}
+              </div>
             </div>
           </div>
         ) : null}
