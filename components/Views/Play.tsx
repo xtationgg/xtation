@@ -942,27 +942,36 @@ export const Play: React.FC<PlayProps> = ({
 
         {/* 3 Category Tabs — floating in space */}
         <div className="xt-play-categories">
-          <button
+          <div
+            role="button"
+            tabIndex={0}
             className={`xt-play-cat ${activeCategory === 'active' ? 'is-active' : ''}`}
             onClick={() => handleCategorySwitch('active')}
+            onKeyDown={(e) => { if (e.key === 'Enter') handleCategorySwitch('active'); }}
           >
             <span className="xt-play-cat-label">Active</span>
             <span className="xt-play-cat-count">{categoryQuests.active.length} quests</span>
-          </button>
-          <button
+          </div>
+          <div
+            role="button"
+            tabIndex={0}
             className={`xt-play-cat ${activeCategory === 'routine' ? 'is-active' : ''}`}
             onClick={() => handleCategorySwitch('routine')}
+            onKeyDown={(e) => { if (e.key === 'Enter') handleCategorySwitch('routine'); }}
           >
             <span className="xt-play-cat-label">Routine</span>
             <span className="xt-play-cat-count">{categoryQuests.routine.length} habits</span>
-          </button>
-          <button
+          </div>
+          <div
+            role="button"
+            tabIndex={0}
             className={`xt-play-cat ${activeCategory === 'build' ? 'is-active' : ''}`}
             onClick={() => handleCategorySwitch('build')}
+            onKeyDown={(e) => { if (e.key === 'Enter') handleCategorySwitch('build'); }}
           >
             <span className="xt-play-cat-label">Build</span>
             <span className="xt-play-cat-count">{categoryQuests.build.length} projects</span>
-          </button>
+          </div>
         </div>
 
         {/* Quest list for selected category */}
