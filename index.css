@@ -1,3 +1,6 @@
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+@import "@fontsource-variable/geist";
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -4657,7 +4660,6 @@
   background: linear-gradient(180deg, rgba(16, 18, 24, 0.98), rgba(9, 11, 16, 0.98));
 }
 
-
 [data-theme='bureau'] .xt-profile-lobby-inner > div[style*="clipPath"] {
   background: color-mix(in srgb, var(--bureau-signal) 22%, transparent) !important;
 }
@@ -5860,7 +5862,6 @@
  *  10. Chips/tags — red border on hover
  */
 
-
 /* ═══════════════════════════════════════════════════════════════════════════
    SHELL — root container
    ═══════════════════════════════════════════════════════════════════════════ */
@@ -5911,7 +5912,6 @@
   row-gap: 10px;
   column-gap: 6vw;
 }
-
 
 /* ═══════════════════════════════════════════════════════════════════════════
    TOPBAR — category tabs (centered, red dot on active)
@@ -6009,7 +6009,6 @@
   background: var(--inv-accent-pink);
   padding: 1px 5px;
 }
-
 
 /* ═══════════════════════════════════════════════════════════════════════════
    LEFT PANEL — grid area
@@ -6136,7 +6135,6 @@
 }
 .xt-inv-search-clear:hover { opacity: 1; color: var(--inv-accent-pink); }
 
-
 /* ═══════════════════════════════════════════════════════════════════════════
    ITEM GRID — [#8] 5-column cards (more items visible)
    ═══════════════════════════════════════════════════════════════════════════ */
@@ -6147,7 +6145,6 @@
   background: transparent;
   counter-reset: inv-slot;                      /* ❌ keep */
 }
-
 
 /* ═══════════════════════════════════════════════════════════════════════════
    ITEM CARD — [#1] red left-edge on hover, [#3] stronger selected state
@@ -6511,7 +6508,6 @@
   background: var(--inv-card-bg);
   border-color: color-mix(in srgb, var(--app-accent) 20%, transparent);
 }
-
 
 /* ═══════════════════════════════════════════════════════════════════════════
    RIGHT PANEL — DETAILS
@@ -6952,7 +6948,6 @@
   gap: 5px;
 }
 
-
 /* ═══════════════════════════════════════════════════════════════════════════
    BOTTOM STATUS BAR — centered, scaled up
    ═══════════════════════════════════════════════════════════════════════════ */
@@ -7026,7 +7021,6 @@
   opacity: 0.5;
 }
 
-
 /* ═══════════════════════════════════════════════════════════════════════════
    VIEWER MODAL
    ═══════════════════════════════════════════════════════════════════════════ */
@@ -7072,7 +7066,6 @@
   max-height: 70vh;
   object-fit: contain;
 }
-
 
 /* ═══════════════════════════════════════════════════════════════════════════
    EFFECTS & UTILITIES
@@ -7155,7 +7148,6 @@
   background: var(--inv-details-bg);
   color: var(--inv-text-primary);
 }
-
 
 /* ── Capability loadout bar ──────────────────────────────────────────── */
 .xt-inv-loadout-bar {
@@ -17686,3 +17678,14 @@ a {
     width: 100%;
   }
 }
+
+@layer base {
+  :root { --background: oklch(1 0 0); --foreground: oklch(0.145 0 0); --card: oklch(1 0 0); --card-foreground: oklch(0.145 0 0); --popover: oklch(1 0 0); --popover-foreground: oklch(0.145 0 0); --primary: oklch(0.205 0 0); --primary-foreground: oklch(0.985 0 0); --secondary: oklch(0.97 0 0); --secondary-foreground: oklch(0.205 0 0); --muted: oklch(0.97 0 0); --muted-foreground: oklch(0.556 0 0); --accent: oklch(0.97 0 0); --accent-foreground: oklch(0.205 0 0); --destructive: oklch(0.577 0.245 27.325); --border: oklch(0.922 0 0); --input: oklch(0.922 0 0); --ring: oklch(0.708 0 0); --chart-1: oklch(0.809 0.105 251.813); --chart-2: oklch(0.623 0.214 259.815); --chart-3: oklch(0.546 0.245 262.881); --chart-4: oklch(0.488 0.243 264.376); --chart-5: oklch(0.424 0.199 265.638); --radius: 0.625rem; --sidebar: oklch(0.985 0 0); --sidebar-foreground: oklch(0.145 0 0); --sidebar-primary: oklch(0.205 0 0); --sidebar-primary-foreground: oklch(0.985 0 0); --sidebar-accent: oklch(0.97 0 0); --sidebar-accent-foreground: oklch(0.205 0 0); --sidebar-border: oklch(0.922 0 0); --sidebar-ring: oklch(0.708 0 0); }
+  .dark { --background: oklch(0.145 0 0); --foreground: oklch(0.985 0 0); --card: oklch(0.205 0 0); --card-foreground: oklch(0.985 0 0); --popover: oklch(0.205 0 0); --popover-foreground: oklch(0.985 0 0); --primary: oklch(0.922 0 0); --primary-foreground: oklch(0.205 0 0); --secondary: oklch(0.269 0 0); --secondary-foreground: oklch(0.985 0 0); --muted: oklch(0.269 0 0); --muted-foreground: oklch(0.708 0 0); --accent: oklch(0.269 0 0); --accent-foreground: oklch(0.985 0 0); --destructive: oklch(0.704 0.191 22.216); --border: oklch(1 0 0 / 10%); --input: oklch(1 0 0 / 15%); --ring: oklch(0.556 0 0); --chart-1: oklch(0.809 0.105 251.813); --chart-2: oklch(0.623 0.214 259.815); --chart-3: oklch(0.546 0.245 262.881); --chart-4: oklch(0.488 0.243 264.376); --chart-5: oklch(0.424 0.199 265.638); --sidebar: oklch(0.205 0 0); --sidebar-foreground: oklch(0.985 0 0); --sidebar-primary: oklch(0.488 0.243 264.376); --sidebar-primary-foreground: oklch(0.985 0 0); --sidebar-accent: oklch(0.269 0 0); --sidebar-accent-foreground: oklch(0.985 0 0); --sidebar-border: oklch(1 0 0 / 10%); --sidebar-ring: oklch(0.556 0 0); }
+  .theme { --font-sans: 'Geist Variable', sans-serif; }
+  * {
+    @apply border-border outline-ring/50; }
+  body {
+    @apply bg-background text-foreground; }
+  html {
+    @apply font-sans; } }

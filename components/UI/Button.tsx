@@ -1,53 +1,58 @@
-import React from 'react';
+import { Button as ButtonPrimitive } from "@base-ui/react/button"
+import { cva, type VariantProps } from "class-variance-authority"
 
-export type UIButtonVariant = 'primary' | 'secondary' | 'icon';
+import { cn } from "@/lib/utils"
 
-interface UIButtonProps {
-  children?: React.ReactNode;
-  variant?: UIButtonVariant;
-  leftIcon?: React.ReactNode;
-  onClick?: () => void;
-  disabled?: boolean;
-  active?: boolean;
-  className?: string;
-  title?: string;
+const buttonVariants = cva(
+  "group/button inline-flex shrink-0 items-center justify-center rounded-lg border border-transparent bg-clip-padding text-sm font-medium whitespace-nowrap transition-all outline-none select-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 active:translate-y-px disabled:pointer-events-none disabled:opacity-50 aria-invalid:border-destructive aria-invalid:ring-3 aria-invalid:ring-destructive/20 dark:aria-invalid:border-destructive/50 dark:aria-invalid:ring-destructive/40 [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4",
+  {
+    variants: {
+      variant: {
+        default: "bg-primary text-primary-foreground [a]:hover:bg-primary/80",
+        outline:
+          "border-border bg-background hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground dark:border-input dark:bg-input/30 dark:hover:bg-input/50",
+        secondary:
+          "bg-secondary text-secondary-foreground hover:bg-secondary/80 aria-expanded:bg-secondary aria-expanded:text-secondary-foreground",
+        ghost:
+          "hover:bg-muted hover:text-foreground aria-expanded:bg-muted aria-expanded:text-foreground dark:hover:bg-muted/50",
+        destructive:
+          "bg-destructive/10 text-destructive hover:bg-destructive/20 focus-visible:border-destructive/40 focus-visible:ring-destructive/20 dark:bg-destructive/20 dark:hover:bg-destructive/30 dark:focus-visible:ring-destructive/40",
+        link: "text-primary underline-offset-4 hover:underline",
+      },
+      size: {
+        default:
+          "h-8 gap-1.5 px-2.5 has-data-[icon=inline-end]:pr-2 has-data-[icon=inline-start]:pl-2",
+        xs: "h-6 gap-1 rounded-[min(var(--radius-md),10px)] px-2 text-xs in-data-[slot=button-group]:rounded-lg has-data-[icon=inline-end]:pr-1.5 has-data-[icon=inline-start]:pl-1.5 [&_svg:not([class*='size-'])]:size-3",
+        sm: "h-7 gap-1 rounded-[min(var(--radius-md),12px)] px-2.5 text-[0.8rem] in-data-[slot=button-group]:rounded-lg has-data-[icon=inline-end]:pr-1.5 has-data-[icon=inline-start]:pl-1.5 [&_svg:not([class*='size-'])]:size-3.5",
+        lg: "h-9 gap-1.5 px-2.5 has-data-[icon=inline-end]:pr-3 has-data-[icon=inline-start]:pl-3",
+        icon: "size-8",
+        "icon-xs":
+          "size-6 rounded-[min(var(--radius-md),10px)] in-data-[slot=button-group]:rounded-lg [&_svg:not([class*='size-'])]:size-3",
+        "icon-sm":
+          "size-7 rounded-[min(var(--radius-md),12px)] in-data-[slot=button-group]:rounded-lg",
+        "icon-lg": "size-9",
+      },
+    },
+    defaultVariants: {
+      variant: "default",
+      size: "default",
+    },
+  }
+)
+
+function Button({
+  className,
+  variant = "default",
+  size = "default",
+  ...props
+}: ButtonPrimitive.Props & VariantProps<typeof buttonVariants>) {
+  return (
+    <ButtonPrimitive
+      data-slot="button"
+      className={cn(buttonVariants({ variant, size, className }))}
+      {...props}
+    />
+  )
 }
 
-const baseClass =
-  'ui-pressable inline-flex items-center justify-center gap-2 border text-[11px] font-semibold uppercase tracking-[0.24em] text-[var(--ui-text)]';
-
-const variantClass: Record<UIButtonVariant, string> = {
-  primary:
-    'h-10 px-4 ui-shape-card border-[var(--ui-accent)] bg-[color-mix(in_srgb,var(--ui-accent)_20%,transparent)] hover:bg-[color-mix(in_srgb,var(--ui-accent)_30%,transparent)] hover:border-[color-mix(in_srgb,var(--ui-accent)_70%,var(--ui-border))]',
-  secondary:
-    'h-10 px-4 ui-shape-card border-[var(--ui-border)] bg-[var(--ui-panel-2)] hover:border-[var(--ui-accent)] hover:text-[var(--ui-text)]',
-  icon:
-    'h-10 w-10 ui-shape-all border-[var(--ui-border)] bg-[var(--ui-panel-2)] hover:border-[var(--ui-accent)] hover:text-[var(--ui-text)]',
-};
-
-export const Button: React.FC<UIButtonProps> = ({
-  children,
-  variant = 'secondary',
-  leftIcon,
-  onClick,
-  disabled = false,
-  active = false,
-  className = '',
-  title,
-}) => {
-  return (
-    <button
-      type="button"
-      title={title}
-      onClick={onClick}
-      disabled={disabled}
-      aria-pressed={active}
-      className={`${baseClass} ${variantClass[variant]} ${
-        disabled ? 'cursor-not-allowed opacity-50' : ''
-      } ${active ? 'ui-glow border-[var(--ui-accent)] text-[var(--ui-text)]' : ''} ${className}`}
-    >
-      {variant !== 'icon' && leftIcon ? <span className="text-[var(--ui-accent)]">{leftIcon}</span> : null}
-      {variant === 'icon' ? leftIcon ?? children : children}
-    </button>
-  );
-};
+export { Button, buttonVariants }
