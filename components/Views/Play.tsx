@@ -3,13 +3,14 @@ import {
   Calendar,
   CheckCircle2,
   ChevronRight,
-  Clock3,
+  FileText,
   FolderKanban,
   PauseCircle,
   Pencil,
   PlayCircle,
   Plus,
   Sparkles,
+  Target,
   Trophy,
 } from 'lucide-react';
 import { QuestModal } from '../Play/QuestModal';
@@ -17,7 +18,6 @@ import { QuestDebriefPanel } from '../Play/QuestDebriefPanel';
 import { useXP } from '../XP/xpStore';
 import type { Project, QuestLevel, SelfTreeBranch, Task } from '../XP/xpTypes';
 import { ClientView } from '../../types';
-import { useXtationSettings } from '../../src/settings/SettingsProvider';
 import type { XtationOnboardingHandoff } from '../../src/onboarding/storage';
 import {
   buildStarterSessionLiveTransition,
@@ -243,10 +243,8 @@ export const Play: React.FC<PlayProps> = ({
     updateTask,
     completeTask,
     resumeTaskSession,
-    stopSession,
     pauseSession,
   } = useXP();
-  const { settings } = useXtationSettings();
   const latestBrief = useLatestDuskBrief();
   const presentationEvents = useOptionalPresentationEvents();
   const previousSessionKeyRef = useRef<string | null>(null);
@@ -357,9 +355,6 @@ export const Play: React.FC<PlayProps> = ({
   const selectedTaskCompletionXP = selectedTask
     ? selectors.getQuestCompletionXP(selectedTask.id)
     : null;
-  const focusPulseEnabled = settings.unlocks.activeWidgetIds.includes('widget-focus-pulse');
-  const briefStackEnabled = settings.unlocks.activeWidgetIds.includes('widget-brief-stack');
-
   const daySummary = selectors.getDaySummary(dateKey, now);
   const momentum = selectors.getMomentum();
   const recentActivity = selectors.getDayActivityGrouped(dateKey, now).slice(0, 4);
@@ -917,6 +912,31 @@ export const Play: React.FC<PlayProps> = ({
             </div>
           )}
 
+          {/* Today's Focus — top tasks for the day */}
+          {topTasks.length > 0 && !orderedTasks.length ? null : topTasks.length > 0 ? (
+            <div className="xt-ops-focus-strip">
+              <div className="xt-ops-focus-strip-head">
+                <Target size={10} className="xt-ops-focus-strip-icon" />
+                <span>Focus</span>
+              </div>
+              <div className="xt-ops-focus-strip-items">
+                {topTasks.slice(0, 3).map((t) => (
+                  <button
+                    key={t.id}
+                    type="button"
+                    className={`xt-ops-focus-item${t.id === selectedTaskId ? ' is-active' : ''}`}
+                    onClick={() => setSelectedTaskId(t.id)}
+                  >
+                    <span className="xt-ops-focus-item-dot" style={{
+                      background: t.priority === 'urgent' ? 'var(--app-accent)' : t.priority === 'high' ? '#a055f5' : 'var(--app-muted)',
+                    }} />
+                    <span className="truncate">{t.title}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          ) : null}
+
           {/* Quest list */}
           <div className="xt-ops-rack-scroll">
             {orderedTasks.length ? (
@@ -1278,6 +1298,35 @@ export const Play: React.FC<PlayProps> = ({
                     </div>
                   ) : null}
 
+                  {/* Dusk Brief — latest AI brief */}
+                  {latestBrief ? (
+                    <div className="xt-ops-panel xt-ops-panel--brief">
+                      <div className="xt-ops-panel-head">
+                        <FileText size={12} className="text-[var(--app-accent)]" />
+                        <span className="xt-ops-panel-label">Dusk Brief</span>
+                      </div>
+                      <button
+                        type="button"
+                        className="xt-ops-brief-card"
+                        onClick={() => openDuskBrief()}
+                      >
+                        <div className="xt-ops-brief-title">{latestBrief.title}</div>
+                        <div className="xt-ops-brief-body">{shortText(latestBrief.body, '', 120)}</div>
+                        {latestBriefQuest ? (
+                          <div className="xt-ops-brief-link">
+                            <ChevronRight size={10} />
+                            <span className="truncate">{latestBriefQuest.title}</span>
+                          </div>
+                        ) : latestBriefProject ? (
+                          <div className="xt-ops-brief-link">
+                            <FolderKanban size={10} />
+                            <span className="truncate">{latestBriefProject.title}</span>
+                          </div>
+                        ) : null}
+                      </button>
+                    </div>
+                  ) : null}
+
                   {/* Momentum */}
                   <div className="xt-ops-panel">
                     <div className="xt-ops-panel-head">
@@ -1344,6 +1393,14 @@ export const Play: React.FC<PlayProps> = ({
                     </div>
                   ) : null}
                 </div>
+              </div>
+              {/* Keyboard shortcuts hint */}
+              <div className="xt-ops-kb-hints">
+                <span className="xt-ops-kb-hint"><kbd>Space</kbd> start/pause</span>
+                <span className="xt-ops-kb-hint"><kbd>N</kbd> new quest</span>
+                <span className="xt-ops-kb-hint"><kbd>E</kbd> edit</span>
+                <span className="xt-ops-kb-hint"><kbd>C</kbd> complete</span>
+                <span className="xt-ops-kb-hint"><kbd>↑↓</kbd> navigate</span>
               </div>
             </>
           ) : (
