@@ -14484,6 +14484,33 @@
 }
 .xt-auth-clean-google:disabled { opacity: 0.5; cursor: not-allowed; }
 
+/* ── Clean Auth Drawer (in-app modal) ── */
+.xt-auth-drawer-clean {
+  position: relative;
+  padding: 8px;
+}
+.xt-auth-drawer-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: color-mix(in srgb, var(--app-bg) 60%, transparent);
+  border: none;
+  color: var(--app-muted);
+  cursor: pointer;
+  border-radius: 6px;
+  z-index: 2;
+  transition: color 150ms ease, background 150ms ease;
+}
+.xt-auth-drawer-close:hover {
+  color: var(--app-text);
+  background: color-mix(in srgb, var(--app-text) 8%, transparent);
+}
+
 @media (max-width: 440px) {
   .xt-wc-center { max-width: 100%; }
   .xt-auth-clean-form { padding: 20px 16px; }

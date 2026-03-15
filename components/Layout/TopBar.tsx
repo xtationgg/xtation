@@ -5,7 +5,6 @@ import { ClientView } from '../../types';
 import { NavTab } from '../UI/HextechUI';
 import { AuthDrawer } from '../UI/AuthDrawer';
 import { AuthCard } from '../Auth/AuthCard';
-import { StationContinuityPanel } from '../Auth/StationContinuityPanel';
 import { playClickSound, playHoverSound } from '../../utils/SoundEffects';
 import { useXP } from '../XP/xpStore';
 import { useAuth } from '../../src/auth/AuthProvider';
@@ -374,80 +373,31 @@ export const TopBar: React.FC<TopBarProps> = ({
         open={isLoginModalOpen && !user}
         onClose={closeLoginModal}
         variant="center"
-        panelClassName="!w-auto !max-h-none !overflow-visible !rounded-none !border-0 !bg-transparent !shadow-none"
+        panelClassName="!w-auto !max-w-[420px] !max-h-[90dvh] !overflow-y-auto !rounded-[14px] !border-[var(--app-border)] !bg-[var(--app-bg)]"
         triggerRef={loginTriggerRef as React.RefObject<HTMLElement | null>}
       >
-        <div
-          className="auth-modal-shell relative aspect-[359.15/269.17] overflow-hidden rounded-[20px] border border-[color-mix(in_srgb,var(--app-border)_78%,transparent)] bg-[var(--app-bg)]"
-          style={{ width: 'min(82vw, calc(82dvh * 1.334), 1420px)' }}
-        >
-          <div className="pointer-events-none absolute inset-0">
-            <div className="auth-skel-canvas absolute inset-0"></div>
-            <div className="auth-skel-left absolute left-[2.2%] top-[2.2%] h-[95.6%] w-[40.8%] rounded-[14px] bg-[color-mix(in_srgb,var(--app-panel)_92%,var(--app-bg))]"></div>
-            <div className="absolute left-[51.5%] top-[2.2%] h-[95.6%] w-[46.2%] rounded-[14px] border border-[color-mix(in_srgb,var(--app-border)_74%,transparent)] bg-[color-mix(in_srgb,var(--app-panel)_86%,var(--app-bg))]" />
-            <div className="absolute left-[52.8%] top-[4.8%] h-[40.2%] w-[43.4%] rounded-[12px] border border-[color-mix(in_srgb,var(--app-accent)_20%,transparent)] bg-[color-mix(in_srgb,var(--app-panel-2)_78%,var(--app-bg))]" />
-
-            <div className="auth-center-divider absolute left-[47.6%] top-[2.2%] h-[95.6%] w-[1px]"></div>
-
-            <div className="auth-skel-top auth-skel-card absolute left-[53.2%] top-[6.6%] h-[36.8%] w-[42.4%] overflow-hidden rounded-[10px] bg-transparent">
-              <div className="absolute inset-0 flex items-start justify-center">
-                <img
-                  src="/ui-reference/auth/illustration-up.svg"
-                  alt="Top illustration"
-                  className="h-[128%] w-full -translate-y-[16%] object-contain object-top"
-                  draggable={false}
-                />
-              </div>
-            </div>
-          </div>
-
+        <div className="xt-auth-drawer-clean">
           <button
             type="button"
             onClick={closeLoginModal}
-            className="auth-modal-close ui-pressable absolute right-[2.05%] top-[1.95%] z-20 flex h-[6.2%] min-h-[38px] w-[4.95%] min-w-[38px] items-center justify-center rounded-[10px] bg-[color-mix(in_srgb,var(--app-bg)_62%,var(--app-panel))] text-[var(--app-text)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ui-accent)] disabled:cursor-not-allowed disabled:opacity-60"
-            aria-label="Close login modal"
-            title="Close"
+            className="xt-auth-drawer-close"
+            aria-label="Close"
           >
             <X size={14} />
           </button>
 
-          <div className="auth-modal-form auth-drawer-stagger absolute left-[2.2%] top-[2.2%] z-10 h-[95.6%] w-[40.8%] rounded-[12px] bg-[var(--app-panel)]">
-            <AuthCard
-              title="HELLO PLAYER"
-              description={isGuestMode ? 'Connect your XTATION account to sync this local station into cloud mode.' : undefined}
-              isGuestMode={isGuestMode}
-              continuityStatus={localStationStatus}
-              entryDescriptor={guestEntry?.transitionDescriptor ?? null}
-              showEntryDescriptor={false}
-              onSuccess={(mode) => {
-                if (mode === 'login') {
-                  closeLoginModal();
-                }
-              }}
-            />
-          </div>
-
-          {isGuestMode && localStationStatus ? (
-                <StationContinuityPanel
-                  status={localStationStatus}
-                  releaseChannel={currentStation.releaseChannel}
-                  plan={currentStation.plan}
-                  trialDays={trialDaysRemaining}
-                  activity={visibleRecentStationActivity}
-                  starterFlowSummary={starterFlowSummary}
-                  latestTransitionActivity={latestTransitionActivity}
-                  entryDescriptor={guestEntry?.transitionDescriptor ?? null}
-                  onOpenGuidedSetup={
-                    onOpenGuidedSetup
-                      ? () => {
-                          closeLoginModal();
-                          onOpenGuidedSetup();
-                        }
-                      : null
-                  }
-                  variant="drawer"
-                />
-          ) : null}
+          <AuthCard
+            title="HELLO PLAYER"
+            description={isGuestMode ? 'Sign in for cloud sync or continue in local mode.' : undefined}
+            showOrb
+            isGuestMode={isGuestMode}
+            continuityStatus={localStationStatus}
+            onSuccess={(mode) => {
+              if (mode === 'login') {
+                closeLoginModal();
+              }
+            }}
+          />
         </div>
       </AuthDrawer>
     </>
