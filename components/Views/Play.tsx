@@ -1,21 +1,11 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
-  Calendar,
   CheckCircle2,
-  ChevronRight,
-  FileText,
-  FolderKanban,
-  PauseCircle,
-  Pencil,
-  PlayCircle,
-  Plus,
-  Sparkles,
-  Target,
-  Trophy,
-  Image as ImageIcon,
 } from 'lucide-react';
 import { QuestModal } from '../Play/QuestModal';
 import { QuestDebriefPanel } from '../Play/QuestDebriefPanel';
+import { PlayShell } from '../Play/PlayShell';
+import { VaultSpace } from '../Play/VaultSpace';
 import { useXP } from '../XP/xpStore';
 import type { Project, QuestLevel, SelfTreeBranch, Task } from '../XP/xpTypes';
 import { ClientView } from '../../types';
@@ -851,6 +841,39 @@ export const Play: React.FC<PlayProps> = ({
   // Visual mode class
   const playMode = selectedTaskRunning ? 'xt-ops--live' : selectedTask ? 'xt-ops--armed' : 'xt-ops--idle';
 
+  // ── Play v2: space switcher ──
+  type PlaySpace = 'process' | 'vault';
+  const [activeSpace, setActiveSpace] = useState<PlaySpace>('vault');
+  const [focusActive, setFocusActive] = useState(false);
+
+  // Session elapsed seconds (live timer for session banner)
+  const sessionElapsedSeconds = useMemo(() => {
+    if (!activeSession || activeSession.status !== 'running') return 0;
+    const base = activeSession.accumulatedMs || 0;
+    const runStart = activeSession.runningStartedAt;
+    const liveMs = runStart ? Math.max(0, now - runStart) : 0;
+    return Math.floor((base + liveMs) / 1000);
+  }, [activeSession, now]);
+
+  const activeSessionQuest = useMemo(
+    () => (activeSession?.taskId ? selectors.getTaskById(activeSession.taskId) : null),
+    [activeSession, selectors]
+  );
+
+  const endSession = useCallback(() => {
+    pauseSession();
+  }, [pauseSession]);
+
+  // Build a map of taskId -> tracked ms today for VaultSpace
+  const taskTodayMsMap = useMemo(() => {
+    const map = new Map<string, number>();
+    for (const task of orderedTasks) {
+      const ms = selectors.getTaskTodayMs(task.id, dateKey, now);
+      if (ms > 0) map.set(task.id, ms);
+    }
+    return map;
+  }, [orderedTasks, selectors, dateKey, now]);
+
   return (
     <div className={`xt-ops-room ${playMode}`}>
       {/* Custom background */}
@@ -885,429 +908,38 @@ export const Play: React.FC<PlayProps> = ({
         <div className="xt-ops-horizon" />
       </div>
 
-      {/* Main floating layout */}
-      <div className="xt-play-float">
-        {/* Top bar */}
-        <div className="xt-play-topbar">
-          <button className="xt-play-ops-btn" onClick={() => setRackOpen(prev => !prev)}>
-            Operations {'\u25BE'}
-          </button>
-          <div className="xt-play-topbar-right">
-            <button className="xt-play-add-btn" onClick={openCreateQuest}>
-              <Plus size={13} /> Quest
-            </button>
-            <button className="xt-ops-bg-btn" onClick={() => setBgPanelOpen(prev => !prev)} title="Background">
-              <ImageIcon size={13} />
-            </button>
-          </div>
-        </div>
-
-        {/* Background panel */}
-        {bgPanelOpen ? (
-          <div className="xt-ops-bg-panel">
-            <div className="xt-ops-bg-panel-title">Background</div>
-
-            <button className="xt-ops-bg-option" onClick={() => bgInputRef.current?.click()}>
-              Upload Image
-            </button>
-            <input ref={bgInputRef} type="file" accept="image/*" onChange={handleBgUpload} style={{ display: 'none' }} />
-
-            <div className="xt-ops-bg-panel-title" style={{ marginTop: 12 }}>Presets</div>
-            <div className="xt-ops-bg-presets">
-              <button className="xt-ops-bg-preset" style={{ background: 'linear-gradient(135deg, #0a0a0e 0%, #1a1a2e 50%, #0a0a0e 100%)' }}
-                onClick={() => setPresetBg('linear-gradient(135deg, #0a0a0e 0%, #1a1a2e 50%, #0a0a0e 100%)')} title="Deep Blue" />
-              <button className="xt-ops-bg-preset" style={{ background: 'linear-gradient(135deg, #0a0e0a 0%, #1a2e1a 50%, #0a0e0a 100%)' }}
-                onClick={() => setPresetBg('linear-gradient(135deg, #0a0e0a 0%, #1a2e1a 50%, #0a0e0a 100%)')} title="Forest" />
-              <button className="xt-ops-bg-preset" style={{ background: 'linear-gradient(135deg, #0e0a0a 0%, #2e1a1a 50%, #0e0a0a 100%)' }}
-                onClick={() => setPresetBg('linear-gradient(135deg, #0e0a0a 0%, #2e1a1a 50%, #0e0a0a 100%)')} title="Ember" />
-              <button className="xt-ops-bg-preset" style={{ background: 'linear-gradient(135deg, #0e0a10 0%, #2a1a30 50%, #0e0a10 100%)' }}
-                onClick={() => setPresetBg('linear-gradient(135deg, #0e0a10 0%, #2a1a30 50%, #0e0a10 100%)')} title="Void" />
-              <button className="xt-ops-bg-preset" style={{ background: 'linear-gradient(180deg, #0d0d12 0%, #111118 100%)' }}
-                onClick={() => setPresetBg('linear-gradient(180deg, #0d0d12 0%, #111118 100%)')} title="Dark" />
-              <button className="xt-ops-bg-preset" style={{ background: 'radial-gradient(ellipse at 50% 30%, #1a1a2e 0%, #0a0a0e 70%)' }}
-                onClick={() => setPresetBg('radial-gradient(ellipse at 50% 30%, #1a1a2e 0%, #0a0a0e 70%)')} title="Spotlight" />
-            </div>
-
-            {playBgUrl ? (
-              <button className="xt-ops-bg-option xt-ops-bg-option--clear" onClick={clearBg} style={{ marginTop: 8 }}>
-                Reset to Default
-              </button>
-            ) : null}
-
-            <button className="xt-ops-bg-option" onClick={() => setBgPanelOpen(false)} style={{ marginTop: 4, opacity: 0.5 }}>
-              Close
-            </button>
-          </div>
-        ) : null}
-
-        {/* 3 Category Tabs — floating in space */}
-        <div className="xt-play-categories">
-          <div
-            role="button"
-            tabIndex={0}
-            className={`xt-play-cat ${activeCategory === 'active' ? 'is-active' : ''}`}
-            onClick={() => handleCategorySwitch('active')}
-            onKeyDown={(e) => { if (e.key === 'Enter') handleCategorySwitch('active'); }}
-          >
-            <span className="xt-play-cat-label">Active</span>
-            <span className="xt-play-cat-count">{categoryQuests.active.length} quests</span>
-          </div>
-          <div
-            role="button"
-            tabIndex={0}
-            className={`xt-play-cat ${activeCategory === 'routine' ? 'is-active' : ''}`}
-            onClick={() => handleCategorySwitch('routine')}
-            onKeyDown={(e) => { if (e.key === 'Enter') handleCategorySwitch('routine'); }}
-          >
-            <span className="xt-play-cat-label">Routine</span>
-            <span className="xt-play-cat-count">{categoryQuests.routine.length} habits</span>
-          </div>
-          <div
-            role="button"
-            tabIndex={0}
-            className={`xt-play-cat ${activeCategory === 'build' ? 'is-active' : ''}`}
-            onClick={() => handleCategorySwitch('build')}
-            onKeyDown={(e) => { if (e.key === 'Enter') handleCategorySwitch('build'); }}
-          >
-            <span className="xt-play-cat-label">Build</span>
-            <span className="xt-play-cat-count">{categoryQuests.build.length} projects</span>
-          </div>
-        </div>
-
-        {/* Quest list for selected category */}
-        {currentCategoryQuests.length > 0 && !selectedTask ? (
-          <div className="xt-play-quest-list">
-            {currentCategoryQuests.slice(0, 5).map(task => (
-              <button
-                key={task.id}
-                className="xt-play-quest-item"
-                onClick={() => setSelectedTaskId(task.id)}
-              >
-                <span className="xt-play-quest-item-title">{task.title}</span>
-                <span className="xt-play-quest-item-meta">
-                  {QUEST_TYPE_LABELS[task.questType ?? 'session']} {'\u00B7'} {PRIORITY_LABELS[task.priority]}
-                </span>
-              </button>
-            ))}
-          </div>
-        ) : null}
-
-        {/* Selected Quest Hero */}
-        {selectedTask ? (
-          <div className="xt-play-hero">
-            {/* Timer */}
-            {selectedTaskRunning ? (
-              <div className="xt-play-hero-timer">
-                <div className="xt-play-hero-time">{formatDuration(selectedTaskTodayMs)}</div>
-                <div className="xt-play-hero-status">SESSION ACTIVE</div>
-              </div>
-            ) : selectedTaskTodayMs > 0 ? (
-              <div className="xt-play-hero-timer" style={{ opacity: 0.5 }}>
-                <div className="xt-play-hero-time" style={{ fontSize: '24px' }}>{formatDuration(selectedTaskTodayMs)}</div>
-                <div className="xt-play-hero-status" style={{ color: 'var(--app-muted)' }}>TRACKED TODAY</div>
-              </div>
-            ) : null}
-
-            {/* Quest title — the hero */}
-            <h1 className="xt-play-hero-title">{selectedTask.title}</h1>
-
-            {/* Tags */}
-            <div className="xt-play-hero-tags">
-              <span className="xt-play-hero-tag is-accent">
-                {QUEST_TYPE_LABELS[selectedTask.questType ?? 'session'] ?? 'Quest'}
-              </span>
-              <span className="xt-play-hero-tag">{PRIORITY_LABELS[selectedTask.priority]}</span>
-              <span className="xt-play-hero-tag">L{selectedTask.level ?? 1}</span>
-              {selectedTask.selfTreePrimary ? (
-                <span className="xt-play-hero-tag" style={{ color: BRANCH_COLORS[selectedTask.selfTreePrimary] }}>
-                  {SELF_TREE_LABELS[selectedTask.selfTreePrimary]}
-                </span>
-              ) : null}
-            </div>
-
-            {/* Action buttons */}
-            <div className="xt-play-hero-actions">
-              <PlayActionButton
-                label={selectedTaskRunning ? 'Pause' : activeSession ? 'Switch' : 'Start Session'}
-                onClick={selectedTaskRunning ? pauseSession : handleRunSelectedQuest}
-                icon={selectedTaskRunning ? <PauseCircle size={14} /> : <PlayCircle size={14} />}
-                tone="accent"
-              />
-              <PlayActionButton
-                label="Complete"
-                onClick={handleCompleteSelectedQuest}
-                icon={<CheckCircle2 size={14} />}
-                tone="success"
-              />
-              <PlayActionButton
-                label="Edit"
-                onClick={() => openEditQuest(selectedTask.id)}
-                icon={<Pencil size={13} />}
-              />
-            </div>
-
-            {/* Stats strip — floating */}
-            <div className="xt-play-hero-stats">
-              <div className="xt-play-stat">
-                <span className="xt-play-stat-val">{Math.floor(selectedTaskTodayMs / 60000)} min</span>
-                <span className="xt-play-stat-label">today</span>
-              </div>
-              <div className="xt-play-stat">
-                <span className="xt-play-stat-val">+{selectedTaskCompletionXP?.total ?? 0}</span>
-                <span className="xt-play-stat-label">XP</span>
-              </div>
-              <div className="xt-play-stat">
-                <span className="xt-play-stat-val">{selectedStepCounts ? `${selectedStepCounts.done}/${selectedStepCounts.total}` : '\u2014'}</span>
-                <span className="xt-play-stat-label">steps</span>
-              </div>
-              <div className="xt-play-stat">
-                <span className="xt-play-stat-val">{stats.playerLevel}</span>
-                <span className="xt-play-stat-label">level</span>
-              </div>
-            </div>
-
-            {/* Steps (if quest has them) */}
-            {selectedTaskSteps.steps.length > 0 || selectedTask.details ? (
-              <div className="xt-play-hero-steps">
-                {selectedTaskSteps.steps.length > 0 ? (
-                  <>
-                    {selectedTaskSteps.steps.map((step, idx) => (
-                      <div key={idx} className={`xt-play-step ${step.done ? 'is-done' : ''}`} onClick={() => handleToggleStep(idx)}>
-                        <span className="xt-play-step-check">{step.done ? '\u2713' : ''}</span>
-                        <span className="xt-play-step-text">{step.text}</span>
-                      </div>
-                    ))}
-                    <div className="xt-play-step-add">
-                      <input
-                        ref={inlineStepRef}
-                        placeholder="+ Add step..."
-                        className="xt-play-step-input"
-                        value={inlineStepValue}
-                        onChange={(e) => setInlineStepValue(e.target.value)}
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter' && inlineStepValue.trim()) {
-                            e.preventDefault();
-                            handleInlineStepAdd();
-                          } else if (e.key === 'Escape') {
-                            setInlineStepValue('');
-                            inlineStepRef.current?.blur();
-                          }
-                        }}
-                      />
-                    </div>
-                  </>
-                ) : null}
-                {selectedTaskSteps.notes ? (
-                  <div className="xt-play-brief">
-                    <span className="xt-play-brief-label">Brief</span>
-                    <p className="xt-play-brief-text">{selectedTaskSteps.notes}</p>
-                  </div>
-                ) : null}
-              </div>
-            ) : null}
-
-            {/* Back to category list */}
-            <button className="xt-play-back" onClick={() => setSelectedTaskId(null)}>
-              {'\u2190'} Back to {activeCategory}
-            </button>
-          </div>
-        ) : currentCategoryQuests.length === 0 ? (
-          <div className="xt-play-empty">
-            <div className="xt-play-empty-text">No {activeCategory} quests yet</div>
-            <button className="xt-play-empty-btn" onClick={openCreateQuest}>
-              <Plus size={14} /> Create Quest
-            </button>
-          </div>
-        ) : null}
-
-        {/* Bottom: vitals */}
-        <div className="xt-play-bottom">
-          <span className="xt-play-bottom-stat">{daySummary.minutesTracked} min today</span>
-          <span className="xt-play-bottom-stat">{daySummary.completedCount} done</span>
-          <span className="xt-play-bottom-stat">{momentum.currentStreak}d streak</span>
-          <span className="xt-play-bottom-stat">Lv {stats.playerLevel}</span>
-        </div>
-      </div>
-
-      {/* Operations drawer */}
-      {rackOpen && <div className="xt-ops-rack-backdrop" onClick={() => setRackOpen(false)} />}
-      <aside className={`xt-ops-rack ${rackOpen ? 'is-open' : ''}`}>
-        <div className="xt-ops-rack-header">
-          <span className="xt-ops-rack-label">Operations</span>
-          <button type="button" onClick={openCreateQuest} className="xt-ops-rack-add" title="Full quest editor">
-            <Plus size={12} />
-          </button>
-        </div>
-
-        {/* Quick-add quest */}
-        <div className={`xt-ops-quick-add ${quickAddFocused ? 'xt-ops-quick-add--focused' : ''}`}>
-          <input
-            ref={quickAddRef}
-            type="text"
-            placeholder="Quick add quest..."
-            value={quickAddValue}
-            onChange={(e) => setQuickAddValue(e.target.value)}
-            onFocus={() => setQuickAddFocused(true)}
-            onBlur={() => setQuickAddFocused(false)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                handleQuickAdd();
-              } else if (e.key === 'Enter' && e.shiftKey) {
-                e.preventDefault();
-                const title = quickAddValue.trim();
-                setQuickAddValue('');
-                if (title) {
-                  setEditingTaskId(null);
-                  setModalOpen(true);
-                }
-              } else if (e.key === 'Escape') {
-                setQuickAddValue('');
-                quickAddRef.current?.blur();
-              }
-            }}
-            className="xt-ops-quick-add-input"
+      {/* Play v2 shell */}
+      <PlayShell
+        activeSpace={activeSpace}
+        onSwitchSpace={setActiveSpace}
+        sessionActive={!!activeSession}
+        sessionQuestTitle={activeSessionQuest?.title}
+        sessionElapsed={sessionElapsedSeconds}
+        sessionPaused={activeSession?.status === 'paused'}
+        onSessionPause={pauseSession}
+        onSessionEnd={endSession}
+        onEnterFocus={() => setFocusActive(true)}
+      >
+        {activeSpace === 'vault' && (
+          <VaultSpace
+            tasks={orderedTasks}
+            selectedTaskId={selectedTaskId}
+            onSelectTask={setSelectedTaskId}
+            onStartSession={handleRunSelectedQuest}
+            onCompleteQuest={handleCompleteSelectedQuest}
+            onEditQuest={openEditQuest}
+            onCreateQuest={openCreateQuest}
+            activeSessionQuestId={activeSession?.taskId}
+            taskTodayMsMap={taskTodayMsMap}
           />
-          {quickAddValue.trim() && (
-            <span className="xt-ops-quick-add-hint">
-              {'\u21B5'} create {'\u00B7'} {'\u21E7\u21B5'} full editor
-            </span>
-          )}
-        </div>
-
-        {/* Vitals bar */}
-        <div className="xt-ops-vitals">
-          <div className="xt-ops-vital" title="Minutes tracked today">
-            <span className="xt-ops-vital-val">{daySummary.minutesTracked}</span>
-            <span className="xt-ops-vital-unit">min</span>
-          </div>
-          <div className="xt-ops-vital" title="Quests completed today">
-            <span className="xt-ops-vital-val">{daySummary.completedCount}</span>
-            <span className="xt-ops-vital-unit">done</span>
-          </div>
-          <div className="xt-ops-vital" title="Current daily streak">
-            <span className="xt-ops-vital-val">{momentum.currentStreak}</span>
-            <span className="xt-ops-vital-unit">streak</span>
-          </div>
-          <div className="xt-ops-vital" title="XP multiplier from streak">
-            <span className="xt-ops-vital-val xt-ops-vital-val--accent">x{momentum.streakMultiplier.toFixed(1)}</span>
-            <span className="xt-ops-vital-unit">mult</span>
-          </div>
-        </div>
-
-        {/* Week activity tracker */}
-        <div className="xt-ops-week-strip">
-          {weekDots.map(({ dk, active, isToday, label }) => (
-            <div key={dk} className={`xt-ops-week-cell ${active ? 'xt-ops-week-cell--active' : ''} ${isToday ? 'xt-ops-week-cell--today' : ''}`}>
-              <span className="xt-ops-week-cell-label">{label}</span>
-            </div>
-          ))}
-        </div>
-
-        {/* Branch distribution bar */}
-        {branchDistribution && (
-          <div className="xt-ops-branch-bar" title="Self-Tree branch distribution">
-            {branchDistribution.map(({ branch, pct, color }) => (
-              <div
-                key={branch}
-                className="xt-ops-branch-bar-seg"
-                style={{ width: `${Math.max(pct, 4)}%`, background: color }}
-                title={`${branch}: ${pct}%`}
-              />
-            ))}
+        )}
+        {activeSpace === 'process' && (
+          <div className="play-empty-state">
+            <div className="play-empty-state__title">Process</div>
+            <div className="play-empty-state__subtitle">Coming soon -- live operations monitor</div>
           </div>
         )}
-
-        {/* Today's Focus */}
-        {topTasks.length > 0 && !orderedTasks.length ? null : topTasks.length > 0 ? (
-          <div className="xt-ops-focus-strip">
-            <div className="xt-ops-focus-strip-head">
-              <Target size={10} className="xt-ops-focus-strip-icon" />
-              <span>Focus</span>
-            </div>
-            <div className="xt-ops-focus-strip-items">
-              {topTasks.slice(0, 3).map((t) => (
-                <button
-                  key={t.id}
-                  type="button"
-                  className={`xt-ops-focus-item${t.id === selectedTaskId ? ' is-active' : ''}`}
-                  onClick={() => setSelectedTaskId(t.id)}
-                >
-                  <span className="xt-ops-focus-item-dot" style={{
-                    background: t.priority === 'urgent' ? 'var(--app-accent)' : t.priority === 'high' ? '#a055f5' : 'var(--app-muted)',
-                  }} />
-                  <span className="truncate">{t.title}</span>
-                </button>
-              ))}
-            </div>
-          </div>
-        ) : null}
-
-        {/* Quest list */}
-        <div className="xt-ops-rack-scroll">
-          {orderedTasks.length ? (
-            orderedTasks.map((task) => {
-              const running = isRunningTask(task, activeSessionTaskIds);
-              const todayMinutes = Math.floor(selectors.getTaskTodayMs(task.id, dateKey, now) / 60000);
-              const isSelected = task.id === selectedTaskId;
-              return (
-                <button
-                  key={task.id}
-                  type="button"
-                  onClick={() => setSelectedTaskId(task.id)}
-                  className={`xt-ops-briefing ${isSelected ? 'xt-ops-briefing--active' : ''} ${running ? 'xt-ops-briefing--live' : ''}`}
-                >
-                  <div className="xt-ops-briefing-edge" />
-                  <div className="xt-ops-briefing-body">
-                    <div className="xt-ops-briefing-title">
-                      {running ? <span className="xt-ops-live-dot" /> : null}
-                      <span className="truncate">{task.title}</span>
-                    </div>
-                    <div className="xt-ops-briefing-meta">
-                      {task.selfTreePrimary ? (
-                        <span
-                          className="xt-ops-branch-dot"
-                          style={{ background: BRANCH_COLORS[task.selfTreePrimary] }}
-                          title={task.selfTreePrimary}
-                        />
-                      ) : null}
-                      <span>{PRIORITY_LABELS[task.priority]}</span>
-                      <span className="xt-ops-briefing-sep">{'\u00B7'}</span>
-                      <span>L{task.level ?? 1}</span>
-                      {todayMinutes > 0 ? (
-                        <>
-                          <span className="xt-ops-briefing-sep">{'\u00B7'}</span>
-                          <span className="xt-ops-briefing-time">{todayMinutes}m</span>
-                        </>
-                      ) : null}
-                    </div>
-                  </div>
-                </button>
-              );
-            })
-          ) : (
-            <div className="xt-ops-rack-empty">
-              <span>No operations</span>
-              <button type="button" onClick={openCreateQuest} className="xt-ops-rack-empty-btn">
-                Create first quest
-              </button>
-            </div>
-          )}
-        </div>
-
-        {/* Recent activity footer */}
-        {recentActivity.length ? (
-          <div className="xt-ops-rack-footer">
-            <div className="xt-ops-rack-footer-label">Recent</div>
-            {recentActivity.slice(0, 3).map((entry) => (
-              <div key={entry.key} className="xt-ops-recent">
-                <span className="truncate">{entry.title}</span>
-                <span className="xt-ops-recent-time">{entry.totalMinutes}m</span>
-              </div>
-            ))}
-          </div>
-        ) : null}
-      </aside>
+      </PlayShell>
 
       {/* Completion Celebration Overlay */}
       {celebrationData && (
