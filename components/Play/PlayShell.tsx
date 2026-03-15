@@ -1,6 +1,7 @@
 import React from 'react';
 import { SessionBanner } from './shared/SessionBanner';
 import { Archive, Activity, ChevronLeft, Swords, Clock, CheckCircle2, Zap, Radio } from 'lucide-react';
+import { DirectionAwareHover } from '../UI/direction-aware-hover';
 
 export type PlaySpace = 'home' | 'process' | 'vault';
 
@@ -9,12 +10,10 @@ export interface VaultSummary {
   activeQuests: number;
   completedToday: number;
   totalTimeMs: number;
-  /** Currently running quest title, if any */
   runningQuest?: string | null;
 }
 
 export interface ProcessSummary {
-  /** placeholder for future data */
   status: 'coming-soon';
 }
 
@@ -44,12 +43,11 @@ const formatTotalTime = (ms: number): string => {
 };
 
 export const PlayShell: React.FC<PlayShellProps> = ({
-  children, activeSpace, onSwitchSpace, vaultSummary, processSummary,
+  children, activeSpace, onSwitchSpace, vaultSummary,
   sessionActive, sessionQuestTitle, sessionElapsed, sessionPaused,
   onSessionPause, onSessionEnd, onEnterFocus,
 }) => (
   <div className="play-shell">
-    {/* ── Session HUD (always visible when session is active) ── */}
     {sessionActive && sessionQuestTitle && onSessionPause && onSessionEnd && onEnterFocus ? (
       <div className="play-hud-strip">
         <SessionBanner
@@ -64,100 +62,88 @@ export const PlayShell: React.FC<PlayShellProps> = ({
     ) : null}
 
     {activeSpace === 'home' ? (
-      /* ── MODE SELECT — two large hero tabs ── */
-      <div className="play-mode-select">
-        <div className="play-mode-header">
-          <h1 className="play-mode-title">Play</h1>
-          <p className="play-mode-subtitle">Choose your operations mode</p>
+      <div className="pm-select">
+        <div className="pm-header">
+          <h1 className="pm-title">Play</h1>
+          <p className="pm-subtitle">Choose your operations mode</p>
         </div>
 
-        <div className="play-mode-cards">
-          {/* Vault Card */}
-          <button
-            type="button"
-            className="play-mode-card play-mode-card--vault"
+        <div className="pm-cards">
+          {/* Vault */}
+          <DirectionAwareHover
+            imageUrl="https://images.unsplash.com/photo-1614854262318-831574f15f1f?w=1200&q=80"
+            className="pm-card"
+            childrenClassName="pm-card-content"
             onClick={() => onSwitchSpace('vault')}
           >
-            <div className="play-mode-card-glow" />
-            <div className="play-mode-card-icon">
-              <Swords size={32} />
+            <div className="pm-card-inner">
+              <div className="pm-card-icon"><Swords size={28} /></div>
+              <h2 className="pm-card-title">Vault</h2>
+              <p className="pm-card-desc">Quest operations & mission control</p>
+
+              <div className="pm-card-stats">
+                <div className="pm-stat">
+                  <Archive size={12} />
+                  <span className="pm-stat-val">{vaultSummary.totalQuests}</span>
+                  <span className="pm-stat-lbl">Quests</span>
+                </div>
+                <div className="pm-stat">
+                  <Zap size={12} />
+                  <span className="pm-stat-val">{vaultSummary.activeQuests}</span>
+                  <span className="pm-stat-lbl">Active</span>
+                </div>
+                <div className="pm-stat">
+                  <CheckCircle2 size={12} />
+                  <span className="pm-stat-val">{vaultSummary.completedToday}</span>
+                  <span className="pm-stat-lbl">Done</span>
+                </div>
+                <div className="pm-stat">
+                  <Clock size={12} />
+                  <span className="pm-stat-val">{formatTotalTime(vaultSummary.totalTimeMs)}</span>
+                  <span className="pm-stat-lbl">Tracked</span>
+                </div>
+              </div>
+
+              {vaultSummary.runningQuest ? (
+                <div className="pm-card-live">
+                  <Radio size={10} />
+                  <span>{vaultSummary.runningQuest}</span>
+                </div>
+              ) : null}
             </div>
-            <h2 className="play-mode-card-title">Vault</h2>
-            <p className="play-mode-card-desc">Quest operations &amp; mission control</p>
+          </DirectionAwareHover>
 
-            <div className="play-mode-card-stats">
-              <div className="play-mode-stat">
-                <Archive size={13} />
-                <span className="play-mode-stat-val">{vaultSummary.totalQuests}</span>
-                <span className="play-mode-stat-label">Quests</span>
-              </div>
-              <div className="play-mode-stat">
-                <Zap size={13} />
-                <span className="play-mode-stat-val">{vaultSummary.activeQuests}</span>
-                <span className="play-mode-stat-label">Active</span>
-              </div>
-              <div className="play-mode-stat">
-                <CheckCircle2 size={13} />
-                <span className="play-mode-stat-val">{vaultSummary.completedToday}</span>
-                <span className="play-mode-stat-label">Done Today</span>
-              </div>
-              <div className="play-mode-stat">
-                <Clock size={13} />
-                <span className="play-mode-stat-val">{formatTotalTime(vaultSummary.totalTimeMs)}</span>
-                <span className="play-mode-stat-label">Tracked</span>
-              </div>
-            </div>
-
-            {vaultSummary.runningQuest ? (
-              <div className="play-mode-card-live">
-                <Radio size={11} />
-                <span>{vaultSummary.runningQuest}</span>
-              </div>
-            ) : null}
-
-            <div className="play-mode-card-enter">
-              Enter Vault
-              <ChevronLeft size={14} className="play-mode-card-arrow" />
-            </div>
-          </button>
-
-          {/* Process Card */}
-          <button
-            type="button"
-            className="play-mode-card play-mode-card--process"
+          {/* Process */}
+          <DirectionAwareHover
+            imageUrl="https://images.unsplash.com/photo-1558494949-ef010cbdcc31?w=1200&q=80"
+            className="pm-card pm-card--process"
+            childrenClassName="pm-card-content"
             onClick={() => onSwitchSpace('process')}
           >
-            <div className="play-mode-card-glow" />
-            <div className="play-mode-card-icon">
-              <Activity size={32} />
-            </div>
-            <h2 className="play-mode-card-title">Process</h2>
-            <p className="play-mode-card-desc">Live operations monitor &amp; analytics</p>
+            <div className="pm-card-inner">
+              <div className="pm-card-icon"><Activity size={28} /></div>
+              <h2 className="pm-card-title">Process</h2>
+              <p className="pm-card-desc">Live operations monitor & analytics</p>
 
-            <div className="play-mode-card-stats">
-              <div className="play-mode-stat play-mode-stat--muted">
-                <Radio size={13} />
-                <span className="play-mode-stat-val">--</span>
-                <span className="play-mode-stat-label">Systems</span>
+              <div className="pm-card-stats pm-card-stats--muted">
+                <div className="pm-stat">
+                  <Radio size={12} />
+                  <span className="pm-stat-val">--</span>
+                  <span className="pm-stat-lbl">Systems</span>
+                </div>
+                <div className="pm-stat">
+                  <Activity size={12} />
+                  <span className="pm-stat-val">--</span>
+                  <span className="pm-stat-lbl">Uptime</span>
+                </div>
               </div>
-              <div className="play-mode-stat play-mode-stat--muted">
-                <Activity size={13} />
-                <span className="play-mode-stat-val">--</span>
-                <span className="play-mode-stat-label">Uptime</span>
-              </div>
-            </div>
 
-            <div className="play-mode-card-badge">Coming Soon</div>
-
-            <div className="play-mode-card-enter">
-              Enter Process
-              <ChevronLeft size={14} className="play-mode-card-arrow" />
+              <div className="pm-card-badge">Coming Soon</div>
             </div>
-          </button>
+          </DirectionAwareHover>
         </div>
       </div>
     ) : (
-      /* ── ACTIVE SPACE VIEW ── */
       <>
         <div className="play-header">
           <button
