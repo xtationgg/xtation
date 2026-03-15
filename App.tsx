@@ -713,7 +713,12 @@ const App: React.FC = () => {
     const nextNotice = normalizeNotice(readStationTransitionNotice());
     if (isStationTransitionNoticeVisible(nextNotice, { activeUserId, isGuestMode })) {
       setStationTransitionNotice(nextNotice);
-      return;
+      // Auto-dismiss after 3 seconds so it doesn't block the UI
+      const timer = window.setTimeout(() => {
+        clearStationTransitionNotice();
+        setStationTransitionNotice(null);
+      }, 3000);
+      return () => window.clearTimeout(timer);
     }
 
     setStationTransitionNotice(null);
@@ -728,12 +733,18 @@ const App: React.FC = () => {
         featureVisibility,
       });
 
+    let autoDismissTimer: number | undefined;
     const handleStationTransitionNotice = (event: Event) => {
       if (authLoading) return;
+      if (autoDismissTimer) window.clearTimeout(autoDismissTimer);
       const detail = (event as CustomEvent<StationTransitionNotice | null>).detail;
       const nextNotice = normalizeNotice(detail ?? readStationTransitionNotice());
       if (isStationTransitionNoticeVisible(nextNotice, { activeUserId, isGuestMode })) {
         setStationTransitionNotice(nextNotice);
+        autoDismissTimer = window.setTimeout(() => {
+          clearStationTransitionNotice();
+          setStationTransitionNotice(null);
+        }, 3000);
         return;
       }
       setStationTransitionNotice(null);
@@ -743,11 +754,13 @@ const App: React.FC = () => {
       XTATION_STATION_TRANSITION_NOTICE_EVENT,
       handleStationTransitionNotice as EventListener
     );
-    return () =>
+    return () => {
+      if (autoDismissTimer) window.clearTimeout(autoDismissTimer);
       window.removeEventListener(
         XTATION_STATION_TRANSITION_NOTICE_EVENT,
         handleStationTransitionNotice as EventListener
       );
+    };
   }, [authLoading, activeUserId, currentView, featureVisibility, isGuestMode, operatorAccess.allowed]);
 
   useEffect(() => {
