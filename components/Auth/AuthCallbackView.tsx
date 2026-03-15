@@ -9,6 +9,14 @@ const parseHashTokens = () => {
   return { access_token, refresh_token };
 };
 
+const isPopup = () => {
+  try {
+    return window.opener !== null && window.opener !== window;
+  } catch {
+    return false;
+  }
+};
+
 export const AuthCallbackView: React.FC = () => {
   const [message, setMessage] = useState('Finalizing authentication...');
   const [error, setError] = useState<string | null>(null);
@@ -28,10 +36,13 @@ export const AuthCallbackView: React.FC = () => {
           setMessage('Could not complete authentication.');
           return;
         }
-        setMessage('Authentication complete. Redirecting...');
-        window.setTimeout(() => {
-          window.location.replace('/');
-        }, 500);
+        setMessage('Authentication complete.');
+        // If opened as popup, close and let parent window pick up the session
+        if (isPopup()) {
+          window.close();
+          return;
+        }
+        window.setTimeout(() => window.location.replace('/'), 500);
         return;
       }
 
@@ -44,23 +55,25 @@ export const AuthCallbackView: React.FC = () => {
           setMessage('Could not complete authentication.');
           return;
         }
-        setMessage('Authentication complete. Redirecting...');
-        window.setTimeout(() => {
-          window.location.replace('/');
-        }, 500);
+        setMessage('Authentication complete.');
+        if (isPopup()) {
+          window.close();
+          return;
+        }
+        window.setTimeout(() => window.location.replace('/'), 500);
         return;
       }
 
       setMessage('No auth payload found. Redirecting...');
-      window.setTimeout(() => {
-        window.location.replace('/');
-      }, 500);
+      if (isPopup()) {
+        window.close();
+        return;
+      }
+      window.setTimeout(() => window.location.replace('/'), 500);
     };
 
     void finishAuth();
-    return () => {
-      mounted = false;
-    };
+    return () => { mounted = false; };
   }, []);
 
   return (
@@ -76,4 +89,3 @@ export const AuthCallbackView: React.FC = () => {
     </div>
   );
 };
-
