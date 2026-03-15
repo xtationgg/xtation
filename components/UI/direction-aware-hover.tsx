@@ -62,7 +62,7 @@ export const DirectionAwareHover: React.FC<DirectionAwareHoverProps> = ({
       onClick={onClick}
       ref={ref}
       className={cn(
-        'bg-transparent rounded-2xl overflow-hidden group/card relative cursor-pointer',
+        'bg-transparent rounded-2xl overflow-hidden group/card relative cursor-pointer h-full',
         className
       )}
     >
