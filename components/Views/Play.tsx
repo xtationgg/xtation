@@ -12,6 +12,7 @@ import {
   Sparkles,
   Target,
   Trophy,
+  Image as ImageIcon,
 } from 'lucide-react';
 import { QuestModal } from '../Play/QuestModal';
 import { QuestDebriefPanel } from '../Play/QuestDebriefPanel';
@@ -258,6 +259,13 @@ export const Play: React.FC<PlayProps> = ({
 
   // ── Rack (sidebar) drawer toggle ──
   const [rackOpen, setRackOpen] = useState(false);
+
+  // ── Play background customization ──
+  const [playBgUrl, setPlayBgUrl] = useState<string | null>(() => {
+    try { return localStorage.getItem('xtation.play.background') || null; } catch { return null; }
+  });
+  const [bgPanelOpen, setBgPanelOpen] = useState(false);
+  const bgInputRef = useRef<HTMLInputElement>(null);
 
   // ── Quick-add quest ──
   const [quickAddValue, setQuickAddValue] = useState('');
@@ -793,6 +801,30 @@ export const Play: React.FC<PlayProps> = ({
     return Math.min(1, (selectedTaskTodayMs / 3600000));
   }, [selectedTask, selectedTaskTodayMs]);
 
+  // ── Background handlers ──
+  const handleBgUpload = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      const url = reader.result as string;
+      setPlayBgUrl(url);
+      try { localStorage.setItem('xtation.play.background', url); } catch {}
+    };
+    reader.readAsDataURL(file);
+    e.target.value = '';
+  }, []);
+
+  const clearBg = useCallback(() => {
+    setPlayBgUrl(null);
+    try { localStorage.removeItem('xtation.play.background'); } catch {}
+  }, []);
+
+  const setPresetBg = useCallback((gradient: string) => {
+    setPlayBgUrl(gradient);
+    try { localStorage.setItem('xtation.play.background', gradient); } catch {}
+  }, []);
+
   const ringCircumference = 2 * Math.PI * 120; // r=120
   const ringOffset = ringCircumference * (1 - ringProgress);
 
@@ -801,6 +833,19 @@ export const Play: React.FC<PlayProps> = ({
 
   return (
     <div className={`xt-ops-room ${playMode}`}>
+      {/* Custom background */}
+      {playBgUrl ? (
+        <div className="xt-ops-custom-bg" style={{
+          backgroundImage: playBgUrl.startsWith('linear-gradient') || playBgUrl.startsWith('radial-gradient')
+            ? playBgUrl
+            : `url(${playBgUrl})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+        }}>
+          <div className="xt-ops-custom-bg-overlay" />
+        </div>
+      ) : null}
+
       {/* ── Cinematic environment background ── */}
       <div className="xt-ops-grid-env" aria-hidden="true">
         <div className="xt-ops-grid-plane" />
@@ -833,7 +878,47 @@ export const Play: React.FC<PlayProps> = ({
           <button type="button" onClick={openCreateQuest} className="xt-ops-rack-add" title="New quest">
             <Plus size={12} /> <span className="xt-ops-topbar-add-label">Quest</span>
           </button>
+          <button className="xt-ops-bg-btn" onClick={() => setBgPanelOpen(prev => !prev)} title="Background">
+            <ImageIcon size={13} />
+          </button>
         </div>
+
+        {bgPanelOpen ? (
+          <div className="xt-ops-bg-panel">
+            <div className="xt-ops-bg-panel-title">Background</div>
+
+            <button className="xt-ops-bg-option" onClick={() => bgInputRef.current?.click()}>
+              Upload Image
+            </button>
+            <input ref={bgInputRef} type="file" accept="image/*" onChange={handleBgUpload} style={{ display: 'none' }} />
+
+            <div className="xt-ops-bg-panel-title" style={{ marginTop: 12 }}>Presets</div>
+            <div className="xt-ops-bg-presets">
+              <button className="xt-ops-bg-preset" style={{ background: 'linear-gradient(135deg, #0a0a0e 0%, #1a1a2e 50%, #0a0a0e 100%)' }}
+                onClick={() => setPresetBg('linear-gradient(135deg, #0a0a0e 0%, #1a1a2e 50%, #0a0a0e 100%)')} title="Deep Blue" />
+              <button className="xt-ops-bg-preset" style={{ background: 'linear-gradient(135deg, #0a0e0a 0%, #1a2e1a 50%, #0a0e0a 100%)' }}
+                onClick={() => setPresetBg('linear-gradient(135deg, #0a0e0a 0%, #1a2e1a 50%, #0a0e0a 100%)')} title="Forest" />
+              <button className="xt-ops-bg-preset" style={{ background: 'linear-gradient(135deg, #0e0a0a 0%, #2e1a1a 50%, #0e0a0a 100%)' }}
+                onClick={() => setPresetBg('linear-gradient(135deg, #0e0a0a 0%, #2e1a1a 50%, #0e0a0a 100%)')} title="Ember" />
+              <button className="xt-ops-bg-preset" style={{ background: 'linear-gradient(135deg, #0e0a10 0%, #2a1a30 50%, #0e0a10 100%)' }}
+                onClick={() => setPresetBg('linear-gradient(135deg, #0e0a10 0%, #2a1a30 50%, #0e0a10 100%)')} title="Void" />
+              <button className="xt-ops-bg-preset" style={{ background: 'linear-gradient(180deg, #0d0d12 0%, #111118 100%)' }}
+                onClick={() => setPresetBg('linear-gradient(180deg, #0d0d12 0%, #111118 100%)')} title="Dark" />
+              <button className="xt-ops-bg-preset" style={{ background: 'radial-gradient(ellipse at 50% 30%, #1a1a2e 0%, #0a0a0e 70%)' }}
+                onClick={() => setPresetBg('radial-gradient(ellipse at 50% 30%, #1a1a2e 0%, #0a0a0e 70%)')} title="Spotlight" />
+            </div>
+
+            {playBgUrl ? (
+              <button className="xt-ops-bg-option xt-ops-bg-option--clear" onClick={clearBg} style={{ marginTop: 8 }}>
+                Reset to Default
+              </button>
+            ) : null}
+
+            <button className="xt-ops-bg-option" onClick={() => setBgPanelOpen(false)} style={{ marginTop: 4, opacity: 0.5 }}>
+              Close
+            </button>
+          </div>
+        ) : null}
 
         {/* ── Rack backdrop overlay ── */}
         {rackOpen && <div className="xt-ops-rack-backdrop" onClick={() => setRackOpen(false)} />}
