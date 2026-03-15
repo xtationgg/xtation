@@ -326,6 +326,14 @@ export const Play: React.FC<PlayProps> = ({
     };
   }, [orderedTasks]);
 
+  const handleCategorySwitch = useCallback((cat: PlayCategory) => {
+    setActiveCategory(cat);
+    const newCategoryQuests = categoryQuests[cat];
+    if (selectedTaskId && !newCategoryQuests.find(t => t.id === selectedTaskId)) {
+      setSelectedTaskId(null);
+    }
+  }, [categoryQuests, selectedTaskId]);
+
   const currentCategoryQuests = categoryQuests[activeCategory];
 
   useEffect(() => {
@@ -940,21 +948,21 @@ export const Play: React.FC<PlayProps> = ({
         <div className="xt-play-categories">
           <button
             className={`xt-play-cat ${activeCategory === 'active' ? 'is-active' : ''}`}
-            onClick={() => setActiveCategory('active')}
+            onClick={() => handleCategorySwitch('active')}
           >
             <span className="xt-play-cat-label">Active</span>
             <span className="xt-play-cat-count">{categoryQuests.active.length} quests</span>
           </button>
           <button
             className={`xt-play-cat ${activeCategory === 'routine' ? 'is-active' : ''}`}
-            onClick={() => setActiveCategory('routine')}
+            onClick={() => handleCategorySwitch('routine')}
           >
             <span className="xt-play-cat-label">Routine</span>
             <span className="xt-play-cat-count">{categoryQuests.routine.length} habits</span>
           </button>
           <button
             className={`xt-play-cat ${activeCategory === 'build' ? 'is-active' : ''}`}
-            onClick={() => setActiveCategory('build')}
+            onClick={() => handleCategorySwitch('build')}
           >
             <span className="xt-play-cat-label">Build</span>
             <span className="xt-play-cat-count">{categoryQuests.build.length} projects</span>
@@ -1003,7 +1011,7 @@ export const Play: React.FC<PlayProps> = ({
               <span className="xt-play-hero-tag">{PRIORITY_LABELS[selectedTask.priority]}</span>
               <span className="xt-play-hero-tag">L{selectedTask.level ?? 1}</span>
               {selectedTask.selfTreePrimary ? (
-                <span className="xt-play-hero-tag" style={{ borderColor: BRANCH_COLORS[selectedTask.selfTreePrimary], color: BRANCH_COLORS[selectedTask.selfTreePrimary] }}>
+                <span className="xt-play-hero-tag" style={{ color: BRANCH_COLORS[selectedTask.selfTreePrimary] }}>
                   {SELF_TREE_LABELS[selectedTask.selfTreePrimary]}
                 </span>
               ) : null}
@@ -1032,10 +1040,22 @@ export const Play: React.FC<PlayProps> = ({
 
             {/* Stats strip — floating */}
             <div className="xt-play-hero-stats">
-              <SummaryCell label="Today" value={`${Math.floor(selectedTaskTodayMs / 60000)} min`} />
-              <SummaryCell label="XP" value={`+${selectedTaskCompletionXP?.total ?? 0}`} accent="text-[var(--app-accent)]" />
-              <SummaryCell label="Steps" value={selectedStepCounts ? `${selectedStepCounts.done}/${selectedStepCounts.total}` : '\u2014'} />
-              <SummaryCell label="Level" value={`${stats.playerLevel}`} />
+              <div className="xt-play-stat">
+                <span className="xt-play-stat-val">{Math.floor(selectedTaskTodayMs / 60000)} min</span>
+                <span className="xt-play-stat-label">today</span>
+              </div>
+              <div className="xt-play-stat">
+                <span className="xt-play-stat-val">+{selectedTaskCompletionXP?.total ?? 0}</span>
+                <span className="xt-play-stat-label">XP</span>
+              </div>
+              <div className="xt-play-stat">
+                <span className="xt-play-stat-val">{selectedStepCounts ? `${selectedStepCounts.done}/${selectedStepCounts.total}` : '\u2014'}</span>
+                <span className="xt-play-stat-label">steps</span>
+              </div>
+              <div className="xt-play-stat">
+                <span className="xt-play-stat-val">{stats.playerLevel}</span>
+                <span className="xt-play-stat-label">level</span>
+              </div>
             </div>
 
             {/* Steps (if quest has them) */}
