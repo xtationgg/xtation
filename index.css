@@ -17363,6 +17363,75 @@ a {
   background: var(--app-panel-2);
 }
 
+/* ── HUD Session Banner (game-style) ── */
+.vq-hud-banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 34px;
+  padding: 0 14px;
+  background: color-mix(in srgb, var(--app-accent) 8%, var(--app-panel));
+  border: 1px solid color-mix(in srgb, var(--app-accent) 30%, var(--app-border));
+  border-radius: 8px;
+  cursor: pointer;
+  transition: border-color 150ms ease, box-shadow 200ms ease;
+  max-width: 420px;
+  animation: vq-hud-glow 3s ease-in-out infinite;
+}
+@keyframes vq-hud-glow {
+  0%, 100% { box-shadow: 0 0 0 0 transparent; }
+  50% { box-shadow: 0 0 12px color-mix(in srgb, var(--app-accent) 15%, transparent); }
+}
+.vq-hud-banner:hover {
+  border-color: color-mix(in srgb, var(--app-accent) 50%, var(--app-border));
+}
+.vq-hud-live-tag {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--app-accent);
+}
+.vq-hud-title {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--app-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 180px;
+}
+.vq-hud-actions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  margin-left: auto;
+}
+.vq-hud-btn {
+  width: 26px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 5px;
+  border: none;
+  background: transparent;
+  color: var(--app-muted);
+  cursor: pointer;
+  transition: color 150ms ease, background 150ms ease;
+}
+.vq-hud-btn:hover {
+  color: var(--app-text);
+  background: color-mix(in srgb, var(--app-text) 8%, transparent);
+}
+.vq-hud-btn--stop:hover {
+  color: #f87171;
+  background: color-mix(in srgb, #f87171 10%, transparent);
+}
+
 /* Empty State */
 .play-empty-state {
   display: flex;
@@ -17379,300 +17448,720 @@ a {
 .play-empty-state__actions { display: flex; gap: 8px; margin-top: 8px; }
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   VAULT SPACE
+   VAULT SPACE — GAME UI
    ═══════════════════════════════════════════════════════════════════════════ */
 
+/* — Rarity palette — */
 .vault-space {
+  --rarity-common: var(--app-muted);
+  --rarity-common-glow: color-mix(in srgb, var(--app-muted) 20%, transparent);
+  --rarity-rare: #60a5fa;
+  --rarity-rare-glow: color-mix(in srgb, #60a5fa 28%, transparent);
+  --rarity-epic: #f59e0b;
+  --rarity-epic-glow: color-mix(in srgb, #f59e0b 32%, transparent);
   display: flex;
   flex-direction: column;
   height: 100%;
 }
 
-/* Filter bar */
-.vault-filters {
+/* ── Game Nav Strip ── */
+.vq-nav {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 12px 20px;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 16px;
   border-bottom: 1px solid var(--app-border);
   flex-shrink: 0;
 }
-.vault-filter-tab {
-  padding: 4px 12px;
+.vq-nav-filters {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+.vq-nav-tab {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
   font-size: 11px;
-  font-weight: 500;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
   color: var(--app-muted);
   background: none;
   border: none;
+  border-bottom: 2px solid transparent;
   cursor: pointer;
-  transition: color 150ms ease;
-  letter-spacing: 0.04em;
+  transition: color 150ms ease, border-color 200ms ease;
+  font-family: inherit;
+  position: relative;
 }
-.vault-filter-tab:hover { color: var(--app-text); }
-.vault-filter-tab--active {
+.vq-nav-tab:hover { color: var(--app-text); }
+.vq-nav-tab--active {
   color: var(--app-text);
-  background: var(--app-panel-2);
-  border-radius: 4px;
+  border-bottom-color: var(--app-accent);
 }
-.vault-filter-count {
+.vq-nav-tab--active::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 12px;
+  right: 12px;
+  height: 2px;
+  background: var(--app-accent);
+  box-shadow: 0 0 8px color-mix(in srgb, var(--app-accent) 60%, transparent);
+}
+.vq-nav-tab-icon {
+  display: flex;
+  align-items: center;
+  opacity: 0.7;
+}
+.vq-nav-tab--active .vq-nav-tab-icon { opacity: 1; }
+.vq-nav-tab-label { /* inherits */ }
+.vq-nav-tab-count {
+  font-family: 'IBM Plex Mono', monospace;
   font-size: 9px;
   color: var(--app-muted);
-  margin-left: 4px;
   opacity: 0.6;
+  font-variant-numeric: tabular-nums;
 }
-.vault-sort-select {
-  padding: 3px 8px;
-  font-size: 10px;
+.vq-nav-tab--active .vq-nav-tab-count { color: var(--app-accent); opacity: 0.9; }
+
+.vq-nav-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.vq-search-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+.vq-search-icon {
+  position: absolute;
+  left: 8px;
+  color: var(--app-muted);
+  opacity: 0.5;
+  pointer-events: none;
+}
+.vq-search-input {
+  width: 140px;
+  padding: 5px 10px 5px 28px;
+  font-size: 12px;
+  color: var(--app-text);
+  background: var(--app-panel);
+  border: 1px solid var(--app-border);
+  border-radius: 4px;
+  outline: none;
+  transition: border-color 150ms ease, width 200ms ease;
+  font-family: inherit;
+}
+.vq-search-input:focus { border-color: var(--app-accent); width: 200px; }
+.vq-search-input::placeholder { color: var(--app-muted); opacity: 0.4; }
+
+.vq-sort-select {
+  padding: 4px 8px;
+  font-size: 11px;
   color: var(--app-muted);
   background: transparent;
   border: 1px solid var(--app-border);
   border-radius: 4px;
   cursor: pointer;
   outline: none;
+  font-family: inherit;
 }
-.vault-sort-select:focus { border-color: var(--app-accent); }
+.vq-sort-select:focus { border-color: var(--app-accent); }
 
-/* Search */
-.vault-search {
-  padding: 8px 20px;
-  border-bottom: 1px solid color-mix(in srgb, var(--app-border) 50%, transparent);
-  flex-shrink: 0;
-}
-.vault-search-wrap {
-  position: relative;
+.vq-create-btn {
   display: flex;
   align-items: center;
-}
-.vault-search-icon {
-  position: absolute;
-  left: 10px;
-  color: var(--app-muted);
-  opacity: 0.5;
-  pointer-events: none;
-}
-.vault-search-input {
-  width: 100%;
-  padding: 6px 12px 6px 32px;
-  font-size: 13px;
-  color: var(--app-text);
-  background: var(--app-panel);
-  border: 1px solid var(--app-border);
-  border-radius: 4px;
-  outline: none;
-}
-.vault-search-input:focus { border-color: var(--app-accent); }
-.vault-search-input::placeholder { color: var(--app-muted); opacity: 0.5; }
-
-/* Body: list + detail */
-.vault-body {
-  flex: 1;
-  display: flex;
-  position: relative;
-  overflow: hidden;
-}
-
-/* Quest list */
-.vault-list {
-  flex: 1;
-  overflow-y: auto;
-}
-.vault-quest-row {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  height: 56px;
-  padding: 0 20px;
-  border-bottom: 1px solid color-mix(in srgb, var(--app-border) 40%, transparent);
-  cursor: pointer;
-  transition: background 150ms ease;
-}
-.vault-quest-row:hover { background: color-mix(in srgb, var(--app-text) 3%, transparent); }
-.vault-quest-row--selected { background: color-mix(in srgb, var(--app-accent) 6%, transparent); }
-.vault-quest-row--active-session {
-  border-left: 2px solid var(--play-status-running, #22c55e);
-}
-.vault-quest-row__info {
-  flex: 1;
-  min-width: 0;
-}
-.vault-quest-row__title {
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--app-text);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.vault-quest-row__meta {
-  font-size: 10px;
-  color: var(--app-muted);
-  margin-top: 2px;
-  display: flex;
-  gap: 8px;
-  align-items: center;
-}
-.vault-quest-row__stats {
-  display: flex;
-  gap: 12px;
-  align-items: center;
-  flex-shrink: 0;
-}
-.vault-quest-row__stat {
-  font-family: 'IBM Plex Mono', monospace;
+  gap: 5px;
+  padding: 5px 14px;
   font-size: 11px;
-  color: var(--app-muted);
-  font-variant-numeric: tabular-nums;
-}
-.vault-quest-row__actions {
-  display: flex;
-  gap: 4px;
-  opacity: 0;
-  transition: opacity 150ms ease;
-}
-.vault-quest-row:hover .vault-quest-row__actions { opacity: 1; }
-.vault-row-action {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 28px;
-  height: 28px;
-  border: none;
-  background: none;
-  color: var(--app-muted);
-  cursor: pointer;
-  border-radius: 4px;
-  transition: color 150ms ease, background 150ms ease;
-}
-.vault-row-action:hover {
-  color: var(--app-text);
-  background: color-mix(in srgb, var(--app-text) 6%, transparent);
-}
-
-/* Detail panel */
-.vault-detail {
-  position: absolute;
-  top: 0;
-  right: 0;
-  width: 420px;
-  height: 100%;
-  background: var(--app-panel);
-  border-left: 1px solid var(--app-border);
-  z-index: 5;
-  overflow-y: auto;
-  padding: 20px;
-  animation: vault-detail-in 200ms ease-out;
-}
-@keyframes vault-detail-in {
-  from { transform: translateX(20px); opacity: 0; }
-  to { transform: translateX(0); opacity: 1; }
-}
-.vault-detail__header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  margin-bottom: 16px;
-  gap: 12px;
-}
-.vault-detail__title {
-  font-size: 18px;
   font-weight: 600;
-  color: var(--app-text);
-  line-height: 1.3;
-  margin: 0;
-}
-.vault-detail__close {
-  width: 28px;
-  height: 28px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: none;
-  border: none;
-  color: var(--app-muted);
-  cursor: pointer;
-  border-radius: 4px;
-  flex-shrink: 0;
-  transition: color 150ms ease;
-}
-.vault-detail__close:hover { color: var(--app-text); }
-.vault-detail__section {
-  margin-bottom: 16px;
-}
-.vault-detail__label {
-  font-size: 10px;
-  font-weight: 500;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
-  color: var(--app-muted);
-  margin-bottom: 6px;
-}
-.vault-detail__value {
-  font-size: 13px;
-  color: var(--app-text);
-  line-height: 1.5;
-}
-.vault-detail__actions {
-  display: flex;
-  gap: 8px;
-  margin-top: 20px;
-  padding-top: 16px;
-  border-top: 1px solid var(--app-border);
-  flex-wrap: wrap;
-}
-.vault-detail-action {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 14px;
-  font-size: 12px;
-  color: var(--app-muted);
-  background: none;
-  border: 1px solid var(--app-border);
-  border-radius: 4px;
-  cursor: pointer;
-  transition: color 150ms ease, background 150ms ease, border-color 150ms ease;
-}
-.vault-detail-action:hover {
-  color: var(--app-text);
-  background: color-mix(in srgb, var(--app-text) 4%, transparent);
-}
-.vault-detail-action--accent {
   color: var(--app-accent);
-  border-color: color-mix(in srgb, var(--app-accent) 30%, transparent);
-}
-.vault-detail-action--accent:hover {
   background: color-mix(in srgb, var(--app-accent) 8%, transparent);
-  color: var(--app-accent);
-}
-.vault-detail-action--success {
-  color: #22c55e;
-  border-color: color-mix(in srgb, #22c55e 30%, transparent);
-}
-.vault-detail-action--success:hover {
-  background: color-mix(in srgb, #22c55e 8%, transparent);
-  color: #22c55e;
-}
-
-/* Create button */
-.vault-create-btn {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 14px;
-  font-size: 12px;
-  color: var(--app-accent);
-  background: none;
   border: 1px solid color-mix(in srgb, var(--app-accent) 30%, transparent);
   border-radius: 4px;
   cursor: pointer;
-  transition: background 150ms ease;
+  transition: background 150ms ease, box-shadow 150ms ease;
+  font-family: inherit;
 }
-.vault-create-btn:hover { background: color-mix(in srgb, var(--app-accent) 8%, transparent); }
+.vq-create-btn:hover {
+  background: color-mix(in srgb, var(--app-accent) 14%, transparent);
+  box-shadow: 0 0 12px color-mix(in srgb, var(--app-accent) 20%, transparent);
+}
 
-/* Responsive: detail panel on small screens */
+/* ── Body: Grid + Briefing ── */
+.vq-body {
+  flex: 1;
+  display: flex;
+  position: relative;
+  overflow: hidden;
+}
+.vq-grid-scroll {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+}
+
+/* ── Quest Card Grid ── */
+.vq-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 10px;
+}
+
+/* ── Individual Quest Card ── */
+.vq-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px 14px 10px;
+  background: var(--app-panel);
+  border: 1px solid var(--app-border);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: transform 150ms ease, border-color 200ms ease, box-shadow 200ms ease, background 150ms ease;
+  text-align: left;
+  font-family: inherit;
+  overflow: hidden;
+  outline: none;
+}
+.vq-card:hover {
+  transform: translateY(-2px);
+  background: color-mix(in srgb, var(--app-text) 3%, var(--app-panel));
+}
+.vq-card:focus-visible {
+  box-shadow: 0 0 0 2px var(--app-accent);
+}
+
+/* Rarity glow strip — left edge */
+.vq-card-glow {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 3px;
+  height: 100%;
+  border-radius: 8px 0 0 8px;
+  transition: box-shadow 200ms ease, background 200ms ease;
+}
+
+/* Common (normal priority) */
+.vq-card--common .vq-card-glow {
+  background: var(--rarity-common);
+  opacity: 0.3;
+}
+.vq-card--common:hover .vq-card-glow {
+  opacity: 0.6;
+  box-shadow: 0 0 8px var(--rarity-common-glow);
+}
+
+/* Rare (high priority) */
+.vq-card--rare .vq-card-glow {
+  background: var(--rarity-rare);
+  opacity: 0.6;
+}
+.vq-card--rare:hover {
+  border-color: color-mix(in srgb, var(--rarity-rare) 40%, var(--app-border));
+}
+.vq-card--rare:hover .vq-card-glow {
+  opacity: 1;
+  box-shadow: 0 0 12px var(--rarity-rare-glow);
+}
+
+/* Epic (urgent priority) */
+.vq-card--epic .vq-card-glow {
+  background: var(--rarity-epic);
+  opacity: 0.8;
+}
+.vq-card--epic:hover {
+  border-color: color-mix(in srgb, var(--rarity-epic) 50%, var(--app-border));
+}
+.vq-card--epic:hover .vq-card-glow {
+  opacity: 1;
+  box-shadow: 0 0 16px var(--rarity-epic-glow);
+}
+
+/* Selected card */
+.vq-card--selected {
+  border-color: color-mix(in srgb, var(--app-accent) 50%, var(--app-border));
+  background: color-mix(in srgb, var(--app-accent) 6%, var(--app-panel));
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--app-accent) 20%, transparent);
+}
+
+/* Live / running session card */
+.vq-card--live {
+  border-color: color-mix(in srgb, var(--app-accent) 60%, var(--app-border));
+  animation: vq-card-breathe 2.5s ease-in-out infinite;
+}
+@keyframes vq-card-breathe {
+  0%, 100% { box-shadow: 0 0 0 1px color-mix(in srgb, var(--app-accent) 20%, transparent); }
+  50% { box-shadow: 0 0 16px color-mix(in srgb, var(--app-accent) 25%, transparent), 0 0 0 1px color-mix(in srgb, var(--app-accent) 30%, transparent); }
+}
+
+/* Completed card */
+.vq-card--done {
+  opacity: 0.5;
+}
+.vq-card--done:hover { opacity: 0.7; }
+
+/* Card top row: sigil + level */
+.vq-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.vq-card-sigil {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--app-muted);
+  background: color-mix(in srgb, var(--app-border) 60%, transparent);
+  border-radius: 4px;
+  letter-spacing: 0;
+}
+.vq-card-level {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--app-accent);
+  letter-spacing: 0.06em;
+}
+
+/* Card title */
+.vq-card-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--app-text);
+  line-height: 1.35;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Card meta: status dot + priority + branch */
+.vq-card-meta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 10px;
+  color: var(--app-muted);
+}
+.vq-card-priority {
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.vq-card--epic .vq-card-priority { color: var(--rarity-epic); }
+.vq-card--rare .vq-card-priority { color: var(--rarity-rare); }
+.vq-card-sep {
+  width: 1px;
+  height: 10px;
+  background: var(--app-border);
+}
+.vq-card-branch {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Card stats row */
+.vq-card-stats {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: auto;
+}
+.vq-card-stat {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9px;
+  color: var(--app-muted);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+}
+.vq-card-type-tag {
+  margin-left: auto;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  opacity: 0.5;
+}
+
+/* Card progress bar — bottom edge */
+.vq-card-progress {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: color-mix(in srgb, var(--app-border) 50%, transparent);
+}
+.vq-card-progress-fill {
+  height: 100%;
+  background: var(--app-accent);
+  border-radius: 0 1px 1px 0;
+  transition: width 300ms ease;
+}
+
+/* Quick-play button overlay */
+.vq-card-play {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  border: none;
+  background: color-mix(in srgb, var(--app-bg) 80%, transparent);
+  color: var(--app-accent);
+  cursor: pointer;
+  opacity: 0;
+  transform: scale(0.85);
+  transition: opacity 150ms ease, transform 150ms ease, background 150ms ease;
+  backdrop-filter: blur(4px);
+}
+.vq-card:hover .vq-card-play { opacity: 1; transform: scale(1); }
+.vq-card-play:hover {
+  background: color-mix(in srgb, var(--app-accent) 15%, var(--app-bg));
+}
+
+/* ── Empty State — Game Prompt ── */
+.vq-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  padding: 80px 20px;
+  text-align: center;
+}
+.vq-empty-sigil {
+  color: var(--app-muted);
+  opacity: 0.15;
+}
+.vq-empty-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--app-text);
+  opacity: 0.6;
+  letter-spacing: 0.02em;
+}
+.vq-empty-sub {
+  font-size: 12px;
+  color: var(--app-muted);
+  opacity: 0.5;
+  max-width: 260px;
+  line-height: 1.5;
+}
+.vq-empty-cta {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px;
+  padding: 8px 20px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--app-accent);
+  background: color-mix(in srgb, var(--app-accent) 8%, transparent);
+  border: 1px solid color-mix(in srgb, var(--app-accent) 30%, transparent);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 150ms ease, box-shadow 200ms ease;
+  font-family: inherit;
+}
+.vq-empty-cta:hover {
+  background: color-mix(in srgb, var(--app-accent) 14%, transparent);
+  box-shadow: 0 0 16px color-mix(in srgb, var(--app-accent) 18%, transparent);
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   MISSION BRIEFING PANEL
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+.vq-briefing {
+  width: 380px;
+  flex-shrink: 0;
+  height: 100%;
+  overflow-y: auto;
+  padding: 20px;
+  background: var(--app-panel);
+  border-left: 1px solid var(--app-border);
+  position: relative;
+  animation: vq-briefing-in 200ms ease-out;
+}
+@keyframes vq-briefing-in {
+  from { transform: translateX(16px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+/* Live session state — subtle accent border */
+.vq-briefing--live {
+  border-left-color: color-mix(in srgb, var(--app-accent) 60%, var(--app-border));
+  box-shadow: inset 2px 0 16px color-mix(in srgb, var(--app-accent) 8%, transparent);
+}
+
+.vq-briefing-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: none;
+  color: var(--app-muted);
+  cursor: pointer;
+  border-radius: 4px;
+  transition: color 150ms ease;
+}
+.vq-briefing-close:hover { color: var(--app-text); }
+
+/* Header */
+.vq-briefing-header {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-right: 36px;
+}
+.vq-briefing-status-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.vq-briefing-status {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--app-muted);
+}
+.vq-briefing-rarity {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 2px 8px;
+  border-radius: 3px;
+  margin-left: auto;
+}
+.vq-briefing-rarity.vq-card--common {
+  color: var(--rarity-common);
+  background: color-mix(in srgb, var(--rarity-common) 12%, transparent);
+}
+.vq-briefing-rarity.vq-card--rare {
+  color: var(--rarity-rare);
+  background: color-mix(in srgb, var(--rarity-rare) 14%, transparent);
+}
+.vq-briefing-rarity.vq-card--epic {
+  color: var(--rarity-epic);
+  background: color-mix(in srgb, var(--rarity-epic) 14%, transparent);
+}
+
+.vq-briefing-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--app-text);
+  line-height: 1.25;
+  margin: 0;
+  position: relative;
+  padding-bottom: 4px;
+}
+
+/* Tags row */
+.vq-briefing-tags {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.vq-briefing-tag {
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--app-muted);
+  padding: 2px 8px;
+  background: color-mix(in srgb, var(--app-border) 60%, transparent);
+  border-radius: 3px;
+}
+.vq-briefing-tag--accent {
+  color: var(--app-accent);
+  background: color-mix(in srgb, var(--app-accent) 12%, transparent);
+}
+
+/* Divider */
+.vq-briefing-divider {
+  height: 1px;
+  background: var(--app-border);
+  margin: 16px 0;
+}
+
+/* Intel rows */
+.vq-briefing-intel {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.vq-briefing-intel-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+}
+.vq-briefing-intel-icon {
+  color: var(--app-muted);
+  flex-shrink: 0;
+  opacity: 0.6;
+}
+.vq-briefing-intel-label {
+  color: var(--app-muted);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.vq-briefing-intel-value {
+  margin-left: auto;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--app-text);
+  font-variant-numeric: tabular-nums;
+}
+.vq-briefing-intel-bar {
+  width: 60px;
+  height: 4px;
+  background: color-mix(in srgb, var(--app-border) 60%, transparent);
+  border-radius: 2px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.vq-briefing-intel-bar-fill {
+  height: 100%;
+  background: var(--app-accent);
+  border-radius: 2px;
+  transition: width 300ms ease;
+}
+
+/* Details / Intel text */
+.vq-briefing-details {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.vq-briefing-details-label {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--app-accent);
+  opacity: 0.8;
+}
+.vq-briefing-details-text {
+  font-size: 13px;
+  color: var(--app-text);
+  line-height: 1.6;
+  white-space: pre-wrap;
+  opacity: 0.85;
+}
+
+/* Action buttons — game style */
+.vq-briefing-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.vq-action {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--app-muted);
+  background: none;
+  border: 1px solid var(--app-border);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: color 150ms ease, background 150ms ease, border-color 150ms ease, box-shadow 200ms ease;
+  font-family: inherit;
+}
+.vq-action:hover {
+  color: var(--app-text);
+  background: color-mix(in srgb, var(--app-text) 5%, transparent);
+}
+
+/* Primary action — accent glow */
+.vq-action--primary {
+  color: var(--app-accent);
+  border-color: color-mix(in srgb, var(--app-accent) 40%, transparent);
+  background: color-mix(in srgb, var(--app-accent) 8%, transparent);
+}
+.vq-action--primary:hover {
+  color: var(--app-accent);
+  background: color-mix(in srgb, var(--app-accent) 14%, transparent);
+  box-shadow: 0 0 14px color-mix(in srgb, var(--app-accent) 20%, transparent);
+}
+
+/* Live session variant */
+.vq-action--live {
+  animation: vq-action-pulse 2s ease-in-out infinite;
+}
+@keyframes vq-action-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--app-accent) 20%, transparent); }
+  50% { box-shadow: 0 0 12px color-mix(in srgb, var(--app-accent) 25%, transparent); }
+}
+
+/* Success action */
+.vq-action--success {
+  color: #22c55e;
+  border-color: color-mix(in srgb, #22c55e 35%, transparent);
+}
+.vq-action--success:hover {
+  color: #22c55e;
+  background: color-mix(in srgb, #22c55e 10%, transparent);
+  box-shadow: 0 0 12px color-mix(in srgb, #22c55e 15%, transparent);
+}
+
+/* ── Responsive ── */
 @media (max-width: 768px) {
-  .vault-detail {
+  .vq-briefing {
+    position: absolute;
+    top: 0;
+    right: 0;
     width: 100%;
+    z-index: 10;
+  }
+  .vq-grid {
+    grid-template-columns: 1fr;
+  }
+  .vq-nav {
+    flex-wrap: wrap;
+  }
+  .vq-nav-right {
+    flex-wrap: wrap;
   }
 }
 
