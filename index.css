@@ -28,66 +28,106 @@
 
 .si-slide-right { opacity: 0; animation: si-slideRight 0.7s ease forwards; }
 
-/* ── Viewport ── */
-.si-viewport {
+/* ── Page: full-screen with media bg ── */
+.si-page {
+  position: relative;
+  width: 100%;
+  height: 100dvh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background: var(--app-bg);
+}
+.si-page--compact {
+  height: auto;
+  min-height: 0;
+}
+.si-viewport { /* keep for compact drawer wrapper */
   display: flex;
   align-items: center;
   justify-content: center;
   width: 100%;
   height: 100dvh;
   background: var(--app-bg);
-  padding: 4vh 4vw;
 }
 
-/* ── Card ── */
-.si-card {
-  display: flex;
-  width: 70%;
-  max-width: 1060px;
-  height: min(82vh, 680px);
-  background: var(--app-panel);
-  border: 1px solid var(--app-border);
-  border-radius: clamp(12px, 1.4vw, 22px);
-  overflow: hidden;
-  color: var(--app-text);
+/* ── Full-bleed media background ── */
+.si-bg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+.si-bg-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  transition: opacity 1s ease, transform 1s ease;
+}
+.si-bg-layer--back { z-index: 0; }
+.si-bg-layer--out {
+  opacity: 0;
+  transform: scale(1.03);
+}
+.si-bg-layer--reveal {
+  z-index: 1;
+  opacity: 1;
+  transform: scale(1);
+}
+.si-bg-media {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+.si-bg-scrim {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(1px);
+  transition: background 0.8s ease;
+}
+.si-bg-scrim--light {
+  background: rgba(0, 0, 0, 0.3);
+}
+
+/* ── Glass panel (form container) ── */
+.si-panel {
+  position: relative;
+  z-index: 10;
+  width: min(420px, 90vw);
+  max-height: 90dvh;
+  overflow-y: auto;
+  background: color-mix(in srgb, var(--app-bg) 78%, transparent);
+  backdrop-filter: blur(24px) saturate(1.2);
+  -webkit-backdrop-filter: blur(24px) saturate(1.2);
+  border: 1px solid color-mix(in srgb, var(--app-text) 8%, transparent);
+  border-radius: clamp(14px, 2vw, 24px);
+  box-shadow:
+    0 8px 40px rgba(0,0,0,0.3),
+    0 0 0 1px color-mix(in srgb, var(--app-text) 4%, transparent);
+  transition: transform 0.6s ease, box-shadow 0.6s ease;
   container-type: inline-size;
-  container-name: si-card;
+  container-name: si-panel;
+}
+.si-panel--success {
+  transform: scale(0.97);
   box-shadow:
     0 4px 24px rgba(0,0,0,0.2),
-    0 0 0 1px color-mix(in srgb, var(--app-border) 30%, transparent);
+    0 0 40px color-mix(in srgb, var(--app-accent) 15%, transparent);
 }
-.si-card--compact {
-  width: 100%;
-  max-width: 400px;
-  height: auto;
-  border: none;
-  border-radius: 0;
-  box-shadow: none;
-  background: transparent;
-}
-
-/* ── Form column ── */
-.si-form-col {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: clamp(20px, 4cqi, 44px);
-  overflow-y: auto;
-}
-.si-form-inner {
-  width: 100%;
-  max-width: 340px;
-}
-.si-form-content {
+.si-panel-inner {
   display: flex;
   flex-direction: column;
-  gap: clamp(12px, 2.2cqi, 20px);
+  gap: clamp(12px, 3.5cqi, 18px);
+  padding: clamp(24px, 7cqi, 36px) clamp(20px, 6cqi, 32px);
 }
 
 /* Brand */
 .si-brand {
-  font-size: clamp(10px, 1.6cqi, 13px);
+  font-size: clamp(10px, 2.8cqi, 13px);
   font-weight: 600;
   letter-spacing: 0.25em;
   color: var(--app-accent);
@@ -386,15 +426,15 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: clamp(16px, 3cqi, 28px);
-  padding: clamp(20px, 4cqi, 40px) 0;
+  gap: clamp(16px, 5cqi, 28px);
+  padding: clamp(20px, 6cqi, 40px) 0;
 }
 .si-success-icon {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: clamp(44px, 7cqi, 64px);
-  height: clamp(44px, 7cqi, 64px);
+  width: clamp(44px, 12cqi, 64px);
+  height: clamp(44px, 12cqi, 64px);
   border-radius: 50%;
   background: color-mix(in srgb, var(--app-accent) 15%, transparent);
   border: 2px solid var(--app-accent);
@@ -402,8 +442,8 @@
   animation: si-success-pop 0.4s ease forwards;
 }
 .si-success-icon svg {
-  width: clamp(20px, 3.5cqi, 30px);
-  height: clamp(20px, 3.5cqi, 30px);
+  width: clamp(20px, 6cqi, 30px);
+  height: clamp(20px, 6cqi, 30px);
 }
 @keyframes si-success-pop {
   0%   { transform: scale(0.5); opacity: 0; }
@@ -425,104 +465,52 @@
   background: var(--app-accent);
   animation: si-bar-fill 2s ease-out forwards;
 }
-@keyframes si-bar-fill {
-  to { width: 100%; }
-}
+@keyframes si-bar-fill { to { width: 100%; } }
 
-/* ── Hero column ── */
-.si-hero-col {
-  flex: 1;
-  position: relative;
-  padding: clamp(8px, 1.2cqi, 14px);
-  display: none;
-  overflow: hidden;
-}
-
-/* Media layers — stacked, crossfade */
-.si-media-layer {
+/* ── Bottom page brand (over media) ── */
+.si-page-brand {
   position: absolute;
-  inset: clamp(8px, 1.2cqi, 14px);
-  border-radius: clamp(8px, 1.4cqi, 18px);
-  overflow: hidden;
-  transition: opacity 0.8s ease, transform 0.8s ease;
-  opacity: 1;
-  transform: scale(1);
+  bottom: clamp(20px, 3vw, 40px);
+  left: clamp(20px, 3vw, 40px);
+  z-index: 5;
 }
-.si-media-layer--out {
-  opacity: 0;
-  transform: scale(1.04);
-}
-.si-media-layer--success {
-  opacity: 0;
-  transform: scale(1.04);
-}
-.si-media-layer--in {
-  opacity: 1;
-  transform: scale(1);
-}
-
-/* Media fill — cover, not fit or stretch */
-.si-media-fill {
-  display: block;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  object-position: center;
-  border-radius: clamp(8px, 1.4cqi, 18px);
-}
-
-/* Gradient overlay */
-.si-hero-grad {
-  position: absolute;
-  inset: clamp(8px, 1.2cqi, 14px);
-  border-radius: clamp(8px, 1.4cqi, 18px);
-  background: linear-gradient(180deg, rgba(0,0,0,0.05) 0%, rgba(0,0,0,0.55) 100%);
-  pointer-events: none;
-  z-index: 2;
-  transition: background 0.8s ease;
-}
-.si-hero-grad--light {
-  background: linear-gradient(180deg, rgba(0,0,0,0.02) 0%, rgba(0,0,0,0.35) 100%);
-}
-
-/* Brand text */
-.si-hero-brand {
-  position: absolute;
-  bottom: clamp(20px, 3.5cqi, 40px);
-  left: clamp(20px, 3.5cqi, 40px);
-  z-index: 3;
-  transition: transform 0.6s ease, opacity 0.6s ease;
-}
-.si-hero-logo {
-  font-size: clamp(14px, 2.8cqi, 22px);
+.si-page-brand-logo {
+  font-size: clamp(14px, 1.8vw, 22px);
   font-weight: 700;
   letter-spacing: 0.2em;
   color: #fff;
-  text-shadow: 0 2px 10px rgba(0,0,0,0.35);
+  text-shadow: 0 2px 10px rgba(0,0,0,0.4);
 }
-.si-hero-tagline {
-  font-size: clamp(10px, 1.5cqi, 12px);
-  color: rgba(255,255,255,0.65);
-  margin-top: clamp(2px, 0.3cqi, 4px);
+.si-page-brand-sub {
+  font-size: clamp(10px, 1.1vw, 13px);
+  color: rgba(255,255,255,0.6);
+  margin-top: 2px;
   letter-spacing: 0.03em;
   transition: color 0.6s ease;
 }
 
-/* Show hero on wider cards */
-@container si-card (min-width: 640px) {
-  .si-hero-col { display: block; }
-}
-
 /* Compact mode */
-.si-card--compact .si-sep-text { background: var(--app-bg); }
+.si-page--compact .si-panel {
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+  background: transparent;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  max-height: none;
+  width: 100%;
+}
+.si-page--compact .si-sep-text,
+.si-page--compact .si-sep-line { background: var(--app-bg); }
 
 /* ── Responsive ── */
-@media (max-width: 900px) {
-  .si-card { width: 90%; height: min(88vh, 720px); }
-}
 @media (max-width: 560px) {
-  .si-viewport { padding: 0; }
-  .si-card { width: 100%; height: 100dvh; border-radius: 0; border: none; }
+  .si-panel {
+    width: 100%;
+    max-height: 100dvh;
+    border-radius: 0;
+    border: none;
+  }
 }
 
 /* ── Interface Hint System ─────────────────────────────────────────────────── */
