@@ -403,6 +403,40 @@ All work should pass `npm run build` and `npx vitest run` before committing.
 
 ```txt
 AI: Claude (Opus 4.6)
+Time: 2026-03-15 08:30
+Lock: none (session complete)
+
+Cinematic Play Section Visual Upgrade:
+
+Play.tsx changes:
+- Floating ambient particles (18 CSS-animated elements with drift)
+- Cinematic vignette overlay + horizon light beam
+- Enhanced HUD ring (outer/inner decorative rings, 12 tick marks, aura glow)
+- Week activity strip in sidebar (7-day grid with accent highlights)
+- Cinematic completion celebration (dark wash, star emblem, radial rays, XP burst)
+- Enhanced empty state (rotating geometric sigil with compass lines + diamond)
+
+index.css changes (390+ lines):
+- .xt-ops-vignette, .xt-ops-particles, .xt-ops-particle, .xt-ops-horizon
+- .xt-ops-ring-aura with session pulse animation
+- .xt-ops-week-strip / .xt-ops-week-cell (sidebar activity tracker)
+- Enhanced .xt-ops-briefing cards (gradient active, edge glow)
+- Full cinematic celebration: .xt-ops-celebration-bg, -rays, -emblem, -kicker, -bar
+- Enhanced focus mode: quest tags dim, title double-glow, controls accent shadow
+- .xt-ops-empty-sigil rotating geometric pattern
+
+All pure CSS, no new dependencies
+Files: components/Views/Play.tsx, index.css
+Build: clean (3.59s), Tests: 240/240
+Commit: cc84c9f
+
+Need from next AI:
+- Continue visual polish on other sections
+- Or proceed to Phase 2 items
+```
+
+```txt
+AI: Claude (Opus 4.6)
 Time: 2026-03-15
 Lock: none
 
@@ -576,3 +610,74 @@ Need from next AI:
 ```
 
 Then update `Current Locks` if needed.
+
+---
+
+```txt
+AI: Claude
+Time: 2026-03-15 01:30
+Lock: none (session complete)
+
+Done:
+- Fixed LazyInventory crash: re-added 9 lazy view imports to App.tsx that were
+  removed during incomplete ViewRouter extraction (commit 3aee12b, pushed)
+- Built Self-Tree dedicated visualization page in Profile.tsx:
+  - New SELF_TREE tab between PROFILE and HEALTH
+  - Hexagonal radar SVG chart (6 vertices, grid rings, colored data shape)
+  - 6 branch cards (Knowledge, Creation, Systems, Communication, Physical, Inner)
+  - Each card: progress bar, stats (active/done/projects/items), milestone CRUD
+  - Summary footer with total growth score
+- Built Lab wiki links system:
+  - New file: src/lab/wikiLinks.ts (extractWikiLinks, getActiveWikiLink,
+    getWikiSuggestions, getBacklinks, insertWikiLink)
+  - Lab.tsx Knowledge textarea: type [[ to trigger autocomplete dropdown
+  - Arrow keys navigate, Enter/Tab select, Escape dismiss
+  - Backlinks section shows notes that reference current note by title
+- Added CSS: Self-Tree page styles (radar, cards, grid) + wiki link editor
+  styles (autocomplete dropdown, backlinks panel) in index.css
+- All 8 views load clean, zero console errors
+- Build passes (4.17s), commit 1c14e92, pushed to main
+
+Phase 1 Status after this session:
+  1. Foundation Cleanup: PARTIAL (ViewRouter extracted but not wired)
+  2. Quest Flow Polish: DONE
+  3. Session Timer + Focus Mode: DONE
+  4. Self-Tree Visualization: DONE (this session)
+  5. Lab Wiki Links: DONE (this session)
+  6. Quest Celebration: DONE
+
+Need from Codex:
+- Review Self-Tree radar chart visual alignment
+```
+
+```txt
+AI: Claude
+Time: 2026-03-15 02:00
+Lock: none (session complete)
+
+Done:
+- Wired ViewRouter.tsx into App.tsx — Foundation Cleanup COMPLETE
+  - Removed 9 duplicate lazy view imports from App.tsx
+  - Replaced inline renderContent() with <ViewRouter /> component
+  - Removed unused Lobby import (ViewRouter handles it)
+  - Extracted onStarterSessionLive as memoized handler
+  - App.tsx reduced by 53 net lines
+  - Commit fa5d7e3, pushed to main
+- Verified Inventory Round 3 plan was already implemented:
+  - Card footer: clean (linked-mark + importance bar only)
+  - No duplicate Priority/Tier in details footer
+  - Click-outside deselection: working
+  - Split FILE/URL upload: working
+  - Date format: 14 MAR 26 ✅
+  - EMPTY_SLOTS: 12 ✅
+
+Phase 1 Status: ALL 6 ITEMS COMPLETE
+  1. Foundation Cleanup: ✅ DONE (ViewRouter wired)
+  2. Quest Flow Polish: ✅ DONE
+  3. Session Timer + Focus Mode: ✅ DONE
+  4. Self-Tree Visualization: ✅ DONE
+  5. Lab Wiki Links: ✅ DONE
+  6. Quest Celebration: ✅ DONE
+
+Next: Phase 2 planning or visual polish pass
+```
