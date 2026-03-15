@@ -373,8 +373,7 @@ export const TopBar: React.FC<TopBarProps> = ({
       <AuthDrawer
         open={isLoginModalOpen && !user}
         onClose={closeLoginModal}
-        variant="center"
-        panelClassName="!w-auto !max-w-[420px] !max-h-[90dvh] !overflow-y-auto !rounded-[14px] !border-[var(--app-border)] !bg-[var(--app-bg)]"
+        variant="drawer"
         triggerRef={loginTriggerRef as React.RefObject<HTMLElement | null>}
       >
         <SignInPage
