@@ -17840,10 +17840,12 @@ a {
 .xt-ops-room .xt-ops-layout { display: none !important; }
 .xt-ops-room .xt-ops-command { display: none !important; }
 
-/* Room base — override old overflow:hidden so new layout can scroll */
+/* Room base */
 .xt-ops-room {
   overflow-y: auto;
   overflow-x: hidden;
+  height: calc(100vh - 56px);
+  min-height: 0;
 }
 
 /* Floating content layer */
