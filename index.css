@@ -11779,7 +11779,10 @@
 }
 
 .xt-ops--idle .xt-ops-ring-container {
-  display: none;
+  display: block;
+  width: 80px;
+  height: 80px;
+  opacity: 0.5;
 }
 
 .xt-ops-ring-container {
@@ -11790,30 +11793,27 @@
               height 0.4s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-/* Session active: HUD becomes a compact header-style row */
+/* Session active: HUD stays vertical-centered for atmosphere */
 .xt-ops--live .xt-ops-hud {
-  flex-direction: row;
+  display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: space-between;
-  padding: 12px 0;
-  border-bottom: 1px solid var(--app-border);
-  gap: 16px;
+  gap: 12px;
+  padding: 24px 0;
 }
 
 .xt-ops--live .xt-ops-ring-container {
-  width: 48px;
-  height: 48px;
-  flex-shrink: 0;
+  display: block;
+  width: 100px;
+  height: 100px;
 }
 
 .xt-ops--live .xt-ops-quest-header {
-  flex: 1;
-  min-width: 0;
-  text-align: left;
+  text-align: center;
 }
 
 .xt-ops--live .xt-ops-controls {
-  flex-shrink: 0;
+  justify-content: center;
 }
 
 /* Ring aura — outer glow halo for cinematic depth */
@@ -11832,7 +11832,8 @@
 }
 
 .xt-ops--live .xt-ops-ring-aura {
-  opacity: 1;
+  display: block;
+  opacity: 0.6;
   background: radial-gradient(circle, color-mix(in srgb, var(--app-accent) 10%, transparent) 20%, transparent 65%);
   animation: xt-ring-aura-pulse 4s ease-in-out infinite;
 }
@@ -11893,10 +11894,11 @@
 }
 
 .xt-ops-timer-status {
-  font-size: 9px;
-  letter-spacing: 0.24em;
+  font-size: 10px;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: var(--app-muted);
+  color: var(--app-accent);
+  font-weight: 500;
   margin-top: 4px;
 }
 
@@ -11972,11 +11974,11 @@
   line-height: 1.1;
 }
 
-/* Session mode: compact quest title */
+/* Session mode: centered quest title with presence */
 .xt-ops--live .xt-ops-quest-title {
-  font-size: 18px;
-  text-align: left;
-  text-shadow: none;
+  font-size: 20px;
+  text-align: center;
+  margin-top: 4px;
 }
 
 .xt-ops-quest-tags {
@@ -12653,9 +12655,10 @@
   display: none;
 }
 
-/* Stats strip: hide entirely during session */
+/* Stats strip: show dimmed during session */
 .xt-ops--live .xt-ops-stats {
-  display: none;
+  display: flex !important;
+  opacity: 0.6;
 }
 
 /* Relay: hide during session */
@@ -12670,9 +12673,15 @@
   background: none;
 }
 
-/* Steps panel gets accent border during focus */
+/* Steps panel gets border and backdrop during focus */
 .xt-ops--live .xt-ops-panels .xt-ops-panel:first-child {
   border-left: 2px solid color-mix(in srgb, var(--app-accent) 30%, transparent);
+}
+
+.xt-ops--live .xt-ops-panel {
+  border: 1px solid var(--app-border);
+  background: color-mix(in srgb, var(--app-panel) 60%, transparent);
+  padding: 20px;
 }
 
 /* ── Urgent alert: stays visible but compact ── */
