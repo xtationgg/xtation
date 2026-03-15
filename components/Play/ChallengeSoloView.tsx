@@ -29,7 +29,7 @@ const RuleFields: React.FC<{
         min={1}
         value={task.countdownMin ?? 15}
         onChange={(e) => onChange({ countdownMin: Number(e.target.value) })}
-        className="w-full bg-[#111114] border border-white/10 rounded px-2 py-1 text-[11px] text-white"
+        className="w-full bg-[var(--app-panel-2)] border border-white/10 rounded px-2 py-1 text-[11px] text-white"
         placeholder="Minutes"
       />
     );
@@ -40,11 +40,11 @@ const RuleFields: React.FC<{
         type="datetime-local"
         value={task.scheduledAt || ''}
         onChange={(e) => onChange({ scheduledAt: e.target.value })}
-        className="w-full bg-[#111114] border border-white/10 rounded px-2 py-1 text-[11px] text-white"
+        className="w-full bg-[var(--app-panel-2)] border border-white/10 rounded px-2 py-1 text-[11px] text-white"
       />
     );
   }
-  return <div className="text-[10px] text-[#8b847a]">Anytime</div>;
+  return <div className="text-[10px] text-[var(--app-muted)]">Anytime</div>;
 };
 
 const TaskRow: React.FC<{
@@ -54,7 +54,7 @@ const TaskRow: React.FC<{
   onChange: (patch: Partial<SoloTask>) => void;
 }> = ({ task, selected, onSelect, onChange }) => {
   return (
-    <div className={`rounded-xl border ${selected ? 'border-[#f46a2e]/60 bg-[#221912]' : 'border-white/10 bg-[#141418]'} p-3 space-y-2`}>
+    <div className={`rounded-xl border ${selected ? 'border-[#f46a2e]/60 bg-[#221912]' : 'border-white/10 bg-[var(--app-panel-2)]'} p-3 space-y-2`}>
       <div className="flex items-center gap-2">
         <input type="radio" checked={selected} onChange={onSelect} />
         <input
@@ -67,14 +67,14 @@ const TaskRow: React.FC<{
       <textarea
         value={task.notes}
         onChange={(e) => onChange({ notes: e.target.value })}
-        className="w-full bg-[#111114] border border-white/10 rounded px-2 py-2 text-[11px] text-white"
+        className="w-full bg-[var(--app-panel-2)] border border-white/10 rounded px-2 py-2 text-[11px] text-white"
         placeholder="Notes"
       />
       <div className="grid grid-cols-3 gap-2">
         <select
           value={task.priority}
           onChange={(e) => onChange({ priority: e.target.value as TaskPriority })}
-          className="bg-[#111114] border border-white/10 rounded px-2 py-1 text-[11px] text-white"
+          className="bg-[var(--app-panel-2)] border border-white/10 rounded px-2 py-1 text-[11px] text-white"
         >
           {priorityOptions.map((opt) => (
             <option key={opt} value={opt}>
@@ -85,7 +85,7 @@ const TaskRow: React.FC<{
         <select
           value={task.ruleType}
           onChange={(e) => onChange({ ruleType: e.target.value as TaskRuleType })}
-          className="bg-[#111114] border border-white/10 rounded px-2 py-1 text-[11px] text-white"
+          className="bg-[var(--app-panel-2)] border border-white/10 rounded px-2 py-1 text-[11px] text-white"
         >
           {ruleOptions.map((opt) => (
             <option key={opt} value={opt}>
@@ -119,15 +119,15 @@ export const ChallengeSoloView: React.FC<ChallengeSoloViewProps> = ({
         <button
           type="button"
           onClick={onClose}
-          className="w-7 h-7 rounded-lg border border-white/10 text-[#f3f0e8]"
+          className="w-7 h-7 rounded-lg border border-white/10 text-[var(--app-text)]"
         >
           X
         </button>
       </div>
 
       <div className="space-y-3">
-        <div className="text-[10px] uppercase tracking-[0.3em] text-[#8b847a]">Today from my todo</div>
-        {!tasks.length && <div className="text-[10px] text-[#8b847a]">No tasks yet. Add one below.</div>}
+        <div className="text-[10px] uppercase tracking-[0.3em] text-[var(--app-muted)]">Today from my todo</div>
+        {!tasks.length && <div className="text-[10px] text-[var(--app-muted)]">No tasks yet. Add one below.</div>}
         {tasks.map((task) => (
           <TaskRow
             key={task.id}
@@ -140,7 +140,7 @@ export const ChallengeSoloView: React.FC<ChallengeSoloViewProps> = ({
         <button
           type="button"
           onClick={onAddTask}
-          className="w-full rounded-xl border border-white/10 text-[11px] uppercase tracking-[0.25em] text-[#f3f0e8] py-2"
+          className="w-full rounded-xl border border-white/10 text-[11px] uppercase tracking-[0.25em] text-[var(--app-text)] py-2"
         >
           Add task
         </button>
@@ -148,20 +148,20 @@ export const ChallengeSoloView: React.FC<ChallengeSoloViewProps> = ({
 
       <div className="space-y-3">
         <div className="flex items-center justify-between">
-          <div className="text-[10px] uppercase tracking-[0.3em] text-[#8b847a]">AI suggestions</div>
+          <div className="text-[10px] uppercase tracking-[0.3em] text-[var(--app-muted)]">AI suggestions</div>
           <button
             type="button"
             onClick={onToggleSuggestions}
-            className="px-2 py-1 rounded border border-white/10 text-[10px] uppercase tracking-[0.25em] text-[#f3f0e8]"
+            className="px-2 py-1 rounded border border-white/10 text-[10px] uppercase tracking-[0.25em] text-[var(--app-text)]"
           >
             {showSuggestions ? 'Hide' : 'Show'}
           </button>
         </div>
         {showSuggestions && (
           <>
-            <div className="text-[9px] text-[#6f6a63]">Suggestions are generated from your profile/context later.</div>
+            <div className="text-[9px] text-[var(--app-muted)]">Suggestions are generated from your profile/context later.</div>
             {suggestions.length === 0 && (
-              <div className="text-[10px] text-[#8b847a]">No suggestions yet.</div>
+              <div className="text-[10px] text-[var(--app-muted)]">No suggestions yet.</div>
             )}
             {suggestions.map((task) => (
               <TaskRow

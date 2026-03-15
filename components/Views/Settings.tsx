@@ -547,35 +547,40 @@ export const Settings: React.FC<SettingsProps> = ({
                         <div className="xt-settings-section-title">Display</div>
                         <div className="space-y-5">
                             <div className="flex items-center justify-between gap-3">
-                                <span className="text-[10px] uppercase tracking-[0.2em] text-[var(--app-muted)]">Theme</span>
+                                <span className="text-[10px] uppercase tracking-[0.2em] text-[var(--app-muted)]">Skin</span>
                                 <span className="text-[10px] uppercase tracking-[0.2em] text-[var(--app-muted)]">Current: {activeThemeLabel}</span>
                             </div>
-                            <ThemeSwitcher />
-                            <div className="space-y-2">
-                                <div className="flex items-center justify-between gap-3">
-                                    <span className="text-[10px] uppercase tracking-[0.2em] text-[var(--app-muted)]">Accent</span>
-                                    <span className="text-[10px] uppercase tracking-[0.2em] text-[var(--app-muted)]">{activeAccentLabel}</span>
-                                </div>
-                                <div className="flex flex-wrap gap-2">
-                                    {accentOptions.map((option) => {
-                                        const selected = option.value === accent;
-                                        return (
-                                            <button
-                                                key={option.value}
-                                                type="button"
-                                                onClick={() => setAccent(option.value)}
-                                                className={`ui-pressable rounded-[var(--app-radius-sm)] border px-2.5 py-1.5 text-[10px] font-semibold uppercase tracking-[0.18em] ${
-                                                    selected
-                                                        ? 'border-[var(--app-accent)] bg-[var(--app-accent-weak)] text-[var(--app-text)]'
-                                                        : 'border-[var(--app-border)] bg-[var(--app-panel-2)] text-[var(--app-muted)] hover:border-[var(--app-accent)] hover:text-[var(--app-text)]'
-                                                }`}
-                                                aria-pressed={selected}
-                                            >
-                                                {option.label}
-                                            </button>
-                                        );
-                                    })}
-                                </div>
+                            <div className="xt-settings-skin-grid">
+                                {[
+                                    { themeKey: 'obsidian' as const, label: 'Obsidian Dark', description: 'Warm dark, clean, content-focused. Inter font.', bg: '#1a1a1e', panel: '#222226', accent: '#4a9eff' },
+                                    { themeKey: 'obsidian_light' as const, label: 'Obsidian Light', description: 'Clean white, warm surfaces. Inter font.', bg: '#ffffff', panel: '#f6f6f6', accent: '#2383e2' },
+                                    { themeKey: 'xtation' as const, label: 'XTATION Black', description: 'True black, red accent, monospace. The original.', bg: '#000000', panel: '#0a0a0c', accent: '#d6453e' },
+                                    { themeKey: 'control' as const, label: 'Control', description: 'Pure black, zero effects, brutalist government facility.', bg: '#000000', panel: '#000000', accent: '#d6453e' },
+                                    { themeKey: 'bureau' as const, label: 'Bureau', description: 'Federal case files. Amber accent, grain texture.', bg: '#0b0d10', panel: '#12151a', accent: '#d6a45d' },
+                                    { themeKey: 'dusk' as const, label: 'Dusk', description: 'Purple-tinted dark. Rounded corners, soft glow.', bg: '#0e1014', panel: '#1f162d', accent: '#573778' },
+                                    { themeKey: 'void' as const, label: 'Void', description: 'Deep space. Indigo accent, chamfered edges, glass panels.', bg: '#07080f', panel: '#0d1019', accent: '#7c5ffa' },
+                                    { themeKey: 'notion_dark' as const, label: 'Notion Dark', description: 'Notion-style dark mode. Warm surfaces, blue accent.', bg: '#191919', panel: '#202020', accent: '#3291ff' },
+                                ].map((skin) => {
+                                    const isActive = theme === skin.themeKey;
+                                    return (
+                                        <div
+                                            key={skin.themeKey}
+                                            className={`xt-settings-skin-card ${isActive ? 'is-active' : ''}`}
+                                            onClick={() => setTheme(skin.themeKey)}
+                                        >
+                                            <div className="xt-settings-skin-preview">
+                                                <div className="xt-settings-skin-swatch" style={{ background: skin.bg }} />
+                                                <div className="xt-settings-skin-swatch" style={{ background: skin.panel }} />
+                                                <div className="xt-settings-skin-swatch xt-settings-skin-swatch--accent" style={{ background: skin.accent }} />
+                                            </div>
+                                            <div className="xt-settings-skin-info">
+                                                <div className="xt-settings-skin-name">{skin.label}</div>
+                                                <div className="xt-settings-skin-desc">{skin.description}</div>
+                                            </div>
+                                            {isActive && <div className="xt-settings-skin-active">Active</div>}
+                                        </div>
+                                    );
+                                })}
                             </div>
                         </div>
                         <div className="space-y-2">

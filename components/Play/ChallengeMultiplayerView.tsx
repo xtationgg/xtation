@@ -51,30 +51,30 @@ export const ChallengeMultiplayerView: React.FC<ChallengeMultiplayerViewProps> =
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between">
         <div className="text-[12px] uppercase tracking-[0.35em] text-white">Multiplayer</div>
-        <button type="button" onClick={onClose} className="w-7 h-7 rounded-lg border border-white/10 text-[#f3f0e8]">
+        <button type="button" onClick={onClose} className="w-7 h-7 rounded-lg border border-white/10 text-[var(--app-text)]">
           X
         </button>
       </div>
 
       <div className="space-y-3">
-        <div className="text-[10px] uppercase tracking-[0.3em] text-[#8b847a]">Create challenge</div>
+        <div className="text-[10px] uppercase tracking-[0.3em] text-[var(--app-muted)]">Create challenge</div>
         <input
           value={draft.name}
           onChange={(e) => onChange({ name: e.target.value })}
           placeholder="Challenge name"
-          className="w-full bg-[#111114] border border-white/10 rounded px-3 py-2 text-[11px] text-white"
+          className="w-full bg-[var(--app-panel-2)] border border-white/10 rounded px-3 py-2 text-[11px] text-white"
         />
         <textarea
           value={draft.rules}
           onChange={(e) => onChange({ rules: e.target.value })}
           placeholder="Challenge rules"
-          className="w-full bg-[#111114] border border-white/10 rounded px-3 py-2 text-[11px] text-white"
+          className="w-full bg-[var(--app-panel-2)] border border-white/10 rounded px-3 py-2 text-[11px] text-white"
         />
         <div className="grid grid-cols-2 gap-2">
           <select
             value={draft.timeType}
             onChange={(e) => onChange({ timeType: e.target.value as MultiplayerDraft['timeType'] })}
-            className="bg-[#111114] border border-white/10 rounded px-2 py-1 text-[11px] text-white"
+            className="bg-[var(--app-panel-2)] border border-white/10 rounded px-2 py-1 text-[11px] text-white"
           >
             <option value="countdown">Countdown</option>
             <option value="period">Period</option>
@@ -84,7 +84,7 @@ export const ChallengeMultiplayerView: React.FC<ChallengeMultiplayerViewProps> =
             min={1}
             value={draft.durationMin}
             onChange={(e) => onChange({ durationMin: Number(e.target.value) })}
-            className="bg-[#111114] border border-white/10 rounded px-2 py-1 text-[11px] text-white"
+            className="bg-[var(--app-panel-2)] border border-white/10 rounded px-2 py-1 text-[11px] text-white"
             placeholder="Minutes"
           />
         </div>
@@ -92,7 +92,7 @@ export const ChallengeMultiplayerView: React.FC<ChallengeMultiplayerViewProps> =
           <select
             value={draft.visibility}
             onChange={(e) => onChange({ visibility: e.target.value as MultiplayerDraft['visibility'] })}
-            className="bg-[#111114] border border-white/10 rounded px-2 py-1 text-[11px] text-white"
+            className="bg-[var(--app-panel-2)] border border-white/10 rounded px-2 py-1 text-[11px] text-white"
           >
             <option value="public">Public</option>
             <option value="private">Private</option>
@@ -100,14 +100,14 @@ export const ChallengeMultiplayerView: React.FC<ChallengeMultiplayerViewProps> =
           <button
             type="button"
             onClick={() => setIsInviteOpen((prev) => !prev)}
-            className="rounded border border-white/10 px-2 py-1 text-[11px] uppercase tracking-[0.25em] text-[#f3f0e8]"
+            className="rounded border border-white/10 px-2 py-1 text-[11px] uppercase tracking-[0.25em] text-[var(--app-text)]"
           >
             Invite
           </button>
         </div>
         {isInviteOpen && (
-          <div className="rounded-xl border border-white/10 bg-[#141418] p-3 space-y-2">
-            <div className="text-[10px] uppercase tracking-[0.3em] text-[#8b847a]">Invite friends</div>
+          <div className="rounded-xl border border-white/10 bg-[var(--app-panel-2)] p-3 space-y-2">
+            <div className="text-[10px] uppercase tracking-[0.3em] text-[var(--app-muted)]">Invite friends</div>
             <div className="grid gap-2">
               {friends.map((friend) => {
                 const selected = (draft.inviteFriendIds || []).includes(friend.id);
@@ -117,7 +117,7 @@ export const ChallengeMultiplayerView: React.FC<ChallengeMultiplayerViewProps> =
                     type="button"
                     onClick={() => toggleInvite(friend.id)}
                     className={`w-full flex items-center justify-between rounded-lg border px-3 py-2 text-[11px] uppercase tracking-[0.2em] ${
-                      selected ? 'border-[#f46a2e]/60 bg-[#2a1a12] text-white' : 'border-white/10 text-[#f3f0e8]'
+                      selected ? 'border-[#f46a2e]/60 bg-[#2a1a12] text-white' : 'border-white/10 text-[var(--app-text)]'
                     }`}
                   >
                     {friend.name}
@@ -125,7 +125,7 @@ export const ChallengeMultiplayerView: React.FC<ChallengeMultiplayerViewProps> =
                   </button>
                 );
               })}
-              {!friends.length && <div className="text-[10px] text-[#8b847a]">No friends yet.</div>}
+              {!friends.length && <div className="text-[10px] text-[var(--app-muted)]">No friends yet.</div>}
             </div>
             {(draft.inviteFriendIds || []).length > 0 && (
               <div className="flex flex-wrap gap-2 pt-2">
@@ -133,7 +133,7 @@ export const ChallengeMultiplayerView: React.FC<ChallengeMultiplayerViewProps> =
                   const friend = friends.find((f) => f.id === id);
                   if (!friend) return null;
                   return (
-                    <span key={id} className="inline-flex items-center gap-2 rounded-full border border-white/10 px-2 py-1 text-[10px] text-[#f3f0e8]">
+                    <span key={id} className="inline-flex items-center gap-2 rounded-full border border-white/10 px-2 py-1 text-[10px] text-[var(--app-text)]">
                       {friend.name}
                       <button
                         type="button"
@@ -152,20 +152,20 @@ export const ChallengeMultiplayerView: React.FC<ChallengeMultiplayerViewProps> =
         <button
           type="button"
           onClick={sendInvite}
-          className="w-full rounded-xl border border-white/10 py-2 text-[11px] uppercase tracking-[0.25em] text-[#f3f0e8]"
+          className="w-full rounded-xl border border-white/10 py-2 text-[11px] uppercase tracking-[0.25em] text-[var(--app-text)]"
         >
           Send request
         </button>
       </div>
 
       {inviteSent && !accepted && (
-        <div className="rounded-xl border border-white/10 bg-[#141418] p-3 space-y-2">
-          <div className="text-[10px] uppercase tracking-[0.3em] text-[#8b847a]">Pending / Lobby</div>
+        <div className="rounded-xl border border-white/10 bg-[var(--app-panel-2)] p-3 space-y-2">
+          <div className="text-[10px] uppercase tracking-[0.3em] text-[var(--app-muted)]">Pending / Lobby</div>
           <div className="text-[11px] text-white">Waiting for response…</div>
           <button
             type="button"
             onClick={() => setAccepted(true)}
-            className="px-3 py-2 rounded border border-white/15 text-[10px] uppercase tracking-[0.25em] text-[#f3f0e8]"
+            className="px-3 py-2 rounded border border-white/15 text-[10px] uppercase tracking-[0.25em] text-[var(--app-text)]"
           >
             Simulate accept
           </button>
@@ -173,13 +173,13 @@ export const ChallengeMultiplayerView: React.FC<ChallengeMultiplayerViewProps> =
       )}
 
       {accepted && (
-        <div className="rounded-xl border border-white/10 bg-[#141418] p-3 space-y-2">
-          <div className="text-[10px] uppercase tracking-[0.3em] text-[#8b847a]">Party chat</div>
+        <div className="rounded-xl border border-white/10 bg-[var(--app-panel-2)] p-3 space-y-2">
+          <div className="text-[10px] uppercase tracking-[0.3em] text-[var(--app-muted)]">Party chat</div>
           <div className="max-h-32 overflow-auto space-y-2">
-            {messages.length === 0 && <div className="text-[10px] text-[#8b847a]">No messages yet.</div>}
+            {messages.length === 0 && <div className="text-[10px] text-[var(--app-muted)]">No messages yet.</div>}
             {messages.map((msg) => (
               <div key={msg.id} className="text-[11px] text-white">
-                <span className="text-[#8b847a]">{msg.from}:</span> {msg.text}
+                <span className="text-[var(--app-muted)]">{msg.from}:</span> {msg.text}
               </div>
             ))}
           </div>
@@ -187,13 +187,13 @@ export const ChallengeMultiplayerView: React.FC<ChallengeMultiplayerViewProps> =
             <input
               value={draftMessage}
               onChange={(e) => setDraftMessage(e.target.value)}
-              className="flex-1 bg-[#111114] border border-white/10 rounded px-2 py-1 text-[11px] text-white"
+              className="flex-1 bg-[var(--app-panel-2)] border border-white/10 rounded px-2 py-1 text-[11px] text-white"
               placeholder="Type message"
             />
             <button
               type="button"
               onClick={sendMessage}
-              className="px-3 py-1 rounded border border-white/15 text-[10px] uppercase tracking-[0.25em] text-[#f3f0e8]"
+              className="px-3 py-1 rounded border border-white/15 text-[10px] uppercase tracking-[0.25em] text-[var(--app-text)]"
             >
               Send
             </button>
@@ -208,7 +208,7 @@ export const ChallengeMultiplayerView: React.FC<ChallengeMultiplayerViewProps> =
         </div>
       )}
 
-      <div className="text-[9px] uppercase tracking-[0.28em] text-[#8b847a]">
+      <div className="text-[9px] uppercase tracking-[0.28em] text-[var(--app-muted)]">
         TODO: wire invites + chat transport
       </div>
     </div>

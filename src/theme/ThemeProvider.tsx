@@ -22,7 +22,9 @@ export type XtationTheme =
   | 'notion_light'
   | 'notion_dark'
   | 'void'
-  | 'bureau';
+  | 'bureau'
+  | 'obsidian'
+  | 'obsidian_light';
 
 export interface XtationThemeOption {
   value: XtationTheme;
@@ -59,6 +61,8 @@ export const XTATION_THEME_OPTIONS: XtationThemeOption[] = [
   { value: 'notion_dark', label: 'Notion Dark' },
   { value: 'void', label: 'Void' },
   { value: 'bureau', label: 'Bureau' },
+  { value: 'obsidian', label: 'Obsidian Dark' },
+  { value: 'obsidian_light', label: 'Obsidian Light' },
 ];
 
 export const XTATION_ACCENT_OPTIONS: XtationAccentOption[] = [
@@ -79,7 +83,7 @@ export const XTATION_RESOLUTION_OPTIONS: XtationResolutionOption[] = [
   { value: 'uhd_2160', label: '3840 × 2160' },
 ];
 
-const DEFAULT_THEME: XtationTheme = 'xtation';
+const DEFAULT_THEME: XtationTheme = 'obsidian';
 const DEFAULT_ACCENT: XtationAccent = 'crimson';
 const DEFAULT_RESOLUTION: XtationResolutionMode = 'auto';
 const VALID_THEMES = new Set<XtationTheme>(XTATION_THEME_OPTIONS.map((option) => option.value));

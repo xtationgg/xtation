@@ -16,11 +16,11 @@ const priorityOrder: Record<TaskPriority, number> = {
 };
 
 const iconMap: Record<Task['icon'], React.ReactNode> = {
-  sword: <Sword size={14} className="text-[#f3f0e8]" />,
-  shield: <Shield size={14} className="text-[#f3f0e8]" />,
-  star: <Star size={14} className="text-[#f3f0e8]" />,
-  zap: <Zap size={14} className="text-[#f3f0e8]" />,
-  flag: <Flag size={14} className="text-[#f3f0e8]" />
+  sword: <Sword size={14} className="text-[var(--app-text)]" />,
+  shield: <Shield size={14} className="text-[var(--app-text)]" />,
+  star: <Star size={14} className="text-[var(--app-text)]" />,
+  zap: <Zap size={14} className="text-[var(--app-text)]" />,
+  flag: <Flag size={14} className="text-[var(--app-text)]" />
 };
 
 export const QuestsItem: React.FC<QuestsItemProps> = ({ tasks }) => {
@@ -85,18 +85,18 @@ export const QuestsItem: React.FC<QuestsItemProps> = ({ tasks }) => {
     : 0;
 
   return (
-    <div className="xt-quest-panel w-full rounded-xl border border-white/10 bg-gradient-to-b from-[#242427] to-[#1a1a1c] shadow-[0_10px_24px_rgba(0,0,0,0.45)] overflow-hidden transition-all duration-300">
+    <div className="xt-quest-panel w-full rounded-xl border border-white/10 bg-gradient-to-b from-[var(--app-panel)] to-[var(--app-bg)] shadow-[0_10px_24px_rgba(0,0,0,0.45)] overflow-hidden transition-all duration-300">
       <button
         type="button"
         onClick={() => setIsOpen((prev) => !prev)}
-        className="xt-quest-header-btn w-full px-4 py-3 flex items-center justify-between uppercase tracking-[0.32em] text-[11px] text-[#f3f0e8]"
+        className="xt-quest-header-btn w-full px-4 py-3 flex items-center justify-between uppercase tracking-[0.32em] text-[11px] text-[var(--app-text)]"
       >
         <span>Quests</span>
         <span className="flex items-center gap-2">
-          <span className="text-[10px] tracking-[0.2em] text-[#9a9288]">{activeMissions.length}</span>
+          <span className="text-[10px] tracking-[0.2em] text-[var(--app-muted)]">{activeMissions.length}</span>
           <span
             className={`w-7 h-7 rounded-lg flex items-center justify-center text-lg font-bold ${
-              isOpen ? 'bg-[#1a1a1d] text-[#f3f0e8] border border-white/20' : 'bg-white/90 text-black'
+              isOpen ? 'bg-[var(--app-border)] text-[var(--app-text)] border border-white/20' : 'bg-white/90 text-black'
             }`}
           >
             {isOpen ? 'X' : '+'}
@@ -108,7 +108,7 @@ export const QuestsItem: React.FC<QuestsItemProps> = ({ tasks }) => {
         <div className="xt-session-bar px-4 py-2 flex items-center justify-between border-t border-[#f46a2e]/20 bg-[#f46a2e]/[0.06]">
           <div className="flex items-center gap-2 min-w-0">
             <span className="shrink-0 w-1.5 h-1.5 rounded-full bg-[#f46a2e] animate-pulse" />
-            <span className="text-[10px] uppercase tracking-[0.2em] text-[#f3f0e8] truncate">
+            <span className="text-[10px] uppercase tracking-[0.2em] text-[var(--app-text)] truncate">
               {runningMission?.title || activeSession.title || 'Active Session'}
             </span>
           </div>
@@ -125,7 +125,7 @@ export const QuestsItem: React.FC<QuestsItemProps> = ({ tasks }) => {
       >
         <div className="px-4 pb-4 pt-1 flex flex-col gap-3">
           {activeMissions.length === 0 ? (
-            <div className="text-[10px] uppercase tracking-[0.3em] text-[#726c64]">No active quests.</div>
+            <div className="text-[10px] uppercase tracking-[0.3em] text-[var(--app-muted)]">No active quests.</div>
           ) : (
             activeMissions.map((mission) => {
               const runningSession =
@@ -145,21 +145,21 @@ export const QuestsItem: React.FC<QuestsItemProps> = ({ tasks }) => {
                 <div
                   key={mission.id}
                   data-priority={mission.priority}
-                  className="xt-quest-card rounded-lg border border-white/10 bg-[#0f0f10] px-3 py-2 flex items-stretch justify-between gap-3"
+                  className="xt-quest-card rounded-lg border border-white/10 bg-[var(--app-bg)] px-3 py-2 flex items-stretch justify-between gap-3"
                 >
                   <div className="flex-1 flex flex-col gap-2">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <span className="w-6 h-6 rounded-md border border-white/10 bg-[#1a1a1d] flex items-center justify-center">
+                        <span className="w-6 h-6 rounded-md border border-white/10 bg-[var(--app-border)] flex items-center justify-center">
                           {iconMap[mission.icon || 'flag']}
                         </span>
-                        <span className="text-[11px] uppercase tracking-[0.2em] text-[#f3f0e8]">
+                        <span className="text-[11px] uppercase tracking-[0.2em] text-[var(--app-text)]">
                           {mission.title}
                         </span>
                       </div>
                       <div className="flex items-center gap-2">
                         {(() => { const s = getQuestStepCounts(mission.details); return s ? (
-                          <span className="text-[9px] tracking-[0.18em] text-[#8b847a]">{s.done}/{s.total}</span>
+                          <span className="text-[9px] tracking-[0.18em] text-[var(--app-muted)]">{s.done}/{s.total}</span>
                         ) : null; })()}
                         <span className="text-[9px] uppercase tracking-[0.28em] text-[#f46a2e]">
                           {mission.priority}
@@ -168,19 +168,19 @@ export const QuestsItem: React.FC<QuestsItemProps> = ({ tasks }) => {
                           type="button"
                           aria-label={`View details for ${mission.title}`}
                           onClick={(e) => { e.stopPropagation(); setDetailTaskId(mission.id); }}
-                          className="inline-flex h-5 w-5 items-center justify-center rounded text-[#8b847a] hover:text-[#f3f0e8] transition-colors"
+                          className="inline-flex h-5 w-5 items-center justify-center rounded text-[var(--app-muted)] hover:text-[var(--app-text)] transition-colors"
                         >
                           <Info size={12} />
                         </button>
                       </div>
                     </div>
-                    <div className="flex items-center justify-between text-[9px] uppercase tracking-[0.24em] text-[#8b847a]">
+                    <div className="flex items-center justify-between text-[9px] uppercase tracking-[0.24em] text-[var(--app-muted)]">
                       {(() => {
                         const notes = stripQuestStepsBlock(mission.details);
                         return notes ? <span className="truncate max-w-[120px]">{notes}</span> : null;
                       })()}
                       {totalElapsedSeconds > 0 && (
-                        <span className="text-[#f3f0e8]">{formatElapsed(totalElapsedSeconds)} today</span>
+                        <span className="text-[var(--app-text)]">{formatElapsed(totalElapsedSeconds)} today</span>
                       )}
                       {isRunning && <span className="text-[#f46a2e]">Live {formatElapsed(runningSeconds)}</span>}
                       {!isRunning && mission.scheduledAt && mission.scheduledAt > now ? (
@@ -200,11 +200,11 @@ export const QuestsItem: React.FC<QuestsItemProps> = ({ tasks }) => {
                   </div>
                   {isRunning && (
                     <div className="min-w-[140px] flex flex-col items-center justify-center border-l border-white/10 pl-3">
-                      <div className="flex items-center gap-2 text-[#8b847a] text-[9px] uppercase tracking-[0.3em]">
+                      <div className="flex items-center gap-2 text-[var(--app-muted)] text-[9px] uppercase tracking-[0.3em]">
                         <Clock size={12} />
                         <span>Running</span>
                       </div>
-                      <div className="text-2xl font-semibold tracking-[0.2em] text-[#f3f0e8]">
+                      <div className="text-2xl font-semibold tracking-[0.2em] text-[var(--app-text)]">
                         {formatElapsed(totalElapsedSeconds)}
                       </div>
                     </div>

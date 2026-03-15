@@ -18,7 +18,7 @@ export const PlaySection: React.FC = () => {
           rightSlot={
             <span
               className={`w-7 h-7 rounded-lg flex items-center justify-center text-lg font-bold ${
-                isOpen ? 'bg-[#1a1a1d] text-[#f3f0e8] border border-white/20' : 'bg-white/90 text-black'
+                isOpen ? 'bg-[var(--app-border)] text-[var(--app-text)] border border-white/20' : 'bg-white/90 text-black'
               }`}
             >
               {isOpen ? 'X' : '+'}
@@ -40,7 +40,7 @@ export const PlaySection: React.FC = () => {
               <PlayMenuItem label="Stats" subtitle="Placeholder" disabled />
             </div>
             <div className="flex flex-col gap-3">
-              <div className="text-[10px] uppercase tracking-[0.3em] text-[#8b847a]">
+              <div className="text-[10px] uppercase tracking-[0.3em] text-[var(--app-muted)]">
                 Challenge widget test (duplicate)
               </div>
               <ChallengeWidget />

@@ -28,7 +28,7 @@ export const ChallengeRunningView: React.FC<ChallengeRunningViewProps> = ({
 
   return (
     <div className="flex flex-col items-center gap-4 py-4">
-      <div className="text-[10px] uppercase tracking-[0.35em] text-[#8b847a]">{mode === 'solo' ? 'Solo' : 'Multiplayer'} session</div>
+      <div className="text-[10px] uppercase tracking-[0.35em] text-[var(--app-muted)]">{mode === 'solo' ? 'Solo' : 'Multiplayer'} session</div>
       <div className="text-[12px] uppercase tracking-[0.28em] text-white">{label}</div>
       <div className="text-[36px] font-bold tracking-[0.2em] text-white">
         {formatTimer(elapsedSeconds)}
@@ -39,7 +39,7 @@ export const ChallengeRunningView: React.FC<ChallengeRunningViewProps> = ({
           onClick={() => {
             onCancel();
           }}
-          className="px-4 py-2 rounded-lg border border-white/15 text-[11px] uppercase tracking-[0.2em] text-[#f3f0e8]"
+          className="px-4 py-2 rounded-lg border border-white/15 text-[11px] uppercase tracking-[0.2em] text-[var(--app-text)]"
         >
           Cancel
         </button>
@@ -65,7 +65,7 @@ export const ChallengeRunningView: React.FC<ChallengeRunningViewProps> = ({
           </button>
         )}
       </div>
-      <div className="text-[9px] uppercase tracking-[0.28em] text-[#8b847a]">
+      <div className="text-[9px] uppercase tracking-[0.28em] text-[var(--app-muted)]">
         TODO: sync timer + state to backend
       </div>
     </div>

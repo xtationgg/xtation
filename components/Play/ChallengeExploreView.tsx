@@ -20,7 +20,7 @@ export const ChallengeExploreView: React.FC<ChallengeExploreViewProps> = ({
     <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between">
         <div className="text-[12px] uppercase tracking-[0.35em] text-white">Explore</div>
-        <button type="button" onClick={onClose} className="w-7 h-7 rounded-lg border border-white/10 text-[#f3f0e8]">
+        <button type="button" onClick={onClose} className="w-7 h-7 rounded-lg border border-white/10 text-[var(--app-text)]">
           X
         </button>
       </div>
@@ -29,7 +29,7 @@ export const ChallengeExploreView: React.FC<ChallengeExploreViewProps> = ({
         <select
           value={filters.scope}
           onChange={(e) => onChange({ scope: e.target.value as ExploreFilters['scope'] })}
-          className="bg-[#111114] border border-white/10 rounded px-2 py-1 text-[11px] text-white"
+          className="bg-[var(--app-panel-2)] border border-white/10 rounded px-2 py-1 text-[11px] text-white"
         >
           <option value="public">Public</option>
           <option value="friends">Friends</option>
@@ -37,7 +37,7 @@ export const ChallengeExploreView: React.FC<ChallengeExploreViewProps> = ({
         <select
           value={filters.country}
           onChange={(e) => onChange({ country: e.target.value })}
-          className="bg-[#111114] border border-white/10 rounded px-2 py-1 text-[11px] text-white"
+          className="bg-[var(--app-panel-2)] border border-white/10 rounded px-2 py-1 text-[11px] text-white"
         >
           <option value="">Any country</option>
           <option value="US">United States</option>
@@ -48,7 +48,7 @@ export const ChallengeExploreView: React.FC<ChallengeExploreViewProps> = ({
         <select
           value={filters.ruleType}
           onChange={(e) => onChange({ ruleType: e.target.value as ExploreFilters['ruleType'] })}
-          className="bg-[#111114] border border-white/10 rounded px-2 py-1 text-[11px] text-white"
+          className="bg-[var(--app-panel-2)] border border-white/10 rounded px-2 py-1 text-[11px] text-white"
         >
           <option value="all">All rule types</option>
           <option value="countdown">Countdown</option>
@@ -60,7 +60,7 @@ export const ChallengeExploreView: React.FC<ChallengeExploreViewProps> = ({
           type="button"
           onClick={() => onChange({ nearMe: !filters.nearMe })}
           className={`rounded border px-2 py-1 text-[10px] uppercase tracking-[0.25em] ${
-            filters.nearMe ? 'border-[#f46a2e]/60 text-white' : 'border-white/10 text-[#8b847a]'
+            filters.nearMe ? 'border-[#f46a2e]/60 text-white' : 'border-white/10 text-[var(--app-muted)]'
           }`}
         >
           {filters.nearMe ? 'Near me ✓' : 'Near me'}
@@ -69,21 +69,21 @@ export const ChallengeExploreView: React.FC<ChallengeExploreViewProps> = ({
 
       <div className="space-y-2">
         {results.map((challenge) => (
-          <div key={challenge.id} className="rounded-xl border border-white/10 bg-[#141418] p-3">
+          <div key={challenge.id} className="rounded-xl border border-white/10 bg-[var(--app-panel-2)] p-3">
             <div className="text-[11px] uppercase tracking-[0.25em] text-white">{challenge.name}</div>
-            <div className="text-[10px] text-[#8b847a]">By {challenge.creator}</div>
-            <div className="text-[10px] text-[#8b847a]">{challenge.ruleSummary}</div>
-            <div className="text-[9px] text-[#6f6a63]">{challenge.country}</div>
+            <div className="text-[10px] text-[var(--app-muted)]">By {challenge.creator}</div>
+            <div className="text-[10px] text-[var(--app-muted)]">{challenge.ruleSummary}</div>
+            <div className="text-[9px] text-[var(--app-muted)]">{challenge.country}</div>
             <button
               type="button"
               onClick={() => onJoin(challenge)}
-              className="mt-2 w-full rounded border border-white/15 py-1 text-[10px] uppercase tracking-[0.25em] text-[#f3f0e8]"
+              className="mt-2 w-full rounded border border-white/15 py-1 text-[10px] uppercase tracking-[0.25em] text-[var(--app-text)]"
             >
               Join
             </button>
           </div>
         ))}
-        {!results.length && <div className="text-[10px] text-[#8b847a]">No matches.</div>}
+        {!results.length && <div className="text-[10px] text-[var(--app-muted)]">No matches.</div>}
       </div>
     </div>
   );

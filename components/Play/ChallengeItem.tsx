@@ -114,13 +114,13 @@ export const ChallengeItem: React.FC<ChallengeItemProps> = ({ onStart, onCancel 
 
   return (
     <div
-      className={`w-full rounded-xl border border-white/10 bg-gradient-to-b from-[#242427] to-[#1a1a1c] shadow-[0_10px_24px_rgba(0,0,0,0.45)] overflow-hidden transition-all duration-300 ${containerHeight}`}
+      className={`w-full rounded-xl border border-white/10 bg-gradient-to-b from-[var(--app-panel)] to-[var(--app-bg)] shadow-[0_10px_24px_rgba(0,0,0,0.45)] overflow-hidden transition-all duration-300 ${containerHeight}`}
     >
       {isCollapsed && (
         <button
           type="button"
           onClick={() => setState('modeSelect')}
-          className="w-full px-4 py-3 flex items-center justify-between uppercase tracking-[0.32em] text-[11px] text-[#f3f0e8]"
+          className="w-full px-4 py-3 flex items-center justify-between uppercase tracking-[0.32em] text-[11px] text-[var(--app-text)]"
         >
           <span>Challenge</span>
           <span className="w-7 h-7 rounded-lg bg-white/90 text-black flex items-center justify-center text-lg font-bold">+</span>
@@ -182,12 +182,12 @@ export const ChallengeItem: React.FC<ChallengeItemProps> = ({ onStart, onCancel 
 
       {impactOpen && activeSessionId && (
         <div className="fixed inset-0 z-[200] bg-black/60 flex items-center justify-center p-4">
-          <div className="w-full max-w-sm rounded-xl border border-white/10 bg-[#141418] p-4 space-y-3">
+          <div className="w-full max-w-sm rounded-xl border border-white/10 bg-[var(--app-panel-2)] p-4 space-y-3">
             <div className="text-[11px] uppercase tracking-[0.3em] text-white">Impact Rating</div>
             <select
               value={impactRating}
               onChange={(e) => setImpactRating(e.target.value as XPSessionImpact)}
-              className="w-full bg-[#111114] border border-white/10 rounded px-2 py-2 text-[11px] text-white"
+              className="w-full bg-[var(--app-panel-2)] border border-white/10 rounded px-2 py-2 text-[11px] text-white"
             >
               <option value="normal">Normal impact</option>
               <option value="medium">Medium impact</option>
@@ -201,7 +201,7 @@ export const ChallengeItem: React.FC<ChallengeItemProps> = ({ onStart, onCancel 
                   setActiveSessionId(null);
                   setState(state === 'runningMulti' ? 'detailsMulti' : 'detailsSolo');
                 }}
-                className="px-3 py-2 rounded border border-white/10 text-[10px] uppercase tracking-[0.25em] text-[#8b847a]"
+                className="px-3 py-2 rounded border border-white/10 text-[10px] uppercase tracking-[0.25em] text-[var(--app-muted)]"
               >
                 Skip
               </button>
