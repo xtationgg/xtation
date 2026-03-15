@@ -4,7 +4,8 @@ import { Settings, Bell, Trophy, Bot, X } from 'lucide-react';
 import { ClientView } from '../../types';
 import { NavTab } from '../UI/HextechUI';
 import { AuthDrawer } from '../UI/AuthDrawer';
-import { AuthCard } from '../Auth/AuthCard';
+import { SignInPage } from '../ui/sign-in';
+import { writeAuthTransitionSignal } from '../../src/auth/authTransitionSignal';
 import { playClickSound, playHoverSound } from '../../utils/SoundEffects';
 import { useXP } from '../XP/xpStore';
 import { useAuth } from '../../src/auth/AuthProvider';
@@ -60,7 +61,7 @@ export const TopBar: React.FC<TopBarProps> = ({
   },
 }) => {
   const { selectors, dateKey, authStatus, stats } = useXP();
-  const { user, loading, error, signOut } = useAuth();
+  const { user, loading, error, signOut, signInWithPassword, signUpWithPassword, signInWithGoogle, requestPasswordReset } = useAuth();
   const { currentStation } = useAdminConsole();
   const activeUserId = user?.id || null;
   const userLabel = user?.name || user?.email || 'Signed in';
@@ -376,29 +377,30 @@ export const TopBar: React.FC<TopBarProps> = ({
         panelClassName="!w-auto !max-w-[420px] !max-h-[90dvh] !overflow-y-auto !rounded-[14px] !border-[var(--app-border)] !bg-[var(--app-bg)]"
         triggerRef={loginTriggerRef as React.RefObject<HTMLElement | null>}
       >
-        <div className="xt-auth-drawer-clean">
-          <button
-            type="button"
-            onClick={closeLoginModal}
-            className="xt-auth-drawer-close"
-            aria-label="Close"
-          >
-            <X size={14} />
-          </button>
-
-          <AuthCard
-            title="HELLO PLAYER"
-            description={isGuestMode ? 'Sign in for cloud sync or continue in local mode.' : undefined}
-            showOrb
-            isGuestMode={isGuestMode}
-            continuityStatus={localStationStatus}
-            onSuccess={(mode) => {
-              if (mode === 'login') {
-                closeLoginModal();
-              }
-            }}
-          />
-        </div>
+        <SignInPage
+          compact
+          onSignIn={async (email, password) => {
+            if (!email.trim() || !password) return;
+            const success = await signInWithPassword(email, password);
+            if (success) {
+              writeAuthTransitionSignal({ mode: 'login', fromGuestMode: isGuestMode });
+              closeLoginModal();
+            }
+          }}
+          onSignUp={async (email, password) => {
+            if (!email.trim() || !password) return;
+            await signUpWithPassword(email, password);
+            writeAuthTransitionSignal({ mode: 'signup', fromGuestMode: isGuestMode });
+          }}
+          onGoogleSignIn={async () => {
+            writeAuthTransitionSignal({ mode: 'oauth', fromGuestMode: isGuestMode });
+            await signInWithGoogle();
+          }}
+          onResetPassword={async (email) => {
+            if (email.trim()) await requestPasswordReset(email);
+          }}
+          error={error}
+        />
       </AuthDrawer>
     </>
   );

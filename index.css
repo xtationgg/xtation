@@ -2,6 +2,371 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ═══════════════════════════════════════════════════════════════════════════
+   SIGN-IN PAGE — 21st.dev inspired
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* Animations */
+@keyframes si-fadeSlideIn {
+  from { opacity: 0; filter: blur(4px); transform: translateY(12px); }
+  to { opacity: 1; filter: blur(0); transform: translateY(0); }
+}
+@keyframes si-slideRightIn {
+  from { opacity: 0; filter: blur(6px); transform: translateX(40px); }
+  to { opacity: 1; filter: blur(0); transform: translateX(0); }
+}
+
+.si-anim {
+  opacity: 0;
+  animation: si-fadeSlideIn 0.6s ease forwards;
+}
+.si-anim-d1 { animation-delay: 0.05s; }
+.si-anim-d2 { animation-delay: 0.1s; }
+.si-anim-d3 { animation-delay: 0.15s; }
+.si-anim-d4 { animation-delay: 0.2s; }
+.si-anim-d5 { animation-delay: 0.25s; }
+.si-anim-d6 { animation-delay: 0.3s; }
+.si-anim-d7 { animation-delay: 0.35s; }
+.si-anim-d8 { animation-delay: 0.4s; }
+.si-anim-d9 { animation-delay: 0.45s; }
+
+.si-slide-right {
+  opacity: 0;
+  animation: si-slideRightIn 0.8s ease forwards;
+}
+
+/* Shell */
+.si-shell {
+  display: flex;
+  height: 100dvh;
+  width: 100%;
+  background: var(--app-bg);
+  color: var(--app-text);
+  overflow: hidden;
+}
+.si-shell--compact {
+  height: auto;
+  min-height: 0;
+}
+
+/* Form column */
+.si-form-col {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32px;
+  overflow-y: auto;
+}
+.si-form-inner {
+  width: 100%;
+  max-width: 420px;
+}
+.si-form-content {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Logo */
+.si-xt-logo {
+  margin-bottom: 4px;
+}
+.si-xt-logo-text {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--app-accent);
+}
+
+/* Title */
+.si-title {
+  font-size: 36px;
+  font-weight: 600;
+  line-height: 1.15;
+  color: var(--app-text);
+  margin: 0;
+  letter-spacing: -0.02em;
+}
+.si-title-light {
+  font-weight: 300;
+  color: var(--app-text);
+}
+.si-subtitle {
+  font-size: 14px;
+  color: var(--app-muted);
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* Form */
+.si-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.si-label {
+  display: block;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--app-muted);
+  margin-bottom: 6px;
+}
+
+/* Glass input */
+.si-glass-input {
+  border-radius: 14px;
+  border: 1px solid var(--app-border);
+  background: color-mix(in srgb, var(--app-text) 4%, transparent);
+  backdrop-filter: blur(8px);
+  transition: border-color 200ms ease, background 200ms ease;
+}
+.si-glass-input:focus-within {
+  border-color: color-mix(in srgb, var(--app-accent) 60%, var(--app-border));
+  background: color-mix(in srgb, var(--app-accent) 6%, transparent);
+}
+
+.si-input {
+  width: 100%;
+  background: transparent;
+  font-size: 13px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  border: none;
+  outline: none;
+  color: var(--app-text);
+  font-family: inherit;
+}
+.si-input::placeholder {
+  color: var(--app-muted);
+  opacity: 0.5;
+}
+.si-input--password {
+  padding-right: 48px;
+}
+
+.si-password-wrap {
+  position: relative;
+}
+.si-eye-btn {
+  position: absolute;
+  inset: 0 12px 0 auto;
+  display: flex;
+  align-items: center;
+  background: none;
+  border: none;
+  color: var(--app-muted);
+  cursor: pointer;
+  transition: color 150ms ease;
+}
+.si-eye-btn:hover { color: var(--app-text); }
+
+/* Options row */
+.si-options-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 13px;
+}
+.si-remember {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  color: var(--app-text);
+  opacity: 0.9;
+}
+.si-checkbox {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--app-accent);
+  cursor: pointer;
+}
+.si-reset-link {
+  font-size: 13px;
+  color: var(--app-accent);
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  transition: opacity 150ms ease;
+}
+.si-reset-link:hover { opacity: 0.8; text-decoration: underline; }
+
+/* Notice */
+.si-notice {
+  font-size: 12px;
+  color: var(--app-muted);
+  line-height: 1.5;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--app-accent) 8%, transparent);
+  border: 1px solid color-mix(in srgb, var(--app-accent) 20%, transparent);
+}
+.si-notice--error {
+  background: color-mix(in srgb, #ef4444 8%, transparent);
+  border-color: color-mix(in srgb, #ef4444 25%, transparent);
+  color: #fca5a5;
+}
+
+/* Submit */
+.si-submit {
+  width: 100%;
+  padding: 14px;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--app-text);
+  background: var(--app-accent);
+  border: none;
+  border-radius: 14px;
+  cursor: pointer;
+  transition: opacity 150ms ease, transform 100ms ease;
+  font-family: inherit;
+}
+.si-submit:hover { opacity: 0.9; }
+.si-submit:active { transform: scale(0.98); }
+.si-submit:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* Divider */
+.si-divider {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.si-divider-line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: var(--app-border);
+}
+.si-divider-text {
+  position: relative;
+  padding: 0 16px;
+  font-size: 12px;
+  color: var(--app-muted);
+  background: var(--app-bg);
+}
+
+/* Google button */
+.si-google {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 14px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--app-text);
+  background: transparent;
+  border: 1px solid var(--app-border);
+  border-radius: 14px;
+  cursor: pointer;
+  transition: background 150ms ease, border-color 150ms ease;
+  font-family: inherit;
+}
+.si-google:hover {
+  background: color-mix(in srgb, var(--app-text) 5%, transparent);
+  border-color: color-mix(in srgb, var(--app-text) 20%, transparent);
+}
+.si-google:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* Mode switch */
+.si-switch {
+  text-align: center;
+  font-size: 13px;
+  color: var(--app-muted);
+  margin: 0;
+}
+.si-switch-link {
+  color: var(--app-accent);
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: inherit;
+  transition: opacity 150ms ease;
+}
+.si-switch-link:hover { opacity: 0.8; text-decoration: underline; }
+
+/* Local mode button */
+.si-local {
+  width: 100%;
+  padding: 12px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--app-muted);
+  background: none;
+  border: 1px dashed color-mix(in srgb, var(--app-border) 70%, transparent);
+  border-radius: 14px;
+  cursor: pointer;
+  transition: color 150ms ease, border-color 150ms ease, background 150ms ease;
+  font-family: inherit;
+}
+.si-local:hover {
+  color: var(--app-text);
+  border-color: var(--app-border);
+  background: color-mix(in srgb, var(--app-text) 3%, transparent);
+}
+
+/* Hero column */
+.si-hero-col {
+  flex: 1;
+  position: relative;
+  padding: 16px;
+  display: none;
+}
+@media (min-width: 768px) {
+  .si-hero-col { display: block; }
+}
+.si-hero-img {
+  position: absolute;
+  inset: 16px;
+  border-radius: 20px;
+  background-size: cover;
+  background-position: center;
+}
+.si-hero-overlay {
+  position: absolute;
+  inset: 16px;
+  border-radius: 20px;
+  background: linear-gradient(180deg, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.5) 100%);
+  pointer-events: none;
+}
+.si-hero-brand {
+  position: absolute;
+  bottom: 48px;
+  left: 48px;
+  z-index: 1;
+}
+.si-hero-brand-text {
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  color: #fff;
+  text-shadow: 0 2px 12px rgba(0,0,0,0.4);
+}
+.si-hero-brand-sub {
+  font-size: 13px;
+  color: rgba(255,255,255,0.7);
+  margin-top: 4px;
+  letter-spacing: 0.04em;
+}
+
+/* Compact mode adjustments */
+.si-shell--compact .si-form-col {
+  padding: 16px;
+}
+.si-shell--compact .si-title {
+  font-size: 24px;
+}
+
 /* ── Interface Hint System ─────────────────────────────────────────────────── */
 /* Controlled by data-hint-mode on <html>: 'off' | 'hover' | 'always'          */
 
