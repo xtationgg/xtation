@@ -434,156 +434,122 @@ export const Admin: React.FC<AdminProps> = ({ onChangeView }) => {
     }
   }, [activeTab, user?.id, session?.access_token]);
 
-  const statusDot = (ok: boolean) => (
-    <span className={`inline-block w-2 h-2 rounded-full flex-shrink-0 ${ok ? 'bg-emerald-400' : 'bg-amber-400'}`} />
+  const dot = (ok: boolean) => (
+    <span className={`inline-block w-[5px] h-[5px] flex-shrink-0 ${ok ? 'bg-emerald-400' : 'bg-amber-400'}`} style={{ borderRadius: 0 }} />
   );
 
   return (
-    <div className="xt-admin-shell min-h-full px-4 pb-10 pt-5 md:px-6 lg:px-8">
-      <div className="mx-auto flex w-full max-w-[1500px] flex-col gap-5">
+    <div className="xt-admin-shell min-h-full px-4 pb-10 pt-4 md:px-6 lg:px-8">
+      <div className="mx-auto flex w-full max-w-[1500px] flex-col gap-0">
 
-        {/* ── Compact Header ── */}
-        <div className="flex flex-wrap items-center justify-between gap-3 px-1">
-          <div className="flex items-center gap-3">
-            <h1 className="text-lg font-bold text-[var(--app-text)] tracking-wide">Admin</h1>
-            <span className="text-[10px] uppercase tracking-[0.14em] text-[var(--app-muted)]">Operator Console</span>
+        {/* ── Header — inventory-style bar ── */}
+        <div className="flex items-center justify-between border-b-2 border-[var(--app-accent)] pb-3 mb-0">
+          <div className="flex items-center gap-4">
+            <h1 className="text-[11px] font-bold uppercase tracking-[0.24em] text-[var(--app-accent)]">Operator Console</h1>
+            <span className="text-[9px] uppercase tracking-[0.16em] text-[var(--app-muted)]">{currentStation.label}</span>
           </div>
-          <div className="flex flex-wrap items-center gap-2">
-            <div className="xt-admin-chip">{access.label}</div>
+          <div className="flex items-center gap-2">
             {access.roles.map((role) => (
-              <div key={role} className="xt-admin-chip xt-admin-chip--accent">{role.replace('_', ' ')}</div>
+              <span key={role} className="text-[9px] font-semibold uppercase tracking-[0.14em] text-[var(--app-accent)] border border-[color-mix(in_srgb,var(--app-accent)_30%,transparent)] px-2 py-0.5">{role.replace('_', ' ')}</span>
             ))}
             {state.supportLens ? (
-              <div className="flex items-center gap-2 rounded-lg border border-[var(--app-accent)] bg-[color-mix(in_srgb,var(--app-accent)_8%,transparent)] px-3 py-1.5">
-                <span className="inline-block w-2 h-2 rounded-full bg-[var(--app-accent)] animate-pulse" />
-                <span className="text-[10px] font-semibold uppercase tracking-[0.1em] text-[var(--app-accent)]">Lens: {state.supportLens.stationLabel}</span>
-                <button type="button" onClick={stopSupportLens} className="text-[10px] uppercase tracking-[0.1em] text-[var(--app-muted)] hover:text-[var(--app-text)] ml-1">Clear</button>
-              </div>
+              <span className="flex items-center gap-1.5 text-[9px] font-semibold uppercase tracking-[0.1em] text-[var(--app-accent)] border border-[var(--app-accent)] px-2 py-0.5">
+                <span className="inline-block w-[5px] h-[5px] bg-[var(--app-accent)] animate-pulse" />
+                Lens: {state.supportLens.stationLabel}
+                <button type="button" onClick={stopSupportLens} className="text-[var(--app-muted)] hover:text-[var(--app-text)] ml-1">&times;</button>
+              </span>
             ) : null}
           </div>
         </div>
 
-        {/* ── Tab Bar ── */}
-        <div className="xt-admin-tabbar flex flex-wrap gap-1.5">
+        {/* ── Tabs — inventory topbar style ── */}
+        <div className="flex items-center gap-0 border-b border-[color-mix(in_srgb,var(--app-text)_8%,transparent)] mb-5">
           {ADMIN_TABS.map(({ id, label, icon: Icon }) => (
             <button
               key={id}
               type="button"
               onClick={() => setActiveTab(id)}
-              className={`${panelButton} gap-1.5 ${
+              className={`relative flex items-center gap-1.5 px-4 py-3 text-[10px] font-semibold uppercase tracking-[0.18em] transition-colors border-b-2 -mb-px ${
                 activeTab === id
-                  ? 'border-[var(--app-accent)] bg-[color-mix(in_srgb,var(--app-accent)_12%,transparent)] text-[var(--app-text)]'
-                  : 'border-transparent text-[var(--app-muted)] hover:text-[var(--app-text)] hover:bg-[color-mix(in_srgb,var(--app-text)_4%,transparent)]'
+                  ? 'border-[var(--app-accent)] text-[var(--app-text)]'
+                  : 'border-transparent text-[var(--app-muted)] hover:text-[var(--app-text)]'
               }`}
             >
-              <Icon size={13} />
+              {activeTab === id ? <span className="inline-block w-[5px] h-[5px] bg-[var(--app-accent)] mr-0.5" /> : null}
+              <Icon size={12} />
               {label}
             </button>
           ))}
         </div>
 
-        {/* ═══ OVERVIEW TAB ═══ */}
+        {/* ═══ OVERVIEW ═══ */}
         {activeTab === 'overview' ? (
-          <div className="grid gap-5 xl:grid-cols-[1fr_340px]">
-            {/* Left: Status + Surface */}
-            <div className="flex flex-col gap-5">
+          <div className="grid gap-[1px] bg-[color-mix(in_srgb,var(--app-text)_6%,transparent)] xl:grid-cols-[1fr_300px]">
 
-              {/* Station Status — compact rows */}
-              <div className={`${sectionCard} p-5`}>
-                <div className="text-[10px] uppercase tracking-[0.2em] text-[var(--app-accent)] mb-4">Station Status</div>
-                <div className="space-y-3">
-                  <div className="flex items-center gap-3">
-                    {statusDot(access.allowed)}
-                    <span className="text-xs text-[var(--app-muted)] w-28 flex-shrink-0">Access</span>
-                    <span className="text-sm font-medium text-[var(--app-text)]">
-                      {access.source === 'env_allowlist' ? 'Allowlisted' : access.source === 'dev_preview' ? 'Dev preview' : 'Locked'}
-                    </span>
-                    <span className="ml-auto text-[10px] text-[var(--app-muted)]">{currentStation.label}</span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    {statusDot(true)}
-                    <span className="text-xs text-[var(--app-muted)] w-28 flex-shrink-0">Station</span>
-                    <span className="text-sm font-medium text-[var(--app-text)]">{currentStation.plan} / {currentStation.releaseChannel}</span>
-                    <span className="ml-auto text-[10px] text-[var(--app-muted)]">{formatRelativeDays(currentStation.trialEndsAt)}</span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    {statusDot(platformCloudEnabled)}
-                    <span className="text-xs text-[var(--app-muted)] w-28 flex-shrink-0">Cloud Sync</span>
-                    <span className="text-sm font-medium text-[var(--app-text)]">{platformCloudEnabled ? platformSyncStatus.replace('_', ' ') : 'local only'}</span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    {statusDot(cloudReadiness.level === 'ready' || cloudReadiness.level === 'partial')}
-                    <span className="text-xs text-[var(--app-muted)] w-28 flex-shrink-0">Cloud Ready</span>
-                    <span className="text-sm font-medium text-[var(--app-text)]">{cloudReadiness.level}</span>
-                    <span className="ml-auto text-[10px] text-[var(--app-muted)]">{cloudReadiness.nextStep}</span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    {statusDot(!!operatorClaimState.role)}
-                    <span className="text-xs text-[var(--app-muted)] w-28 flex-shrink-0">JWT Role</span>
-                    <span className="text-sm font-medium text-[var(--app-text)]">{operatorClaimState.role || 'none'}</span>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    {statusDot(!!latestBrief)}
-                    <span className="text-xs text-[var(--app-muted)] w-28 flex-shrink-0">Dusk Relay</span>
-                    <span className="text-sm font-medium text-[var(--app-text)] truncate">{latestBrief ? latestBrief.title : 'No brief'}</span>
-                  </div>
+            {/* Left column */}
+            <div className="bg-[var(--app-bg)] flex flex-col">
+
+              {/* Station Status */}
+              <div className="border-t-2 border-[var(--app-accent)] p-5">
+                <div className="text-[9px] font-bold uppercase tracking-[0.28em] text-[var(--app-accent)] mb-4">Station Status</div>
+                <div className="grid gap-0 divide-y divide-[color-mix(in_srgb,var(--app-text)_5%,transparent)]">
+                  {[
+                    { ok: access.allowed, label: 'ACCESS', value: access.source === 'env_allowlist' ? 'Allowlisted' : access.source === 'dev_preview' ? 'Dev preview' : 'Locked', meta: access.source.replace('_', ' ') },
+                    { ok: true, label: 'PLAN', value: `${currentStation.plan} / ${currentStation.releaseChannel}`, meta: formatRelativeDays(currentStation.trialEndsAt) },
+                    { ok: platformCloudEnabled, label: 'CLOUD', value: platformCloudEnabled ? platformSyncStatus.replace('_', ' ') : 'local only', meta: '' },
+                    { ok: cloudReadiness.level === 'ready' || cloudReadiness.level === 'partial', label: 'READINESS', value: cloudReadiness.level, meta: cloudReadiness.nextStep },
+                    { ok: !!operatorClaimState.role, label: 'JWT', value: operatorClaimState.role || 'none', meta: '' },
+                    { ok: !!latestBrief, label: 'DUSK', value: latestBrief ? latestBrief.title : 'No brief', meta: '' },
+                  ].map(({ ok, label, value, meta }) => (
+                    <div key={label} className="flex items-center gap-3 py-2.5 first:pt-0 last:pb-0">
+                      {dot(ok)}
+                      <span className="text-[9px] font-semibold uppercase tracking-[0.2em] text-[var(--app-muted)] w-20 flex-shrink-0">{label}</span>
+                      <span className="text-[12px] font-medium text-[var(--app-text)] truncate">{value}</span>
+                      {meta ? <span className="ml-auto text-[9px] uppercase tracking-[0.12em] text-[var(--app-muted)] flex-shrink-0">{meta}</span> : null}
+                    </div>
+                  ))}
                 </div>
               </div>
 
-              {/* Surface Snapshot — inline grid */}
-              <div className={`${sectionCard} p-5`}>
-                <div className="text-[10px] uppercase tracking-[0.2em] text-[var(--app-accent)] mb-4">Surface</div>
-                <div className="grid gap-x-8 gap-y-3 sm:grid-cols-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs text-[var(--app-muted)]">Theme</span>
-                    <span className="text-sm text-[var(--app-text)]">{theme} / {accent}</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs text-[var(--app-muted)]">Unlocks</span>
-                    <span className="text-sm text-[var(--app-text)]">{settings.unlocks.activeWidgetIds.length}W {settings.unlocks.activeLabModuleIds.length}M</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs text-[var(--app-muted)]">Progress</span>
-                    <span className="text-sm text-[var(--app-text)]">Lv.{stats.playerLevel} / {stats.totalEarnedXP} XP</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs text-[var(--app-muted)]">Features</span>
-                    <span className="text-sm text-[var(--app-text)]">
-                      Lab {settings.features.labEnabled ? '\u2713' : '\u2717'} &nbsp;
-                      MP {settings.features.multiplayerEnabled ? '\u2713' : '\u2717'} &nbsp;
-                      Store {settings.features.storeEnabled ? '\u2713' : '\u2717'}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs text-[var(--app-muted)]">Data</span>
-                    <span className="text-sm text-[var(--app-text)]">{tasks.length} quests / {sessions.length} sessions</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs text-[var(--app-muted)]">Sync</span>
-                    <span className="text-sm text-[var(--app-text)]">{syncStatus} / {authStatus}</span>
-                  </div>
+              {/* Surface */}
+              <div className="border-t border-[color-mix(in_srgb,var(--app-text)_6%,transparent)] p-5">
+                <div className="text-[9px] font-bold uppercase tracking-[0.28em] text-[var(--app-muted)] mb-4">Surface Snapshot</div>
+                <div className="grid gap-x-6 gap-y-2 sm:grid-cols-3">
+                  {[
+                    { label: 'Theme', value: `${theme} / ${accent}` },
+                    { label: 'Level', value: `${stats.playerLevel} · ${stats.totalEarnedXP} XP` },
+                    { label: 'Data', value: `${tasks.length}Q · ${sessions.length}S` },
+                    { label: 'Unlocks', value: `${settings.unlocks.activeWidgetIds.length}W ${settings.unlocks.activeLabModuleIds.length}M` },
+                    { label: 'Features', value: `Lab ${settings.features.labEnabled ? '\u2713' : '\u2717'}  MP ${settings.features.multiplayerEnabled ? '\u2713' : '\u2717'}  Store ${settings.features.storeEnabled ? '\u2713' : '\u2717'}` },
+                    { label: 'Sync', value: `${syncStatus} / ${authStatus}` },
+                  ].map(({ label, value }) => (
+                    <div key={label} className="flex items-center justify-between gap-2 py-1">
+                      <span className="text-[9px] uppercase tracking-[0.16em] text-[var(--app-muted)]">{label}</span>
+                      <span className="text-[11px] font-medium text-[var(--app-text)] text-right truncate">{value}</span>
+                    </div>
+                  ))}
                 </div>
               </div>
             </div>
 
-            {/* Right: Recent Audit */}
-            <div className={`${sectionCard} p-5`}>
-              <div className="text-[10px] uppercase tracking-[0.2em] text-[var(--app-accent)] mb-4">Recent Activity</div>
-              <div className="space-y-2">
-                {state.audit.length === 0 ? (
-                  <div className="text-sm text-[var(--app-muted)] opacity-0.5">No actions recorded yet.</div>
-                ) : (
-                  state.audit.slice(0, 8).map((entry) => (
-                    <div key={entry.id} className="flex items-start gap-3 py-2 border-b border-[color-mix(in_srgb,var(--app-border)_40%,transparent)] last:border-0">
-                      <div className="flex-1 min-w-0">
-                        <div className="text-sm text-[var(--app-text)] truncate">{entry.summary}</div>
-                        <div className="text-[10px] text-[var(--app-muted)] mt-0.5">{formatDateTime(entry.createdAt)}</div>
+            {/* Right: Audit feed */}
+            <div className="bg-[var(--app-bg)] border-t-2 border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] p-5">
+              <div className="text-[9px] font-bold uppercase tracking-[0.28em] text-[var(--app-muted)] mb-4">Audit Trail</div>
+              {state.audit.length === 0 ? (
+                <div className="text-[11px] text-[var(--app-muted)] py-4 border border-dashed border-[color-mix(in_srgb,var(--app-text)_8%,transparent)] text-center">No actions yet</div>
+              ) : (
+                <div className="divide-y divide-[color-mix(in_srgb,var(--app-text)_5%,transparent)]">
+                  {state.audit.slice(0, 10).map((entry) => (
+                    <div key={entry.id} className="py-2 first:pt-0 last:pb-0">
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="text-[11px] font-medium text-[var(--app-text)] truncate">{entry.summary}</span>
+                        <span className="text-[8px] uppercase tracking-[0.12em] text-[var(--app-muted)] flex-shrink-0 border border-[color-mix(in_srgb,var(--app-text)_8%,transparent)] px-1.5 py-0.5">{entry.scope}</span>
                       </div>
-                      <span className="text-[9px] uppercase tracking-[0.1em] text-[var(--app-muted)] flex-shrink-0 mt-0.5">{entry.scope}</span>
+                      <div className="text-[9px] text-[var(--app-muted)] mt-0.5">{formatDateTime(entry.createdAt)}</div>
                     </div>
-                  ))
-                )}
-              </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         ) : null}
