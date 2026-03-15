@@ -16868,18 +16868,28 @@ a {
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
-   PLAY — FLOATING CATEGORY LAYOUT
+   PLAY — CLEAN FLOATING LAYOUT (replaces old .xt-ops layout)
    ═══════════════════════════════════════════════════════════════════════════ */
 
+/* Override old layout rules — Play.tsx no longer uses these containers */
+.xt-ops-room .xt-ops-layout { display: none !important; }
+.xt-ops-room .xt-ops-command { display: none !important; }
+
+/* Room base — override old overflow:hidden so new layout can scroll */
+.xt-ops-room {
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+/* Floating content layer */
 .xt-play-float {
   position: relative;
   z-index: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
-  min-height: 100%;
+  min-height: calc(100vh - 56px);
   padding: 0 24px;
-  text-shadow: 0 1px 8px rgba(0,0,0,0.3);
 }
 
 /* Top bar */
@@ -16900,9 +16910,9 @@ a {
 .xt-play-ops-btn {
   font-size: 12px;
   color: var(--app-muted);
-  background: color-mix(in srgb, var(--app-bg) 50%, transparent) !important;
+  background: color-mix(in srgb, var(--app-bg) 50%, transparent);
   backdrop-filter: blur(8px);
-  border: 1px solid color-mix(in srgb, var(--app-text) 10%, transparent) !important;
+  border: 1px solid color-mix(in srgb, var(--app-text) 10%, transparent);
   padding: 6px 14px;
   cursor: pointer;
   transition: color 150ms ease, border-color 150ms ease;
@@ -16923,7 +16933,7 @@ a {
 }
 .xt-play-add-btn:hover { background: color-mix(in srgb, var(--app-accent) 8%, transparent); }
 
-/* 3 Category tabs */
+/* 3 Category tabs — PURE FLOATING TEXT, NO BORDERS */
 .xt-play-categories {
   display: flex;
   align-items: flex-end;
@@ -16936,13 +16946,16 @@ a {
   flex-direction: column;
   align-items: center;
   gap: 6px;
-  background: none !important;
+  background: transparent !important;
   border: none !important;
   outline: none !important;
+  box-shadow: none !important;
   cursor: pointer;
   transition: opacity 200ms ease, transform 200ms ease;
   opacity: 0.35;
   padding: 8px 16px;
+  -webkit-appearance: none;
+  appearance: none;
 }
 .xt-play-cat:hover { opacity: 0.6; }
 .xt-play-cat.is-active {
@@ -16968,12 +16981,12 @@ a {
   text-transform: uppercase;
 }
 
-/* Quest list (when no quest selected) */
+/* Quest list */
 .xt-play-quest-list {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
+  gap: 4px;
   max-width: 500px;
   width: 100%;
 }
@@ -16984,17 +16997,17 @@ a {
   gap: 4px;
   width: 100%;
   padding: 14px 20px;
-  background: none !important;
+  background: transparent !important;
   border: none !important;
   border-bottom: 1px solid color-mix(in srgb, var(--app-border) 30%, transparent) !important;
+  box-shadow: none !important;
   cursor: pointer;
-  transition: background 150ms ease, border-color 150ms ease;
+  transition: background 150ms ease;
   text-align: center;
   text-shadow: 0 1px 8px rgba(0,0,0,0.4);
 }
 .xt-play-quest-item:hover {
   background: color-mix(in srgb, var(--app-text) 4%, transparent) !important;
-  border-bottom-color: var(--app-border) !important;
 }
 .xt-play-quest-item-title {
   font-size: 15px;
@@ -17015,10 +17028,9 @@ a {
   gap: 16px;
   max-width: 700px;
   width: 100%;
+  text-shadow: 0 1px 8px rgba(0,0,0,0.3);
 }
-.xt-play-hero-timer {
-  text-align: center;
-}
+.xt-play-hero-timer { text-align: center; }
 .xt-play-hero-time {
   font-family: 'IBM Plex Mono', monospace;
   font-size: 36px;
@@ -17044,6 +17056,7 @@ a {
 .xt-play-hero-tags {
   display: flex;
   gap: 12px;
+  flex-wrap: wrap;
   justify-content: center;
 }
 .xt-play-hero-tag {
@@ -17055,9 +17068,7 @@ a {
   border: none;
   padding: 0;
 }
-.xt-play-hero-tag.is-accent {
-  color: var(--app-accent);
-}
+.xt-play-hero-tag.is-accent { color: var(--app-accent); }
 .xt-play-hero-tag + .xt-play-hero-tag::before {
   content: '\00B7';
   margin-right: 12px;
@@ -17075,6 +17086,8 @@ a {
   border-color: color-mix(in srgb, var(--app-text) 12%, transparent) !important;
   text-shadow: 0 1px 8px rgba(0,0,0,0.3);
 }
+
+/* Floating stats */
 .xt-play-hero-stats {
   display: flex;
   gap: 24px;
@@ -17122,103 +17135,67 @@ a {
 }
 .xt-play-step.is-done { opacity: 0.4; text-decoration: line-through; }
 .xt-play-step-check {
-  width: 18px;
-  height: 18px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  width: 18px; height: 18px;
+  display: flex; align-items: center; justify-content: center;
   border: 1px solid var(--app-border);
-  font-size: 11px;
-  color: #3fb950;
-  flex-shrink: 0;
+  font-size: 11px; color: #3fb950; flex-shrink: 0;
 }
 .xt-play-step-text { font-size: 13px; color: var(--app-text); }
 .xt-play-step-input {
-  width: 100%;
-  padding: 8px 0;
-  font-size: 13px;
-  color: var(--app-muted);
-  background: none;
-  border: none;
-  outline: none;
+  width: 100%; padding: 8px 0; font-size: 13px;
+  color: var(--app-muted); background: none; border: none; outline: none;
 }
 .xt-play-step-input::placeholder { color: var(--app-muted); opacity: 0.4; }
 
 /* Brief */
 .xt-play-brief { margin-top: 16px; }
 .xt-play-brief-label {
-  font-size: 10px;
-  font-weight: 500;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--app-accent);
+  font-size: 10px; font-weight: 500; letter-spacing: 0.1em;
+  text-transform: uppercase; color: var(--app-accent);
 }
 .xt-play-brief-text {
-  font-size: 13px;
-  color: var(--app-muted);
-  line-height: 1.6;
-  margin-top: 6px;
+  font-size: 13px; color: var(--app-muted); line-height: 1.6; margin-top: 6px;
 }
 
-/* Back button */
+/* Back button — NO border */
 .xt-play-back {
-  font-size: 12px;
-  color: var(--app-muted);
-  background: none !important;
-  border: none !important;
+  font-size: 12px; color: var(--app-muted);
+  background: none !important; border: none !important; box-shadow: none !important;
   cursor: pointer;
-  margin-top: 16px;
-  transition: color 150ms ease;
+  margin-top: 16px; transition: color 150ms ease;
   text-shadow: 0 2px 8px rgba(0,0,0,0.5);
 }
 .xt-play-back:hover { color: var(--app-text); }
 
-/* Empty state */
+/* Empty state — NO box */
 .xt-play-empty {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 16px;
-  margin-top: 60px;
-  background: none !important;
-  border: none !important;
-  padding: 0 !important;
+  display: flex; flex-direction: column; align-items: center;
+  gap: 16px; margin-top: 60px;
+  background: transparent !important; border: none !important; padding: 0 !important;
+  box-shadow: none !important;
 }
 .xt-play-empty-text {
-  font-size: 15px;
-  color: var(--app-muted);
-  opacity: 0.5;
+  font-size: 15px; color: var(--app-muted); opacity: 0.5;
   text-shadow: 0 2px 12px rgba(0,0,0,0.5);
 }
 .xt-play-empty-btn {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 12px;
-  color: var(--app-accent);
+  display: flex; align-items: center; gap: 6px;
+  font-size: 12px; color: var(--app-accent);
   background: none !important;
   border: 1px solid color-mix(in srgb, var(--app-accent) 30%, transparent) !important;
-  padding: 8px 16px;
-  cursor: pointer;
+  padding: 8px 16px; cursor: pointer;
+  box-shadow: none !important;
 }
 
 /* Bottom stats */
 .xt-play-bottom {
-  position: fixed;
-  bottom: 16px;
-  left: 50%;
-  transform: translateX(-50%);
-  display: flex;
-  gap: 20px;
-  z-index: 2;
+  position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%);
+  display: flex; gap: 20px; z-index: 2;
   padding: 6px 16px;
   background: color-mix(in srgb, var(--app-bg) 60%, transparent);
   border-radius: 2px;
 }
 .xt-play-bottom-stat {
   font-family: 'IBM Plex Mono', monospace;
-  font-size: 11px;
-  color: var(--app-muted);
-  opacity: 0.7;
-  letter-spacing: 0.04em;
+  font-size: 11px; color: var(--app-muted); opacity: 0.7; letter-spacing: 0.04em;
 }
