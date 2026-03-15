@@ -434,185 +434,158 @@ export const Admin: React.FC<AdminProps> = ({ onChangeView }) => {
     }
   }, [activeTab, user?.id, session?.access_token]);
 
+  const statusDot = (ok: boolean) => (
+    <span className={`inline-block w-2 h-2 rounded-full flex-shrink-0 ${ok ? 'bg-emerald-400' : 'bg-amber-400'}`} />
+  );
+
   return (
     <div className="xt-admin-shell min-h-full px-4 pb-10 pt-5 md:px-6 lg:px-8">
-      <div className="mx-auto flex w-full max-w-[1500px] flex-col gap-6">
-        <div className={`${sectionCard} xt-admin-hero overflow-hidden`}>
-          <div className="xt-admin-hero-inner px-6 py-6">
-            <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
-              <div className="max-w-3xl">
-                <div className="text-[10px] uppercase tracking-[0.32em] text-[var(--app-accent)]">Operator Console</div>
-                <h1 className="mt-3 text-3xl font-semibold text-[var(--app-text)]">Run XTATION like a real platform.</h1>
-                <p className="mt-3 max-w-2xl text-sm leading-7 text-[var(--app-muted)]">
-                  This surface owns rollout state, support diagnostics, test cohorts, and audit. It stays deliberately narrow:
-                  no fake backend power, only controls the current client can actually honor safely.
-                </p>
-              </div>
-              <div className="flex flex-wrap items-center gap-2">
-                <div className="xt-admin-chip">
-                  {access.label}
-                </div>
-                {access.roles.map((role) => (
-                  <div
-                    key={role}
-                    className="xt-admin-chip xt-admin-chip--accent"
-                  >
-                    {role.replace('_', ' ')}
-                  </div>
-                ))}
-              </div>
-            </div>
+      <div className="mx-auto flex w-full max-w-[1500px] flex-col gap-5">
+
+        {/* ── Compact Header ── */}
+        <div className="flex flex-wrap items-center justify-between gap-3 px-1">
+          <div className="flex items-center gap-3">
+            <h1 className="text-lg font-bold text-[var(--app-text)] tracking-wide">Admin</h1>
+            <span className="text-[10px] uppercase tracking-[0.14em] text-[var(--app-muted)]">Operator Console</span>
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <div className="xt-admin-chip">{access.label}</div>
+            {access.roles.map((role) => (
+              <div key={role} className="xt-admin-chip xt-admin-chip--accent">{role.replace('_', ' ')}</div>
+            ))}
             {state.supportLens ? (
-              <div className="xt-admin-lens mt-5 flex flex-wrap items-center justify-between gap-3 px-4 py-3">
-                <div>
-                  <div className="text-[10px] uppercase tracking-[0.2em] text-[var(--app-accent)]">Support Lens Active</div>
-                  <div className="mt-1 text-sm text-[var(--app-text)]">
-                    Viewing operator context for <span className="font-semibold">{state.supportLens.stationLabel}</span> since{' '}
-                    {formatDateTime(state.supportLens.startedAt)}
-                  </div>
-                </div>
-                <button
-                  type="button"
-                  onClick={stopSupportLens}
-                  className={`${panelButton} border-[var(--app-border)] text-[var(--app-text)] hover:border-[var(--app-accent)]`}
-                >
-                  Clear Lens
-                </button>
+              <div className="flex items-center gap-2 rounded-lg border border-[var(--app-accent)] bg-[color-mix(in_srgb,var(--app-accent)_8%,transparent)] px-3 py-1.5">
+                <span className="inline-block w-2 h-2 rounded-full bg-[var(--app-accent)] animate-pulse" />
+                <span className="text-[10px] font-semibold uppercase tracking-[0.1em] text-[var(--app-accent)]">Lens: {state.supportLens.stationLabel}</span>
+                <button type="button" onClick={stopSupportLens} className="text-[10px] uppercase tracking-[0.1em] text-[var(--app-muted)] hover:text-[var(--app-text)] ml-1">Clear</button>
               </div>
             ) : null}
           </div>
         </div>
 
-        <div className="xt-admin-tabbar flex flex-wrap gap-2">
+        {/* ── Tab Bar ── */}
+        <div className="xt-admin-tabbar flex flex-wrap gap-1.5">
           {ADMIN_TABS.map(({ id, label, icon: Icon }) => (
             <button
               key={id}
               type="button"
               onClick={() => setActiveTab(id)}
-              className={`${panelButton} gap-2 ${
+              className={`${panelButton} gap-1.5 ${
                 activeTab === id
-                  ? 'border-[var(--app-accent)] bg-[color-mix(in_srgb,var(--app-accent)_14%,transparent)] text-[var(--app-text)]'
-                  : 'border-[var(--app-border)] text-[var(--app-muted)] hover:border-[var(--app-accent)] hover:text-[var(--app-text)]'
+                  ? 'border-[var(--app-accent)] bg-[color-mix(in_srgb,var(--app-accent)_12%,transparent)] text-[var(--app-text)]'
+                  : 'border-transparent text-[var(--app-muted)] hover:text-[var(--app-text)] hover:bg-[color-mix(in_srgb,var(--app-text)_4%,transparent)]'
               }`}
             >
-              <Icon size={14} />
+              <Icon size={13} />
               {label}
             </button>
           ))}
         </div>
 
+        {/* ═══ OVERVIEW TAB ═══ */}
         {activeTab === 'overview' ? (
-          <>
-            <div className="grid gap-4 lg:grid-cols-2 xl:grid-cols-4">
-              <SummaryCard
-                icon={<ShieldCheck size={18} />}
-                label="Operator Access"
-                value={access.source === 'env_allowlist' ? 'Allowlisted' : access.source === 'dev_preview' ? 'Developer preview' : 'Locked'}
-                detail={`Station scope: ${currentStation.label}. Source: ${access.source.replace('_', ' ')}.`}
-              />
-              <SummaryCard
-                icon={<ShieldCheck size={18} />}
-                label="Operator JWT"
-                value={operatorClaimState.role || 'No xtation_role'}
-                detail={operatorClaimState.reason}
-              />
-              <SummaryCard
-                icon={<BadgeCheck size={18} />}
-                label="Current Station"
-                value={`${currentStation.plan.toUpperCase()} • ${currentStation.releaseChannel.toUpperCase()}`}
-                detail={`Trial: ${formatRelativeDays(currentStation.trialEndsAt)} • Cohort: ${currentStation.betaCohort || 'none'}`}
-              />
-              <SummaryCard
-                icon={<ShieldCheck size={18} />}
-                label="Platform Profile"
-                value={platformCloudEnabled ? platformSyncStatus.replace('_', ' ') : 'local only'}
-                detail={
-                  platformCloudEnabled
-                    ? `Last cloud update: ${formatDateTime(platformCloudUpdatedAt)} • Includes rollout state plus station look/unlock activation.`
-                    : platformSyncMessage || 'Supabase platform profile table is not installed or not reachable.'
-                }
-              />
-              <SummaryCard
-                icon={<Cloud size={18} />}
-                label="Cloud Readiness"
-                value={cloudReadiness.level}
-                detail={`${cloudReadiness.summary} ${cloudReadiness.nextStep}`}
-              />
-              <SummaryCard
-                icon={<Sparkles size={18} />}
-                label="Dusk Relay"
-                value={latestBrief ? latestBrief.title : 'No active brief'}
-                detail={
-                  latestBrief
-                    ? `Received ${formatDateTime(latestBrief.receivedAt)}${latestBrief.tags?.length ? ` • ${latestBrief.tags.join(', ')}` : ''}`
-                    : 'No relay brief has been stored yet for this station.'
-                }
-              />
-              <SummaryCard
-                icon={<Activity size={18} />}
-                label="Client State"
-                value={`${tasks.length} quests • ${sessions.length} sessions`}
-                detail={`Ledger sync: ${syncStatus} • Auth: ${authStatus} • Last sync: ${lastSyncedAt || 'pending'}`}
-              />
-            </div>
+          <div className="grid gap-5 xl:grid-cols-[1fr_340px]">
+            {/* Left: Status + Surface */}
+            <div className="flex flex-col gap-5">
 
-            <div className="grid gap-4 xl:grid-cols-[1.2fr_0.8fr]">
+              {/* Station Status — compact rows */}
               <div className={`${sectionCard} p-5`}>
-                <div className="text-[10px] uppercase tracking-[0.24em] text-[var(--app-muted)]">Surface Snapshot</div>
-                <div className="mt-4 grid gap-4 sm:grid-cols-2">
-                  <div className="rounded-[22px] border border-[var(--app-border)] bg-[color-mix(in_srgb,var(--app-panel-2)_78%,transparent)] p-4">
-                    <div className="text-[10px] uppercase tracking-[0.2em] text-[var(--app-muted)]">Theme Stack</div>
-                    <div className="mt-2 text-sm text-[var(--app-text)]">
-                      {theme} / {accent} / {resolution}
-                    </div>
+                <div className="text-[10px] uppercase tracking-[0.2em] text-[var(--app-accent)] mb-4">Station Status</div>
+                <div className="space-y-3">
+                  <div className="flex items-center gap-3">
+                    {statusDot(access.allowed)}
+                    <span className="text-xs text-[var(--app-muted)] w-28 flex-shrink-0">Access</span>
+                    <span className="text-sm font-medium text-[var(--app-text)]">
+                      {access.source === 'env_allowlist' ? 'Allowlisted' : access.source === 'dev_preview' ? 'Dev preview' : 'Locked'}
+                    </span>
+                    <span className="ml-auto text-[10px] text-[var(--app-muted)]">{currentStation.label}</span>
                   </div>
-                  <div className="rounded-[22px] border border-[var(--app-border)] bg-[color-mix(in_srgb,var(--app-panel-2)_78%,transparent)] p-4">
-                    <div className="text-[10px] uppercase tracking-[0.2em] text-[var(--app-muted)]">Active Unlocks</div>
-                    <div className="mt-2 text-sm text-[var(--app-text)]">
-                      {settings.unlocks.activeWidgetIds.length} widgets • {settings.unlocks.activeLabModuleIds.length} modules
-                    </div>
+                  <div className="flex items-center gap-3">
+                    {statusDot(true)}
+                    <span className="text-xs text-[var(--app-muted)] w-28 flex-shrink-0">Station</span>
+                    <span className="text-sm font-medium text-[var(--app-text)]">{currentStation.plan} / {currentStation.releaseChannel}</span>
+                    <span className="ml-auto text-[10px] text-[var(--app-muted)]">{formatRelativeDays(currentStation.trialEndsAt)}</span>
                   </div>
-                  <div className="rounded-[22px] border border-[var(--app-border)] bg-[color-mix(in_srgb,var(--app-panel-2)_78%,transparent)] p-4">
-                    <div className="text-[10px] uppercase tracking-[0.2em] text-[var(--app-muted)]">Progress Engine</div>
-                    <div className="mt-2 text-sm text-[var(--app-text)]">
-                      Level {stats.playerLevel} • {stats.totalEarnedXP} total XP
-                    </div>
+                  <div className="flex items-center gap-3">
+                    {statusDot(platformCloudEnabled)}
+                    <span className="text-xs text-[var(--app-muted)] w-28 flex-shrink-0">Cloud Sync</span>
+                    <span className="text-sm font-medium text-[var(--app-text)]">{platformCloudEnabled ? platformSyncStatus.replace('_', ' ') : 'local only'}</span>
                   </div>
-                  <div className="rounded-[22px] border border-[var(--app-border)] bg-[color-mix(in_srgb,var(--app-panel-2)_78%,transparent)] p-4">
-                    <div className="text-[10px] uppercase tracking-[0.2em] text-[var(--app-muted)]">Feature Gates</div>
-                    <div className="mt-2 text-sm text-[var(--app-text)]">
-                      Lab {settings.features.labEnabled ? 'on' : 'off'} • Multiplayer {settings.features.multiplayerEnabled ? 'on' : 'off'} • Store{' '}
-                      {settings.features.storeEnabled ? 'on' : 'off'}
-                    </div>
+                  <div className="flex items-center gap-3">
+                    {statusDot(cloudReadiness.level === 'ready' || cloudReadiness.level === 'partial')}
+                    <span className="text-xs text-[var(--app-muted)] w-28 flex-shrink-0">Cloud Ready</span>
+                    <span className="text-sm font-medium text-[var(--app-text)]">{cloudReadiness.level}</span>
+                    <span className="ml-auto text-[10px] text-[var(--app-muted)]">{cloudReadiness.nextStep}</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    {statusDot(!!operatorClaimState.role)}
+                    <span className="text-xs text-[var(--app-muted)] w-28 flex-shrink-0">JWT Role</span>
+                    <span className="text-sm font-medium text-[var(--app-text)]">{operatorClaimState.role || 'none'}</span>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    {statusDot(!!latestBrief)}
+                    <span className="text-xs text-[var(--app-muted)] w-28 flex-shrink-0">Dusk Relay</span>
+                    <span className="text-sm font-medium text-[var(--app-text)] truncate">{latestBrief ? latestBrief.title : 'No brief'}</span>
                   </div>
                 </div>
               </div>
 
+              {/* Surface Snapshot — inline grid */}
               <div className={`${sectionCard} p-5`}>
-                <div className="text-[10px] uppercase tracking-[0.24em] text-[var(--app-muted)]">Recent Audit</div>
-                <div className="mt-4 space-y-3">
-                  {state.audit.length === 0 ? (
-                    <div className="rounded-[22px] border border-dashed border-[var(--app-border)] px-4 py-5 text-sm text-[var(--app-muted)]">
-                      No operator actions recorded yet.
-                    </div>
-                  ) : (
-                    state.audit.slice(0, 5).map((entry) => (
-                      <div
-                        key={entry.id}
-                        className="rounded-[22px] border border-[var(--app-border)] bg-[color-mix(in_srgb,var(--app-panel-2)_76%,transparent)] px-4 py-3"
-                      >
-                        <div className="flex items-center justify-between gap-3">
-                          <div className="text-sm font-semibold text-[var(--app-text)]">{entry.summary}</div>
-                          <div className="text-[10px] uppercase tracking-[0.18em] text-[var(--app-muted)]">{entry.scope}</div>
-                        </div>
-                        <div className="mt-2 text-[11px] uppercase tracking-[0.18em] text-[var(--app-muted)]">{formatDateTime(entry.createdAt)}</div>
+                <div className="text-[10px] uppercase tracking-[0.2em] text-[var(--app-accent)] mb-4">Surface</div>
+                <div className="grid gap-x-8 gap-y-3 sm:grid-cols-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-[var(--app-muted)]">Theme</span>
+                    <span className="text-sm text-[var(--app-text)]">{theme} / {accent}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-[var(--app-muted)]">Unlocks</span>
+                    <span className="text-sm text-[var(--app-text)]">{settings.unlocks.activeWidgetIds.length}W {settings.unlocks.activeLabModuleIds.length}M</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-[var(--app-muted)]">Progress</span>
+                    <span className="text-sm text-[var(--app-text)]">Lv.{stats.playerLevel} / {stats.totalEarnedXP} XP</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-[var(--app-muted)]">Features</span>
+                    <span className="text-sm text-[var(--app-text)]">
+                      Lab {settings.features.labEnabled ? '\u2713' : '\u2717'} &nbsp;
+                      MP {settings.features.multiplayerEnabled ? '\u2713' : '\u2717'} &nbsp;
+                      Store {settings.features.storeEnabled ? '\u2713' : '\u2717'}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-[var(--app-muted)]">Data</span>
+                    <span className="text-sm text-[var(--app-text)]">{tasks.length} quests / {sessions.length} sessions</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs text-[var(--app-muted)]">Sync</span>
+                    <span className="text-sm text-[var(--app-text)]">{syncStatus} / {authStatus}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Right: Recent Audit */}
+            <div className={`${sectionCard} p-5`}>
+              <div className="text-[10px] uppercase tracking-[0.2em] text-[var(--app-accent)] mb-4">Recent Activity</div>
+              <div className="space-y-2">
+                {state.audit.length === 0 ? (
+                  <div className="text-sm text-[var(--app-muted)] opacity-0.5">No actions recorded yet.</div>
+                ) : (
+                  state.audit.slice(0, 8).map((entry) => (
+                    <div key={entry.id} className="flex items-start gap-3 py-2 border-b border-[color-mix(in_srgb,var(--app-border)_40%,transparent)] last:border-0">
+                      <div className="flex-1 min-w-0">
+                        <div className="text-sm text-[var(--app-text)] truncate">{entry.summary}</div>
+                        <div className="text-[10px] text-[var(--app-muted)] mt-0.5">{formatDateTime(entry.createdAt)}</div>
                       </div>
-                    ))
-                  )}
-                </div>
+                      <span className="text-[9px] uppercase tracking-[0.1em] text-[var(--app-muted)] flex-shrink-0 mt-0.5">{entry.scope}</span>
+                    </div>
+                  ))
+                )}
               </div>
             </div>
-          </>
+          </div>
         ) : null}
 
         {activeTab === 'rollout' ? (
