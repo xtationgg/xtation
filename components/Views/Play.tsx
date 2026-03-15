@@ -640,12 +640,12 @@ export const Play: React.FC<PlayProps> = ({
     setTimeout(() => inlineStepRef.current?.focus(), 0);
   }, [inlineStepValue, selectedTask, updateTask]);
 
-  const handleRunSelectedQuest = () => {
+  const handleRunSelectedQuest = useCallback(() => {
     if (!selectedTask) return;
     resumeTaskSession(selectedTask.id);
-  };
+  }, [selectedTask, resumeTaskSession]);
 
-  const handleCompleteSelectedQuest = () => {
+  const handleCompleteSelectedQuest = useCallback(() => {
     if (!selectedTask) return;
     const taskTitle = selectedTask.title;
     const taskId = selectedTask.id;
@@ -672,24 +672,42 @@ export const Play: React.FC<PlayProps> = ({
       setDebriefTaskId(taskId);
       celebrationTimerRef.current = null;
     }, 1800);
-  };
+  }, [selectedTask, selectors, completeTask, selectedTaskTodayMs, selectedTaskRunning, presentationEvents]);
+
+  // Clean up celebration timer on unmount to prevent state updates after unmount
+  useEffect(() => {
+    return () => {
+      if (celebrationTimerRef.current) window.clearTimeout(celebrationTimerRef.current);
+    };
+  }, []);
 
   // ── Global keyboard shortcuts ──
+  // Use refs to avoid stale closures and prevent re-registering the listener every render
+  const kbStateRef = useRef({
+    selectedTask, selectedTaskRunning, modalOpen, debriefTaskId,
+    orderedTasks, pauseSession, handleRunSelectedQuest, handleCompleteSelectedQuest, openEditQuest,
+  });
+  kbStateRef.current = {
+    selectedTask, selectedTaskRunning, modalOpen, debriefTaskId,
+    orderedTasks, pauseSession, handleRunSelectedQuest, handleCompleteSelectedQuest, openEditQuest,
+  };
+
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
+      const s = kbStateRef.current;
       // Don't capture when typing in inputs/textareas or modal is open
       const tag = (e.target as HTMLElement)?.tagName;
       if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
-      if (modalOpen || debriefTaskId) return;
+      if (s.modalOpen || s.debriefTaskId) return;
 
       switch (e.key) {
         case ' ': // Space → toggle session (start/pause)
-          if (!selectedTask) return;
+          if (!s.selectedTask) return;
           e.preventDefault();
-          if (selectedTaskRunning) {
-            pauseSession();
+          if (s.selectedTaskRunning) {
+            s.pauseSession();
           } else {
-            handleRunSelectedQuest();
+            s.handleRunSelectedQuest();
           }
           break;
         case 'n': // N → focus quick-add input
@@ -699,31 +717,31 @@ export const Play: React.FC<PlayProps> = ({
           break;
         case 'e': // E → edit selected quest
         case 'E':
-          if (selectedTask) {
+          if (s.selectedTask) {
             e.preventDefault();
-            openEditQuest(selectedTask.id);
+            s.openEditQuest(s.selectedTask.id);
           }
           break;
         case 'c': // C → complete selected quest
         case 'C':
-          if (selectedTask && !e.metaKey && !e.ctrlKey) {
+          if (s.selectedTask && !e.metaKey && !e.ctrlKey) {
             e.preventDefault();
-            handleCompleteSelectedQuest();
+            s.handleCompleteSelectedQuest();
           }
           break;
         case 'ArrowDown': // Navigate quest list
           e.preventDefault();
           setSelectedTaskId((current) => {
-            const idx = orderedTasks.findIndex((t) => t.id === current);
-            const next = orderedTasks[idx + 1];
+            const idx = s.orderedTasks.findIndex((t) => t.id === current);
+            const next = s.orderedTasks[idx + 1];
             return next?.id ?? current;
           });
           break;
         case 'ArrowUp':
           e.preventDefault();
           setSelectedTaskId((current) => {
-            const idx = orderedTasks.findIndex((t) => t.id === current);
-            const prev = orderedTasks[idx - 1];
+            const idx = s.orderedTasks.findIndex((t) => t.id === current);
+            const prev = s.orderedTasks[idx - 1];
             return prev?.id ?? current;
           });
           break;
@@ -731,7 +749,7 @@ export const Play: React.FC<PlayProps> = ({
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
-  }, [selectedTask, selectedTaskRunning, modalOpen, debriefTaskId, orderedTasks]);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps — all values accessed via kbStateRef
 
   const editingTask = editingTaskId ? selectors.getTaskById(editingTaskId) : null;
   const selectedStepCounts = getQuestStepCounts(selectedTask?.details);

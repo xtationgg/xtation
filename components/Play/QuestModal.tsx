@@ -184,7 +184,8 @@ export const QuestModal: React.FC<QuestModalProps> = ({ open, task, onClose, onS
     onClose();
   }, [onClose]);
 
-  // Keep ref in sync so keydown handler always calls the latest attemptClose
+  // Keep refs in sync so keydown handler always calls the latest functions
+  const handleSaveRef = useRef<() => void>(() => {});
   useEffect(() => {
     attemptCloseRef.current = attemptClose;
   }, [attemptClose]);
@@ -206,7 +207,7 @@ export const QuestModal: React.FC<QuestModalProps> = ({ open, task, onClose, onS
 
       if ((event.metaKey || event.ctrlKey) && event.key === 'Enter') {
         event.preventDefault();
-        handleSave();
+        handleSaveRef.current();
         return;
       }
 
@@ -255,6 +256,9 @@ export const QuestModal: React.FC<QuestModalProps> = ({ open, task, onClose, onS
       selfTreePrimary: draft.selfTreePrimary,
     });
   };
+
+  // Keep handleSaveRef in sync so Cmd+Enter always uses latest draft/steps
+  handleSaveRef.current = handleSave;
 
   const addStep = () => {
     const text = newStepText.trim();
