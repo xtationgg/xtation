@@ -561,130 +561,142 @@ export const Admin: React.FC<AdminProps> = ({ onChangeView }) => {
         ) : null}
 
         {activeTab === 'rollout' ? (
-          <div className="grid gap-4 xl:grid-cols-[0.95fr_1.05fr]">
-            <div className={`${sectionCard} p-5`}>
-              <div className="text-[10px] uppercase tracking-[0.24em] text-[var(--app-muted)]">Managed Stations</div>
-              <div className="mt-4 space-y-3">
+          <div className="grid gap-5 xl:grid-cols-[320px_1fr]">
+            {/* Station list */}
+            <div className="border border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] border-t-2 border-t-[var(--app-accent)]">
+              <div className="px-5 pt-4 pb-2">
+                <div className="text-[10px] font-bold uppercase tracking-[0.24em] text-[var(--app-accent)]">Managed Stations</div>
+              </div>
+              <div className="px-2 pb-2">
                 {stations.map((station) => (
-                  <StationListRow
+                  <button
                     key={station.id}
-                    station={station}
-                    selected={station.id === selectedStation.id}
-                    onSelect={() => setSelectedStationId(station.id)}
-                  />
+                    type="button"
+                    onClick={() => setSelectedStationId(station.id)}
+                    className={`w-full text-left px-4 py-3 transition-colors border-l-2 ${
+                      station.id === selectedStation.id
+                        ? 'border-l-[var(--app-accent)] bg-[color-mix(in_srgb,var(--app-accent)_8%,transparent)]'
+                        : 'border-l-transparent hover:bg-[color-mix(in_srgb,var(--app-text)_3%,transparent)]'
+                    }`}
+                  >
+                    <div className="text-[13px] font-semibold text-[var(--app-text)]">{station.label}</div>
+                    <div className="text-[10px] uppercase tracking-[0.1em] text-[var(--app-muted)] mt-0.5">
+                      {station.kind.replace('-', ' ')} · {station.releaseChannel} · {station.plan}
+                    </div>
+                    {station.email ? <div className="text-[11px] text-[var(--app-muted)] mt-0.5">{station.email}</div> : null}
+                  </button>
                 ))}
               </div>
             </div>
 
-            <div className={`${sectionCard} p-5`}>
-              <div className="text-[10px] uppercase tracking-[0.24em] text-[var(--app-muted)]">Rollout Controls</div>
-              <div className="mt-3 text-sm text-[var(--app-muted)]">
-                Adjust the selected station safely. App surface toggles below affect the live current station only.
+            {/* Controls */}
+            <div className="border border-[color-mix(in_srgb,var(--app-text)_10%,transparent)]">
+              <div className="px-5 pt-4 pb-2">
+                <div className="flex items-center justify-between">
+                  <div className="text-[10px] font-bold uppercase tracking-[0.24em] text-[var(--app-muted)]">Rollout Controls</div>
+                  <span className="text-[10px] uppercase tracking-[0.1em] text-[var(--app-muted)]">{selectedStation.label}</span>
+                </div>
               </div>
 
-              <div className="mt-5 space-y-5">
-                <div>
-                  <div className="text-[10px] uppercase tracking-[0.2em] text-[var(--app-muted)]">Release Channel</div>
-                  <div className="mt-3 flex flex-wrap gap-2">
+              <div className="px-5 pb-5 space-y-0">
+                {/* Release Channel */}
+                <div className="py-4 border-b border-[color-mix(in_srgb,var(--app-text)_7%,transparent)]">
+                  <div className="text-[11px] font-medium uppercase tracking-[0.14em] text-[var(--app-muted)] mb-3">Release Channel</div>
+                  <div className="flex flex-wrap gap-2">
                     {RELEASE_CHANNELS.map((channel) => (
-                      <PillButton
-                        key={channel}
-                        active={selectedStation.releaseChannel === channel}
-                        onClick={() => setReleaseChannel(selectedStation.id, channel)}
-                      >
+                      <PillButton key={channel} active={selectedStation.releaseChannel === channel} onClick={() => setReleaseChannel(selectedStation.id, channel)}>
                         {channel}
                       </PillButton>
                     ))}
                   </div>
                 </div>
 
-                <div>
-                  <div className="text-[10px] uppercase tracking-[0.2em] text-[var(--app-muted)]">Plan</div>
-                  <div className="mt-3 flex flex-wrap gap-2">
+                {/* Plan */}
+                <div className="py-4 border-b border-[color-mix(in_srgb,var(--app-text)_7%,transparent)]">
+                  <div className="text-[11px] font-medium uppercase tracking-[0.14em] text-[var(--app-muted)] mb-3">Plan</div>
+                  <div className="flex flex-wrap gap-2">
                     {PLAN_OPTIONS.map((plan) => (
-                      <PillButton
-                        key={plan}
-                        active={selectedStation.plan === plan}
-                        onClick={() => setPlan(selectedStation.id, plan)}
-                      >
+                      <PillButton key={plan} active={selectedStation.plan === plan} onClick={() => setPlan(selectedStation.id, plan)}>
                         {plan}
                       </PillButton>
                     ))}
                   </div>
                 </div>
 
-                <div>
-                  <div className="text-[10px] uppercase tracking-[0.2em] text-[var(--app-muted)]">Trial Window</div>
-                  <div className="mt-3 flex flex-wrap gap-2">
-                    {[7, 14, 30].map((days) => (
-                      <PillButton key={days} onClick={() => setTrialDays(selectedStation.id, days)}>
-                        {days} days
-                      </PillButton>
-                    ))}
-                    <PillButton onClick={() => setTrialDays(selectedStation.id, null)}>Clear</PillButton>
+                {/* Trial + Cohort inline */}
+                <div className="py-4 border-b border-[color-mix(in_srgb,var(--app-text)_7%,transparent)] grid gap-4 sm:grid-cols-2">
+                  <div>
+                    <div className="text-[11px] font-medium uppercase tracking-[0.14em] text-[var(--app-muted)] mb-3">Trial Window</div>
+                    <div className="flex flex-wrap gap-2 items-center">
+                      {[7, 14, 30].map((days) => (
+                        <PillButton key={days} onClick={() => setTrialDays(selectedStation.id, days)}>{days}d</PillButton>
+                      ))}
+                      <PillButton onClick={() => setTrialDays(selectedStation.id, null)}>Clear</PillButton>
+                      <span className="text-[11px] text-[var(--app-muted)] ml-1">{formatRelativeDays(selectedStation.trialEndsAt)}</span>
+                    </div>
                   </div>
-                  <div className="mt-2 text-sm text-[var(--app-muted)]">{formatRelativeDays(selectedStation.trialEndsAt)}</div>
+                  <div>
+                    <div className="text-[11px] font-medium uppercase tracking-[0.14em] text-[var(--app-muted)] mb-3">Beta Cohort</div>
+                    <div className="flex items-center gap-2">
+                      <input
+                        value={selectedStation.betaCohort || ''}
+                        onChange={(event) => setBetaCohort(selectedStation.id, event.target.value)}
+                        placeholder="cohort-name"
+                        className="flex-1 border border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-transparent px-3 py-1.5 text-[13px] text-[var(--app-text)] outline-none placeholder:text-[var(--app-muted)] focus:border-[var(--app-accent)]"
+                      />
+                      <PillButton onClick={() => setBetaCohort(selectedStation.id, null)}>Clear</PillButton>
+                    </div>
+                  </div>
                 </div>
 
-                <div>
-                  <div className="text-[10px] uppercase tracking-[0.2em] text-[var(--app-muted)]">Beta Cohort</div>
-                  <div className="mt-3 flex flex-wrap items-center gap-3">
-                    <input
-                      value={selectedStation.betaCohort || ''}
-                      onChange={(event) => setBetaCohort(selectedStation.id, event.target.value)}
-                      placeholder="launch-wave"
-                      className="min-w-[220px] flex-1 rounded-[18px] border border-[var(--app-border)] bg-[color-mix(in_srgb,var(--app-panel-2)_84%,transparent)] px-4 py-2 text-sm text-[var(--app-text)] outline-none placeholder:text-[var(--app-muted)]"
-                    />
-                    <PillButton onClick={() => setBetaCohort(selectedStation.id, null)}>Clear</PillButton>
-                  </div>
-                </div>
-
-                <div>
-                  <div className="text-[10px] uppercase tracking-[0.2em] text-[var(--app-muted)]">Rollout Flags</div>
-                  <div className="mt-3 grid gap-3 md:grid-cols-2">
+                {/* Flags */}
+                <div className="py-4 border-b border-[color-mix(in_srgb,var(--app-text)_7%,transparent)]">
+                  <div className="text-[11px] font-medium uppercase tracking-[0.14em] text-[var(--app-muted)] mb-3">Rollout Flags</div>
+                  <div className="grid gap-2 md:grid-cols-2">
                     {Object.entries(selectedStation.featureFlags).map(([flag, enabled]) => (
                       <button
                         key={flag}
                         type="button"
                         onClick={() => toggleFeatureFlag(selectedStation.id, flag)}
-                        className={`rounded-[20px] border px-4 py-3 text-left transition-colors ${
+                        className={`flex items-center justify-between px-4 py-2.5 text-left transition-colors border ${
                           enabled
-                            ? 'border-[var(--app-accent)] bg-[color-mix(in_srgb,var(--app-accent)_12%,transparent)]'
-                            : 'border-[var(--app-border)] bg-[color-mix(in_srgb,var(--app-panel-2)_76%,transparent)]'
+                            ? 'border-[var(--app-accent)] bg-[color-mix(in_srgb,var(--app-accent)_8%,transparent)]'
+                            : 'border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] hover:border-[color-mix(in_srgb,var(--app-text)_18%,transparent)]'
                         }`}
                       >
-                        <div className="text-sm font-semibold text-[var(--app-text)]">{flag}</div>
-                        <div className="mt-1 text-[10px] uppercase tracking-[0.18em] text-[var(--app-muted)]">
-                          {enabled ? 'enabled' : 'disabled'}
-                        </div>
+                        <span className="text-[13px] font-medium text-[var(--app-text)]">{flag}</span>
+                        <span className={`text-[9px] uppercase tracking-[0.12em] ${enabled ? 'text-[var(--app-accent)]' : 'text-[var(--app-muted)]'}`}>
+                          {enabled ? 'On' : 'Off'}
+                        </span>
                       </button>
                     ))}
                   </div>
                 </div>
 
+                {/* Surface Gates */}
                 {selectedStation.id === currentStation.id ? (
-                  <div>
-                    <div className="text-[10px] uppercase tracking-[0.2em] text-[var(--app-muted)]">Live Surface Gates</div>
-                    <div className="mt-3 grid gap-3 md:grid-cols-3">
-                      {[
+                  <div className="py-4">
+                    <div className="text-[11px] font-medium uppercase tracking-[0.14em] text-[var(--app-muted)] mb-3">Live Surface Gates</div>
+                    <div className="grid gap-2 md:grid-cols-3">
+                      {([
                         ['labEnabled', 'Lab'],
                         ['multiplayerEnabled', 'Multiplayer'],
                         ['storeEnabled', 'Store'],
-                      ].map(([key, label]) => (
+                      ] as const).map(([key, label]) => (
                         <button
                           key={key}
                           type="button"
                           onClick={() => setFeatureEnabled(key as 'labEnabled' | 'multiplayerEnabled' | 'storeEnabled', !settings.features[key as 'labEnabled' | 'multiplayerEnabled' | 'storeEnabled'])}
-                          className={`rounded-[20px] border px-4 py-3 text-left transition-colors ${
+                          className={`flex items-center justify-between px-4 py-2.5 text-left transition-colors border ${
                             settings.features[key as 'labEnabled' | 'multiplayerEnabled' | 'storeEnabled']
-                              ? 'border-[var(--app-accent)] bg-[color-mix(in_srgb,var(--app-accent)_12%,transparent)]'
-                              : 'border-[var(--app-border)] bg-[color-mix(in_srgb,var(--app-panel-2)_76%,transparent)]'
+                              ? 'border-[var(--app-accent)] bg-[color-mix(in_srgb,var(--app-accent)_8%,transparent)]'
+                              : 'border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] hover:border-[color-mix(in_srgb,var(--app-text)_18%,transparent)]'
                           }`}
                         >
-                          <div className="text-sm font-semibold text-[var(--app-text)]">{label}</div>
-                          <div className="mt-1 text-[10px] uppercase tracking-[0.18em] text-[var(--app-muted)]">
-                            {settings.features[key as 'labEnabled' | 'multiplayerEnabled' | 'storeEnabled'] ? 'visible' : 'hidden'}
-                          </div>
+                          <span className="text-[13px] font-medium text-[var(--app-text)]">{label}</span>
+                          <span className={`text-[9px] uppercase tracking-[0.12em] ${settings.features[key as 'labEnabled' | 'multiplayerEnabled' | 'storeEnabled'] ? 'text-[var(--app-accent)]' : 'text-[var(--app-muted)]'}`}>
+                            {settings.features[key as 'labEnabled' | 'multiplayerEnabled' | 'storeEnabled'] ? 'Visible' : 'Hidden'}
+                          </span>
                         </button>
                       ))}
                     </div>
