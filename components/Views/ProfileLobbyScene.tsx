@@ -1394,7 +1394,7 @@ export const ProfileLobbyScene: React.FC<ProfileLobbySceneProps> = ({
           className="absolute left-1/2 top-[20%] h-[48vh] w-[24vw] min-w-[220px] max-w-[300px] -translate-x-1/2 rounded-[50%]"
           style={{
             background:
-              'radial-gradient(circle at center, color-mix(in srgb, var(--app-accent) 12%, rgba(255,255,255,0.09)) 0%, color-mix(in srgb, var(--app-accent) 8%, transparent) 34%, transparent 76%)',
+              'radial-gradient(circle at center, color-mix(in srgb, var(--app-accent) 12%, color-mix(in srgb, var(--app-text) 9%, transparent)) 0%, color-mix(in srgb, var(--app-accent) 8%, transparent) 34%, transparent 76%)',
             filter: 'blur(28px)',
             opacity: 0.3,
           }}

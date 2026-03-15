@@ -917,7 +917,7 @@ export const Inventory: React.FC = () => {
                                                 {(CATEGORY_SUBTYPES[selected.category] || []).map(st => (
                                                     <button key={st}
                                                         className={`xt-inv-tier-btn${selected.subtype === st ? ' is-active' : ''}`}
-                                                        style={selected.subtype === st ? { borderColor: '#60a5fa', color: '#60a5fa', background: '#60a5fa18' } : {}}
+                                                        style={selected.subtype === st ? { borderColor: 'var(--app-accent)', color: 'var(--app-accent)', background: 'color-mix(in srgb, var(--app-accent) 10%, transparent)' } : {}}
                                                         onClick={() => {
                                                             if (selected.source === 'ledger' && selected.ledgerSlot) updateLedger(selected.ledgerSlot.id, { subtype: st });
                                                             else if (selected.source === 'cloud' && selected.cloudRow) updateCloudMeta(selected.cloudRow, { subtype: st });

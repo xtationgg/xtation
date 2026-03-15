@@ -1,0 +1,1857 @@
+{
+  "imageSize": {
+    "width": 1920,
+    "height": 1080
+  },
+  "layout": {
+    "sidebarWidthRatio": "0.0875",
+    "gridWidthRatio": "0.3187",
+    "detailsWidthRatio": "0.2917",
+    "cardWidth": 185,
+    "cardHeight": 105,
+    "cardAspectRatio": "1.762",
+    "horizontalGap": 17,
+    "verticalGap": 13,
+    "gridColumns": 3,
+    "gridRowsVisible": 5,
+    "detailsPanelStartX": 810,
+    "detailsPanelStartPercent": "42.19%",
+    "headingHeight": 45,
+    "resourceBarHeight": 55,
+    "contentAreaTop": 95,
+    "contentAreaBottom": 650
+  },
+  "regions": {
+    "full": {
+      "name": "full",
+      "dimensions": {
+        "width": 1920,
+        "height": 1080
+      },
+      "position": {
+        "left": 0,
+        "top": 0
+      },
+      "widthPercent": "100.00%",
+      "heightPercent": "100.00%",
+      "dominantColor": "#12120f",
+      "dominantRGB": [
+        18,
+        18,
+        15
+      ],
+      "palette": [
+        {
+          "hex": "#1b1f21",
+          "rgb": [
+            27,
+            31,
+            33
+          ]
+        },
+        {
+          "hex": "#151411",
+          "rgb": [
+            21,
+            20,
+            17
+          ]
+        },
+        {
+          "hex": "#bcbab3",
+          "rgb": [
+            188,
+            186,
+            179
+          ]
+        },
+        {
+          "hex": "#1f2424",
+          "rgb": [
+            31,
+            36,
+            36
+          ]
+        },
+        {
+          "hex": "#000000",
+          "rgb": [
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "hex": "#6d706c",
+          "rgb": [
+            109,
+            112,
+            108
+          ]
+        },
+        {
+          "hex": "#201e1b",
+          "rgb": [
+            32,
+            30,
+            27
+          ]
+        },
+        {
+          "hex": "#454642",
+          "rgb": [
+            69,
+            70,
+            66
+          ]
+        },
+        {
+          "hex": "#4f4520",
+          "rgb": [
+            79,
+            69,
+            32
+          ]
+        },
+        {
+          "hex": "#002727",
+          "rgb": [
+            0,
+            39,
+            39
+          ]
+        }
+      ]
+    },
+    "sidebar_labels": {
+      "name": "sidebar_labels",
+      "dimensions": {
+        "width": 168,
+        "height": 230
+      },
+      "position": {
+        "left": 0,
+        "top": 95
+      },
+      "widthPercent": "8.75%",
+      "heightPercent": "21.30%",
+      "dominantColor": "#1f1e1b",
+      "dominantRGB": [
+        31,
+        30,
+        27
+      ],
+      "palette": [
+        {
+          "hex": "#1f1e1b",
+          "rgb": [
+            31,
+            30,
+            27
+          ]
+        },
+        {
+          "hex": "#242624",
+          "rgb": [
+            36,
+            38,
+            36
+          ]
+        },
+        {
+          "hex": "#c3bfbc",
+          "rgb": [
+            195,
+            191,
+            188
+          ]
+        },
+        {
+          "hex": "#383c3c",
+          "rgb": [
+            56,
+            60,
+            60
+          ]
+        },
+        {
+          "hex": "#686965",
+          "rgb": [
+            104,
+            105,
+            101
+          ]
+        },
+        {
+          "hex": "#32312e",
+          "rgb": [
+            50,
+            49,
+            46
+          ]
+        },
+        {
+          "hex": "#32312e",
+          "rgb": [
+            50,
+            49,
+            46
+          ]
+        },
+        {
+          "hex": "#32312e",
+          "rgb": [
+            50,
+            49,
+            46
+          ]
+        },
+        {
+          "hex": "#32312e",
+          "rgb": [
+            50,
+            49,
+            46
+          ]
+        },
+        {
+          "hex": "#32312e",
+          "rgb": [
+            50,
+            49,
+            46
+          ]
+        }
+      ]
+    },
+    "grid_area": {
+      "name": "grid_area",
+      "dimensions": {
+        "width": 612,
+        "height": 560
+      },
+      "position": {
+        "left": 168,
+        "top": 95
+      },
+      "widthPercent": "31.87%",
+      "heightPercent": "51.85%",
+      "dominantColor": "#0b0907",
+      "dominantRGB": [
+        11,
+        9,
+        7
+      ],
+      "palette": [
+        {
+          "hex": "#1b1f21",
+          "rgb": [
+            27,
+            31,
+            33
+          ]
+        },
+        {
+          "hex": "#ccc8c5",
+          "rgb": [
+            204,
+            200,
+            197
+          ]
+        },
+        {
+          "hex": "#201f1c",
+          "rgb": [
+            32,
+            31,
+            28
+          ]
+        },
+        {
+          "hex": "#1d2121",
+          "rgb": [
+            29,
+            33,
+            33
+          ]
+        },
+        {
+          "hex": "#000000",
+          "rgb": [
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "hex": "#70726f",
+          "rgb": [
+            112,
+            114,
+            111
+          ]
+        },
+        {
+          "hex": "#201e1b",
+          "rgb": [
+            32,
+            30,
+            27
+          ]
+        },
+        {
+          "hex": "#942f76",
+          "rgb": [
+            148,
+            47,
+            118
+          ]
+        },
+        {
+          "hex": "#002727",
+          "rgb": [
+            0,
+            39,
+            39
+          ]
+        },
+        {
+          "hex": "#330e00",
+          "rgb": [
+            51,
+            14,
+            0
+          ]
+        }
+      ]
+    },
+    "card_elevator": {
+      "name": "card_elevator",
+      "dimensions": {
+        "width": 185,
+        "height": 105
+      },
+      "position": {
+        "left": 168,
+        "top": 105
+      },
+      "widthPercent": "9.64%",
+      "heightPercent": "9.72%",
+      "dominantColor": "#090705",
+      "dominantRGB": [
+        9,
+        7,
+        5
+      ],
+      "palette": [
+        {
+          "hex": "#1f1e1b",
+          "rgb": [
+            31,
+            30,
+            27
+          ]
+        },
+        {
+          "hex": "#000000",
+          "rgb": [
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "hex": "#942f76",
+          "rgb": [
+            148,
+            47,
+            118
+          ]
+        },
+        {
+          "hex": "#555a59",
+          "rgb": [
+            85,
+            90,
+            89
+          ]
+        },
+        {
+          "hex": "#6d6d69",
+          "rgb": [
+            109,
+            109,
+            105
+          ]
+        },
+        {
+          "hex": "#a8a6a2",
+          "rgb": [
+            168,
+            166,
+            162
+          ]
+        },
+        {
+          "hex": "#808583",
+          "rgb": [
+            128,
+            133,
+            131
+          ]
+        },
+        {
+          "hex": "#050403",
+          "rgb": [
+            5,
+            4,
+            3
+          ]
+        },
+        {
+          "hex": "#d8ac61",
+          "rgb": [
+            216,
+            172,
+            97
+          ]
+        },
+        {
+          "hex": "#2f0a00",
+          "rgb": [
+            47,
+            10,
+            0
+          ]
+        }
+      ]
+    },
+    "card_corridor": {
+      "name": "card_corridor",
+      "dimensions": {
+        "width": 200,
+        "height": 105
+      },
+      "position": {
+        "left": 370,
+        "top": 105
+      },
+      "widthPercent": "10.42%",
+      "heightPercent": "9.72%",
+      "dominantColor": "#232725",
+      "dominantRGB": [
+        35,
+        39,
+        37
+      ],
+      "palette": [
+        {
+          "hex": "#1f1e1b",
+          "rgb": [
+            31,
+            30,
+            27
+          ]
+        },
+        {
+          "hex": "#242826",
+          "rgb": [
+            36,
+            40,
+            38
+          ]
+        },
+        {
+          "hex": "#abaca7",
+          "rgb": [
+            171,
+            172,
+            167
+          ]
+        },
+        {
+          "hex": "#000000",
+          "rgb": [
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "hex": "#090906",
+          "rgb": [
+            9,
+            9,
+            6
+          ]
+        },
+        {
+          "hex": "#0e110e",
+          "rgb": [
+            14,
+            17,
+            14
+          ]
+        },
+        {
+          "hex": "#3a3e3d",
+          "rgb": [
+            58,
+            62,
+            61
+          ]
+        },
+        {
+          "hex": "#090605",
+          "rgb": [
+            9,
+            6,
+            5
+          ]
+        },
+        {
+          "hex": "#000000",
+          "rgb": [
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "hex": "#000000",
+          "rgb": [
+            0,
+            0,
+            0
+          ]
+        }
+      ]
+    },
+    "card_workshop": {
+      "name": "card_workshop",
+      "dimensions": {
+        "width": 185,
+        "height": 105
+      },
+      "position": {
+        "left": 168,
+        "top": 218
+      },
+      "widthPercent": "9.64%",
+      "heightPercent": "9.72%",
+      "dominantColor": "#233133",
+      "dominantRGB": [
+        35,
+        49,
+        51
+      ],
+      "palette": [
+        {
+          "hex": "#1f2e31",
+          "rgb": [
+            31,
+            46,
+            49
+          ]
+        },
+        {
+          "hex": "#20201d",
+          "rgb": [
+            32,
+            32,
+            29
+          ]
+        },
+        {
+          "hex": "#bab7b3",
+          "rgb": [
+            186,
+            183,
+            179
+          ]
+        },
+        {
+          "hex": "#cdd3d3",
+          "rgb": [
+            205,
+            211,
+            211
+          ]
+        },
+        {
+          "hex": "#000000",
+          "rgb": [
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "hex": "#201e1b",
+          "rgb": [
+            32,
+            30,
+            27
+          ]
+        },
+        {
+          "hex": "#ba9d4b",
+          "rgb": [
+            186,
+            157,
+            75
+          ]
+        },
+        {
+          "hex": "#311800",
+          "rgb": [
+            49,
+            24,
+            0
+          ]
+        },
+        {
+          "hex": "#060403",
+          "rgb": [
+            6,
+            4,
+            3
+          ]
+        },
+        {
+          "hex": "#090606",
+          "rgb": [
+            9,
+            6,
+            6
+          ]
+        }
+      ]
+    },
+    "card_empty": {
+      "name": "card_empty",
+      "dimensions": {
+        "width": 200,
+        "height": 105
+      },
+      "position": {
+        "left": 370,
+        "top": 218
+      },
+      "widthPercent": "10.42%",
+      "heightPercent": "9.72%",
+      "dominantColor": "#000000",
+      "dominantRGB": [
+        0,
+        0,
+        0
+      ],
+      "palette": [
+        {
+          "hex": "#dfd9d8",
+          "rgb": [
+            223,
+            217,
+            216
+          ]
+        },
+        {
+          "hex": "#1f2323",
+          "rgb": [
+            31,
+            35,
+            35
+          ]
+        },
+        {
+          "hex": "#1e1d1a",
+          "rgb": [
+            30,
+            29,
+            26
+          ]
+        },
+        {
+          "hex": "#282a27",
+          "rgb": [
+            40,
+            42,
+            39
+          ]
+        },
+        {
+          "hex": "#000000",
+          "rgb": [
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "hex": "#0e110e",
+          "rgb": [
+            14,
+            17,
+            14
+          ]
+        },
+        {
+          "hex": "#3e3d3a",
+          "rgb": [
+            62,
+            61,
+            58
+          ]
+        },
+        {
+          "hex": "#0c0808",
+          "rgb": [
+            12,
+            8,
+            8
+          ]
+        },
+        {
+          "hex": "#000000",
+          "rgb": [
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "hex": "#000000",
+          "rgb": [
+            0,
+            0,
+            0
+          ]
+        }
+      ]
+    },
+    "details_panel": {
+      "name": "details_panel",
+      "dimensions": {
+        "width": 560,
+        "height": 560
+      },
+      "position": {
+        "left": 810,
+        "top": 95
+      },
+      "widthPercent": "29.17%",
+      "heightPercent": "51.85%",
+      "dominantColor": "#0d0d0a",
+      "dominantRGB": [
+        13,
+        13,
+        10
+      ],
+      "palette": [
+        {
+          "hex": "#1d2121",
+          "rgb": [
+            29,
+            33,
+            33
+          ]
+        },
+        {
+          "hex": "#0c0c09",
+          "rgb": [
+            12,
+            12,
+            9
+          ]
+        },
+        {
+          "hex": "#201e1b",
+          "rgb": [
+            32,
+            30,
+            27
+          ]
+        },
+        {
+          "hex": "#bcbbb7",
+          "rgb": [
+            188,
+            187,
+            183
+          ]
+        },
+        {
+          "hex": "#242623",
+          "rgb": [
+            36,
+            38,
+            35
+          ]
+        },
+        {
+          "hex": "#6a6d69",
+          "rgb": [
+            106,
+            109,
+            105
+          ]
+        },
+        {
+          "hex": "#081007",
+          "rgb": [
+            8,
+            16,
+            7
+          ]
+        },
+        {
+          "hex": "#54595a",
+          "rgb": [
+            84,
+            89,
+            90
+          ]
+        },
+        {
+          "hex": "#3a3e3c",
+          "rgb": [
+            58,
+            62,
+            60
+          ]
+        },
+        {
+          "hex": "#3f4444",
+          "rgb": [
+            63,
+            68,
+            68
+          ]
+        }
+      ]
+    },
+    "details_preview": {
+      "name": "details_preview",
+      "dimensions": {
+        "width": 560,
+        "height": 310
+      },
+      "position": {
+        "left": 810,
+        "top": 110
+      },
+      "widthPercent": "29.17%",
+      "heightPercent": "28.70%",
+      "dominantColor": "#1d2121",
+      "dominantRGB": [
+        29,
+        33,
+        33
+      ],
+      "palette": [
+        {
+          "hex": "#1d2121",
+          "rgb": [
+            29,
+            33,
+            33
+          ]
+        },
+        {
+          "hex": "#050403",
+          "rgb": [
+            5,
+            4,
+            3
+          ]
+        },
+        {
+          "hex": "#1f1e1b",
+          "rgb": [
+            31,
+            30,
+            27
+          ]
+        },
+        {
+          "hex": "#1e211d",
+          "rgb": [
+            30,
+            33,
+            29
+          ]
+        },
+        {
+          "hex": "#949997",
+          "rgb": [
+            148,
+            153,
+            151
+          ]
+        },
+        {
+          "hex": "#494c48",
+          "rgb": [
+            73,
+            76,
+            72
+          ]
+        },
+        {
+          "hex": "#1e1e21",
+          "rgb": [
+            30,
+            30,
+            33
+          ]
+        },
+        {
+          "hex": "#3a3e3e",
+          "rgb": [
+            58,
+            62,
+            62
+          ]
+        },
+        {
+          "hex": "#0b0e06",
+          "rgb": [
+            11,
+            14,
+            6
+          ]
+        },
+        {
+          "hex": "#171714",
+          "rgb": [
+            23,
+            23,
+            20
+          ]
+        }
+      ]
+    },
+    "details_text": {
+      "name": "details_text",
+      "dimensions": {
+        "width": 540,
+        "height": 60
+      },
+      "position": {
+        "left": 830,
+        "top": 425
+      },
+      "widthPercent": "28.13%",
+      "heightPercent": "5.56%",
+      "dominantColor": "#0b0a07",
+      "dominantRGB": [
+        11,
+        10,
+        7
+      ],
+      "palette": [
+        {
+          "hex": "#1d2121",
+          "rgb": [
+            29,
+            33,
+            33
+          ]
+        },
+        {
+          "hex": "#050403",
+          "rgb": [
+            5,
+            4,
+            3
+          ]
+        },
+        {
+          "hex": "#1f1e1b",
+          "rgb": [
+            31,
+            30,
+            27
+          ]
+        },
+        {
+          "hex": "#a2a8a6",
+          "rgb": [
+            162,
+            168,
+            166
+          ]
+        },
+        {
+          "hex": "#1c201c",
+          "rgb": [
+            28,
+            32,
+            28
+          ]
+        },
+        {
+          "hex": "#515350",
+          "rgb": [
+            81,
+            83,
+            80
+          ]
+        },
+        {
+          "hex": "#535858",
+          "rgb": [
+            83,
+            88,
+            88
+          ]
+        },
+        {
+          "hex": "#0f1108",
+          "rgb": [
+            15,
+            17,
+            8
+          ]
+        },
+        {
+          "hex": "#323636",
+          "rgb": [
+            50,
+            54,
+            54
+          ]
+        },
+        {
+          "hex": "#171714",
+          "rgb": [
+            23,
+            23,
+            20
+          ]
+        }
+      ]
+    },
+    "details_stats": {
+      "name": "details_stats",
+      "dimensions": {
+        "width": 540,
+        "height": 65
+      },
+      "position": {
+        "left": 830,
+        "top": 570
+      },
+      "widthPercent": "28.13%",
+      "heightPercent": "6.02%",
+      "dominantColor": "#100f0c",
+      "dominantRGB": [
+        16,
+        15,
+        12
+      ],
+      "palette": [
+        {
+          "hex": "#bebcb8",
+          "rgb": [
+            190,
+            188,
+            184
+          ]
+        },
+        {
+          "hex": "#1e1d1a",
+          "rgb": [
+            30,
+            29,
+            26
+          ]
+        },
+        {
+          "hex": "#242829",
+          "rgb": [
+            36,
+            40,
+            41
+          ]
+        },
+        {
+          "hex": "#050403",
+          "rgb": [
+            5,
+            4,
+            3
+          ]
+        },
+        {
+          "hex": "#727471",
+          "rgb": [
+            114,
+            116,
+            113
+          ]
+        },
+        {
+          "hex": "#242623",
+          "rgb": [
+            36,
+            38,
+            35
+          ]
+        },
+        {
+          "hex": "#201e1b",
+          "rgb": [
+            32,
+            30,
+            27
+          ]
+        },
+        {
+          "hex": "#3a3e3c",
+          "rgb": [
+            58,
+            62,
+            60
+          ]
+        },
+        {
+          "hex": "#101210",
+          "rgb": [
+            16,
+            18,
+            16
+          ]
+        },
+        {
+          "hex": "#090a07",
+          "rgb": [
+            9,
+            10,
+            7
+          ]
+        }
+      ]
+    },
+    "topbar": {
+      "name": "topbar",
+      "dimensions": {
+        "width": 1920,
+        "height": 45
+      },
+      "position": {
+        "left": 0,
+        "top": 0
+      },
+      "widthPercent": "100.00%",
+      "heightPercent": "4.17%",
+      "dominantColor": "#1f1e1b",
+      "dominantRGB": [
+        31,
+        30,
+        27
+      ],
+      "palette": [
+        {
+          "hex": "#1e1d1a",
+          "rgb": [
+            30,
+            29,
+            26
+          ]
+        },
+        {
+          "hex": "#262a2b",
+          "rgb": [
+            38,
+            42,
+            43
+          ]
+        },
+        {
+          "hex": "#242624",
+          "rgb": [
+            36,
+            38,
+            36
+          ]
+        },
+        {
+          "hex": "#000000",
+          "rgb": [
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "hex": "#262622",
+          "rgb": [
+            38,
+            38,
+            34
+          ]
+        },
+        {
+          "hex": "#050403",
+          "rgb": [
+            5,
+            4,
+            3
+          ]
+        },
+        {
+          "hex": "#464642",
+          "rgb": [
+            70,
+            70,
+            66
+          ]
+        },
+        {
+          "hex": "#141818",
+          "rgb": [
+            20,
+            24,
+            24
+          ]
+        },
+        {
+          "hex": "#363532",
+          "rgb": [
+            54,
+            53,
+            50
+          ]
+        },
+        {
+          "hex": "#0a0907",
+          "rgb": [
+            10,
+            9,
+            7
+          ]
+        }
+      ]
+    },
+    "heading_modules": {
+      "name": "heading_modules",
+      "dimensions": {
+        "width": 200,
+        "height": 45
+      },
+      "position": {
+        "left": 168,
+        "top": 55
+      },
+      "widthPercent": "10.42%",
+      "heightPercent": "4.17%",
+      "dominantColor": "#1f1e1b",
+      "dominantRGB": [
+        31,
+        30,
+        27
+      ],
+      "palette": [
+        {
+          "hex": "#1f1e1b",
+          "rgb": [
+            31,
+            30,
+            27
+          ]
+        },
+        {
+          "hex": "#abaaa6",
+          "rgb": [
+            171,
+            170,
+            166
+          ]
+        },
+        {
+          "hex": "#6c6c68",
+          "rgb": [
+            108,
+            108,
+            104
+          ]
+        },
+        {
+          "hex": "#535857",
+          "rgb": [
+            83,
+            88,
+            87
+          ]
+        },
+        {
+          "hex": "#2c2e2b",
+          "rgb": [
+            44,
+            46,
+            43
+          ]
+        },
+        {
+          "hex": "#363532",
+          "rgb": [
+            54,
+            53,
+            50
+          ]
+        },
+        {
+          "hex": "#363532",
+          "rgb": [
+            54,
+            53,
+            50
+          ]
+        },
+        {
+          "hex": "#363532",
+          "rgb": [
+            54,
+            53,
+            50
+          ]
+        },
+        {
+          "hex": "#363532",
+          "rgb": [
+            54,
+            53,
+            50
+          ]
+        },
+        {
+          "hex": "#363532",
+          "rgb": [
+            54,
+            53,
+            50
+          ]
+        }
+      ]
+    },
+    "heading_details": {
+      "name": "heading_details",
+      "dimensions": {
+        "width": 200,
+        "height": 45
+      },
+      "position": {
+        "left": 1200,
+        "top": 55
+      },
+      "widthPercent": "10.42%",
+      "heightPercent": "4.17%",
+      "dominantColor": "#222727",
+      "dominantRGB": [
+        34,
+        39,
+        39
+      ],
+      "palette": [
+        {
+          "hex": "#202020",
+          "rgb": [
+            32,
+            32,
+            32
+          ]
+        },
+        {
+          "hex": "#212121",
+          "rgb": [
+            33,
+            33,
+            33
+          ]
+        },
+        {
+          "hex": "#222322",
+          "rgb": [
+            34,
+            35,
+            34
+          ]
+        },
+        {
+          "hex": "#222323",
+          "rgb": [
+            34,
+            35,
+            35
+          ]
+        },
+        {
+          "hex": "#232424",
+          "rgb": [
+            35,
+            36,
+            36
+          ]
+        },
+        {
+          "hex": "#242525",
+          "rgb": [
+            36,
+            37,
+            37
+          ]
+        },
+        {
+          "hex": "#252626",
+          "rgb": [
+            37,
+            38,
+            38
+          ]
+        },
+        {
+          "hex": "#272726",
+          "rgb": [
+            39,
+            39,
+            38
+          ]
+        },
+        {
+          "hex": "#262828",
+          "rgb": [
+            38,
+            40,
+            40
+          ]
+        },
+        {
+          "hex": "#232525",
+          "rgb": [
+            35,
+            37,
+            37
+          ]
+        }
+      ]
+    },
+    "resource_bar": {
+      "name": "resource_bar",
+      "dimensions": {
+        "width": 720,
+        "height": 55
+      },
+      "position": {
+        "left": 370,
+        "top": 760
+      },
+      "widthPercent": "37.50%",
+      "heightPercent": "5.09%",
+      "dominantColor": "#1c2020",
+      "dominantRGB": [
+        28,
+        32,
+        32
+      ],
+      "palette": [
+        {
+          "hex": "#1c2020",
+          "rgb": [
+            28,
+            32,
+            32
+          ]
+        },
+        {
+          "hex": "#1d1c19",
+          "rgb": [
+            29,
+            28,
+            25
+          ]
+        },
+        {
+          "hex": "#1b1f21",
+          "rgb": [
+            27,
+            31,
+            33
+          ]
+        },
+        {
+          "hex": "#101415",
+          "rgb": [
+            16,
+            20,
+            21
+          ]
+        },
+        {
+          "hex": "#101415",
+          "rgb": [
+            16,
+            20,
+            21
+          ]
+        },
+        {
+          "hex": "#101415",
+          "rgb": [
+            16,
+            20,
+            21
+          ]
+        },
+        {
+          "hex": "#101415",
+          "rgb": [
+            16,
+            20,
+            21
+          ]
+        },
+        {
+          "hex": "#101415",
+          "rgb": [
+            16,
+            20,
+            21
+          ]
+        },
+        {
+          "hex": "#101415",
+          "rgb": [
+            16,
+            20,
+            21
+          ]
+        },
+        {
+          "hex": "#101415",
+          "rgb": [
+            16,
+            20,
+            21
+          ]
+        }
+      ]
+    },
+    "bottom_stats": {
+      "name": "bottom_stats",
+      "dimensions": {
+        "width": 300,
+        "height": 45
+      },
+      "position": {
+        "left": 1100,
+        "top": 655
+      },
+      "widthPercent": "15.63%",
+      "heightPercent": "4.17%",
+      "dominantColor": "#030303",
+      "dominantRGB": [
+        3,
+        3,
+        3
+      ],
+      "palette": [
+        {
+          "hex": "#030303",
+          "rgb": [
+            3,
+            3,
+            3
+          ]
+        }
+      ]
+    },
+    "esc_button": {
+      "name": "esc_button",
+      "dimensions": {
+        "width": 120,
+        "height": 30
+      },
+      "position": {
+        "left": 1320,
+        "top": 762
+      },
+      "widthPercent": "6.25%",
+      "heightPercent": "2.78%",
+      "dominantColor": "#030303",
+      "dominantRGB": [
+        3,
+        3,
+        3
+      ],
+      "palette": [
+        {
+          "hex": "#030303",
+          "rgb": [
+            3,
+            3,
+            3
+          ]
+        }
+      ]
+    },
+    "card_border_area": {
+      "name": "card_border_area",
+      "dimensions": {
+        "width": 195,
+        "height": 115
+      },
+      "position": {
+        "left": 165,
+        "top": 102
+      },
+      "widthPercent": "10.16%",
+      "heightPercent": "10.65%",
+      "dominantColor": "#090705",
+      "dominantRGB": [
+        9,
+        7,
+        5
+      ],
+      "palette": [
+        {
+          "hex": "#b3b1ad",
+          "rgb": [
+            179,
+            177,
+            173
+          ]
+        },
+        {
+          "hex": "#1e1d1a",
+          "rgb": [
+            30,
+            29,
+            26
+          ]
+        },
+        {
+          "hex": "#000000",
+          "rgb": [
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "hex": "#942f76",
+          "rgb": [
+            148,
+            47,
+            118
+          ]
+        },
+        {
+          "hex": "#737672",
+          "rgb": [
+            115,
+            118,
+            114
+          ]
+        },
+        {
+          "hex": "#2e3232",
+          "rgb": [
+            46,
+            50,
+            50
+          ]
+        },
+        {
+          "hex": "#d8dddd",
+          "rgb": [
+            216,
+            221,
+            221
+          ]
+        },
+        {
+          "hex": "#2a2c29",
+          "rgb": [
+            42,
+            44,
+            41
+          ]
+        },
+        {
+          "hex": "#d8dddc",
+          "rgb": [
+            216,
+            221,
+            220
+          ]
+        },
+        {
+          "hex": "#330e00",
+          "rgb": [
+            51,
+            14,
+            0
+          ]
+        }
+      ]
+    },
+    "card_gap_horizontal": {
+      "name": "card_gap_horizontal",
+      "dimensions": {
+        "width": 18,
+        "height": 105
+      },
+      "position": {
+        "left": 355,
+        "top": 105
+      },
+      "widthPercent": "0.94%",
+      "heightPercent": "9.72%",
+      "dominantColor": "#292b2b",
+      "dominantRGB": [
+        41,
+        43,
+        43
+      ],
+      "palette": [
+        {
+          "hex": "#292b2b",
+          "rgb": [
+            41,
+            43,
+            43
+          ]
+        },
+        {
+          "hex": "#212121",
+          "rgb": [
+            33,
+            33,
+            33
+          ]
+        },
+        {
+          "hex": "#222322",
+          "rgb": [
+            34,
+            35,
+            34
+          ]
+        },
+        {
+          "hex": "#222323",
+          "rgb": [
+            34,
+            35,
+            35
+          ]
+        },
+        {
+          "hex": "#000000",
+          "rgb": [
+            0,
+            0,
+            0
+          ]
+        }
+      ]
+    },
+    "card_gap_vertical": {
+      "name": "card_gap_vertical",
+      "dimensions": {
+        "width": 185,
+        "height": 16
+      },
+      "position": {
+        "left": 168,
+        "top": 208
+      },
+      "widthPercent": "9.64%",
+      "heightPercent": "1.48%",
+      "dominantColor": "#212121",
+      "dominantRGB": [
+        33,
+        33,
+        33
+      ],
+      "palette": [
+        {
+          "hex": "#212121",
+          "rgb": [
+            33,
+            33,
+            33
+          ]
+        },
+        {
+          "hex": "#000000",
+          "rgb": [
+            0,
+            0,
+            0
+          ]
+        }
+      ]
+    },
+    "category_label_utility": {
+      "name": "category_label_utility",
+      "dimensions": {
+        "width": 108,
+        "height": 25
+      },
+      "position": {
+        "left": 60,
+        "top": 108
+      },
+      "widthPercent": "5.63%",
+      "heightPercent": "2.31%",
+      "dominantColor": "#212121",
+      "dominantRGB": [
+        33,
+        33,
+        33
+      ],
+      "palette": [
+        {
+          "hex": "#212121",
+          "rgb": [
+            33,
+            33,
+            33
+          ]
+        }
+      ]
+    },
+    "category_label_work": {
+      "name": "category_label_work",
+      "dimensions": {
+        "width": 85,
+        "height": 25
+      },
+      "position": {
+        "left": 80,
+        "top": 220
+      },
+      "widthPercent": "4.43%",
+      "heightPercent": "2.31%",
+      "dominantColor": "#212121",
+      "dominantRGB": [
+        33,
+        33,
+        33
+      ],
+      "palette": [
+        {
+          "hex": "#212121",
+          "rgb": [
+            33,
+            33,
+            33
+          ]
+        }
+      ]
+    }
+  },
+  "generatedAt": "2026-03-13T15:57:53.665Z"
+}

@@ -122,7 +122,7 @@ export const AuthCard: React.FC<AuthCardProps> = ({
   const shellClassName =
     variant === 'landing'
       ? 'xt-auth-shell'
-      : 'rounded-[12px] bg-[#1f162d]';
+      : 'rounded-[12px] bg-[var(--app-panel)]';
 
   const buttonClassName =
     variant === 'landing'
@@ -161,7 +161,7 @@ export const AuthCard: React.FC<AuthCardProps> = ({
           {eyebrow ? (
             <div className="xt-auth-eyebrow">{eyebrow}</div>
           ) : null}
-          <div className={variant === 'landing' ? 'xt-auth-title' : 'text-[12px] font-semibold uppercase tracking-[0.2em] text-[#f8c74c]'}>
+          <div className={variant === 'landing' ? 'xt-auth-title' : 'text-[12px] font-semibold uppercase tracking-[0.2em] text-[var(--app-accent)]'}>
             {title}
           </div>
           {description ? (

@@ -1027,7 +1027,7 @@ const App: React.FC = () => {
 
   if (authLoading) {
     return (
-      <div className="flex min-h-[100dvh] items-center justify-center bg-[radial-gradient(circle_at_top_left,rgba(111,178,255,0.18),transparent_34%),linear-gradient(180deg,#070b15_0%,#090d18_42%,#0d111d_100%)] px-6 text-[var(--app-text)]">
+      <div className="flex min-h-[100dvh] items-center justify-center bg-[radial-gradient(circle_at_top_left,color-mix(in_srgb,var(--app-accent)_18%,transparent),transparent_34%),var(--app-bg)] px-6 text-[var(--app-text)]">
         <div className="xt-shell-loading-card max-w-lg px-8 py-10 text-center">
           <div className="text-[10px] uppercase tracking-[0.3em] text-[var(--app-accent)]">XTATION</div>
           <div className="mt-3 text-2xl font-semibold">Opening station</div>
@@ -1582,7 +1582,7 @@ const App: React.FC = () => {
       <AnnouncerOverlay />
 
             {/* Global decorative border bottom */}
-      <div className="h-0.5 bg-gradient-to-r from-[#010A13] via-[#C8AA6E] to-[#010A13] opacity-30 z-50"></div>
+      <div className="h-0.5 bg-gradient-to-r from-[var(--app-bg)] via-[var(--app-accent)] to-[var(--app-bg)] opacity-30 z-50"></div>
     </div>
   );
 };

@@ -86,6 +86,26 @@ All work should pass `npm run build` and `npx vitest run` before committing.
 ## Latest Claude Note
 
 - Date: 2026-03-15
+- Dusk Quest Relay sidebar rework + Lab section deep audit:
+  - **Dusk sidebar rework** (HextechAssistant.tsx):
+    - Replaced ~1,250 lines of always-expanded sidebar with collapsible section system
+    - 4 collapsible sections: Station Snapshot, Dusk Inbox, Actions, Timeline, Provider
+    - Each section has compact header with dot + title + meta + chevron, body reveals on click
+    - Added `expandedDuskSections` state as `Set<string>` with toggle function
+    - New CSS: `.xt-dusk-collapse-*` classes, `.xt-dusk-micro-chip`, `.xt-dusk-micro-btn`
+  - **Lab.tsx audit — bugs fixed**:
+    - `shortText` function: was missing 3rd param `maxLength` — 4 call sites passed a number that was silently ignored. Added `maxLength = 140` default
+    - Memoized collection filter counts: 5 inline `.filter().length` calls in JSX → extracted to `useMemo`-backed `collectionCounts` object
+    - Memoized workspace stats: `activeProjectsCount`, `enabledAutomations`, `pinnedNotes` wrapped in `useMemo`
+    - Memoized media stats: `activeMediaAccounts`, `activeMediaCampaigns`, `readyMediaQueueItems`, `publishedMediaQueueItems` wrapped in `useMemo`
+    - Replaced inline quest links filter with memoized `collectionCounts.linked`
+  - Files touched:
+    - `components/Features/HextechAssistant.tsx`
+    - `components/Views/Lab.tsx`
+    - `index.css`
+  - Verification: 240/240 tests pass, build clean
+
+- Date: 2026-03-15
 - Play section deep bug sweep and code audit:
   - **3 user-reported bugs fixed** (commit `0ffd2d0`):
     1. QuestModal focus stealing — useCallback stabilization + attemptCloseRef pattern to decouple focus trap from timer-driven re-renders
@@ -419,6 +439,33 @@ All work should pass `npm run build` and `npx vitest run` before committing.
   - `/Users/sarynass/Desktop/html/backups/xtation-source-backup-20260312-121940.zip`
 
 ## Latest Claude Note
+
+```txt
+AI: Claude (Opus 4.6)
+Time: 2026-03-15
+Lock: none (session complete)
+
+Dusk Sidebar Rework + Lab Deep Audit:
+
+Dusk sidebar (HextechAssistant.tsx):
+- Collapsible section architecture replacing ~1,250 lines of always-expanded content
+- 4 sections: Station Snapshot, Dusk Inbox, Actions, Timeline, Provider
+- Compact headers with dot + title + meta + chevron
+- New micro-UI: 8px chips, 9px buttons, condensed layouts
+- 200+ lines new CSS (.xt-dusk-collapse-*, micro-chip, micro-btn)
+
+Lab.tsx audit & fixes:
+- shortText() bug: added missing maxLength param (4 call sites were silently ignoring 3rd arg)
+- 10 useMemo optimizations: collection counts, workspace stats, media stats
+- Replaced inline quest-links filter with memoized value
+
+Files: HextechAssistant.tsx, Lab.tsx, index.css
+Build: clean, Tests: 240/240
+
+Need from next AI:
+- Continue Lab feature work or visual polish
+- Or Phase 2 items
+```
 
 ```txt
 AI: Claude (Opus 4.6)

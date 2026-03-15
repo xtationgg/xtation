@@ -1415,7 +1415,7 @@ export const Settings: React.FC<SettingsProps> = ({
                                                 {visibleRecentStationActivity.map((entry) => (
                                                     <div
                                                         key={entry.id}
-                                                        className="rounded-[12px] border border-[color-mix(in_srgb,var(--app-border)_78%,transparent)] bg-[color-mix(in_srgb,var(--app-panel-2)_76%,#050505)] px-3 py-3"
+                                                        className="rounded-[12px] border border-[color-mix(in_srgb,var(--app-border)_78%,transparent)] bg-[color-mix(in_srgb,var(--app-panel-2)_76%,var(--app-bg))] px-3 py-3"
                                                     >
                                                         <div className="flex flex-wrap items-center justify-between gap-2">
                                                             <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--app-text)]">{entry.title}</div>

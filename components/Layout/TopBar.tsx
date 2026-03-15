@@ -383,9 +383,9 @@ export const TopBar: React.FC<TopBarProps> = ({
         >
           <div className="pointer-events-none absolute inset-0">
             <div className="auth-skel-canvas absolute inset-0"></div>
-            <div className="auth-skel-left absolute left-[2.2%] top-[2.2%] h-[95.6%] w-[40.8%] rounded-[14px] bg-[color-mix(in_srgb,var(--app-panel)_92%,#060607)]"></div>
-            <div className="absolute left-[51.5%] top-[2.2%] h-[95.6%] w-[46.2%] rounded-[14px] border border-[color-mix(in_srgb,var(--app-border)_74%,transparent)] bg-[color-mix(in_srgb,var(--app-panel)_86%,#060607)]" />
-            <div className="absolute left-[52.8%] top-[4.8%] h-[40.2%] w-[43.4%] rounded-[12px] border border-[color-mix(in_srgb,var(--app-accent)_20%,transparent)] bg-[color-mix(in_srgb,var(--app-panel-2)_78%,#08090c)]" />
+            <div className="auth-skel-left absolute left-[2.2%] top-[2.2%] h-[95.6%] w-[40.8%] rounded-[14px] bg-[color-mix(in_srgb,var(--app-panel)_92%,var(--app-bg))]"></div>
+            <div className="absolute left-[51.5%] top-[2.2%] h-[95.6%] w-[46.2%] rounded-[14px] border border-[color-mix(in_srgb,var(--app-border)_74%,transparent)] bg-[color-mix(in_srgb,var(--app-panel)_86%,var(--app-bg))]" />
+            <div className="absolute left-[52.8%] top-[4.8%] h-[40.2%] w-[43.4%] rounded-[12px] border border-[color-mix(in_srgb,var(--app-accent)_20%,transparent)] bg-[color-mix(in_srgb,var(--app-panel-2)_78%,var(--app-bg))]" />
 
             <div className="auth-center-divider absolute left-[47.6%] top-[2.2%] h-[95.6%] w-[1px]"></div>
 
@@ -404,14 +404,14 @@ export const TopBar: React.FC<TopBarProps> = ({
           <button
             type="button"
             onClick={closeLoginModal}
-            className="auth-modal-close ui-pressable absolute right-[2.05%] top-[1.95%] z-20 flex h-[6.2%] min-h-[38px] w-[4.95%] min-w-[38px] items-center justify-center rounded-[10px] bg-[color-mix(in_srgb,var(--app-bg)_62%,#1b1530)] text-[var(--app-text)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ui-accent)] disabled:cursor-not-allowed disabled:opacity-60"
+            className="auth-modal-close ui-pressable absolute right-[2.05%] top-[1.95%] z-20 flex h-[6.2%] min-h-[38px] w-[4.95%] min-w-[38px] items-center justify-center rounded-[10px] bg-[color-mix(in_srgb,var(--app-bg)_62%,var(--app-panel))] text-[var(--app-text)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ui-accent)] disabled:cursor-not-allowed disabled:opacity-60"
             aria-label="Close login modal"
             title="Close"
           >
             <X size={14} />
           </button>
 
-          <div className="auth-modal-form auth-drawer-stagger absolute left-[2.2%] top-[2.2%] z-10 h-[95.6%] w-[40.8%] rounded-[12px] bg-[#1f162d]">
+          <div className="auth-modal-form auth-drawer-stagger absolute left-[2.2%] top-[2.2%] z-10 h-[95.6%] w-[40.8%] rounded-[12px] bg-[var(--app-panel)]">
             <AuthCard
               title="HELLO PLAYER"
               description={isGuestMode ? 'Connect your XTATION account to sync this local station into cloud mode.' : undefined}

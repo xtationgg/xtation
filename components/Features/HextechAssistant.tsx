@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { CalendarDays, Check, ChevronUp, Copy, Pause, Pencil, Pin, Play, Plus, Save, Timer, Video, Volume2, X } from 'lucide-react';
+import { CalendarDays, Check, ChevronDown, ChevronUp, Copy, Pause, Pencil, Pin, Play, Plus, Save, Timer, Video, Volume2, X } from 'lucide-react';
 import { useXP } from '../XP/xpStore';
 import { Task } from '../XP/xpTypes';
 import { ConfirmModal } from '../UI/ConfirmModal';
@@ -2371,6 +2371,14 @@ export const HextechAssistant: React.FC<HextechAssistantProps> = ({ isOpen, onCl
   const [isManagedProviderLoading, setIsManagedProviderLoading] = useState(false);
   const [activeManagedSessionId, setActiveManagedSessionId] = useState<string | null>(null);
   const [managedRevisionNote, setManagedRevisionNote] = useState('');
+  const [expandedDuskSections, setExpandedDuskSections] = useState<Set<string>>(() => new Set());
+  const toggleDuskSection = (key: string) => {
+    setExpandedDuskSections(prev => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key); else next.add(key);
+      return next;
+    });
+  };
   const [taskMediaSelections, setTaskMediaSelections] = useState<Record<string, string>>({});
   const [taskSoundSelections, setTaskSoundSelections] = useState<Record<string, string>>({});
   const [taskPriorityVisuals, setTaskPriorityVisuals] = useState<Record<string, string>>({});
@@ -3627,1239 +3635,358 @@ export const HextechAssistant: React.FC<HextechAssistantProps> = ({ isOpen, onCl
               </button>
             </header>
 
-            <div className="border-b border-[var(--app-border)] p-4">
-              <div className="xt-dusk-section xt-dusk-section--accent mb-3 p-3">
-                <div className="flex items-start justify-between gap-3">
-                  <div className="min-w-0">
-                    <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[var(--app-accent)]">Station Snapshot</div>
-                    <div className="mt-1 text-sm font-medium text-[var(--app-text)]">{stationSnapshot.headline}</div>
-                    <div className="mt-1 text-[11px] leading-5 text-[var(--app-muted)]">{stationSnapshot.summary}</div>
-                    <div className="mt-2 text-[11px] leading-5 text-[var(--app-muted)]">{stationSnapshot.nextAction}</div>
+            <div className="xt-dusk-panels flex flex-col gap-2 p-3">
+              {/* ── Station Snapshot ── */}
+              <div className="xt-dusk-collapse">
+                <button
+                  type="button"
+                  onClick={() => toggleDuskSection('station')}
+                  className="xt-dusk-collapse-header"
+                >
+                  <div className="flex min-w-0 flex-1 items-center gap-2">
+                    <span className="xt-dusk-collapse-dot xt-dusk-collapse-dot--accent" />
+                    <span className="xt-dusk-collapse-title truncate">{stationSnapshot.headline}</span>
                   </div>
-                  <div className="xt-dusk-chip">
-                    {user?.id ? 'account' : 'local'}
+                  <div className="flex items-center gap-2">
+                    <span className="xt-dusk-collapse-meta">{user?.id ? 'synced' : 'local'}</span>
+                    <ChevronDown size={12} className={`xt-dusk-collapse-chevron ${expandedDuskSections.has('station') ? 'is-open' : ''}`} />
                   </div>
-                </div>
-
-                <div className="mt-3 grid gap-2 sm:grid-cols-2">
-                  {stationSnapshot.cues.map((cue) => (
-                    <div
-                      key={cue.label}
-                      className="xt-dusk-subcard px-3 py-2"
-                    >
-                      <div className="text-[10px] uppercase tracking-[0.12em] text-[var(--app-muted)]">{cue.label}</div>
-                      <div className="mt-1 text-[12px] font-medium text-[var(--app-text)]">{cue.value}</div>
-                      <div className="mt-1 text-[10px] leading-5 text-[var(--app-muted)]">{cue.detail}</div>
+                </button>
+                {expandedDuskSections.has('station') && (
+                  <div className="xt-dusk-collapse-body">
+                    <div className="text-[11px] leading-[1.55] text-[var(--app-muted)]">{stationSnapshot.summary}</div>
+                    {stationSnapshot.nextAction ? (
+                      <div className="mt-1.5 text-[11px] leading-[1.55] text-[var(--app-text)]">{stationSnapshot.nextAction}</div>
+                    ) : null}
+                    <div className="mt-2.5 grid grid-cols-2 gap-1.5">
+                      {stationSnapshot.cues.map((cue) => (
+                        <div key={cue.label} className="xt-dusk-cue-cell">
+                          <div className="xt-dusk-cue-label">{cue.label}</div>
+                          <div className="xt-dusk-cue-value">{cue.value}</div>
+                        </div>
+                      ))}
                     </div>
-                  ))}
-                </div>
-
-                <div className="mt-3 flex gap-2">
-                  <button
-                    type="button"
-                    onClick={useStationSnapshot}
-                    className="xt-dusk-btn xt-dusk-btn--accent inline-flex h-9 flex-1 items-center justify-center gap-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--app-text)]"
-                  >
-                    <Save size={14} />
-                    Load Station Brief
-                  </button>
-                  {stationSnapshot.primaryTaskId ? (
-                    <button
-                      type="button"
-                      onClick={() => openFocusPanel(stationSnapshot.primaryTaskId!)}
-                      className="xt-dusk-btn inline-flex h-9 items-center justify-center px-3 text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--app-muted)] hover:text-[var(--app-text)]"
-                    >
-                      Open Quest
-                    </button>
-                  ) : null}
-                </div>
+                    <div className="mt-2.5 flex gap-1.5">
+                      <button type="button" onClick={useStationSnapshot} className="xt-dusk-btn xt-dusk-btn--accent inline-flex h-7 flex-1 items-center justify-center gap-1.5 text-[9px] font-semibold uppercase tracking-[0.14em] text-[var(--app-text)]">
+                        <Save size={11} /> Load Brief
+                      </button>
+                      {stationSnapshot.primaryTaskId ? (
+                        <button type="button" onClick={() => openFocusPanel(stationSnapshot.primaryTaskId!)} className="xt-dusk-btn inline-flex h-7 items-center justify-center px-2.5 text-[9px] font-semibold uppercase tracking-[0.14em] text-[var(--app-muted)] hover:text-[var(--app-text)]">
+                          Open Quest
+                        </button>
+                      ) : null}
+                    </div>
+                  </div>
+                )}
               </div>
 
+              {/* ── Dusk Inbox ── */}
               {latestBrief ? (
-                <div className="xt-dusk-section xt-dusk-section--accent mb-3 p-3">
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0">
-                      <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[var(--app-accent)]">Dusk Inbox</div>
-                      <div className="mt-1 truncate text-sm font-medium text-[var(--app-text)]">{latestBrief.title}</div>
-                      <div className="mt-1 text-[11px] leading-5 text-[var(--app-muted)]">
-                        {formatBriefSource(latestBrief.source)} · received {formatRelativeTime(latestBrief.receivedAt)}
+                <div className="xt-dusk-collapse">
+                  <button
+                    type="button"
+                    onClick={() => toggleDuskSection('inbox')}
+                    className="xt-dusk-collapse-header"
+                  >
+                    <div className="flex min-w-0 flex-1 items-center gap-2">
+                      <span className="xt-dusk-collapse-dot xt-dusk-collapse-dot--brief" />
+                      <span className="xt-dusk-collapse-title truncate">{latestBrief.title}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="xt-dusk-collapse-meta">{formatRelativeTime(latestBrief.receivedAt)}</span>
+                      <ChevronDown size={12} className={`xt-dusk-collapse-chevron ${expandedDuskSections.has('inbox') ? 'is-open' : ''}`} />
+                    </div>
+                  </button>
+                  {expandedDuskSections.has('inbox') && (
+                    <div className="xt-dusk-collapse-body">
+                      <div className="flex items-center gap-2 text-[10px] text-[var(--app-muted)]">
+                        <span>{formatBriefSource(latestBrief.source)}</span>
+                        {latestBrief.linkedQuestIds?.length ? <span>· {latestBrief.linkedQuestIds.length} linked</span> : null}
                       </div>
                       {latestBrief.tags?.length ? (
-                        <div className="mt-2 flex flex-wrap gap-1.5">
+                        <div className="mt-1.5 flex flex-wrap gap-1">
                           {latestBrief.tags.slice(0, 4).map((tag) => (
-                            <span
-                              key={tag}
-                              className="xt-dusk-chip xt-dusk-chip--accent"
-                            >
-                              {tag}
-                            </span>
+                            <span key={tag} className="xt-dusk-micro-chip">{tag}</span>
                           ))}
                         </div>
                       ) : null}
-                      {latestBrief.linkedQuestIds?.length ? (
-                        <div className="mt-2 text-[11px] leading-5 text-[var(--app-muted)]">
-                          Linked quests: {latestBrief.linkedQuestIds.length}
-                        </div>
+                      {!latestBaselineCompare && !latestBaselineProvenance && latestBrief.body ? (
+                        <div className="mt-1.5 line-clamp-2 text-[11px] leading-[1.55] text-[var(--app-muted)]">{latestBrief.body}</div>
                       ) : null}
                       {latestBaselineCompare ? (
-                        <div className="mt-3 grid gap-2 text-[11px] leading-5 text-[var(--app-muted)]">
-                          <div>
-                            <span className="text-[var(--app-text)]">Current</span>
-                            {' · '}
-                            {latestBaselineCompare.currentTitle || 'Unknown'}
-                          </div>
-                          <div>
-                            <span className="text-[var(--app-text)]">Previous</span>
-                            {' · '}
-                            {latestBaselineCompare.previousTitle || 'Unknown'}
-                          </div>
-                          <div>
-                            <span className="text-[var(--app-text)]">Drift</span>
-                            {' · '}
-                            {latestBaselineCompare.driftSummary || 'No drift summary'}
-                          </div>
-                          {latestBaselineCompare.currentContent ? (
-                            <div className="xt-dusk-subcard px-3 py-2 text-[11px] leading-5 text-[var(--app-muted)]">
-                              <div className="text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--app-accent)]">
-                                Current baseline
-                              </div>
-                              <div className="mt-2 line-clamp-3">{latestBaselineCompare.currentContent}</div>
-                            </div>
-                          ) : null}
-                          {latestBaselineCompare.currentProvenance ? (
-                            <div className="xt-dusk-subcard px-3 py-2 text-[11px] leading-5 text-[var(--app-muted)]">
-                              <div className="text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--app-accent)]">
-                                Current accepted plan
-                              </div>
-                              <div className="mt-2">
-                                <span className="text-[var(--app-text)]">Provider</span>
-                                {' · '}
-                                {formatCompareProvenanceProvider(latestBaselineCompare.currentProvenance)}
-                              </div>
-                              <div>
-                                <span className="text-[var(--app-text)]">Accepted</span>
-                                {' · '}
-                                {latestBaselineCompare.currentProvenance.acceptedLabel || 'Unknown'}
-                              </div>
-                              <div>
-                                <span className="text-[var(--app-text)]">Next action</span>
-                                {' · '}
-                                {latestBaselineCompare.currentProvenance.nextAction || 'None'}
-                              </div>
-                              {latestBaselineCompare.currentProvenance.revisionNote ? (
-                                <div className="mt-2">{latestBaselineCompare.currentProvenance.revisionNote}</div>
-                              ) : null}
-                            </div>
-                          ) : null}
-                          {latestBaselineCompare.previousProvenance ? (
-                            <div className="xt-dusk-subcard px-3 py-2 text-[11px] leading-5 text-[var(--app-muted)]">
-                              <div className="text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--app-accent)]">
-                                Previous accepted plan
-                              </div>
-                              <div className="mt-2">
-                                <span className="text-[var(--app-text)]">Provider</span>
-                                {' · '}
-                                {formatCompareProvenanceProvider(latestBaselineCompare.previousProvenance)}
-                              </div>
-                              <div>
-                                <span className="text-[var(--app-text)]">Accepted</span>
-                                {' · '}
-                                {latestBaselineCompare.previousProvenance.acceptedLabel || 'Unknown'}
-                              </div>
-                              <div>
-                                <span className="text-[var(--app-text)]">Next action</span>
-                                {' · '}
-                                {latestBaselineCompare.previousProvenance.nextAction || 'None'}
-                              </div>
-                              {latestBaselineCompare.previousProvenance.revisionNote ? (
-                                <div className="mt-2">{latestBaselineCompare.previousProvenance.revisionNote}</div>
-                              ) : null}
-                            </div>
-                          ) : null}
+                        <div className="mt-2 grid gap-1 text-[10px] text-[var(--app-muted)]">
+                          <div><span className="text-[var(--app-text)]">Current</span> · {latestBaselineCompare.currentTitle || '—'}</div>
+                          <div><span className="text-[var(--app-text)]">Previous</span> · {latestBaselineCompare.previousTitle || '—'}</div>
+                          <div><span className="text-[var(--app-text)]">Drift</span> · {latestBaselineCompare.driftSummary || 'None'}</div>
                           {latestBaselineCompareAlignment ? (
-                            <div className="xt-dusk-subcard px-3 py-2 text-[11px] leading-5 text-[var(--app-muted)]">
-                              <div className="text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--app-accent)]">
-                                Accepted Plan Alignment
-                              </div>
-                              <div className="mt-2 text-[10px] uppercase tracking-[0.1em] text-[var(--app-muted)]">
-                                Status · {latestBaselineCompareAlignment.status}
-                              </div>
-                              <div className="mt-2">{latestBaselineCompareAlignment.summary}</div>
-                              <div className="mt-2">{latestBaselineCompareAlignment.recommendation}</div>
-                              <div className="mt-2 text-[10px] uppercase tracking-[0.1em] text-[var(--app-muted)]">
-                                Accepted baseline · {latestBaselineCompareAlignment.acceptedBaselineTitle}
-                              </div>
-                              {activeManagedSession?.acceptedNextAction ? (
-                                <div className="mt-2 text-[10px] uppercase tracking-[0.1em] text-[var(--app-muted)]">
-                                  Accepted next action · {activeManagedSession.acceptedNextAction}
-                                </div>
-                              ) : null}
-                            </div>
+                            <div className="mt-1 text-[10px] text-[var(--app-text)]">{latestBaselineCompareAlignment.status} · {latestBaselineCompareAlignment.recommendation}</div>
                           ) : null}
                         </div>
                       ) : latestBaselineProvenance ? (
-                        <div className="mt-3 grid gap-2 text-[11px] leading-5 text-[var(--app-muted)]">
-                          <div>
-                            <span className="text-[var(--app-text)]">Baseline</span>
-                            {' · '}
-                            {latestBaselineProvenance.baselineTitle || 'Unknown'}
-                          </div>
-                          <div>
-                            <span className="text-[var(--app-text)]">Accepted</span>
-                            {' · '}
-                            {latestBaselineProvenance.acceptedLabel || 'Unknown'}
-                          </div>
-                          <div>
-                            <span className="text-[var(--app-text)]">Next action</span>
-                            {' · '}
-                            {latestBaselineProvenance.nextAction || 'None'}
-                          </div>
-                          <div>
-                            <span className="text-[var(--app-text)]">Provider</span>
-                            {' · '}
-                            {formatBaselineProvenanceBriefProvider(latestBaselineProvenance)}
-                          </div>
-                          {latestBaselineProvenance.compareCurrentTitle ? (
-                            <div>
-                              <span className="text-[var(--app-text)]">Compare anchor</span>
-                              {' · '}
-                              {latestBaselineProvenance.compareCurrentTitle}
-                              {latestBaselineProvenance.comparePreviousTitle ? ` vs ${latestBaselineProvenance.comparePreviousTitle}` : ''}
-                            </div>
-                          ) : null}
-                          {latestBaselineProvenance.compareDriftSummary ? (
-                            <div>
-                              <span className="text-[var(--app-text)]">Compare drift</span>
-                              {' · '}
-                              {latestBaselineProvenance.compareDriftSummary}
-                            </div>
-                          ) : null}
-                          {latestBaselineProvenance.revisionNote ? (
-                            <div className="xt-dusk-subcard px-3 py-2 text-[11px] leading-5 text-[var(--app-muted)]">
-                              <div className="text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--app-accent)]">
-                                Accepted revision note
-                              </div>
-                              <div className="mt-2">{latestBaselineProvenance.revisionNote}</div>
-                            </div>
-                          ) : null}
-                          {latestBaselineProvenance.baselineContent ? (
-                            <div className="xt-dusk-subcard px-3 py-2 text-[11px] leading-5 text-[var(--app-muted)]">
-                              <div className="text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--app-accent)]">
-                                Baseline content
-                              </div>
-                              <div className="mt-2 line-clamp-3">{latestBaselineProvenance.baselineContent}</div>
-                            </div>
-                          ) : null}
+                        <div className="mt-2 grid gap-1 text-[10px] text-[var(--app-muted)]">
+                          <div><span className="text-[var(--app-text)]">Baseline</span> · {latestBaselineProvenance.baselineTitle || '—'}</div>
+                          <div><span className="text-[var(--app-text)]">Provider</span> · {formatBaselineProvenanceBriefProvider(latestBaselineProvenance)}</div>
+                          <div><span className="text-[var(--app-text)]">Next</span> · {latestBaselineProvenance.nextAction || 'None'}</div>
                           {latestBaselineProvenanceAlignment ? (
-                            <div className="xt-dusk-subcard px-3 py-2 text-[11px] leading-5 text-[var(--app-muted)]">
-                              <div className="text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--app-accent)]">
-                                Decision anchor
-                              </div>
-                              <div className="mt-2 text-[10px] uppercase tracking-[0.1em] text-[var(--app-muted)]">
-                                Status · {latestBaselineProvenanceAlignment.status}
-                              </div>
-                              <div className="mt-2">{latestBaselineProvenanceAlignment.summary}</div>
-                              <div className="mt-2">{latestBaselineProvenanceAlignment.recommendation}</div>
-                            </div>
+                            <div className="mt-1 text-[10px] text-[var(--app-text)]">{latestBaselineProvenanceAlignment.status} · {latestBaselineProvenanceAlignment.recommendation}</div>
                           ) : null}
-                        </div>
-                      ) : (
-                        <div className="mt-2 line-clamp-3 text-[11px] leading-5 text-[var(--app-muted)]">{latestBrief.body}</div>
-                      )}
-                    </div>
-                    <button
-                      type="button"
-                      onClick={clearLatestBrief}
-                      className="xt-dusk-icon-btn inline-flex h-8 w-8 shrink-0 items-center justify-center text-[var(--app-muted)] hover:text-[var(--app-text)]"
-                      aria-label="Clear latest Dusk brief"
-                    >
-                      <X size={14} />
-                    </button>
-                  </div>
-                  <div className="mt-3 flex gap-2">
-                    <button
-                      type="button"
-                      onClick={useLatestBrief}
-                      className="xt-dusk-btn xt-dusk-btn--accent inline-flex h-9 flex-1 items-center justify-center gap-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--app-text)]"
-                    >
-                      <Save size={14} />
-                      Promote To Quest
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        pushToast('Dusk brief kept for later');
-                      }}
-                      className="xt-dusk-btn inline-flex h-9 items-center justify-center px-3 text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--app-muted)] hover:text-[var(--app-text)]"
-                    >
-                      Later
-                    </button>
-                    {latestBaselineCompare ? (
-                      <button
-                        type="button"
-                        onClick={useLatestBaselineCompareInPlan}
-                        className="xt-dusk-btn inline-flex h-9 items-center justify-center px-3 text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--app-muted)] hover:text-[var(--app-text)]"
-                      >
-                        Use In Plan
-                      </button>
-                    ) : latestBaselineProvenance ? (
-                      <button
-                        type="button"
-                        onClick={useLatestBaselineProvenanceInPlan}
-                        className="xt-dusk-btn inline-flex h-9 items-center justify-center px-3 text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--app-muted)] hover:text-[var(--app-text)]"
-                      >
-                        Use In Plan
-                      </button>
-                    ) : null}
-                  </div>
-                </div>
-              ) : null}
-
-              {duskActionDeck.length ? (
-                <div className="xt-dusk-section mb-3 p-3">
-                  <div className="flex items-center justify-between gap-3">
-                    <div>
-                      <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[var(--app-accent)]">Action Deck</div>
-                      <div className="mt-1 text-[11px] leading-5 text-[var(--app-muted)]">
-                      Direct local actions Dusk can take safely right now.
-                      </div>
-                    </div>
-                    <div className="flex flex-wrap justify-end gap-2">
-                      <div className="xt-dusk-chip">
-                        {duskActionDeck.length} ready
-                      </div>
-                      <div className="xt-dusk-chip">
-                        {duskProviderTools.length} tools
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="mt-3 grid gap-2">
-                    {duskActionDeck.map((action) => (
-                      <button
-                        key={action.id}
-                        type="button"
-                        onClick={() => handleDuskAction(action.id)}
-                        className={`xt-dusk-subcard xt-dusk-subcard--action px-3 py-3 text-left transition-colors ${
-                          action.tone === 'accent'
-                            ? 'xt-dusk-subcard--accent'
-                            : ''
-                        }`}
-                      >
-                        <div className="flex items-start justify-between gap-3">
-                          <div>
-                            <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--app-text)]">{action.title}</div>
-                            <div className="mt-1 text-[11px] leading-5 text-[var(--app-muted)]">{action.description}</div>
-                          </div>
-                          <span className="xt-dusk-chip">
-                            {action.source}
-                          </span>
-                        </div>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              ) : null}
-
-              {duskToolAudit.length ? (
-                <div className="xt-dusk-section mb-3 p-3">
-                  <div className="flex items-center justify-between gap-3">
-                    <div>
-                      <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[var(--app-accent)]">Tool Timeline</div>
-                      <div className="mt-1 text-[11px] leading-5 text-[var(--app-muted)]">
-                        Recent Dusk tool executions for this station scope.
-                      </div>
-                    </div>
-                    <div className="xt-dusk-chip">
-                      {duskToolAudit.length} logged
-                    </div>
-                  </div>
-                  <div className="mt-3 grid gap-2">
-                    {duskToolAudit.slice(0, 4).map((entry) => (
-                      <div
-                        key={entry.id}
-                        className="xt-dusk-subcard px-3 py-2"
-                      >
-                        <div className="flex items-start justify-between gap-3">
-                          <div>
-                            <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--app-text)]">
-                              {entry.actionId.replace(/-/g, ' ')}
-                            </div>
-                            <div className="mt-1 text-[11px] leading-5 text-[var(--app-muted)]">{entry.message}</div>
-                          </div>
-                          <div className="flex flex-col items-end gap-1">
-                            <span className="xt-dusk-chip">
-                              {entry.actor}
-                            </span>
-                            <span className="xt-dusk-chip">
-                              {entry.status}
-                            </span>
-                          </div>
-                        </div>
-                        <div className="mt-2 text-[10px] uppercase tracking-[0.12em] text-[var(--app-muted)]">
-                          {formatRelativeTime(entry.createdAt)}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              ) : null}
-
-              <div className="xt-dusk-section mb-3 p-3">
-                <div className="flex items-center justify-between gap-3">
-                  <div>
-                    <div className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[var(--app-accent)]">Provider Bridge</div>
-                    <div className="mt-1 text-[11px] leading-5 text-[var(--app-muted)]">
-                      Export the current Dusk tool contract and station context as one provider-safe envelope.
-                    </div>
-                  </div>
-                  <div className="xt-dusk-chip">
-                    v1
-                  </div>
-                </div>
-                <div className="mt-3 flex flex-wrap gap-2">
-                  {duskProviderTools.slice(0, 3).map((tool) => (
-                    <span
-                      key={tool.name}
-                      className="xt-dusk-chip"
-                    >
-                      {tool.name.replace(/^xtation_/, '')}
-                    </span>
-                  ))}
-                  {duskProviderTools.length > 3 ? (
-                    <span className="xt-dusk-chip">
-                      +{duskProviderTools.length - 3} more
-                    </span>
-                  ) : null}
-                </div>
-                <div className="mt-3 flex gap-2">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      void copyProviderEnvelope();
-                    }}
-                    className="xt-dusk-btn xt-dusk-btn--accent inline-flex h-9 flex-1 items-center justify-center gap-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--app-text)]"
-                  >
-                    <Copy size={14} />
-                    Copy Provider Contract
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      void askManagedProvider();
-                    }}
-                    disabled={isManagedProviderLoading || !duskProviderTools.length}
-                    className="xt-dusk-btn inline-flex h-9 items-center justify-center gap-2 px-3 text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--app-muted)] hover:text-[var(--app-text)] disabled:cursor-not-allowed disabled:opacity-50"
-                  >
-                    {isManagedProviderLoading ? 'Bridging…' : 'Ask Managed Provider'}
-                  </button>
-                </div>
-                <div className="mt-3">
-                  <div className="mb-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--app-muted)]">
-                    Provider Run
-                  </div>
-                  <div className="text-[11px] leading-5 text-[var(--app-muted)]">
-                    Managed provider uses a server-side OpenAI bridge. The JSON run request stays explicit so XTATION still controls the final write step.
-                  </div>
-                  {managedProviderMessage ? (
-                    <div className="xt-dusk-subcard mt-3 px-3 py-2 text-[11px] leading-5 text-[var(--app-text)]">
-                      {managedProviderMessage}
-                    </div>
-                  ) : null}
-                  {managedProviderSessions.length ? (
-                    <div className="xt-dusk-subcard mt-3 p-3">
-                      <div className="flex items-center justify-between gap-3">
-                        <div>
-                          <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--app-accent)]">
-                            Managed Trace
-                          </div>
-                          <div className="mt-1 text-[11px] leading-5 text-[var(--app-muted)]">
-                            Recent provider plans for this station scope.
-                          </div>
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            clearManagedProviderSessions(activeScope);
-                            setActiveManagedSessionId(null);
-                            setManagedProviderMessage(null);
-                            playClickSound();
-                          }}
-                          className="xt-dusk-btn inline-flex h-8 items-center justify-center px-3 text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--app-muted)] hover:text-[var(--app-text)]"
-                        >
-                          Clear Trace
-                        </button>
-                      </div>
-                      <div className="mt-3 grid gap-2">
-                        {managedProviderSessions.slice(0, 4).map((session) => {
-                          const sessionBaselineAlignment = buildBaselineCompareAlignment(latestBaselineCompare, {
-                            acceptedBaselineTitle: getManagedSessionAcceptedBaselineTitle(session),
-                            acceptedNextAction: session.acceptedNextAction || null,
-                          });
-                          const sessionProvenanceAlignment = buildBaselineProvenanceAlignment(latestBaselineProvenance, {
-                            acceptedBaselineTitle: getManagedSessionAcceptedBaselineTitle(session),
-                            acceptedNextAction: session.acceptedNextAction || null,
-                          });
-                          const sessionAcceptedCompareContext =
-                            session.acceptedBaselineCompareContext || session.baselineCompareContext;
-                          return (
-                            <div
-                              key={session.id}
-                              className="xt-dusk-subcard px-3 py-2"
-                            >
-                              <div className="flex items-start justify-between gap-3">
-                                <div>
-                                  <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--app-text)]">
-                                    {session.providerLabel} · {session.model}
-                                  </div>
-                                  <div className="mt-1 text-[11px] leading-5 text-[var(--app-muted)]">
-                                    {session.envelopeHeadline}
-                                  </div>
-                                  <div className="mt-1 text-[11px] leading-5 text-[var(--app-muted)]">
-                                    {session.nextAction}
-                                  </div>
-                                  <div className="mt-1 text-[10px] uppercase tracking-[0.1em] text-[var(--app-muted)]">
-                                    {session.request.tools.map((tool) => tool.name.replace(/^xtation_/, '')).join(' · ')}
-                                  </div>
-                                </div>
-                                <div className="flex flex-col items-end gap-1">
-                                  <span className="xt-dusk-chip">
-                                    {session.status}
-                                  </span>
-                                  {session.revisionCount ? (
-                                    <span className="xt-dusk-chip">
-                                      r{session.revisionCount}
-                                    </span>
-                                  ) : null}
-                                  {sessionBaselineAlignment ? (
-                                    <span className="xt-dusk-chip">
-                                      {sessionBaselineAlignment.status}
-                                    </span>
-                                  ) : null}
-                                </div>
-                              </div>
-                              {session.outputText ? (
-                                <div className="mt-2 text-[11px] leading-5 text-[var(--app-muted)]">
-                                  {session.outputText}
-                                </div>
-                              ) : null}
-                              {session.latestRevisionNote ? (
-                                <div className="mt-2 text-[11px] leading-5 text-[var(--app-text)]">
-                                  Revision note · {session.latestRevisionNote}
-                                </div>
-                              ) : null}
-                              {session.acceptedAt ? (
-                                <div className="mt-2 text-[10px] uppercase tracking-[0.1em] text-[var(--app-muted)]">
-                                  Accepted {formatPlanStamp(session.acceptedAt)}
-                                </div>
-                              ) : null}
-                              {session.promotedAt ? (
-                                <div className="mt-2 text-[10px] uppercase tracking-[0.1em] text-[var(--app-muted)]">
-                                  Lab baseline · {formatPlanStamp(session.promotedAt)}
-                                </div>
-                              ) : null}
-                              {session.acceptedRequest ? (
-                                (() => {
-                                  const diff = diffManagedProviderRequests(session.request, session.acceptedRequest);
-                                  return (
-                                    <div className="mt-2 text-[10px] uppercase tracking-[0.1em] text-[var(--app-muted)]">
-                                      {summarizeManagedProviderRequestDiff(diff)}
-                                    </div>
-                                  );
-                                })()
-                              ) : null}
-                              {sessionAcceptedCompareContext ? (
-                                <div className="mt-2 text-[10px] uppercase tracking-[0.1em] text-[var(--app-muted)]">
-                                  Compare anchor · {sessionAcceptedCompareContext.currentTitle || 'Unknown'}
-                                  {sessionAcceptedCompareContext.previousTitle
-                                    ? ` vs ${sessionAcceptedCompareContext.previousTitle}`
-                                    : ''}
-                                </div>
-                              ) : null}
-                              {sessionAcceptedCompareContext?.currentProvenance ? (
-                                <div className="mt-2 text-[10px] uppercase tracking-[0.1em] text-[var(--app-muted)]">
-                                  Current plan · {formatCompareProvenanceProvider(sessionAcceptedCompareContext.currentProvenance)}
-                                </div>
-                              ) : null}
-                              {sessionAcceptedCompareContext?.previousProvenance ? (
-                                <div className="mt-2 text-[10px] uppercase tracking-[0.1em] text-[var(--app-muted)]">
-                                  Previous plan · {formatCompareProvenanceProvider(sessionAcceptedCompareContext.previousProvenance)}
-                                </div>
-                              ) : null}
-                              {session.acceptedBaselineProvenanceContext ? (
-                                <div className="mt-2 text-[10px] uppercase tracking-[0.1em] text-[var(--app-muted)]">
-                                  Provenance · {formatBaselineProvenanceBriefProvider(session.acceptedBaselineProvenanceContext)}
-                                  {session.acceptedBaselineProvenanceContext.acceptedLabel
-                                    ? ` · ${session.acceptedBaselineProvenanceContext.acceptedLabel}`
-                                    : ''}
-                                </div>
-                              ) : null}
-                              {sessionProvenanceAlignment ? (
-                                <div className="mt-2 grid gap-1 text-[11px] leading-5 text-[var(--app-muted)]">
-                                  <div>{sessionProvenanceAlignment.summary}</div>
-                                  <div className="text-[10px] uppercase tracking-[0.1em] text-[var(--app-muted)]">
-                                    {sessionProvenanceAlignment.recommendation}
-                                  </div>
-                                </div>
-                              ) : null}
-                              {sessionBaselineAlignment ? (
-                                <div className="mt-2 grid gap-1 text-[11px] leading-5 text-[var(--app-muted)]">
-                                  <div>{sessionBaselineAlignment.summary}</div>
-                                  <div className="text-[10px] uppercase tracking-[0.1em] text-[var(--app-muted)]">
-                                    {sessionBaselineAlignment.recommendation}
-                                  </div>
-                                </div>
-                              ) : latestBaselineCompare ? (
-                                <div className="mt-2 text-[10px] uppercase tracking-[0.1em] text-[var(--app-muted)]">
-                                  No accepted baseline to compare yet
-                                </div>
-                              ) : null}
-                              {session.reportSummary ? (
-                                <div className="mt-2 text-[10px] uppercase tracking-[0.1em] text-[var(--app-muted)]">
-                                  {session.reportSummary.succeededCount} success · {session.reportSummary.blockedCount} blocked
-                                </div>
-                              ) : null}
-                              <div className="mt-2 flex gap-2">
-                              <button
-                                type="button"
-                                onClick={() => {
-                                  setProviderRunInput(buildDuskProviderRunRequestText(session.request));
-                                  setProviderRunError(null);
-                                  setProviderRunReport(null);
-                                  setActiveManagedSessionId(session.id);
-                                  setManagedRevisionNote(session.latestRevisionNote || '');
-                                  if (sessionBaselineAlignment) {
-                                    setManagedProviderMessage(sessionBaselineAlignment.recommendation);
-                                  }
-                                  playClickSound();
-                                }}
-                                className="xt-dusk-btn inline-flex h-8 items-center justify-center px-3 text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--app-muted)] hover:text-[var(--app-text)]"
-                                >
-                                  Load Plan
-                                </button>
-                              {session.acceptedRequest ? (
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    setProviderRunInput(buildDuskProviderRunRequestText(session.acceptedRequest!));
-                                    setProviderRunError(null);
-                                    setProviderRunReport(null);
-                                    setActiveManagedSessionId(session.id);
-                                    setManagedRevisionNote(session.latestRevisionNote || '');
-                                    setManagedProviderMessage(
-                                      sessionBaselineAlignment?.recommendation ||
-                                        'Accepted baseline loaded into the provider request editor.'
-                                    );
-                                    playClickSound();
-                                  }}
-                                  className="xt-dusk-btn inline-flex h-8 items-center justify-center px-3 text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--app-muted)] hover:text-[var(--app-text)]"
-                                >
-                                  Load Accepted
-                                </button>
-                              ) : null}
-                              {session.status !== 'discarded' && session.status !== 'executed' ? (
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    setProviderRunInput(buildDuskProviderRunRequestText(session.request));
-                                    setProviderRunError(null);
-                                    setProviderRunReport(null);
-                                    setActiveManagedSessionId(session.id);
-                                    setManagedRevisionNote(session.latestRevisionNote || '');
-                                    acceptManagedProviderSession(
-                                      session.id,
-                                      activeScope,
-                                      createBaselineCompareContext(latestBaselineCompare),
-                                      createBaselineProvenanceContext(latestBaselineProvenance)
-                                    );
-                                    setManagedProviderMessage('Plan accepted. Run the provider request when you want Dusk to execute it.');
-                                    playSuccessSound();
-                                  }}
-                                  className="xt-dusk-btn inline-flex h-8 items-center justify-center px-3 text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--app-muted)] hover:text-[var(--app-text)]"
-                                >
-                                  Accept
-                                </button>
-                              ) : null}
-                              {session.acceptedRequest ? (
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    setActiveManagedSessionId(session.id);
-                                    setManagedRevisionNote(session.latestRevisionNote || '');
-                                    promoteAcceptedManagedPlanToLab(session);
-                                  }}
-                                  className="xt-dusk-btn inline-flex h-8 items-center justify-center px-3 text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--app-muted)] hover:text-[var(--app-text)]"
-                                >
-                                  {session.promotedNoteId ? 'Refresh Lab' : 'Promote to Lab'}
-                                </button>
-                              ) : null}
-                              {session.promotedNoteId ? (
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    openLabNavigation({
-                                      section: 'knowledge',
-                                      collection: 'baselines',
-                                      noteId: session.promotedNoteId,
-                                      requestedBy: 'dusk',
-                                    });
-                                    setManagedProviderMessage('Opening promoted Lab baseline.');
-                                    playClickSound();
-                                  }}
-                                  className="xt-dusk-btn inline-flex h-8 items-center justify-center px-3 text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--app-muted)] hover:text-[var(--app-text)]"
-                                >
-                                  Open Lab
-                                </button>
-                              ) : null}
-                              {session.status !== 'discarded' && session.status !== 'executed' ? (
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    discardManagedProviderSession(session.id, activeScope);
-                                    if (activeManagedSessionId === session.id) {
-                                      setActiveManagedSessionId(null);
-                                    }
-                                    setManagedProviderMessage('Plan discarded. The trace is kept for review, but it will not be executed.');
-                                    playClickSound();
-                                  }}
-                                  className="xt-dusk-btn inline-flex h-8 items-center justify-center px-3 text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--app-muted)] hover:text-[var(--app-text)]"
-                                >
-                                  Discard
-                                </button>
-                              ) : null}
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  ) : null}
-                  {activeManagedSession ? (
-                    <div className="xt-dusk-subcard mt-3 p-3">
-                      <div className="flex items-center justify-between gap-3">
-                        <div>
-                          <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--app-accent)]">
-                            Planning Session
-                          </div>
-                          <div className="mt-1 text-[11px] leading-5 text-[var(--app-text)]">
-                            {activeManagedSession.providerLabel} · {activeManagedSession.model}
-                          </div>
-                          <div className="mt-1 text-[11px] leading-5 text-[var(--app-muted)]">
-                            {activeManagedSession.nextAction}
-                          </div>
-                        </div>
-                        <div className="flex flex-col items-end gap-1">
-                          <span className="xt-dusk-chip">{activeManagedSession.status}</span>
-                          {providerInputDirtyForSession ? <span className="xt-dusk-chip">dirty</span> : null}
-                        </div>
-                      </div>
-                      <div className="mt-2 text-[10px] uppercase tracking-[0.1em] text-[var(--app-muted)]">
-                        {activeManagedSession.request.tools.map((tool) => tool.name.replace(/^xtation_/, '')).join(' · ')}
-                      </div>
-                      {activeManagedSession.acceptedAt ? (
-                        <div className="mt-2 text-[10px] uppercase tracking-[0.1em] text-[var(--app-muted)]">
-                          Accepted baseline · {formatPlanStamp(activeManagedSession.acceptedAt)}
                         </div>
                       ) : null}
-                      <div className="mt-3">
-                        <div className="mb-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--app-muted)]">
-                          Revision note
+                      <div className="mt-2.5 flex gap-1.5">
+                        <button type="button" onClick={useLatestBrief} className="xt-dusk-btn xt-dusk-btn--accent inline-flex h-7 flex-1 items-center justify-center gap-1.5 text-[9px] font-semibold uppercase tracking-[0.14em] text-[var(--app-text)]">
+                          <Save size={11} /> Promote
+                        </button>
+                        <button type="button" onClick={() => pushToast('Dusk brief kept for later')} className="xt-dusk-btn inline-flex h-7 items-center justify-center px-2.5 text-[9px] font-semibold uppercase tracking-[0.14em] text-[var(--app-muted)] hover:text-[var(--app-text)]">
+                          Later
+                        </button>
+                        {(latestBaselineCompare || latestBaselineProvenance) ? (
+                          <button type="button" onClick={latestBaselineCompare ? useLatestBaselineCompareInPlan : useLatestBaselineProvenanceInPlan} className="xt-dusk-btn inline-flex h-7 items-center justify-center px-2.5 text-[9px] font-semibold uppercase tracking-[0.14em] text-[var(--app-muted)] hover:text-[var(--app-text)]">
+                            Use In Plan
+                          </button>
+                        ) : null}
+                        <button type="button" onClick={clearLatestBrief} className="xt-dusk-btn inline-flex h-7 w-7 items-center justify-center text-[var(--app-muted)] hover:text-[var(--app-text)]" aria-label="Dismiss brief">
+                          <X size={11} />
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ) : null}
+
+              {/* ── Action Deck (compact) ── */}
+              {duskActionDeck.length ? (
+                <div className="xt-dusk-collapse">
+                  <button
+                    type="button"
+                    onClick={() => toggleDuskSection('actions')}
+                    className="xt-dusk-collapse-header"
+                  >
+                    <div className="flex min-w-0 flex-1 items-center gap-2">
+                      <span className="xt-dusk-collapse-dot" />
+                      <span className="xt-dusk-collapse-title">Actions</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="xt-dusk-collapse-meta">{duskActionDeck.length} ready</span>
+                      <ChevronDown size={12} className={`xt-dusk-collapse-chevron ${expandedDuskSections.has('actions') ? 'is-open' : ''}`} />
+                    </div>
+                  </button>
+                  {expandedDuskSections.has('actions') && (
+                    <div className="xt-dusk-collapse-body grid gap-1">
+                      {duskActionDeck.map((action) => (
+                        <button
+                          key={action.id}
+                          type="button"
+                          onClick={() => handleDuskAction(action.id)}
+                          className={`xt-dusk-action-row ${action.tone === 'accent' ? 'xt-dusk-action-row--accent' : ''}`}
+                        >
+                          <span className="truncate">{action.title}</span>
+                          <span className="xt-dusk-micro-chip">{action.source}</span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ) : null}
+
+              {/* ── Tool Timeline (collapsed by default) ── */}
+              {duskToolAudit.length ? (
+                <div className="xt-dusk-collapse">
+                  <button
+                    type="button"
+                    onClick={() => toggleDuskSection('timeline')}
+                    className="xt-dusk-collapse-header"
+                  >
+                    <div className="flex min-w-0 flex-1 items-center gap-2">
+                      <span className="xt-dusk-collapse-dot" />
+                      <span className="xt-dusk-collapse-title">Timeline</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="xt-dusk-collapse-meta">{duskToolAudit.length} logged</span>
+                      <ChevronDown size={12} className={`xt-dusk-collapse-chevron ${expandedDuskSections.has('timeline') ? 'is-open' : ''}`} />
+                    </div>
+                  </button>
+                  {expandedDuskSections.has('timeline') && (
+                    <div className="xt-dusk-collapse-body grid gap-1">
+                      {duskToolAudit.slice(0, 4).map((entry) => (
+                        <div key={entry.id} className="xt-dusk-timeline-row">
+                          <div className="flex items-center gap-1.5 truncate">
+                            <span className="text-[10px] font-medium uppercase text-[var(--app-text)]">{entry.actionId.replace(/-/g, ' ')}</span>
+                            <span className="xt-dusk-micro-chip">{entry.status}</span>
+                          </div>
+                          <span className="shrink-0 text-[9px] text-[var(--app-muted)]">{formatRelativeTime(entry.createdAt)}</span>
                         </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ) : null}
+
+              {/* ── Provider Bridge (collapsed by default) ── */}
+              <div className="xt-dusk-collapse">
+                <button
+                  type="button"
+                  onClick={() => toggleDuskSection('provider')}
+                  className="xt-dusk-collapse-header"
+                >
+                  <div className="flex min-w-0 flex-1 items-center gap-2">
+                    <span className="xt-dusk-collapse-dot" />
+                    <span className="xt-dusk-collapse-title">Provider</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="xt-dusk-collapse-meta">{duskProviderTools.length} tools</span>
+                    {managedProviderSessions.length ? <span className="xt-dusk-collapse-meta">{managedProviderSessions.length} plans</span> : null}
+                    <ChevronDown size={12} className={`xt-dusk-collapse-chevron ${expandedDuskSections.has('provider') ? 'is-open' : ''}`} />
+                  </div>
+                </button>
+                {expandedDuskSections.has('provider') && (
+                  <div className="xt-dusk-collapse-body">
+                    {/* Tool chips */}
+                    <div className="flex flex-wrap gap-1">
+                      {duskProviderTools.slice(0, 5).map((tool) => (
+                        <span key={tool.name} className="xt-dusk-micro-chip">{tool.name.replace(/^xtation_/, '')}</span>
+                      ))}
+                      {duskProviderTools.length > 5 ? <span className="xt-dusk-micro-chip">+{duskProviderTools.length - 5}</span> : null}
+                    </div>
+
+                    {/* Quick actions */}
+                    <div className="mt-2 flex gap-1.5">
+                      <button type="button" onClick={() => { void copyProviderEnvelope(); }} className="xt-dusk-btn xt-dusk-btn--accent inline-flex h-7 flex-1 items-center justify-center gap-1.5 text-[9px] font-semibold uppercase tracking-[0.14em] text-[var(--app-text)]">
+                        <Copy size={11} /> Copy Contract
+                      </button>
+                      <button type="button" onClick={() => { void askManagedProvider(); }} disabled={isManagedProviderLoading || !duskProviderTools.length} className="xt-dusk-btn inline-flex h-7 items-center justify-center px-2.5 text-[9px] font-semibold uppercase tracking-[0.14em] text-[var(--app-muted)] hover:text-[var(--app-text)] disabled:cursor-not-allowed disabled:opacity-50">
+                        {isManagedProviderLoading ? 'Bridging…' : 'Ask Provider'}
+                      </button>
+                    </div>
+
+                    {/* Provider message */}
+                    {managedProviderMessage ? (
+                      <div className="mt-2 rounded-md border border-[var(--app-border)] bg-[var(--app-panel-2)] px-2.5 py-1.5 text-[10px] leading-[1.5] text-[var(--app-text)]">
+                        {managedProviderMessage}
+                      </div>
+                    ) : null}
+
+                    {/* Managed Sessions (compact list) */}
+                    {managedProviderSessions.length ? (
+                      <div className="mt-2">
+                        <div className="mb-1.5 flex items-center justify-between">
+                          <span className="xt-dusk-section-label">Managed Trace</span>
+                          <button type="button" onClick={() => { clearManagedProviderSessions(activeScope); setActiveManagedSessionId(null); setManagedProviderMessage(null); playClickSound(); }} className="text-[9px] uppercase tracking-[0.1em] text-[var(--app-muted)] hover:text-[var(--app-text)]">
+                            Clear
+                          </button>
+                        </div>
+                        <div className="grid gap-1">
+                          {managedProviderSessions.slice(0, 4).map((session) => {
+                            const sessionBaselineAlignment = buildBaselineCompareAlignment(latestBaselineCompare, {
+                              acceptedBaselineTitle: getManagedSessionAcceptedBaselineTitle(session),
+                              acceptedNextAction: session.acceptedNextAction || null,
+                            });
+                            return (
+                              <div key={session.id} className="xt-dusk-session-row">
+                                <div className="flex min-w-0 items-center gap-1.5">
+                                  <span className="truncate text-[10px] font-medium text-[var(--app-text)]">{session.providerLabel}</span>
+                                  <span className="xt-dusk-micro-chip">{session.status}</span>
+                                  {session.revisionCount ? <span className="xt-dusk-micro-chip">r{session.revisionCount}</span> : null}
+                                  {sessionBaselineAlignment ? <span className="xt-dusk-micro-chip">{sessionBaselineAlignment.status}</span> : null}
+                                </div>
+                                <div className="flex shrink-0 gap-1">
+                                  <button type="button" onClick={() => { setProviderRunInput(buildDuskProviderRunRequestText(session.request)); setProviderRunError(null); setProviderRunReport(null); setActiveManagedSessionId(session.id); setManagedRevisionNote(session.latestRevisionNote || ''); if (sessionBaselineAlignment) setManagedProviderMessage(sessionBaselineAlignment.recommendation); playClickSound(); }} className="xt-dusk-micro-btn">Load</button>
+                                  {session.status !== 'discarded' && session.status !== 'executed' ? (
+                                    <button type="button" onClick={() => { setProviderRunInput(buildDuskProviderRunRequestText(session.request)); setProviderRunError(null); setProviderRunReport(null); setActiveManagedSessionId(session.id); setManagedRevisionNote(session.latestRevisionNote || ''); acceptManagedProviderSession(session.id, activeScope, createBaselineCompareContext(latestBaselineCompare), createBaselineProvenanceContext(latestBaselineProvenance)); setManagedProviderMessage('Plan accepted.'); playSuccessSound(); }} className="xt-dusk-micro-btn">Accept</button>
+                                  ) : null}
+                                  {session.acceptedRequest ? (
+                                    <button type="button" onClick={() => { setActiveManagedSessionId(session.id); setManagedRevisionNote(session.latestRevisionNote || ''); promoteAcceptedManagedPlanToLab(session); }} className="xt-dusk-micro-btn">{session.promotedNoteId ? 'Refresh' : 'Lab'}</button>
+                                  ) : null}
+                                  {session.status !== 'discarded' && session.status !== 'executed' ? (
+                                    <button type="button" onClick={() => { discardManagedProviderSession(session.id, activeScope); if (activeManagedSessionId === session.id) setActiveManagedSessionId(null); setManagedProviderMessage('Plan discarded.'); playClickSound(); }} className="xt-dusk-micro-btn">Drop</button>
+                                  ) : null}
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    ) : null}
+
+                    {/* Active Planning Session (compact) */}
+                    {activeManagedSession ? (
+                      <div className="mt-2 rounded-md border border-[color-mix(in_srgb,var(--app-accent)_24%,transparent)] bg-[color-mix(in_srgb,var(--app-panel)_82%,var(--app-accent)_6%)] p-2.5">
+                        <div className="flex items-center justify-between gap-2">
+                          <div className="flex items-center gap-1.5 text-[10px] font-medium text-[var(--app-text)]">
+                            <span>{activeManagedSession.providerLabel} · {activeManagedSession.model}</span>
+                            <span className="xt-dusk-micro-chip">{activeManagedSession.status}</span>
+                            {providerInputDirtyForSession ? <span className="xt-dusk-micro-chip">dirty</span> : null}
+                          </div>
+                        </div>
+                        {activeManagedSession.nextAction ? (
+                          <div className="mt-1 text-[10px] leading-[1.5] text-[var(--app-muted)]">{activeManagedSession.nextAction}</div>
+                        ) : null}
                         <textarea
                           value={managedRevisionNote}
                           onChange={(event) => setManagedRevisionNote(event.target.value)}
-                          placeholder="What changed in this revision?"
-                          className="xt-dusk-textarea min-h-[84px] w-full px-3 py-3 text-[11px] leading-5 text-[var(--app-text)] outline-none transition-colors placeholder:text-[var(--app-muted)]"
+                          placeholder="Revision note…"
+                          className="xt-dusk-textarea mt-2 min-h-[48px] w-full px-2.5 py-2 text-[10px] leading-[1.5] text-[var(--app-text)] outline-none transition-colors placeholder:text-[var(--app-muted)]"
                           spellCheck={false}
                         />
-                      </div>
-                      <div className="mt-3 flex flex-wrap gap-2">
-                        <button
-                          type="button"
-                          onClick={() => {
-                            reviseActiveManagedPlan();
-                          }}
-                          disabled={!providerInputDirtyForSession && !managedRevisionNoteDirty}
-                          className="xt-dusk-btn inline-flex h-8 items-center justify-center px-3 text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--app-muted)] hover:text-[var(--app-text)] disabled:cursor-not-allowed disabled:opacity-50"
-                        >
-                          Save Revision
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            acceptActiveManagedPlan();
-                          }}
-                          disabled={activeManagedSession.status === 'accepted' || activeManagedSession.status === 'executed'}
-                          className="xt-dusk-btn inline-flex h-8 items-center justify-center px-3 text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--app-muted)] hover:text-[var(--app-text)] disabled:cursor-not-allowed disabled:opacity-50"
-                        >
-                          {activeManagedSession.status === 'accepted' || activeManagedSession.status === 'executed' ? 'Accepted' : 'Accept Plan'}
-                        </button>
-                        {activeManagedSession.acceptedRequest ? (
-                          <button
-                            type="button"
-                            onClick={() => {
-                              loadAcceptedManagedPlan();
-                            }}
-                            className="xt-dusk-btn inline-flex h-8 items-center justify-center px-3 text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--app-muted)] hover:text-[var(--app-text)]"
-                          >
-                            Load Accepted
-                          </button>
-                        ) : null}
-                        {activeManagedSession.acceptedRequest ? (
-                          <button
-                            type="button"
-                            onClick={() => {
-                              promoteAcceptedManagedPlanToLab(activeManagedSession);
-                            }}
-                            className="xt-dusk-btn inline-flex h-8 items-center justify-center px-3 text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--app-muted)] hover:text-[var(--app-text)]"
-                          >
-                            {activeManagedSession.promotedNoteId ? 'Refresh Lab' : 'Promote to Lab'}
-                          </button>
-                        ) : null}
-                        {activeManagedSession.promotedNoteId ? (
-                          <button
-                            type="button"
-                            onClick={() => {
-                              openLabNavigation({
-                                section: 'knowledge',
-                                collection: 'baselines',
-                                noteId: activeManagedSession.promotedNoteId,
-                                requestedBy: 'dusk',
-                              });
-                              setManagedProviderMessage('Opening promoted Lab baseline.');
-                              playClickSound();
-                            }}
-                            className="xt-dusk-btn inline-flex h-8 items-center justify-center px-3 text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--app-muted)] hover:text-[var(--app-text)]"
-                          >
-                            Open Lab
-                          </button>
-                        ) : null}
-                        <button
-                          type="button"
-                          onClick={() => {
-                            discardActiveManagedPlan();
-                          }}
-                          disabled={activeManagedSession.status === 'discarded' || activeManagedSession.status === 'executed'}
-                          className="xt-dusk-btn inline-flex h-8 items-center justify-center px-3 text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--app-muted)] hover:text-[var(--app-text)] disabled:cursor-not-allowed disabled:opacity-50"
-                        >
-                          Discard
-                        </button>
-                      </div>
-                      <div className="xt-dusk-subcard mt-3 px-3 py-3">
-                        <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--app-accent)]">
-                          Revision Decision
+                        <div className="mt-2 flex flex-wrap gap-1">
+                          <button type="button" onClick={() => reviseActiveManagedPlan()} disabled={!providerInputDirtyForSession && !managedRevisionNoteDirty} className="xt-dusk-micro-btn disabled:opacity-40">Save</button>
+                          <button type="button" onClick={() => acceptActiveManagedPlan()} disabled={activeManagedSession.status === 'accepted' || activeManagedSession.status === 'executed'} className="xt-dusk-micro-btn disabled:opacity-40">{activeManagedSession.status === 'accepted' || activeManagedSession.status === 'executed' ? 'Accepted' : 'Accept'}</button>
+                          {activeManagedSession.acceptedRequest ? <button type="button" onClick={loadAcceptedManagedPlan} className="xt-dusk-micro-btn">Load Accepted</button> : null}
+                          {activeManagedSession.acceptedRequest ? <button type="button" onClick={() => promoteAcceptedManagedPlanToLab(activeManagedSession)} className="xt-dusk-micro-btn">{activeManagedSession.promotedNoteId ? 'Refresh Lab' : 'To Lab'}</button> : null}
+                          {activeManagedSession.promotedNoteId ? <button type="button" onClick={() => { openLabNavigation({ section: 'knowledge', collection: 'baselines', noteId: activeManagedSession.promotedNoteId, requestedBy: 'dusk' }); playClickSound(); }} className="xt-dusk-micro-btn">Open Lab</button> : null}
+                          <button type="button" onClick={() => discardActiveManagedPlan()} disabled={activeManagedSession.status === 'discarded' || activeManagedSession.status === 'executed'} className="xt-dusk-micro-btn disabled:opacity-40">Discard</button>
+                          {latestBaselineCompare ? <button type="button" onClick={useLatestBaselineCompareInPlan} className="xt-dusk-micro-btn">+ Compare</button> : latestBaselineProvenance ? <button type="button" onClick={useLatestBaselineProvenanceInPlan} className="xt-dusk-micro-btn">+ Provenance</button> : null}
                         </div>
-                        <div className="mt-2 text-[11px] leading-5 text-[var(--app-muted)]">
-                          {activeManagedPlanningRecommendation || 'Review the editor draft before saving or executing it.'}
-                        </div>
-                        <div className="mt-3 grid gap-3">
-                          {activeManagedSession.acceptedRequest && activeManagedSessionAcceptedDiff ? (
-                            <div className="grid gap-2 text-[11px] leading-5 text-[var(--app-muted)]">
-                              <div className="text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--app-accent)]">
-                                Accepted plan
-                              </div>
-                              <div>
-                                <span className="text-[var(--app-text)]">Status</span>
-                                {' · '}
-                                {activeManagedSessionAcceptedDiff.changed
-                                  ? 'Current draft differs from the last accepted plan.'
-                                  : 'Current draft matches the last accepted plan.'}
-                              </div>
-                              {activeManagedSession.promotedAt ? (
-                                <div>
-                                  <span className="text-[var(--app-text)]">Promoted</span>
-                                  {' · '}
-                                  {formatPlanStamp(activeManagedSession.promotedAt)}
-                                </div>
-                              ) : null}
-                              <div>
-                                <span className="text-[var(--app-text)]">Accepted next action</span>
-                                {' · '}
-                            {activeManagedSession.acceptedNextAction || 'None'}
-                          </div>
-                              {activeManagedSession.acceptedBaselineCompareContext ? (
-                                <div>
-                                  <span className="text-[var(--app-text)]">Compare anchor</span>
-                                  {' · '}
-                                  {activeManagedSession.acceptedBaselineCompareContext.currentTitle || 'Unknown'}
-                                  {activeManagedSession.acceptedBaselineCompareContext.previousTitle
-                                    ? ` vs ${activeManagedSession.acceptedBaselineCompareContext.previousTitle}`
-                                    : ''}
-                                </div>
-                              ) : null}
-                              <div>
-                                <span className="text-[var(--app-text)]">Current next action</span>
-                                {' · '}
-                                {activeManagedSession.nextAction}
-                              </div>
-                              <div>
-                                <span className="text-[var(--app-text)]">Added</span>
-                                {' · '}
-                                {activeManagedSessionAcceptedDiff.addedTools.length
-                                  ? activeManagedSessionAcceptedDiff.addedTools.join(' · ')
-                                  : 'None'}
-                              </div>
-                              <div>
-                                <span className="text-[var(--app-text)]">Removed</span>
-                                {' · '}
-                                {activeManagedSessionAcceptedDiff.removedTools.length
-                                  ? activeManagedSessionAcceptedDiff.removedTools.join(' · ')
-                                  : 'None'}
-                              </div>
-                              <div>
-                                <span className="text-[var(--app-text)]">Reason changes</span>
-                                {' · '}
-                                {activeManagedSessionAcceptedDiff.reasonChangedTools.length
-                                  ? activeManagedSessionAcceptedDiff.reasonChangedTools.join(' · ')
-                                  : 'None'}
-                              </div>
-                              <div>
-                                <span className="text-[var(--app-text)]">Stop mode</span>
-                                {' · '}
-                                {activeManagedSessionAcceptedDiff.stopOnBlockedChanged ? 'Changed' : 'Unchanged'}
-                              </div>
-                            </div>
-                          ) : null}
-                          {latestBaselineCompare ? (
-                            <div className="grid gap-2 text-[11px] leading-5 text-[var(--app-muted)]">
-                              <div className="text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--app-accent)]">
-                                Baseline compare
-                              </div>
-                              <div>
-                                <span className="text-[var(--app-text)]">Current</span>
-                                {' · '}
-                                {latestBaselineCompare.currentTitle || 'Unknown'}
-                              </div>
-                              <div>
-                                <span className="text-[var(--app-text)]">Previous</span>
-                                {' · '}
-                                {latestBaselineCompare.previousTitle || 'Unknown'}
-                              </div>
-                              <div>
-                                <span className="text-[var(--app-text)]">Drift</span>
-                                {' · '}
-                                {latestBaselineCompare.driftSummary || 'No drift summary'}
-                              </div>
-                              {latestBaselineCompare.currentProvenance ? (
-                                <div>
-                                  <span className="text-[var(--app-text)]">Current plan</span>
-                                  {' · '}
-                                  {formatCompareProvenanceProvider(latestBaselineCompare.currentProvenance)}
-                                </div>
-                              ) : null}
-                              {latestBaselineCompare.previousProvenance ? (
-                                <div>
-                                  <span className="text-[var(--app-text)]">Previous plan</span>
-                                  {' · '}
-                                  {formatCompareProvenanceProvider(latestBaselineCompare.previousProvenance)}
-                                </div>
-                              ) : null}
-                              {latestBaselineCompareAlignment ? (
-                                <>
-                                  <div>
-                                    <span className="text-[var(--app-text)]">Status</span>
-                                    {' · '}
-                                    {latestBaselineCompareAlignment.status}
-                                  </div>
-                                  <div>{latestBaselineCompareAlignment.recommendation}</div>
-                                </>
-                              ) : (
-                                <div>No accepted baseline is attached to this plan yet.</div>
-                              )}
-                            </div>
-                          ) : latestBaselineProvenance ? (
-                            <div className="grid gap-2 text-[11px] leading-5 text-[var(--app-muted)]">
-                              <div className="text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--app-accent)]">
-                                Accepted baseline provenance
-                              </div>
-                              <div>
-                                <span className="text-[var(--app-text)]">Baseline</span>
-                                {' · '}
-                                {latestBaselineProvenance.baselineTitle || 'Unknown'}
-                              </div>
-                              <div>
-                                <span className="text-[var(--app-text)]">Accepted</span>
-                                {' · '}
-                                {latestBaselineProvenance.acceptedLabel || 'Unknown'}
-                              </div>
-                              <div>
-                                <span className="text-[var(--app-text)]">Next action</span>
-                                {' · '}
-                                {latestBaselineProvenance.nextAction || 'None'}
-                              </div>
-                              <div>
-                                <span className="text-[var(--app-text)]">Provider</span>
-                                {' · '}
-                                {formatBaselineProvenanceBriefProvider(latestBaselineProvenance)}
-                              </div>
-                              {latestBaselineProvenance.compareCurrentTitle ? (
-                                <div>
-                                  <span className="text-[var(--app-text)]">Compare anchor</span>
-                                  {' · '}
-                                  {latestBaselineProvenance.compareCurrentTitle}
-                                  {latestBaselineProvenance.comparePreviousTitle
-                                    ? ` vs ${latestBaselineProvenance.comparePreviousTitle}`
-                                    : ''}
-                                </div>
-                              ) : null}
-                              {latestBaselineProvenance.compareDriftSummary ? (
-                                <div>
-                                  <span className="text-[var(--app-text)]">Compare drift</span>
-                                  {' · '}
-                                  {latestBaselineProvenance.compareDriftSummary}
-                                </div>
-                              ) : null}
-                              {latestBaselineProvenanceAlignment ? (
-                                <>
-                                  <div>
-                                    <span className="text-[var(--app-text)]">Status</span>
-                                    {' · '}
-                                    {latestBaselineProvenanceAlignment.status}
-                                  </div>
-                                  <div>{latestBaselineProvenanceAlignment.recommendation}</div>
-                                </>
-                              ) : null}
-                            </div>
-                          ) : null}
-                          {!providerRunInput.trim() ? (
-                            <div className="text-[11px] leading-5 text-[var(--app-muted)]">
-                              Provider request editor is empty.
-                            </div>
-                          ) : parsedCurrentManagedDraft?.ok && currentManagedDraftRequest ? (
-                            <div className="grid gap-2 text-[11px] leading-5 text-[var(--app-muted)]">
-                              <div className="text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--app-accent)]">
-                                Current draft
-                              </div>
-                            <div>
-                              <span className="text-[var(--app-text)]">Draft</span>
-                              {' · '}
-                              {currentManagedDraftRequest.tools.length} tools
-                            </div>
-                            <div>
-                              <span className="text-[var(--app-text)]">Against loaded session</span>
-                              {' · '}
-                              {currentManagedDraftDiffFromLoaded
-                                ? summarizeManagedProviderRequestDiff(currentManagedDraftDiffFromLoaded)
-                                : 'Unavailable'}
-                            </div>
-                            {activeManagedSession.acceptedRequest ? (
-                              <div>
-                                <span className="text-[var(--app-text)]">Against accepted baseline</span>
-                                {' · '}
-                                {currentManagedDraftDiffFromAccepted
-                                  ? summarizeManagedProviderRequestDiff(currentManagedDraftDiffFromAccepted)
-                                  : 'Unavailable'}
-                              </div>
-                            ) : null}
-                            <div>
-                              <span className="text-[var(--app-text)]">Current requester</span>
-                              {' · '}
-                              {currentManagedDraftRequest.requestedBy || 'None'}
-                            </div>
-                            <div>
-                              <span className="text-[var(--app-text)]">Current stop mode</span>
-                              {' · '}
-                              {currentManagedDraftRequest.stopOnBlocked === false ? 'Continue on blocked' : 'Stop on blocked'}
-                            </div>
-                          </div>
-                        ) : (
-                            <div className="text-[11px] leading-5 text-[var(--app-text)]">
-                              {parsedCurrentManagedDraft?.message || 'Current draft is invalid.'}
-                            </div>
-                          )}
-                          <div className="flex flex-wrap gap-2 pt-1">
-                            {latestBaselineCompare ? (
-                              <>
-                                <button
-                                  type="button"
-                                  onClick={useLatestBaselineCompareInPlan}
-                                  className="xt-dusk-btn inline-flex h-8 items-center justify-center px-3 text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--app-muted)] hover:text-[var(--app-text)]"
-                                >
-                                  Append Compare Note
-                                </button>
-                                <button
-                                  type="button"
-                                  onClick={replaceLatestBaselineCompareInPlan}
-                                  className="xt-dusk-btn inline-flex h-8 items-center justify-center px-3 text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--app-muted)] hover:text-[var(--app-text)]"
-                                >
-                                  Replace Revision Note
-                                </button>
-                              </>
-                            ) : latestBaselineProvenance ? (
-                              <>
-                                <button
-                                  type="button"
-                                  onClick={useLatestBaselineProvenanceInPlan}
-                                  className="xt-dusk-btn inline-flex h-8 items-center justify-center px-3 text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--app-muted)] hover:text-[var(--app-text)]"
-                                >
-                                  Append Provenance Note
-                                </button>
-                                <button
-                                  type="button"
-                                  onClick={replaceLatestBaselineProvenanceInPlan}
-                                  className="xt-dusk-btn inline-flex h-8 items-center justify-center px-3 text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--app-muted)] hover:text-[var(--app-text)]"
-                                >
-                                  Replace Revision Note
-                                </button>
-                              </>
-                            ) : null}
-                            {activeManagedSession.acceptedRequest ? (
-                              <button
-                                type="button"
-                                onClick={loadAcceptedManagedPlan}
-                                className="xt-dusk-btn inline-flex h-8 items-center justify-center px-3 text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--app-muted)] hover:text-[var(--app-text)]"
-                              >
-                                Load Accepted
-                              </button>
-                            ) : null}
-                          </div>
+
+                        {/* Revision Decision (condensed) */}
+                        <div className="mt-2 text-[10px] leading-[1.5] text-[var(--app-muted)]">
+                          {activeManagedPlanningRecommendation || 'Review draft before saving or executing.'}
                         </div>
                       </div>
-                      {activeManagedSession.revisionHistory?.length ? (
-                        <div className="xt-dusk-subcard mt-3 px-3 py-3">
-                          <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--app-accent)]">
-                            Recent Revisions
-                          </div>
-                          <div className="mt-3 grid gap-2">
-                            {activeManagedSession.revisionHistory.slice(0, 3).map((revision, index) => (
-                              <div key={`${revision.savedAt}-${index}`} className="xt-dusk-subcard px-3 py-2">
-                                {(() => {
-                                  const revisionDiff = activeManagedSession.acceptedRequest
-                                    ? diffManagedProviderRequests(revision.request, activeManagedSession.acceptedRequest)
-                                    : null;
-                                  return (
-                                    <>
-                                <div className="flex items-center justify-between gap-3">
-                                  <div className="text-[10px] uppercase tracking-[0.1em] text-[var(--app-muted)]">
-                                    {formatPlanStamp(revision.savedAt)}
-                                  </div>
-                                  <div className="text-[10px] uppercase tracking-[0.1em] text-[var(--app-muted)]">
-                                    {revision.request.tools.length} tools
-                                  </div>
-                                </div>
-                                <div className="mt-1 text-[11px] leading-5 text-[var(--app-text)]">
-                                {revision.note || 'No revision note'}
-                                </div>
-                                {revision.baselineCompareContext ? (
-                                  <div className="mt-1 text-[10px] uppercase tracking-[0.1em] text-[var(--app-muted)]">
-                                    Compare · {revision.baselineCompareContext.currentTitle || 'Unknown'}
-                                    {revision.baselineCompareContext.previousTitle
-                                      ? ` vs ${revision.baselineCompareContext.previousTitle}`
-                                      : ''}
-                                  </div>
-                                ) : null}
-                                {revisionDiff ? (
-                                  <div className="mt-1 text-[10px] uppercase tracking-[0.1em] text-[var(--app-muted)]">
-                                    {summarizeManagedProviderRequestDiff(revisionDiff)}
-                                  </div>
-                                ) : null}
-                                {activeManagedSession.acceptedNextAction ? (
-                                  <div className="mt-1 text-[10px] uppercase tracking-[0.1em] text-[var(--app-muted)]">
-                                    {revision.nextAction === activeManagedSession.acceptedNextAction
-                                      ? 'Next action matches accepted'
-                                      : 'Next action drifted'}
-                                  </div>
-                                ) : null}
-                                <div className="mt-1 text-[10px] uppercase tracking-[0.1em] text-[var(--app-muted)]">
-                                  {revision.request.tools.map((tool) => tool.name.replace(/^xtation_/, '')).join(' · ')}
-                                </div>
-                                    </>
-                                  );
-                                })()}
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      ) : null}
+                    ) : null}
+
+                    {/* Provider Run Editor */}
+                    <textarea
+                      value={providerRunInput}
+                      onChange={(event) => { setProviderRunInput(event.target.value); if (providerRunError) setProviderRunError(null); }}
+                      placeholder={providerRunSampleText || 'No provider tools available.'}
+                      className="xt-dusk-textarea mt-2 min-h-[80px] w-full px-2.5 py-2 text-[10px] leading-[1.5] text-[var(--app-text)] outline-none transition-colors placeholder:text-[var(--app-muted)]"
+                      spellCheck={false}
+                    />
+                    {providerRunError ? (
+                      <div className="mt-1.5 rounded-md border border-[color-mix(in_srgb,#ff6b6b_28%,transparent)] bg-[color-mix(in_srgb,var(--app-panel)_78%,#7b1113_16%)] px-2.5 py-1.5 text-[10px] leading-[1.5] text-[var(--app-text)]">
+                        {providerRunError}
+                      </div>
+                    ) : null}
+                    <div className="mt-2 flex gap-1.5">
+                      <button type="button" onClick={loadProviderRunSample} className="xt-dusk-btn inline-flex h-7 items-center justify-center px-2.5 text-[9px] font-semibold uppercase tracking-[0.14em] text-[var(--app-muted)] hover:text-[var(--app-text)]">Sample</button>
+                      <button type="button" onClick={runProviderRequest} className="xt-dusk-btn xt-dusk-btn--accent inline-flex h-7 flex-1 items-center justify-center gap-1.5 text-[9px] font-semibold uppercase tracking-[0.14em] text-[var(--app-text)]">
+                        <Play size={11} /> Run
+                      </button>
+                      <button type="button" onClick={clearProviderRun} className="xt-dusk-btn inline-flex h-7 items-center justify-center px-2.5 text-[9px] font-semibold uppercase tracking-[0.14em] text-[var(--app-muted)] hover:text-[var(--app-text)]">Clear</button>
                     </div>
-                  ) : null}
-                  <textarea
-                    value={providerRunInput}
-                    onChange={(event) => {
-                      setProviderRunInput(event.target.value);
-                      if (providerRunError) setProviderRunError(null);
-                    }}
-                    placeholder={providerRunSampleText || 'No provider tools are available right now.'}
-                    className="xt-dusk-textarea mt-3 min-h-[132px] w-full px-3 py-3 text-[11px] leading-5 text-[var(--app-text)] outline-none transition-colors placeholder:text-[var(--app-muted)]"
-                    spellCheck={false}
-                  />
-                  {providerRunError ? (
-                    <div className="xt-dusk-subcard xt-dusk-subcard--alert mt-2 px-3 py-2 text-[11px] leading-5 text-[var(--app-text)]">
-                      {providerRunError}
-                    </div>
-                  ) : null}
-                  <div className="mt-3 flex gap-2">
-                    <button
-                      type="button"
-                      onClick={loadProviderRunSample}
-                      className="xt-dusk-btn inline-flex h-9 items-center justify-center px-3 text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--app-muted)] hover:text-[var(--app-text)]"
-                    >
-                      Load Sample
-                    </button>
-                    <button
-                      type="button"
-                      onClick={runProviderRequest}
-                      className="xt-dusk-btn xt-dusk-btn--accent inline-flex h-9 flex-1 items-center justify-center gap-2 px-3 text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--app-text)]"
-                    >
-                      <Play size={14} />
-                      Run Provider Request
-                    </button>
-                    <button
-                      type="button"
-                      onClick={clearProviderRun}
-                      className="xt-dusk-btn inline-flex h-9 items-center justify-center px-3 text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--app-muted)] hover:text-[var(--app-text)]"
-                    >
-                      Clear
-                    </button>
+
+                    {/* Run Report (compact) */}
+                    {providerRunReport ? (
+                      <div className="mt-2 rounded-md border border-[var(--app-border)] bg-[var(--app-panel-2)] p-2.5">
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="text-[10px] font-semibold uppercase tracking-[0.12em] text-[var(--app-accent)]">Report</span>
+                          <div className="flex gap-1.5">
+                            <span className="xt-dusk-micro-chip">{providerRunReport.succeededCount} ok</span>
+                            <span className="xt-dusk-micro-chip">{providerRunReport.blockedCount} blocked</span>
+                          </div>
+                        </div>
+                        <div className="mt-1.5 grid gap-1">
+                          {providerRunReport.results.map((result, index) => (
+                            <div key={`${result.name}-${index}`} className="flex items-center justify-between gap-2 text-[10px]">
+                              <span className="truncate font-medium text-[var(--app-text)]">{result.name.replace(/^xtation_/, '')}</span>
+                              <span className="xt-dusk-micro-chip">{result.status}</span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ) : null}
                   </div>
-                  {providerRunReport ? (
-                    <div className="xt-dusk-subcard mt-3 p-3">
-                      <div className="flex items-center justify-between gap-3">
-                        <div>
-                          <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[var(--app-accent)]">
-                            Provider Run Report
-                          </div>
-                          <div className="mt-1 text-[11px] leading-5 text-[var(--app-muted)]">
-                            {providerRunReport.requestedBy || 'Unknown provider'} · {formatRelativeTime(providerRunReport.receivedAt)}
-                          </div>
-                        </div>
-                        <div className="flex flex-wrap justify-end gap-2">
-                          <span className="xt-dusk-chip">
-                            {providerRunReport.succeededCount} success
-                          </span>
-                          <span className="xt-dusk-chip">
-                            {providerRunReport.blockedCount} blocked
-                          </span>
-                        </div>
-                      </div>
-                      <div className="mt-3 grid gap-2">
-                        {providerRunReport.results.map((result, index) => (
-                          <div
-                            key={`${result.name}-${index}`}
-                            className="xt-dusk-subcard px-3 py-2"
-                          >
-                            <div className="flex items-start justify-between gap-3">
-                              <div>
-                                <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--app-text)]">
-                                  {result.name.replace(/^xtation_/, '')}
-                                </div>
-                                {result.reason ? (
-                                  <div className="mt-1 text-[10px] uppercase tracking-[0.1em] text-[var(--app-muted)]">
-                                    {result.reason}
-                                  </div>
-                                ) : null}
-                                <div className="mt-1 text-[11px] leading-5 text-[var(--app-muted)]">{result.message}</div>
-                              </div>
-                              <span className="xt-dusk-chip">
-                                {result.status}
-                              </span>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  ) : null}
-                </div>
+                )}
               </div>
 
               <button

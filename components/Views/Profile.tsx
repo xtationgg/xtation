@@ -1292,7 +1292,7 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
   );
 
   const renderLobbyPanelContent = (panel: LobbyPanelKey) => {
-    const inputCls = 'w-full border border-[color-mix(in_srgb,var(--app-text)_12%,transparent)] rounded-lg px-[11px] py-[9px] text-[13px] text-[var(--app-text)] bg-[rgba(255,255,255,0.03)] focus:outline-none focus:border-[var(--app-accent)] focus:shadow-[0_0_0_3px_color-mix(in_srgb,var(--app-accent)_10%,transparent)] transition-[border-color,box-shadow]';
+    const inputCls = 'w-full border border-[color-mix(in_srgb,var(--app-text)_12%,transparent)] rounded-lg px-[11px] py-[9px] text-[13px] text-[var(--app-text)] bg-[color-mix(in_srgb,var(--app-text)_3%,var(--app-panel))] focus:outline-none focus:border-[var(--app-accent)] focus:shadow-[0_0_0_3px_color-mix(in_srgb,var(--app-accent)_10%,transparent)] transition-[border-color,box-shadow]';
     const fieldLabel = 'text-[9px] uppercase tracking-[1.5px] text-[var(--app-muted)] mb-[5px]';
 
     switch (panel) {
@@ -1304,7 +1304,7 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
               <div className={fieldLabel}>Avatar</div>
               <div
                 onClick={() => fileInputRef.current?.click()}
-                className="w-[72px] h-[72px] rounded-[14px] border-2 border-dashed border-[rgba(255,255,255,0.1)] flex flex-col items-center justify-center gap-[3px] cursor-pointer text-[var(--app-muted)] text-[9px] transition-all hover:border-[var(--app-accent)] hover:bg-[color-mix(in_srgb,var(--app-accent)_8%,transparent)] hover:text-[var(--app-accent)]"
+                className="w-[72px] h-[72px] rounded-[14px] border-2 border-dashed border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] flex flex-col items-center justify-center gap-[3px] cursor-pointer text-[var(--app-muted)] text-[9px] transition-all hover:border-[var(--app-accent)] hover:bg-[color-mix(in_srgb,var(--app-accent)_8%,transparent)] hover:text-[var(--app-accent)]"
                 style={{ background: 'color-mix(in_srgb,var(--app-accent)_6%,var(--app-panel))' }}
               >
                 <Upload size={20} className="opacity-50" />
@@ -1346,7 +1346,7 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
                     className="h-full rounded transition-[width] duration-[1400ms]"
                     style={{ width: `${val}%`, background: grad, transitionDelay: delay, position: 'relative' }}
                   >
-                    <div className="absolute inset-0 rounded" style={{ background: 'linear-gradient(90deg,transparent 30%,rgba(255,255,255,0.12))' }} />
+                    <div className="absolute inset-0 rounded" style={{ background: 'linear-gradient(90deg,transparent 30%,color-mix(in srgb,var(--app-text) 12%,transparent))' }} />
                   </div>
                 </div>
               </div>
@@ -1357,7 +1357,7 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
       case 'loadout':
         return (
           <div className="space-y-[14px]">
-            <div className="flex items-center justify-between gap-3 rounded-[14px] border border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-[rgba(255,255,255,0.02)] px-3 py-2.5">
+            <div className="flex items-center justify-between gap-3 rounded-[14px] border border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-[color-mix(in_srgb,var(--app-text)_2%,var(--app-panel))] px-3 py-2.5">
               <div>
                 <div className="text-[9px] uppercase tracking-[1.5px] text-[var(--app-muted)]">Identity Badge</div>
                 <div className="mt-1 text-[12px] font-semibold text-[var(--app-text)]">{activeAvatarIdentityBadge}</div>
@@ -1377,8 +1377,8 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
                   key={slot.id}
                   className="aspect-square rounded-[10px] flex flex-col items-center justify-center gap-[5px] cursor-pointer transition-all hover:-translate-y-[3px] hover:shadow-[0_8px_20px_color-mix(in_srgb,var(--app-accent)_20%,transparent)]"
                   style={{
-                    background: slot.equipped ? 'color-mix(in_srgb,var(--app-accent)_8%,var(--app-panel))' : 'rgba(255,255,255,0.02)',
-                    border: `1px solid ${slot.equipped ? 'color-mix(in_srgb,var(--app-accent)_40%,transparent)' : 'rgba(255,255,255,0.06)'}`,
+                    background: slot.equipped ? 'color-mix(in_srgb,var(--app-accent)_8%,var(--app-panel))' : 'color-mix(in_srgb,var(--app-text)_2%,var(--app-panel))',
+                    border: `1px solid ${slot.equipped ? 'color-mix(in_srgb,var(--app-accent)_40%,transparent)' : 'color-mix(in_srgb,var(--app-text)_6%,transparent)'}`,
                   }}
                 >
                   <span className="text-[22px]" style={{ opacity: slot.equipped ? 1 : 0.5 }}>{slot.icon}</span>
@@ -1393,7 +1393,7 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
               <Hint placement="top">Avatar pack controls this slot layout. Inventory equip wiring follows the authored shell.</Hint>
             </div>
 
-            <div className="rounded-[14px] border border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-[rgba(255,255,255,0.02)] p-3">
+            <div className="rounded-[14px] border border-[color-mix(in_srgb,var(--app-text)_10%,transparent)] bg-[color-mix(in_srgb,var(--app-text)_2%,var(--app-panel))] p-3">
               <div className="flex items-center justify-between gap-3">
                 <div>
                   <div className="text-[9px] uppercase tracking-[1.5px] text-[var(--app-muted)]">
@@ -1478,7 +1478,7 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
                     type="button"
                     onClick={() => setLobbySkills(prev => prev.filter(s => s !== skill))}
                     className="w-[14px] h-[14px] rounded-full flex items-center justify-center text-[10px] leading-none transition-colors hover:bg-red-500 hover:text-white"
-                    style={{ background: 'rgba(255,255,255,0.08)' }}
+                    style={{ background: 'color-mix(in_srgb,var(--app-text)_8%,transparent)' }}
                   >
                     ×
                   </button>
@@ -1519,8 +1519,8 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
                 key={t.name}
                 className="flex items-center gap-[10px] p-[10px] rounded-[9px] transition-all"
                 style={{
-                  background: 'rgba(255,255,255,0.02)',
-                  border: '1px solid rgba(255,255,255,0.06)',
+                  background: 'color-mix(in_srgb,var(--app-text)_2%,var(--app-panel))',
+                  border: '1px solid color-mix(in_srgb,var(--app-text)_6%,transparent)',
                   opacity: t.locked ? 0.3 : 1,
                   filter: t.locked ? 'grayscale(1)' : 'none',
                 }}
@@ -1559,7 +1559,7 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
                   type="button"
                   onClick={() => removeLink(idx)}
                   className="w-8 h-8 shrink-0 rounded-[8px] flex items-center justify-center text-[13px] text-[var(--app-muted)] transition-all hover:bg-[rgba(239,68,68,0.12)] hover:text-red-400 hover:border-red-400"
-                  style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}
+                  style={{ background: 'color-mix(in_srgb,var(--app-text)_3%,var(--app-panel))', border: '1px solid color-mix(in_srgb,var(--app-text)_6%,transparent)' }}
                 >
                   ×
                 </button>
@@ -1585,7 +1585,7 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
                 try { localStorage.setItem('xtation_profile_notes_v1', lobbyNotes); setLobbyNotesSaved(true); } catch {}
               }}
               placeholder="Personal notes, ideas, reminders..."
-              style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '9px', color: 'var(--app-text)', fontFamily: 'inherit', fontSize: '13px', lineHeight: '1.7', outline: 'none', resize: 'none', width: '100%', minHeight: '280px', padding: '12px' }}
+              style={{ background: 'color-mix(in_srgb,var(--app-text)_2%,var(--app-panel))', border: '1px solid color-mix(in_srgb,var(--app-text)_6%,transparent)', borderRadius: '9px', color: 'var(--app-text)', fontFamily: 'inherit', fontSize: '13px', lineHeight: '1.7', outline: 'none', resize: 'none', width: '100%', minHeight: '280px', padding: '12px' }}
               className="focus:border-[var(--app-accent)] transition-[border-color]"
             />
             <div className="flex items-center gap-[5px] text-[10px] transition-colors" style={{ color: lobbyNotesSaved ? 'var(--app-accent)' : 'var(--app-muted)' }}>
@@ -1609,13 +1609,13 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
                   onClick={() => setLobbyVisibility(opt.key)}
                   className="flex items-start gap-[10px] p-3 rounded-[9px] cursor-pointer transition-all hover:border-[color-mix(in_srgb,var(--app-accent)_25%,transparent)]"
                   style={{
-                    background: sel ? 'color-mix(in_srgb,var(--app-accent)_8%,var(--app-panel))' : 'rgba(255,255,255,0.02)',
-                    border: `1px solid ${sel ? 'var(--app-accent)' : 'rgba(255,255,255,0.06)'}`,
+                    background: sel ? 'color-mix(in_srgb,var(--app-accent)_8%,var(--app-panel))' : 'color-mix(in_srgb,var(--app-text)_2%,var(--app-panel))',
+                    border: `1px solid ${sel ? 'var(--app-accent)' : 'color-mix(in_srgb,var(--app-text)_6%,transparent)'}`,
                   }}
                 >
                   <div
                     className="w-[18px] h-[18px] rounded-full shrink-0 mt-0.5 flex items-center justify-center transition-[border-color]"
-                    style={{ border: `2px solid ${sel ? 'var(--app-accent)' : 'rgba(255,255,255,0.15)'}` }}
+                    style={{ border: `2px solid ${sel ? 'var(--app-accent)' : 'color-mix(in_srgb,var(--app-text)_15%,transparent)'}` }}
                   >
                     <div
                       className="w-[9px] h-[9px] rounded-full transition-transform"
@@ -1839,8 +1839,8 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
             {/* dotPulse keyframe */}
             <style>{`
               @keyframes dotPulse {
-                0%, 100% { transform: scale(1); box-shadow: 0 0 16px rgba(255,255,255,.35); }
-                50% { transform: scale(1.08); box-shadow: 0 0 26px rgba(255,255,255,.5); }
+                0%, 100% { transform: scale(1); box-shadow: 0 0 16px color-mix(in srgb,var(--app-text) 35%,transparent); }
+                50% { transform: scale(1.08); box-shadow: 0 0 26px color-mix(in srgb,var(--app-text) 50%,transparent); }
               }
             `}</style>
 
@@ -1877,7 +1877,7 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
               {stageState === 'idle' && (
                 <div
                   className="absolute inset-0 pointer-events-none"
-                  style={{ background: 'rgba(4,6,20,0.22)' }}
+                  style={{ background: 'color-mix(in srgb,var(--app-bg) 22%,transparent)' }}
                 />
               )}
 
@@ -2222,7 +2222,7 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
                             ? 'color-mix(in_srgb,var(--app-accent)_55%,var(--app-bg))'
                             : bright
                             ? 'var(--app-accent)'
-                            : 'rgba(255,255,255,0.07)';
+                            : 'color-mix(in_srgb,var(--app-text)_7%,transparent)';
                           return { x1, y1, x2, y2, color, bright };
                         });
                         return (
@@ -2247,16 +2247,16 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
                               {/* Inner progress arc */}
                               <div className="absolute inset-0">
                                 <svg viewBox="0 0 160 160" style={{ width: '100%', height: '100%', transform: 'rotate(-90deg)' }}>
-                                  <circle fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="10" cx="80" cy="80" r="65" />
+                                  <circle fill="none" stroke="color-mix(in srgb,var(--app-text) 6%,transparent)" strokeWidth="10" cx="80" cy="80" r="65" />
                                   <circle
                                     fill="none"
-                                    stroke="rgba(255,255,255,0.88)"
+                                    stroke="color-mix(in srgb,var(--app-text) 88%,transparent)"
                                     strokeWidth="10"
                                     strokeLinecap="round"
                                     cx="80" cy="80" r="65"
                                     strokeDasharray={ARC_CIRC}
                                     strokeDashoffset={arcOffset}
-                                    style={{ filter: 'drop-shadow(0 0 8px rgba(255,255,255,.25))', transition: 'stroke-dashoffset 2.2s ease' }}
+                                    style={{ filter: 'drop-shadow(0 0 8px color-mix(in srgb,var(--app-text) 25%,transparent))', transition: 'stroke-dashoffset 2.2s ease' }}
                                   />
                                 </svg>
                               </div>
@@ -2266,8 +2266,8 @@ export const Profile: React.FC<ProfileProps> = ({ rewardConfigs }) => {
                                   style={{
                                     width: 16, height: 16,
                                     borderRadius: '50%',
-                                    background: '#fff',
-                                    boxShadow: '0 0 16px rgba(255,255,255,.35)',
+                                    background: 'var(--app-text)',
+                                    boxShadow: '0 0 16px color-mix(in srgb,var(--app-text) 35%,transparent)',
                                     animation: 'dotPulse 3.5s ease-in-out infinite',
                                   }}
                                 />

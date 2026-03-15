@@ -203,7 +203,7 @@ export const FirstRunSetup: React.FC<FirstRunSetupProps> = ({ open, onClose, onC
       open={open}
       onClose={onClose}
       variant="center"
-      panelClassName="!w-[min(96vw,1320px)] !max-h-[94dvh] overflow-hidden rounded-[28px] border border-[color-mix(in_srgb,var(--app-border)_88%,transparent)] bg-[radial-gradient(circle_at_top_left,rgba(111,178,255,0.12),transparent_30%),linear-gradient(180deg,rgba(9,12,22,0.98),rgba(9,11,18,0.98))] shadow-[0_36px_140px_rgba(0,0,0,0.46)]"
+      panelClassName="!w-[min(96vw,1320px)] !max-h-[94dvh] overflow-hidden rounded-[28px] border border-[color-mix(in_srgb,var(--app-border)_88%,transparent)] bg-[radial-gradient(circle_at_top_left,color-mix(in_srgb,var(--app-accent)_12%,transparent),transparent_30%),var(--app-bg)] shadow-[0_36px_140px_rgba(0,0,0,0.46)]"
     >
       <div className="flex max-h-[94dvh] flex-col">
         <div className="min-h-0 flex-1 overflow-y-auto p-5 md:p-7">
@@ -389,7 +389,7 @@ export const FirstRunSetup: React.FC<FirstRunSetupProps> = ({ open, onClose, onC
           </div>
         </div>
 
-        <div className="border-t border-[var(--app-border)] bg-[color-mix(in_srgb,var(--app-panel)_92%,black)] px-5 py-4 md:px-7">
+        <div className="border-t border-[var(--app-border)] bg-[color-mix(in_srgb,var(--app-panel)_92%,var(--app-bg))] px-5 py-4 md:px-7">
           <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
             <div className="text-[10px] uppercase tracking-[0.18em] text-[var(--app-muted)]">
               Seed the station now, or skip and continue with an empty local shell.

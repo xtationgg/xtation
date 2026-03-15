@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "xtation-dev",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["/Users/sarynass/dyad-apps/CLient-D82pm/node_modules/vite/bin/vite.js", "--root", "/Users/sarynass/dyad-apps/CLient-D82pm"],
+      "port": 5173
+    }
+  ]
+}

@@ -357,7 +357,7 @@ export const QuestCard: React.FC<QuestCardProps> = ({
                 isRunning
                   ? 'bg-[color-mix(in_srgb,var(--app-accent)_80%,#ffffff)]'
                   : isScheduledFuture
-                  ? 'bg-[#55a3ff]'
+                  ? 'bg-[color-mix(in_srgb,var(--app-accent)_70%,var(--app-text))]'
                   : 'bg-[var(--app-accent)]'
               }`}
               style={{ width: `${Math.max(4, ((effectiveProgress || 0) * 100))}%` }}
