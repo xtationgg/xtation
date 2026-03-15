@@ -381,32 +381,117 @@
   background: color-mix(in srgb, var(--app-text) 3%, transparent);
 }
 
+/* ── Success state ── */
+.si-success {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: clamp(16px, 3cqi, 28px);
+  padding: clamp(20px, 4cqi, 40px) 0;
+}
+.si-success-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: clamp(44px, 7cqi, 64px);
+  height: clamp(44px, 7cqi, 64px);
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--app-accent) 15%, transparent);
+  border: 2px solid var(--app-accent);
+  color: var(--app-accent);
+  animation: si-success-pop 0.4s ease forwards;
+}
+.si-success-icon svg {
+  width: clamp(20px, 3.5cqi, 30px);
+  height: clamp(20px, 3.5cqi, 30px);
+}
+@keyframes si-success-pop {
+  0%   { transform: scale(0.5); opacity: 0; }
+  60%  { transform: scale(1.1); }
+  100% { transform: scale(1); opacity: 1; }
+}
+.si-success-bar {
+  width: 60%;
+  max-width: 200px;
+  height: 4px;
+  border-radius: 2px;
+  background: color-mix(in srgb, var(--app-border) 50%, transparent);
+  overflow: hidden;
+}
+.si-success-bar-fill {
+  height: 100%;
+  width: 0%;
+  border-radius: 2px;
+  background: var(--app-accent);
+  animation: si-bar-fill 2s ease-out forwards;
+}
+@keyframes si-bar-fill {
+  to { width: 100%; }
+}
+
 /* ── Hero column ── */
 .si-hero-col {
   flex: 1;
   position: relative;
   padding: clamp(8px, 1.2cqi, 14px);
   display: none;
+  overflow: hidden;
 }
-.si-hero-img {
+
+/* Media layers — stacked, crossfade */
+.si-media-layer {
   position: absolute;
   inset: clamp(8px, 1.2cqi, 14px);
   border-radius: clamp(8px, 1.4cqi, 18px);
-  background-size: cover;
-  background-position: center;
+  overflow: hidden;
+  transition: opacity 0.8s ease, transform 0.8s ease;
+  opacity: 1;
+  transform: scale(1);
 }
+.si-media-layer--out {
+  opacity: 0;
+  transform: scale(1.04);
+}
+.si-media-layer--success {
+  opacity: 0;
+  transform: scale(1.04);
+}
+.si-media-layer--in {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* Media fill — cover, not fit or stretch */
+.si-media-fill {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  border-radius: clamp(8px, 1.4cqi, 18px);
+}
+
+/* Gradient overlay */
 .si-hero-grad {
   position: absolute;
   inset: clamp(8px, 1.2cqi, 14px);
   border-radius: clamp(8px, 1.4cqi, 18px);
   background: linear-gradient(180deg, rgba(0,0,0,0.05) 0%, rgba(0,0,0,0.55) 100%);
   pointer-events: none;
+  z-index: 2;
+  transition: background 0.8s ease;
 }
+.si-hero-grad--light {
+  background: linear-gradient(180deg, rgba(0,0,0,0.02) 0%, rgba(0,0,0,0.35) 100%);
+}
+
+/* Brand text */
 .si-hero-brand {
   position: absolute;
   bottom: clamp(20px, 3.5cqi, 40px);
   left: clamp(20px, 3.5cqi, 40px);
-  z-index: 1;
+  z-index: 3;
+  transition: transform 0.6s ease, opacity 0.6s ease;
 }
 .si-hero-logo {
   font-size: clamp(14px, 2.8cqi, 22px);
@@ -420,6 +505,7 @@
   color: rgba(255,255,255,0.65);
   margin-top: clamp(2px, 0.3cqi, 4px);
   letter-spacing: 0.03em;
+  transition: color 0.6s ease;
 }
 
 /* Show hero on wider cards */

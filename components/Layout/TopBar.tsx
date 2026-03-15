@@ -380,17 +380,23 @@ export const TopBar: React.FC<TopBarProps> = ({
         <SignInPage
           compact
           onSignIn={async (email, password) => {
-            if (!email.trim() || !password) return;
+            if (!email.trim() || !password) return false;
             const success = await signInWithPassword(email, password);
             if (success) {
               writeAuthTransitionSignal({ mode: 'login', fromGuestMode: isGuestMode });
-              closeLoginModal();
+              setTimeout(closeLoginModal, 1200);
+              return true;
             }
+            return false;
           }}
           onSignUp={async (email, password) => {
-            if (!email.trim() || !password) return;
-            await signUpWithPassword(email, password);
-            writeAuthTransitionSignal({ mode: 'signup', fromGuestMode: isGuestMode });
+            if (!email.trim() || !password) return false;
+            const success = await signUpWithPassword(email, password);
+            if (success) {
+              writeAuthTransitionSignal({ mode: 'signup', fromGuestMode: isGuestMode });
+              return true;
+            }
+            return false;
           }}
           onGoogleSignIn={async () => {
             writeAuthTransitionSignal({ mode: 'oauth', fromGuestMode: isGuestMode });
