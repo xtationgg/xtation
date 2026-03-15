@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo, useState } from 'react';
-import { SignInPage } from '../ui/sign-in';
+import { SignInPage } from '../UI/sign-in';
 import { useAuth } from '../../src/auth/AuthProvider';
 import { writeAuthTransitionSignal } from '../../src/auth/authTransitionSignal';
 import { playClickSound } from '../../utils/SoundEffects';

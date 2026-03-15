@@ -4,7 +4,7 @@ import { Settings, Bell, Trophy, Bot, X } from 'lucide-react';
 import { ClientView } from '../../types';
 import { NavTab } from '../UI/HextechUI';
 import { AuthDrawer } from '../UI/AuthDrawer';
-import { SignInPage } from '../ui/sign-in';
+import { SignInPage } from '../UI/sign-in';
 import { writeAuthTransitionSignal } from '../../src/auth/authTransitionSignal';
 import { playClickSound, playHoverSound } from '../../utils/SoundEffects';
 import { useXP } from '../XP/xpStore';
