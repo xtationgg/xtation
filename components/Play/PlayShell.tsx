@@ -1,5 +1,6 @@
 import React from 'react';
 import { SessionBanner } from './shared/SessionBanner';
+import { Button } from '../ui/button';
 
 type PlaySpace = 'process' | 'vault';
 
@@ -24,19 +25,21 @@ export const PlayShell: React.FC<PlayShellProps> = ({
 }) => (
   <div className="play-shell">
     <div className="play-header">
-      <div className="play-space-switcher">
-        <button
-          className={`play-space-tab ${activeSpace === 'process' ? 'play-space-tab--active' : ''}`}
+      <div className="play-space-switcher flex items-center gap-0.5 rounded-lg bg-muted/50 p-0.5">
+        <Button
+          variant={activeSpace === 'process' ? 'secondary' : 'ghost'}
+          size="sm"
           onClick={() => onSwitchSpace('process')}
         >
           Process
-        </button>
-        <button
-          className={`play-space-tab ${activeSpace === 'vault' ? 'play-space-tab--active' : ''}`}
+        </Button>
+        <Button
+          variant={activeSpace === 'vault' ? 'secondary' : 'ghost'}
+          size="sm"
           onClick={() => onSwitchSpace('vault')}
         >
           Vault
-        </button>
+        </Button>
       </div>
       {sessionActive && sessionQuestTitle && onSessionPause && onSessionEnd && onEnterFocus ? (
         <SessionBanner
